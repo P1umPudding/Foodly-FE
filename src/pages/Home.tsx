@@ -59,7 +59,7 @@ export function Home() {
               </li>
               <li>Nachrichten-Typen in <code>src/api/index.ts</code> anpassen</li>
               <li>
-                Daten laden mit <code>useRequest(() =&gt; foodly.listItems())</code>
+                Daten laden mit <code>useRequest(() =&gt; foodly.listRecipes())</code>
               </li>
             </ol>
           </CardContent>

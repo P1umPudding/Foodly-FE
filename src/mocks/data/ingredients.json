@@ -1,0 +1,19 @@
+[
+  { "id": 1, "name": "Spaghetti" },
+  { "id": 2, "name": "Hackfleisch (Rind)" },
+  { "id": 3, "name": "Tomaten (gehackt)" },
+  { "id": 4, "name": "Zwiebel" },
+  { "id": 5, "name": "Knoblauchzehe" },
+  { "id": 6, "name": "Olivenöl" },
+  { "id": 7, "name": "Tomatenmark" },
+  { "id": 8, "name": "Parmesan" },
+  { "id": 9, "name": "Basilikum" },
+  { "id": 10, "name": "Mehl (Type 405)" },
+  { "id": 11, "name": "Zucker" },
+  { "id": 12, "name": "Butter" },
+  { "id": 13, "name": "Eier" },
+  { "id": 14, "name": "Milch" },
+  { "id": 15, "name": "Backpulver" },
+  { "id": 16, "name": "Zartbitterschokolade" },
+  { "id": 17, "name": "Salz" }
+]
