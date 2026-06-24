@@ -1,41 +1,50 @@
 import { SocketClient } from './socket';
+import type {
+  Ingredient,
+  Recipe,
+  RecipeId,
+  Tag,
+  User,
+  UserCategory,
+} from './types';
 
 // Single shared connection to the backend. The URL comes from the environment
-// (.env.local → VITE_WS_URL). `main.tsx` calls `socket.connect()` on startup.
+// (.env.local → VITE_WS_URL). `main.tsx` calls `bootstrap()` on startup.
 const WS_URL = import.meta.env.VITE_WS_URL ?? '';
+
+// Dev convenience: with VITE_MOCK=1 the app serves local fixtures (src/mocks)
+// instead of talking to a real backend. Statically false in prod, so the
+// dynamic import below is dropped from the build.
+const USE_MOCKS = import.meta.env.VITE_MOCK === '1';
 
 export const socket = new SocketClient(WS_URL);
 export { type SocketStatus } from './socket';
 
-// ---------------------------------------------------------------------------
-// Typed API surface — EXAMPLES. Replace the message `type` strings and the
-// payload/return types to match the real backend protocol. Every call is just
-// `socket.request<ReturnType>('message.type', payload)`.
-// ---------------------------------------------------------------------------
+/** Open the backend connection — or attach the mock responder when mocking. */
+export async function bootstrap(): Promise<void> {
+  if (USE_MOCKS) {
+    const { mockRequest } = await import('../mocks');
+    socket.useMocks(mockRequest);
+    return;
+  }
+  socket.connect();
+}
 
-// e.g. a CRUD resource (the "online part"):
-export type Item = { id: string; name: string; updatedAt: string };
+// ---------------------------------------------------------------------------
+// Typed API surface. Each call is just `socket.request<ReturnType>('type', payload)`.
+// The message `type` strings are placeholders — align them with the real
+// backend protocol (the mock responder in `src/mocks` matches these strings).
+// ---------------------------------------------------------------------------
 
 export const foodly = {
-  listItems: () => socket.request<Item[]>('items.list'),
-  getItem: (id: string) => socket.request<Item>('items.get', { id }),
-  createItem: (input: { name: string }) => socket.request<Item>('items.create', input),
-  updateItem: (item: Item) => socket.request<Item>('items.update', item),
-  deleteItem: (id: string) => socket.request<{ ok: true }>('items.delete', { id }),
+  /** The current user (whoever is "logged in"). */
+  me: () => socket.request<User>('me'),
 
-  // The "offline changes" part: send a batch, get a per-change result back.
-  syncChanges: (changes: Change[]) => socket.request<SyncResult>('changes.sync', { changes }),
-};
+  listRecipes: () => socket.request<Recipe[]>('recipes.list'),
+  getRecipe: (id: RecipeId) => socket.request<Recipe>('recipes.get', { id }),
 
-export type Change = {
-  op: 'create' | 'update' | 'delete';
-  entity: string;
-  id: string;
-  fields?: Record<string, unknown>;
-  baseVersion?: number;
-};
-
-export type SyncResult = {
-  applied: number;
-  conflicts: Array<{ id: string; reason: string }>;
+  listCategories: () => socket.request<UserCategory[]>('categories.list'),
+  listTags: () => socket.request<Tag[]>('tags.list'),
+  listIngredients: () => socket.request<Ingredient[]>('ingredients.list'),
+  listUsers: () => socket.request<User[]>('users.list'),
 };

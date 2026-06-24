@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
+import { WakeLockToggle } from './WakeLockToggle';
 import { ConnectionDot } from './ConnectionDot';
 
 export function Nav() {
@@ -17,6 +18,7 @@ export function Nav() {
             Start
           </Link>
           <ConnectionDot />
+          <WakeLockToggle />
           <ThemeToggle />
         </nav>
       </div>

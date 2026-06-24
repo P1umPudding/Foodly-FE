@@ -29,8 +29,18 @@ export class SocketClient {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private closedByUser = false;
   private seq = 0;
+  private mockResponder: ((type: string, payload?: unknown) => Promise<unknown>) | null = null;
 
   constructor(private readonly url: string) {}
+
+  /**
+   * Dev-only: answer requests from a local responder instead of a real socket
+   * (see `src/mocks`). No WebSocket is opened; status flips straight to 'open'.
+   */
+  useMocks(responder: (type: string, payload?: unknown) => Promise<unknown>): void {
+    this.mockResponder = responder;
+    this.setStatus('open');
+  }
 
   getStatus(): SocketStatus {
     return this.status;
@@ -53,6 +63,10 @@ export class SocketClient {
   }
 
   connect(): void {
+    if (this.mockResponder) {
+      this.setStatus('open');
+      return;
+    }
     if (!this.url) {
       console.warn('[socket] VITE_WS_URL is not set — not connecting.');
       return;
@@ -96,6 +110,9 @@ export class SocketClient {
     payload?: unknown,
     opts: { timeoutMs?: number } = {},
   ): Promise<T> {
+    if (this.mockResponder) {
+      return this.mockResponder(type, payload) as Promise<T>;
+    }
     const timeoutMs = opts.timeoutMs ?? 15000;
     return new Promise<T>((resolve, reject) => {
       if (this.status !== 'open' || !this.ws) {
