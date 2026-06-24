@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="8" fill="#7300ff" />
+  <g stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- fork -->
+    <path d="M11 7v5a2 2 0 0 0 2 2v11" />
+    <path d="M11 7v4" />
+    <path d="M15 7v4a2 2 0 0 1-2 2" />
+    <!-- spoon -->
+    <path d="M21 25v-9" />
+    <ellipse cx="21" cy="11" rx="3" ry="4.5" />
+  </g>
+</svg>
