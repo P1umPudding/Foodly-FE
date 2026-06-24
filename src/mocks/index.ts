@@ -1,8 +1,4 @@
-// Dev-only mock backend. Loaded lazily by `src/api/index.ts` when VITE_MOCK=1,
-// so none of this (including the JSON fixtures) ends up in a production build.
-//
-// `mockRequest(type, payload)` mirrors what the real socket would answer for a
-// given message `type`; extend the switch as the protocol grows.
+// Dev-only mock backend, lazy-loaded when VITE_MOCK=1 so it stays out of prod.
 
 import type {
   Ingredient,
@@ -26,13 +22,11 @@ export const mockData = {
   categories: categories as UserCategory[],
 };
 
-/** The "logged-in" user while mocking. */
 export const CURRENT_USER_ID = 1;
 
-/** Simulate a little network latency so loading states are visible. */
+// Latency so loading states are actually visible in dev.
 const delay = (ms = 250) => new Promise((r) => setTimeout(r, ms));
 
-/** Resolve a mock response for a backend message `type`, or reject like the real backend would. */
 export async function mockRequest(type: string, payload?: unknown): Promise<unknown> {
   await delay();
   const id = (payload as { id?: number } | undefined)?.id;

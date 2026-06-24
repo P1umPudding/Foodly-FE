@@ -1,15 +1,10 @@
-// View models & derivations produced at the API boundary — the frontend-only
-// counterpart to `protocol.ts` (the wire contract). Pure functions that turn
-// raw DTOs into display-ready shapes; no React, no I/O, no id-resolving (after
-// the IngredientRef change, recipes render directly from the DTOs — see
-// docs/phases/phase-0-datenaufbereitung.md).
+// Frontend-only view helpers at the API boundary — the counterpart to
+// protocol.ts. Pure functions turning DTOs into display-ready shapes; no React,
+// no I/O.
 
 import type { Recipe, RecipeIngredient } from './protocol';
 
-/**
- * Average of a recipe's ratings, rounded to one decimal. `null` when the recipe
- * has no ratings yet (so the UI can omit the stars rather than show 0).
- */
+// null (not 0) when there are no ratings, so the UI can omit the stars.
 export function averageRating(recipe: Recipe): number | null {
   const ratings = recipe.rating;
   if (ratings.length === 0) return null;
@@ -17,15 +12,7 @@ export function averageRating(recipe: Recipe): number | null {
   return Math.round((sum / ratings.length) * 10) / 10;
 }
 
-/**
- * One ingredient line as a single display string, composed of
- * `amountPrefix amount unit` followed by the ingredient name (or free text).
- *
- *   { amount:"500", unit:"g", ingredient:{name:"Mehl"} }        → "500 g Mehl"
- *   { amountPrefix:"ca.", amount:"800", unit:"g", … "Tomaten" } → "ca. 800 g Tomaten"
- *   { ingredient:{name:"Parmesan"}, text:"zum Servieren" }      → "Parmesan zum Servieren"
- *   { ingredient:null, text:"Salz nach Geschmack" }             → "Salz nach Geschmack"
- */
+// Compose one ingredient line: "amountPrefix amount unit name/text".
 export function formatIngredient(line: RecipeIngredient): string {
   const quantity = [line.amountPrefix, line.amount, line.unit]
     .filter((part): part is string => Boolean(part))
@@ -40,8 +27,6 @@ export function formatIngredient(line: RecipeIngredient): string {
   return [quantity, name].filter(Boolean).join(' ').trim();
 }
 
-// Note: `recipe.time` is displayed as-is (a free string, possibly with {tag}
-// templates resolved at render time); `workMinutes`/`overallMinutes` are
-// filter-only (phase 2), not formatted for display. Amount/portion rendering
-// (incl. {tag} substitution) is a render-time concern → see the tag renderer
-// in phase 1, not a pure string helper here.
+// No time/portion formatters here on purpose: `recipe.time` is shown as-is,
+// minutes are filter-only, and {tag} substitution is a render-time concern
+// (the phase-1 tag renderer), not a string helper.

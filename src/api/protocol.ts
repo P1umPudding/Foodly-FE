@@ -1,16 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────
-// WIRE PROTOCOL — the contract between frontend and backend.
-//
-// This file is the SINGLE definition of what is exchanged over the socket
-// (the JSON the backend sends/receives). Treat it as the API contract: change
-// it only when the backend protocol changes, in lockstep with the backend.
-//
-// Frontend-only types — resolved/view models, derived shapes, UI state — do
-// NOT belong here. Resolved view models produced at the API boundary live in
-// `src/api/views.ts`; component-specific types stay co-located with their
-// components. Keeping this file pure makes the wire contract auditable at a
-// glance.
-// ─────────────────────────────────────────────────────────────────────────
+// The wire contract: the single definition of what's exchanged over the socket.
+// Change only in lockstep with the backend. Frontend-only types (resolved/view
+// models, UI state) belong in views.ts or beside their components, not here.
 
 export type Hash = string;
 
@@ -74,10 +64,8 @@ export type Ingredient = {
     // ... weitere Metadaten (Icon, Standard-Einheit, Nährwerte) kommen hier später dazu.
 };
 
-// Schlanke, denormalisierte Projektion einer Zutat, wie sie inline in jeder
-// Rezeptzeile mitkommt (expanded reference): id bleibt erhalten (für
-// Einkaufsliste / Filtern nach Zutat), der Name kommt zum sofortigen Rendern
-// mit — ohne den vollen Zutaten-Katalog laden zu müssen.
+// Expanded reference inlined in each recipe line: keeps the id (for shopping
+// list / filtering) but carries the name, so rendering needs no catalog fetch.
 export type IngredientRef = {
     id: IngredientId;
     name: string;
