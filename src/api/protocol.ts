@@ -37,7 +37,7 @@ export type Recipe = {
     name: string;
     tags: TagId[];
     source: string | null;
-
+    rating: { user: UserId; rating: number }[];
     time: string | null;
     workMinutes: number | null;
     overallMinutes: number | null;
@@ -47,9 +47,6 @@ export type Recipe = {
     images: ImageId[];
 
     sections: Section[];
-
-    // So nicht in der DB gestored, aber von der API returned:
-    rating: { user: UserId; rating: number }[];
 };
 
 export type SectionId = number;
