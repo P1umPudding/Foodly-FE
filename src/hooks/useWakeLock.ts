@@ -1,13 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/**
- * Keep the screen awake via the Screen Wake Lock API (useful on mobile while
- * cooking from a recipe). Returns the requested on/off state plus whether the
- * platform supports it.
- *
- * The browser silently releases the lock when the tab is hidden (e.g. you
- * switch apps), so we re-acquire it on `visibilitychange` while `enabled`.
- */
+// Keep the screen awake (Screen Wake Lock API) — handy on mobile while cooking.
+// The browser drops the lock when the tab is hidden, so we re-acquire it on
+// `visibilitychange` while enabled.
 export function useWakeLock(initial = false) {
   const supported =
     typeof navigator !== 'undefined' && 'wakeLock' in navigator;

@@ -3,7 +3,6 @@ import { useWakeLock } from '../hooks/useWakeLock';
 
 const ICON = 'h-4 w-4';
 
-/** Coffee-cup metaphor: "keep the screen awake". */
 function MugIcon({ steam }: { steam: boolean }) {
   return (
     <svg className={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -15,10 +14,7 @@ function MugIcon({ steam }: { steam: boolean }) {
   );
 }
 
-/**
- * Header toggle for the screen wake lock. Hidden on platforms that don't
- * support the Wake Lock API. Provisional placement — see docs/backlog.md.
- */
+// Provisional placement in the header — see docs/backlog.md.
 export function WakeLockToggle() {
   const { enabled, supported, toggle } = useWakeLock();
   if (!supported) return null;

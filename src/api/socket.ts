@@ -33,10 +33,8 @@ export class SocketClient {
 
   constructor(private readonly url: string) {}
 
-  /**
-   * Dev-only: answer requests from a local responder instead of a real socket
-   * (see `src/mocks`). No WebSocket is opened; status flips straight to 'open'.
-   */
+  // Dev-only: answer requests from a local responder (src/mocks) — no real
+  // WebSocket; status goes straight to 'open'.
   useMocks(responder: (type: string, payload?: unknown) => Promise<unknown>): void {
     this.mockResponder = responder;
     this.setStatus('open');
