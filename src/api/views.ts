@@ -47,7 +47,8 @@ export function formatIngredient(line: RecipeIngredient): string {
  */
 export function formatPortions(amount: string | null): string | null {
   if (!amount) return null;
-  return amount.replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
+  const cleaned = amount.replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
+  return cleaned || null;
 }
 
 /**
