@@ -1,0 +1,11 @@
+node_modules
+dist
+*.local
+
+# local env (API/WebSocket URLs etc.)
+.env
+.env.local
+.env.*.local
+
+.DS_Store
+*.log

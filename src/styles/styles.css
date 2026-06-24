@@ -1,0 +1,177 @@
+/**
+ * App stylesheet entry — Tailwind v4 wiring (mirrors the Homepage/Recipes setup).
+ *
+ * Split: theme.css = token VALUES; this file = the wiring (@custom-variant,
+ * @theme inline, compact text scale, base CSS). Preflight is ON.
+ */
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* Local editable token values. */
+@import './theme.css';
+
+/* Scan the component library so its utility classes are generated.
+   Path is relative to THIS stylesheet. */
+@source '../../node_modules/@postxl/ui-components';
+
+/* Tailwind v4 dropped preflight's default border-color, so a bare `border`
+   utility falls back to currentColor (the text colour) — too bright in dark
+   mode, too dark in light. Restore a sane default so components that ship a
+   plain `border` (e.g. @postxl Card, Select/Dropdown popovers) pick up the
+   theme token. An explicit `border-*` utility still overrides this. */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop {
+    border-color: var(--border);
+  }
+}
+
+/* Class-based dark mode (Tailwind v4 custom variant). */
+@custom-variant dark (&:where(.dark, .dark *)); /* NOSONAR - Tailwind v4 at-rule */
+
+/* Map semantic tokens -> Tailwind v4 utility namespaces. `inline` so var()
+   values resolve at the utility's usage site (respects the .dark override). */
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-xs: calc(var(--radius) * 0.25);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 2);
+  --radius-2xl: calc(var(--radius) * 2.5);
+  --radius-3xl: calc(var(--radius) * 3.5);
+  --radius-4xl: calc(var(--radius) * 5);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+/* Compact TEXT SCALE — same as the Skaile platform / Homepage: Tailwind's text
+   tokens are redefined smaller than the defaults (--text-base 12px, not 16px).
+   This is why the @postxl Button/Input/labels look compact via their `size`
+   prop alone. Display sizes (text-2xl+) stay larger for headings. */
+@theme {
+  --text-xs: 0.625rem; /* 10px */
+  --text-xs--line-height: 14px;
+  --text-sm: 11px;
+  --text-sm--line-height: 16px;
+  --text-base: 12px;
+  --text-base--line-height: 16px;
+  --text-lg: 14px;
+  --text-lg--line-height: 20px;
+  --text-xl: 16px;
+  --text-xl--line-height: 24px;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 32px;
+}
+
+/* Themed document defaults. Preflight already reset margins. */
+@layer base {
+  :root {
+    /* Distinctive display face for headings (loaded in index.html). */
+    --font-display: 'Bricolage Grotesque', var(--font-sans);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
+}
+
+/* Tailwind hardcodes `.rounded` to 0.25rem; override to follow --radius so the
+   radius stays themeable from theme.css. */
+@layer utilities {
+  .rounded {
+    border-radius: var(--radius);
+  }
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ---- View Transitions API styles for the color-mode toggle (ThemeToggle) ---- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  pointer-events: none;
+}
+[data-theme-transition='reverse']::view-transition-old(root) {
+  z-index: 1;
+}
+[data-theme-transition='reverse']::view-transition-new(root) {
+  z-index: 0;
+}
+
+/* While a theme view-transition runs, the sticky header's backdrop-filter
+   renders incorrectly inside the snapshot — drop it for that moment. */
+html[data-theme-anim] .site-header {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}

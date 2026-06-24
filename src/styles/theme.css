@@ -1,0 +1,117 @@
+/* Brand design tokens (the Skaile purple theme), shared with the Homepage /
+   Recipes apps. Var NAMES follow the shadcn-style schema so the Tailwind wiring
+   in styles.css stays generic. Re-theme by editing the VALUES below; if you want
+   to stay in sync with the sibling apps, mirror changes in their theme.css. */
+
+:root {
+  color-scheme: light;
+
+  --radius: 0.375rem;
+
+  /* fonts (system stack) */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --font-weight-semibold: 600;
+
+  /* surfaces */
+  --background: hsl(210 40% 98%);
+  --foreground: hsl(222 47% 11%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222 47% 11%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222 47% 11%);
+
+  /* brand / actions (Skaile purple) */
+  --primary: hsl(267 100% 50%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(210 40% 96%);
+  --secondary-foreground: hsl(215 16% 47%);
+
+  /* muted / accent */
+  --muted: hsl(210 40% 96%);
+  --muted-foreground: hsl(215 16% 47%);
+  --accent: hsl(210 40% 96%);
+  --accent-foreground: hsl(222 47% 11%);
+
+  /* status */
+  --destructive: hsl(0 72.2% 50.6%);
+  --success: hsl(161.4 93.5% 30.4%);
+  --warning: hsl(32.1 94.6% 43.7%);
+
+  /* lines / focus */
+  --border: hsl(214 32% 91%);
+  --input: hsl(214 32% 91%);
+  --ring: hsl(267 100% 50%);
+
+  /* sidebar (PostXL Sidebar/nav) */
+  --sidebar: hsl(0 0% 100%);
+  --sidebar-foreground: hsl(222 47% 11%);
+  --sidebar-primary: hsl(267 100% 50%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(267 100% 97%);
+  --sidebar-accent-foreground: hsl(267 100% 50%);
+  --sidebar-border: hsl(214 32% 91%);
+  --sidebar-ring: hsl(267 100% 50%);
+
+  /* chart palette */
+  --chart-1: hsl(267 100% 50%);
+  --chart-2: hsl(267 100% 63%);
+  --chart-3: hsl(271 91% 65%);
+  --chart-4: hsl(37.7 92.1% 50.2%);
+  --chart-5: hsl(161.4 93.5% 30.4%);
+
+  /* shadows */
+  --shadow-2xs: 0 1px 2px 0px hsl(222 47% 11% / 0.03);
+  --shadow-xs: 0 1px 2px 0px hsl(222 47% 11% / 0.05);
+  --shadow-sm: 0 1px 2px 0px hsl(222 47% 11% / 0.05);
+  --shadow: 0 4px 6px 0px hsl(222 47% 11% / 0.07);
+  --shadow-md: 0 4px 6px 0px hsl(222 47% 11% / 0.07);
+  --shadow-lg: 0 10px 15px 0px hsl(222 47% 11% / 0.1);
+  --shadow-xl: 0 20px 25px -5px hsl(222 47% 11% / 0.1);
+  --shadow-2xl: 0 25px 50px -12px hsl(222 47% 11% / 0.25);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: #13151a;
+  --foreground: #f4f4f5;
+  --card: #1a1c22;
+  --card-foreground: #f4f4f5;
+  --popover: #1a1c22;
+  --popover-foreground: #f4f4f5;
+
+  --primary: #7300ff;
+  --primary-foreground: #ffffff;
+  --secondary: #23262d;
+  --secondary-foreground: #f4f4f5;
+
+  --muted: #1a1c22;
+  --muted-foreground: #a1a1aa;
+  --accent: #2a2d36;
+  --accent-foreground: #f4f4f5;
+
+  --destructive: hsl(0 84.2% 60.2%);
+  --success: hsl(160.1 84.1% 39.4%);
+  --warning: hsl(37.7 92.1% 50.2%);
+
+  --border: #2e303a;
+  --input: #2e303a;
+  --ring: #7300ff;
+
+  --sidebar: #13151a;
+  --sidebar-foreground: #f4f4f5;
+  --sidebar-primary: #7300ff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1b1a3f;
+  --sidebar-accent-foreground: #9b40ff;
+  --sidebar-border: #2e303a;
+  --sidebar-ring: #7300ff;
+
+  --chart-1: #7300ff;
+  --chart-2: #9b40ff;
+  --chart-3: #bc52ee;
+  --chart-4: #f59e0b;
+  --chart-5: #10b981;
+}
