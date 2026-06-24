@@ -10,7 +10,7 @@ import type {
   Tag,
   User,
   UserCategory,
-} from '../api/types';
+} from '../api/protocol';
 
 import recipes from './data/recipes.json';
 import users from './data/users.json';
