@@ -73,6 +73,23 @@ backend to connect.
 
 - Page: component in `src/pages/`, add a `<Route>` in `src/App.tsx`.
 
+## Comments
+
+Comments explain **why**, not **what** — well-named code already says what it
+does. The main thing to avoid: a wall of comment above every function/type
+restating its name and signature. Don't do that.
+
+- Keep the non-obvious: a tricky invariant, a workaround and its reason, a
+  protocol assumption, a deliberate edge-case choice. Delete comments that just
+  restate the code.
+- Reach for a better name before a comment. If a comment explains a variable or
+  function, try renaming it first.
+- **File header:** a short note on the file's role is fine (a few lines) — just
+  don't let it grow into an essay.
+- **Commented-out code** is OK when it earns its place (a documented alternative,
+  a temporarily-disabled path) — say why it's there; otherwise delete it.
+- `TODO`/`FIXME` only if actionable.
+
 ## UI / styling conventions
 
 - Use `@postxl/ui-components` for all interactive UI — buttons, inputs,
