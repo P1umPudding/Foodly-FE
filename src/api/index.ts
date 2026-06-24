@@ -6,7 +6,7 @@ import type {
   Tag,
   User,
   UserCategory,
-} from './types';
+} from './protocol';
 
 // Single shared connection to the backend. The URL comes from the environment
 // (.env.local → VITE_WS_URL). `main.tsx` calls `bootstrap()` on startup.

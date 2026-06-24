@@ -19,13 +19,13 @@
         "id": 1,
         "name": "Bolognese",
         "ingredients": [
-          { "id": 101, "ingredient": 2, "text": null, "amount": "500", "amountPrefix": null, "unit": "g" },
-          { "id": 102, "ingredient": 4, "text": null, "amount": "1", "amountPrefix": null, "unit": null },
-          { "id": 103, "ingredient": 5, "text": null, "amount": "2", "amountPrefix": null, "unit": null },
-          { "id": 104, "ingredient": 3, "text": null, "amount": "800", "amountPrefix": "ca.", "unit": "g" },
-          { "id": 105, "ingredient": 7, "text": null, "amount": "2", "amountPrefix": null, "unit": "EL" },
-          { "id": 106, "ingredient": 6, "text": null, "amount": "2", "amountPrefix": null, "unit": "EL" },
-          { "id": 107, "ingredient": 17, "text": "nach Geschmack", "amount": null, "amountPrefix": null, "unit": null }
+          { "id": 101, "ingredient": { "id": 2, "name": "Hackfleisch (Rind)" }, "text": null, "amount": "500", "amountPrefix": null, "unit": "g" },
+          { "id": 102, "ingredient": { "id": 4, "name": "Zwiebel" }, "text": null, "amount": "1", "amountPrefix": null, "unit": null },
+          { "id": 103, "ingredient": { "id": 5, "name": "Knoblauchzehe" }, "text": null, "amount": "2", "amountPrefix": null, "unit": null },
+          { "id": 104, "ingredient": { "id": 3, "name": "Tomaten (gehackt)" }, "text": null, "amount": "800", "amountPrefix": "ca.", "unit": "g" },
+          { "id": 105, "ingredient": { "id": 7, "name": "Tomatenmark" }, "text": null, "amount": "2", "amountPrefix": null, "unit": "EL" },
+          { "id": 106, "ingredient": { "id": 6, "name": "Olivenöl" }, "text": null, "amount": "2", "amountPrefix": null, "unit": "EL" },
+          { "id": 107, "ingredient": { "id": 17, "name": "Salz" }, "text": "nach Geschmack", "amount": null, "amountPrefix": null, "unit": null }
         ],
         "steps": [
           "Zwiebel und Knoblauch fein hacken.",
@@ -39,8 +39,8 @@
         "id": 2,
         "name": "Pasta",
         "ingredients": [
-          { "id": 108, "ingredient": 1, "text": null, "amount": "500", "amountPrefix": null, "unit": "g" },
-          { "id": 109, "ingredient": 8, "text": "zum Servieren", "amount": null, "amountPrefix": null, "unit": null }
+          { "id": 108, "ingredient": { "id": 1, "name": "Spaghetti" }, "text": null, "amount": "500", "amountPrefix": null, "unit": "g" },
+          { "id": 109, "ingredient": { "id": 8, "name": "Parmesan" }, "text": "zum Servieren", "amount": null, "amountPrefix": null, "unit": null }
         ],
         "steps": [
           "Spaghetti nach Packungsangabe in Salzwasser kochen.",
@@ -73,13 +73,13 @@
         "id": 3,
         "name": null,
         "ingredients": [
-          { "id": 201, "ingredient": 12, "text": null, "amount": "200", "amountPrefix": null, "unit": "g" },
-          { "id": 202, "ingredient": 11, "text": null, "amount": "200", "amountPrefix": null, "unit": "g" },
-          { "id": 203, "ingredient": 13, "text": null, "amount": "4", "amountPrefix": null, "unit": null },
-          { "id": 204, "ingredient": 10, "text": null, "amount": "250", "amountPrefix": null, "unit": "g" },
-          { "id": 205, "ingredient": 15, "text": null, "amount": "1", "amountPrefix": null, "unit": "TL" },
-          { "id": 206, "ingredient": 16, "text": null, "amount": "200", "amountPrefix": null, "unit": "g" },
-          { "id": 207, "ingredient": 14, "text": null, "amount": "100", "amountPrefix": null, "unit": "ml" }
+          { "id": 201, "ingredient": { "id": 12, "name": "Butter" }, "text": null, "amount": "200", "amountPrefix": null, "unit": "g" },
+          { "id": 202, "ingredient": { "id": 11, "name": "Zucker" }, "text": null, "amount": "200", "amountPrefix": null, "unit": "g" },
+          { "id": 203, "ingredient": { "id": 13, "name": "Eier" }, "text": null, "amount": "4", "amountPrefix": null, "unit": null },
+          { "id": 204, "ingredient": { "id": 10, "name": "Mehl (Type 405)" }, "text": null, "amount": "250", "amountPrefix": null, "unit": "g" },
+          { "id": 205, "ingredient": { "id": 15, "name": "Backpulver" }, "text": null, "amount": "1", "amountPrefix": null, "unit": "TL" },
+          { "id": 206, "ingredient": { "id": 16, "name": "Zartbitterschokolade" }, "text": null, "amount": "200", "amountPrefix": null, "unit": "g" },
+          { "id": 207, "ingredient": { "id": 14, "name": "Milch" }, "text": null, "amount": "100", "amountPrefix": null, "unit": "ml" }
         ],
         "steps": [
           "Backofen auf 180 °C Ober-/Unterhitze vorheizen.",
@@ -115,11 +115,11 @@
         "id": 4,
         "name": null,
         "ingredients": [
-          { "id": 301, "ingredient": 10, "text": null, "amount": "250", "amountPrefix": null, "unit": "g" },
-          { "id": 302, "ingredient": 14, "text": null, "amount": "500", "amountPrefix": null, "unit": "ml" },
-          { "id": 303, "ingredient": 13, "text": null, "amount": "3", "amountPrefix": null, "unit": null },
-          { "id": 304, "ingredient": 17, "text": null, "amount": "1", "amountPrefix": null, "unit": "Prise" },
-          { "id": 305, "ingredient": 12, "text": "zum Braten", "amount": null, "amountPrefix": null, "unit": null }
+          { "id": 301, "ingredient": { "id": 10, "name": "Mehl (Type 405)" }, "text": null, "amount": "250", "amountPrefix": null, "unit": "g" },
+          { "id": 302, "ingredient": { "id": 14, "name": "Milch" }, "text": null, "amount": "500", "amountPrefix": null, "unit": "ml" },
+          { "id": 303, "ingredient": { "id": 13, "name": "Eier" }, "text": null, "amount": "3", "amountPrefix": null, "unit": null },
+          { "id": 304, "ingredient": { "id": 17, "name": "Salz" }, "text": null, "amount": "1", "amountPrefix": null, "unit": "Prise" },
+          { "id": 305, "ingredient": { "id": 12, "name": "Butter" }, "text": "zum Braten", "amount": null, "amountPrefix": null, "unit": null }
         ],
         "steps": [
           "Mehl, Milch, Eier und Salz zu einem glatten Teig verrühren.",
