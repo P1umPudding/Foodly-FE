@@ -8,6 +8,9 @@ Guidance for Claude Code when working in this repository.
 explicitly says "push" in that request (a push triggers a deploy). Approval to
 push once does not carry over to later changes.
 
+**Do NOT add a `Co-Authored-By` trailer** (or any AI / Claude co-author line) to
+commits in this repo.
+
 ## Visual checks
 
 For visual verification of the running app, use the **Chrome MCP** server (real
