@@ -102,5 +102,6 @@ export type GroupId = number;
 export type Group = {
     id: GroupId;
     name: string;
+    owner: UserId;
     members: UserId[];
 };
