@@ -43,15 +43,22 @@ müsste:
 Nach der `IngredientRef`-Änderung braucht Phase 1 **fast kein** Resolving — das
 einzige id→Objekt (Zutat) kommt schon inline. Daher hier minimal:
 
-- **`src/api/views.ts`** anlegen mit reinen Ableitungs-/Formatier-Helfern, die
-  die Detail-/Listenansicht braucht, z.B.:
+- **`src/api/views.ts`** mit reinen Ableitungs-/Formatier-Helfern:
   - `averageRating(recipe): number | null` — Mittel aus `recipe.rating[]`.
+    (Noch nicht final entschieden, ob/wo wir's anzeigen — vorerst da.)
   - `formatIngredient(line): string` — `amountPrefix? amount? unit? name|text`.
-  - `formatPortions(amount): string` — `"4 {Portionen}"` → `"4 Portionen"`.
-  - ggf. `overallTime(recipe)` / Formatierung der Minuten.
+- **Bewusst NICHT in `views.ts`:**
+  - **Zeit:** `recipe.time` (String) wird direkt angezeigt; `workMinutes`/
+    `overallMinutes` sind nur für Filter (Phase 2), nicht fürs Rendering →
+    kein `formatMinutes`.
+  - **Portionen/`amount`:** kein „Klammern strippen". `amount` darf `{tagId}`-
+    Templates enthalten, die beim **Rendern** durch Tag-Bilder ersetzt werden →
+    das ist ein Render-Primitiv (Tag-Renderer, **Phase 1**), kein String-Helfer.
 - **Entity-Cache / Lookup-Maps** noch **nicht** nötig (kein id-Resolving in
-  Phase 1). Wird eingeführt, sobald Phase 2 (Kategorien, „meine vs. geteilte",
-  Filter) User-/Kategorie-Auflösung braucht.
+  Phase 1; Zutatenname kommt via `IngredientRef` inline mit). Wird eingeführt,
+  sobald Phase 2 (Kategorien, „meine vs. geteilte", Filter) User-/Kategorie-
+  Auflösung braucht — bzw. eine kleine Tag-Auflösung kommt mit dem Tag-Renderer
+  in Phase 1.
 
 So bleibt Phase 0 hier ein dünner View-Helfer-Layer; die schwerere
 Cache-/Resolver-Infrastruktur kommt erst, wenn eine Phase sie real einfordert.

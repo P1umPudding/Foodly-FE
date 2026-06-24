@@ -4,5 +4,7 @@
   { "id": "Vegetarisch", "svg": null },
   { "id": "Backen", "svg": null },
   { "id": "Dessert", "svg": null },
-  { "id": "Schnell", "svg": null }
+  { "id": "Schnell", "svg": null },
+  { "id": "Portionen", "svg": null },
+  { "id": "Springform", "svg": null }
 ]

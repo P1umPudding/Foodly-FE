@@ -47,9 +47,9 @@ Pro Zeile:
 - Bild-/Initial-Platzhalter links (Mocks haben `images: []` → Platzhalter, kein
   echtes Foto).
 - Name (Klick → `/recipes/:id`).
-- Meta: Gesamtzeit (`overallMinutes`), Durchschnitts-Rating (aus `rating[]`),
-  Tags (`tags` sind Strings = Namen).
-- Felder, die fehlen können (`overallMinutes`, leeres `rating`), werden einfach
+- Meta: Zeit (`recipe.time`, String — via Tag-Renderer), Durchschnitts-Rating
+  (aus `rating[]`), Tags (`tags` sind Strings = Namen).
+- Felder, die fehlen können (`time === null`, leeres `rating`), werden einfach
   weggelassen — keine „—"-Platzhalter.
 
 **Zustände:** Loading (Skeleton/Hinweis), Error (Fehlermeldung + ggf. Retry),
@@ -89,8 +89,10 @@ Quelle: Omas Rezept                          (Footer)
 ```
 
 **Kopf:** Titel; darunter eine Meta-Zeile mit (in dieser Reihenfolge, was
-vorhanden ist): Gesamtzeit, Portionen (`amount`, z.B. „4 {Portionen}" →
-„4 Portionen"), Durchschnitts-Rating, Quelle (`source` als Link, wenn URL).
+vorhanden ist): Zeit (`recipe.time`, String), Portionen (`recipe.amount`,
+z.B. `"4 {Portionen}"`), Durchschnitts-Rating, Quelle (`source` als Link, wenn
+URL). `time` und `amount` laufen durch den **Tag-Renderer** (siehe unten) — kein
+String-Trimming. `workMinutes`/`overallMinutes` sind nur für Filter (Phase 2).
 
 **Notizen** (`notes: string[]`) direkt unter der Meta-Zeile, je Notiz eine Zeile
 mit ⓘ-Marker.
@@ -115,6 +117,31 @@ dezenter Trennlinie. Auf Mobile stapeln (Zutaten oben, Schritte darunter).
 **Footer:** Quelle (wenn vorhanden). Bilder bleiben in Phase 1 außen vor (Mocks
 haben keine; `image.hash` → echte URL ist backend-abhängig).
 
+## Tag-Renderer (Render-Primitiv)
+
+Generischer Mechanismus, **nicht** nur für `amount`: in jedem anzeigbaren String
+darf `{tagId}` stehen und wird beim Rendern ersetzt. Wird auf `time`, `amount`
+und perspektivisch jeden gerenderten Text angewandt.
+
+Regeln pro `{X}`-Token:
+
+| Fall | Ergebnis |
+|---|---|
+| `X` ist ein existierender Tag **mit** `svg` | Tag-**Bild** rendern |
+| `X` ist ein existierender Tag **ohne** `svg` (`svg === null`) | nur `X`, **ohne** Klammern |
+| `X` ist **kein** existierender Tag | **literal** `{X}` lassen (erlaubt echte `{}` im Text) |
+
+- Gibt **React** zurück (Text-Fragmente + Tag-Bilder), kein reiner String →
+  gehört in die Render-Schicht, nicht in `views.ts`.
+- Braucht den **Tags-Katalog** (Existenz + `svg`): kleine Tag-Auflösung — der
+  einzige Daten-Resolve-Bedarf in Phase 1. Quelle: `foodly.listTags()`, als
+  `tagsById`-Lookup bereitgestellt (z.B. über Context).
+- `svg` ist ein `Hash` → echte Bild-URL ist backend-abhängig; in den Mocks haben
+  alle Tags `svg: null`, also rendern alle als Klartext. (Mock-Tags `Portionen`
+  und `Springform` wurden ergänzt, damit `amount` wie `"4 {Portionen}"` sauber
+  als „4 Portionen" rendert statt literal.)
+- Vorschlag: Komponente `<TagText value={…} />`.
+
 ## Komponenten (Vorschlag)
 
 | Datei | Zweck |
@@ -125,6 +152,7 @@ haben keine; `image.hash` → echte URL ist backend-abhängig).
 | `src/components/recipe/Rating.tsx` | Sterne aus einem 0–5-Wert |
 | `src/components/recipe/SectionBlock.tsx` | 2-Spalten Zutaten/Schritte je Section |
 | `src/components/recipe/IngredientLine.tsx` | eine formatierte Zutatenzeile |
+| `src/components/TagText.tsx` | `{tagId}`-Templates in einem String rendern |
 
 (Granularität beim Umsetzen anpassen — Leitlinie: kleine, fokussierte Einheiten.)
 

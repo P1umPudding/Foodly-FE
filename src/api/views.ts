@@ -40,25 +40,8 @@ export function formatIngredient(line: RecipeIngredient): string {
   return [quantity, name].filter(Boolean).join(' ').trim();
 }
 
-/**
- * Portion/amount string with the protocol's `{unit}` braces stripped for
- * display: "4 {Portionen}" → "4 Portionen", "26 cm {Springform}" → "26 cm
- * Springform". `null` passes through (nothing to show).
- */
-export function formatPortions(amount: string | null): string | null {
-  if (!amount) return null;
-  const cleaned = amount.replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
-  return cleaned || null;
-}
-
-/**
- * Human-readable duration from minutes: 45 → "45 min", 70 → "1 h 10 min",
- * 120 → "2 h". `null` passes through.
- */
-export function formatMinutes(minutes: number | null): string | null {
-  if (minutes == null) return null;
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
-}
+// Note: `recipe.time` is displayed as-is (a free string, possibly with {tag}
+// templates resolved at render time); `workMinutes`/`overallMinutes` are
+// filter-only (phase 2), not formatted for display. Amount/portion rendering
+// (incl. {tag} substitution) is a render-time concern → see the tag renderer
+// in phase 1, not a pure string helper here.
