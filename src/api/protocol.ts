@@ -34,7 +34,8 @@ export type Recipe = {
     amount: string | null; // 3 {Portionen}            28 cm {Springform}
     basePortionMultiplier: number | null; // 3                        1
     notes: string[];
-    images: ImageId[];
+    mainImage: ImageId | null; // Hauptbild (Hero) für Liste-Thumbnail / Detail-Kopf; null = keins
+    images: ImageId[]; // weitere Bilder (Galerie), ohne das Hauptbild
 
     sections: Section[];
 };
