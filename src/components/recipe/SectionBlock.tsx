@@ -12,13 +12,14 @@ export function SectionBlock({ section }: { section: Section }) {
       )}
 
       {/* Fixed splits, identical for every recipe/section: ingredients↔steps is a
-          hard 1:1.85 (minmax(0,…) so content can't distort it); within the table
-          the quantity column is a fixed width via the colgroup. leading-snug keeps
-          wrapped lines tighter than the gap between items. Divider between them. */}
-      <div className="grid grid-cols-1 gap-y-6 text-[0.95rem] leading-snug md:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)]">
-        <table className="w-full table-fixed border-collapse md:pr-10">
+          hard ratio (minmax(0,…) so content can't distort it); the quantity column
+          is a fixed width via the colgroup. The gap to the divider is the grid
+          column-gap (table padding is ignored under border-collapse). leading-snug
+          keeps wrapped lines tighter than the gap between items. */}
+      <div className="grid grid-cols-1 gap-y-6 text-[0.95rem] leading-snug md:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)] md:gap-x-8">
+        <table className="w-full table-fixed border-collapse">
           <colgroup>
-            <col className="w-[8.5rem]" />
+            <col className="w-[8rem]" />
             <col />
           </colgroup>
           <tbody>
