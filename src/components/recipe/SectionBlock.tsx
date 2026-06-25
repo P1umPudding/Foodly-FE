@@ -1,35 +1,38 @@
-import { Separator } from '@postxl/ui-components';
 import { TagText } from '../TagText';
 import { IngredientLine } from './IngredientLine';
 import type { Section } from '../../api/protocol';
 
 export function SectionBlock({ section }: { section: Section }) {
   return (
-    <section className="mt-8">
+    <section className="mt-10">
       {section.name && (
-        <>
-          <h2 className="text-lg font-medium"><TagText value={section.name} /></h2>
-          <Separator className="mt-2 mb-4" />
-        </>
+        <h2 className="mb-4 font-display text-2xl text-foreground">
+          <TagText value={section.name} size="md" />
+        </h2>
       )}
 
-      {/* Stack on mobile (ingredients then steps); 2 columns from md: up. */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1.5fr]">
-        <div>
-          <h3 className="mb-2 text-sm font-medium text-muted-foreground">Zutaten</h3>
-          <ul className="space-y-1">
+      {/* Fixed splits, identical for every recipe/section: ingredients↔steps is a
+          hard 1:2 (minmax(0,…) so content can't distort it); within the table the
+          quantity column is a fixed width via the colgroup. Divider between them. */}
+      <div className="grid grid-cols-1 gap-y-6 text-[0.875rem] md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <table className="w-full table-fixed border-collapse md:pr-8">
+          <colgroup>
+            <col className="w-[5.5rem]" />
+            <col />
+          </colgroup>
+          <tbody>
             {section.ingredients.map((line) => <IngredientLine key={line.id} line={line} />)}
-          </ul>
-        </div>
+          </tbody>
+        </table>
 
-        <div className="md:border-l md:pl-6">
-          <h3 className="mb-2 text-sm font-medium text-muted-foreground">Zubereitung</h3>
-          <ol className="list-inside list-decimal space-y-1">
-            {section.steps.map((step, i) => (
-              <li key={i}><TagText value={step} /></li>
-            ))}
-          </ol>
-        </div>
+        <ol className="space-y-2.5 md:border-l md:border-border md:pl-8">
+          {section.steps.map((step, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="shrink-0 tabular-nums text-muted-foreground/60">{i + 1}.</span>
+              <span className="min-w-0"><TagText value={step} /></span>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

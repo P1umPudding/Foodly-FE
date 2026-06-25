@@ -1,11 +1,13 @@
-import { Fragment, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Alert, AlertDescription, AlertTitle, Badge, Button, Skeleton } from '@postxl/ui-components';
+import { Clock, Info } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components';
 import { foodly } from '../api';
 import { useRequest } from '../hooks/useRequest';
 import { averageRating } from '../api/views';
+import { recipeImageSrc } from '../api/assets';
 import { TagText } from '../components/TagText';
 import { Rating } from '../components/recipe/Rating';
+import { TagChips } from '../components/recipe/TagChips';
 import { SectionBlock } from '../components/recipe/SectionBlock';
 
 function isUrl(s: string): boolean {
@@ -18,7 +20,7 @@ export function RecipeDetail() {
   const { status, data: recipe, error } = useRequest(() => foodly.getRecipe(recipeId), [recipeId]);
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="mx-auto max-w-5xl px-6 py-10">
       <Button asChild variant="ghost" size="sm" className="mb-4">
         <Link to="/">← Zurück</Link>
       </Button>
@@ -43,40 +45,48 @@ export function RecipeDetail() {
 
       {status === 'ready' && recipe && (
         <article>
-          {/* mainImage hero goes here once image loading lands; null in Phase 1. */}
           <header>
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <h1 className="font-display text-3xl text-foreground"><TagText value={recipe.name} /></h1>
-              {recipe.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {recipe.tags.map((t) => <Badge key={t} variant="secondary"><TagText value={t} /></Badge>)}
-                </div>
-              )}
+            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+              <h1 className="font-display text-4xl text-foreground">
+                <TagText value={recipe.name} size="lg" />
+              </h1>
+              <TagChips tags={recipe.tags} hoverName />
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-              {(() => {
-                // Rating first, then time, then portions — only the present ones,
-                // joined by "·" so there's never a stray leading separator.
-                const parts: ReactNode[] = [];
-                if (averageRating(recipe) !== null) parts.push(<Rating recipe={recipe} />);
-                if (recipe.time) parts.push(<span>🕒 <TagText value={recipe.time} /></span>);
-                if (recipe.amount) parts.push(<span><TagText value={recipe.amount} /></span>);
-                return parts.map((node, i) => (
-                  <Fragment key={i}>
-                    {i > 0 && <span aria-hidden>·</span>}
-                    {node}
-                  </Fragment>
-                ));
-              })()}
+            {/* Rating natural-width left, portions natural-width right, time
+                centred in the remaining space between them. */}
+            <div className="mt-5 flex items-center gap-4 text-xl">
+              <div className="shrink-0">
+                {averageRating(recipe) !== null && <Rating recipe={recipe} />}
+              </div>
+              <div className="flex-1 text-center">
+                {recipe.time && (
+                  <span className="inline-flex items-center gap-2">
+                    <Clock className="h-5 w-5 shrink-0 text-muted-foreground" />
+                    <TagText value={recipe.time} size="md" />
+                  </span>
+                )}
+              </div>
+              <div className="shrink-0">
+                {recipe.amount && <TagText value={recipe.amount} size="md" />}
+              </div>
             </div>
           </header>
 
+          {recipe.mainImage !== null && (
+            <img
+              src={recipeImageSrc(recipe.mainImage)}
+              alt={recipe.name}
+              className="mt-6 max-h-80 w-full rounded-xl object-cover"
+            />
+          )}
+
           {recipe.notes.length > 0 && (
-            <div className="mt-4 space-y-1">
+            <div className="mt-6 space-y-1.5">
               {recipe.notes.map((note, i) => (
-                <p key={i} className="flex gap-2 text-sm text-muted-foreground">
-                  <span aria-hidden>ⓘ</span><span><TagText value={note} /></span>
+                <p key={i} className="flex items-center gap-2 text-muted-foreground">
+                  <Info className="h-5 w-5 shrink-0" />
+                  <span><TagText value={note} /></span>
                 </p>
               ))}
             </div>
@@ -85,7 +95,7 @@ export function RecipeDetail() {
           {recipe.sections.map((section) => <SectionBlock key={section.id} section={section} />)}
 
           {recipe.source && (
-            <footer className="mt-10 text-sm text-muted-foreground">
+            <footer className="mt-16 text-[0.875rem] text-muted-foreground">
               Quelle:{' '}
               {isUrl(recipe.source)
                 ? <a href={recipe.source} target="_blank" rel="noopener noreferrer" className="underline">{recipe.source}</a>

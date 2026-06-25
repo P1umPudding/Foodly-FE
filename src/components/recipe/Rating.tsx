@@ -1,8 +1,17 @@
 import { Star } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger, Separator } from '@postxl/ui-components';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Separator,
+} from '@postxl/ui-components';
 import { Stars } from './Stars';
 import { averageRating, ratingsByRole, type RatedRole } from '../../api/views';
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider';
+import { userImageSrc } from '../../api/assets';
 import type { Recipe, UserId } from '../../api/protocol';
 
 const ROLE_LABEL: Record<RatedRole, string> = {
@@ -14,9 +23,36 @@ const ROLE_LABEL: Record<RatedRole, string> = {
 
 const ROLE_ORDER: RatedRole[] = ['owner', 'editor', 'viewer', 'other'];
 
-function UserName({ id }: { id: UserId }) {
+function StarValue({ value }: { value: number }) {
+  return (
+    <span className="inline-flex items-center gap-1 tabular-nums">
+      <Star className="h-3.5 w-3.5 fill-current text-star" />
+      {value.toFixed(1)}
+    </span>
+  );
+}
+
+function RaterRow({ id, rating, isCurrent }: { id: UserId; rating: number; isCurrent: boolean }) {
   const user = useUser(id);
-  return <>{user?.name ?? `User ${id}`}</>;
+  const name = user?.name ?? `User ${id}`;
+  const initial = name.trim().charAt(0).toUpperCase() || '?';
+  return (
+    <li className="flex items-center justify-between gap-2 text-sm">
+      <span className="flex min-w-0 items-center gap-2">
+        <Avatar className="h-6 w-6 shrink-0">
+          {user?.profilePicture && <AvatarImage src={userImageSrc(user.profilePicture)} alt="" />}
+          <AvatarFallback className="text-xs">{initial}</AvatarFallback>
+        </Avatar>
+        <span className="truncate">
+          {name}
+          {isCurrent && <span className="text-muted-foreground"> (Du)</span>}
+        </span>
+      </span>
+      <span className="shrink-0 text-muted-foreground">
+        <StarValue value={rating} />
+      </span>
+    </li>
+  );
 }
 
 export function Rating({ recipe }: { recipe: Recipe }) {
@@ -29,33 +65,26 @@ export function Rating({ recipe }: { recipe: Recipe }) {
 
   return (
     <Popover>
-      {/* The library's Button doesn't forwardRef, so `PopoverTrigger asChild`
-          + Button leaves Radix without an anchor (popover renders off-screen).
-          Use the trigger's own ref-forwarding button and style it directly. */}
-      <PopoverTrigger className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-sm text-muted-foreground transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
-        <Stars value={avg} />
+      {/* PopoverTrigger is the library's own ref-forwarding button (the @postxl
+          Button doesn't forwardRef, which breaks Radix positioning). cursor-pointer
+          is explicit until the lib ships it for interactive elements. */}
+      <PopoverTrigger className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+        <Stars value={avg} size="md" />
         <span className="tabular-nums">{avg.toFixed(1)}</span>
       </PopoverTrigger>
-      <PopoverContent className="w-72">
-        <div className="flex items-center justify-between">
-          <span className="font-medium">Bewertungen</span>
-          <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-            <Star className="h-3.5 w-3.5 fill-current text-star" />
-            {avg.toFixed(1)} · {rows.length}
-          </span>
+      <PopoverContent className="max-h-[60vh] w-72 overflow-y-auto">
+        <div className="flex items-center justify-between font-medium">
+          <span>Durchschnitt</span>
+          <StarValue value={avg} />
+          <span className="sr-only">aus {rows.length} Bewertungen</span>
         </div>
-
         {own && (
-          <div className="mt-3 flex items-center justify-between rounded-md bg-muted px-2 py-1.5">
-            <span className="text-sm font-medium">Du</span>
-            <span className="inline-flex items-center gap-1 text-sm tabular-nums">
-              <Star className="h-3.5 w-3.5 fill-current text-star" />
-              {own.rating.toFixed(1)}
-            </span>
+          <div className="mt-1 flex items-center justify-between font-medium">
+            <span>Du</span>
+            <StarValue value={own.rating} />
           </div>
         )}
 
-        {/* One labelled group per role, each preceded by a separator. */}
         {ROLE_ORDER.map((role) => {
           const members = rows.filter((r) => r.role === role);
           if (members.length === 0) return null;
@@ -65,15 +94,9 @@ export function Rating({ recipe }: { recipe: Recipe }) {
               <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {ROLE_LABEL[role]}
               </p>
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 {members.map((r) => (
-                  <li key={r.user} className="flex items-center justify-between text-sm">
-                    <UserName id={r.user} />
-                    <span className="inline-flex items-center gap-1 tabular-nums text-muted-foreground">
-                      <Star className="h-3.5 w-3.5 fill-current text-star" />
-                      {r.rating.toFixed(1)}
-                    </span>
-                  </li>
+                  <RaterRow key={r.user} id={r.user} rating={r.rating} isCurrent={r.user === currentUserId} />
                 ))}
               </ul>
             </div>

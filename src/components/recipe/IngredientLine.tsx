@@ -1,12 +1,19 @@
 import { TagText } from '../TagText';
-import { formatIngredient } from '../../api/views';
+import { ingredientParts } from '../../api/views';
 import type { RecipeIngredient } from '../../api/protocol';
 
+// One row of the (visually borderless) ingredient table: quantity right-aligned
+// and pale, name left-aligned.
 export function IngredientLine({ line }: { line: RecipeIngredient }) {
+  const { quantity, name } = ingredientParts(line);
   return (
-    <li className="flex gap-2">
-      <span aria-hidden className="text-muted-foreground">•</span>
-      <span><TagText value={formatIngredient(line)} /></span>
-    </li>
+    <tr>
+      <td className="py-1 pr-3 text-right align-baseline text-muted-foreground">
+        <TagText value={quantity} />
+      </td>
+      <td className="py-1 align-baseline">
+        <TagText value={name} />
+      </td>
+    </tr>
   );
 }
