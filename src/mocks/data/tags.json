@@ -12,7 +12,7 @@
   { "id": "Formgröße", "svg": null },
   { "id": "Salat", "svg": null },
   { "id": "Suppe", "svg": null },
-  { "id": "Vegan", "svg": null },
+  { "id": "Vegan", "svg": "vegan" },
   { "id": "Indisch", "svg": null },
   { "id": "Mexikanisch", "svg": null },
   { "id": "Vorspeise", "svg": null },

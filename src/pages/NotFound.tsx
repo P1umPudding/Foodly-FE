@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { Button } from '@postxl/ui-components';
+import { Link } from 'react-router-dom'
+import { Button } from '@postxl/ui-components'
 
 export function NotFound() {
   return (
@@ -11,5 +11,5 @@ export function NotFound() {
         <Link to="/">Zur Startseite</Link>
       </Button>
     </div>
-  );
+  )
 }

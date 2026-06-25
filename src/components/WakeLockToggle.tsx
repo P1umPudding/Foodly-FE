@@ -1,23 +1,31 @@
-import { buttonVariants, cn } from '@postxl/ui-components';
-import { useWakeLock } from '../hooks/useWakeLock';
+import { buttonVariants, cn } from '@postxl/ui-components'
+import { useWakeLock } from '../hooks/useWakeLock'
 
-const ICON = 'h-4 w-4';
+const ICON = 'size-4'
 
 function MugIcon({ steam }: { steam: boolean }) {
   return (
-    <svg className={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      className={ICON}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       {steam && <path d="M8 2c0 1-1 1.5-1 2.5S8 6 8 7M12 2c0 1-1 1.5-1 2.5S12 6 12 7M16 2c0 1-1 1.5-1 2.5S16 6 16 7" />}
       <path d="M5 9h11v5a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5V9z" />
       <path d="M16 10h2a2.5 2.5 0 0 1 0 5h-2" />
     </svg>
-  );
+  )
 }
 
 // Provisional placement in the header — see docs/backlog.md.
 export function WakeLockToggle() {
-  const { enabled, supported, toggle } = useWakeLock();
-  if (!supported) return null;
+  const { enabled, supported, toggle } = useWakeLock()
+  if (!supported) return null
 
   return (
     <button
@@ -34,5 +42,5 @@ export function WakeLockToggle() {
     >
       <MugIcon steam={enabled} />
     </button>
-  );
+  )
 }
