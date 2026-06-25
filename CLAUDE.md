@@ -63,13 +63,34 @@ There's no server code and no secrets in the repo.
 
 ```bash
 npm install
-npm run dev      # local dev server (Vite)
-npm run build    # tsc type-check + vite build -> dist/
-npm run preview  # serve the build
+npm run dev          # local dev server (Vite)
+npm run build        # tsc type-check + vite build -> dist/
+npm run preview      # serve the build
+npm run format       # prettier --write . (Skaile config: prettier.config.cjs)
+npm run format:check # prettier --check . (no writes)
 ```
 
 Local dev needs `VITE_WS_URL` in `.env.local` (see `.env.example`) for the
 backend to connect.
+
+## Formatting
+
+Prettier is set up with the shared Skaile config (`prettier.config.cjs`:
+no semicolons, single quotes, 2-space, printWidth 120). `.md` files are
+intentionally left alone (`.prettierignore`). Editors get format-on-save via
+`.vscode/settings.json`.
+
+Match that style as you write (the surrounding code already shows it). You
+don't need `npm run format` before *every* commit — when you're doing a run of
+small commits, skip it. **Do** run it:
+
+- when a PR is finished / about to go up,
+- after completing something larger (a feature, a sizable refactor),
+- when formatting hasn't been applied in a while — a rough rule of thumb is
+  ~5 commits without it, or right after one notably bigger change.
+
+It's whitespace-only and safe to run anytime; a stray run that reformats
+nothing is fine.
 
 ## Conventions
 
@@ -97,6 +118,10 @@ restating its name and signature. Don't do that.
 - Use `@postxl/ui-components` for all interactive UI — buttons, inputs,
   checkboxes, selects, dropdowns, dialogs, etc. Never hand-roll them with raw
   HTML controls (`<button>`, `<input>`, …).
+- **Tooltips:** always use the postxl `Tooltip` (`Tooltip` + `TooltipTrigger
+  asChild` + `TooltipContent`) — never the native `title=""` attribute. The
+  shared `TooltipProvider` lives once at the app root (`src/App.tsx`); individual
+  tooltips just need the trigger/content wrapper, not their own provider.
 - Style components through their `variant`/`size` props, not by re-implementing
   their look in Tailwind. You MAY add Tailwind classes to tweak spacing/layout —
   just don't rebuild what a prop already does.

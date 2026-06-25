@@ -22,7 +22,10 @@
         "ingredients": [
           {
             "id": 101,
-            "ingredient": { "id": 2, "name": "Hackfleisch (Rind)" },
+            "ingredient": {
+              "id": 2,
+              "name": "Hackfleisch (Rind)"
+            },
             "text": null,
             "amount": "500",
             "amountPrefix": null,
@@ -30,7 +33,10 @@
           },
           {
             "id": 102,
-            "ingredient": { "id": 4, "name": "Zwiebel" },
+            "ingredient": {
+              "id": 4,
+              "name": "Zwiebel"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -38,7 +44,10 @@
           },
           {
             "id": 103,
-            "ingredient": { "id": 5, "name": "Knoblauchzehe" },
+            "ingredient": {
+              "id": 5,
+              "name": "Knoblauchzehe"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -46,7 +55,10 @@
           },
           {
             "id": 104,
-            "ingredient": { "id": 3, "name": "Tomaten (gehackt)" },
+            "ingredient": {
+              "id": 3,
+              "name": "Tomaten (gehackt)"
+            },
             "text": null,
             "amount": "800",
             "amountPrefix": "ca.",
@@ -54,7 +66,10 @@
           },
           {
             "id": 105,
-            "ingredient": { "id": 7, "name": "Tomatenmark" },
+            "ingredient": {
+              "id": 7,
+              "name": "Tomatenmark"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -62,7 +77,10 @@
           },
           {
             "id": 106,
-            "ingredient": { "id": 6, "name": "Olivenöl" },
+            "ingredient": {
+              "id": 6,
+              "name": "Olivenöl"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -70,7 +88,10 @@
           },
           {
             "id": 107,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": "nach {Vegan} Geschmack",
             "amount": null,
             "amountPrefix": null,
@@ -91,7 +112,10 @@
         "ingredients": [
           {
             "id": 108,
-            "ingredient": { "id": 1, "name": "Spaghetti" },
+            "ingredient": {
+              "id": 1,
+              "name": "Spaghetti"
+            },
             "text": null,
             "amount": "500",
             "amountPrefix": null,
@@ -99,7 +123,10 @@
           },
           {
             "id": 109,
-            "ingredient": { "id": 8, "name": "Parmesan" },
+            "ingredient": {
+              "id": 8,
+              "name": "Parmesan"
+            },
             "text": "zum Servieren",
             "amount": null,
             "amountPrefix": null,
@@ -113,8 +140,14 @@
       }
     ],
     "rating": [
-      { "user": 1, "rating": 5 },
-      { "user": 2, "rating": 4 }
+      {
+        "user": 1,
+        "rating": 5
+      },
+      {
+        "user": 2,
+        "rating": 4
+      }
     ]
   },
   {
@@ -132,7 +165,7 @@
     "basePortionMultiplier": 1,
     "notes": [],
     "mainImage": 2,
-    "images": [],
+    "images": [3, 4, 5, 6],
     "sections": [
       {
         "id": 3,
@@ -140,7 +173,10 @@
         "ingredients": [
           {
             "id": 201,
-            "ingredient": { "id": 12, "name": "Butter" },
+            "ingredient": {
+              "id": 12,
+              "name": "Butter"
+            },
             "text": null,
             "amount": "200",
             "amountPrefix": null,
@@ -148,7 +184,10 @@
           },
           {
             "id": 202,
-            "ingredient": { "id": 11, "name": "Zucker" },
+            "ingredient": {
+              "id": 11,
+              "name": "Zucker"
+            },
             "text": null,
             "amount": "200",
             "amountPrefix": null,
@@ -156,7 +195,10 @@
           },
           {
             "id": 203,
-            "ingredient": { "id": 13, "name": "Eier" },
+            "ingredient": {
+              "id": 13,
+              "name": "Eier"
+            },
             "text": null,
             "amount": "4",
             "amountPrefix": null,
@@ -164,7 +206,10 @@
           },
           {
             "id": 204,
-            "ingredient": { "id": 10, "name": "Mehl (Type 405)" },
+            "ingredient": {
+              "id": 10,
+              "name": "Mehl (Type 405)"
+            },
             "text": null,
             "amount": "250",
             "amountPrefix": null,
@@ -172,7 +217,10 @@
           },
           {
             "id": 205,
-            "ingredient": { "id": 15, "name": "Backpulver" },
+            "ingredient": {
+              "id": 15,
+              "name": "Backpulver"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -180,7 +228,10 @@
           },
           {
             "id": 206,
-            "ingredient": { "id": 16, "name": "Zartbitterschokolade" },
+            "ingredient": {
+              "id": 16,
+              "name": "Zartbitterschokolade"
+            },
             "text": null,
             "amount": "200",
             "amountPrefix": null,
@@ -188,7 +239,10 @@
           },
           {
             "id": 207,
-            "ingredient": { "id": 14, "name": "Milch" },
+            "ingredient": {
+              "id": 14,
+              "name": "Milch"
+            },
             "text": null,
             "amount": "100",
             "amountPrefix": null,
@@ -205,7 +259,12 @@
         ]
       }
     ],
-    "rating": [{ "user": 1, "rating": 5 }]
+    "rating": [
+      {
+        "user": 1,
+        "rating": 5
+      }
+    ]
   },
   {
     "id": 3,
@@ -230,7 +289,10 @@
         "ingredients": [
           {
             "id": 301,
-            "ingredient": { "id": 10, "name": "Mehl (Type 405)" },
+            "ingredient": {
+              "id": 10,
+              "name": "Mehl (Type 405)"
+            },
             "text": null,
             "amount": "250",
             "amountPrefix": null,
@@ -238,7 +300,10 @@
           },
           {
             "id": 302,
-            "ingredient": { "id": 14, "name": "Milch" },
+            "ingredient": {
+              "id": 14,
+              "name": "Milch"
+            },
             "text": null,
             "amount": "500",
             "amountPrefix": null,
@@ -246,7 +311,10 @@
           },
           {
             "id": 303,
-            "ingredient": { "id": 13, "name": "Eier" },
+            "ingredient": {
+              "id": 13,
+              "name": "Eier"
+            },
             "text": null,
             "amount": "3",
             "amountPrefix": null,
@@ -254,7 +322,10 @@
           },
           {
             "id": 304,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -262,7 +333,10 @@
           },
           {
             "id": 305,
-            "ingredient": { "id": 12, "name": "Butter" },
+            "ingredient": {
+              "id": 12,
+              "name": "Butter"
+            },
             "text": "zum Braten",
             "amount": null,
             "amountPrefix": null,
@@ -276,7 +350,12 @@
         ]
       }
     ],
-    "rating": [{ "user": 1, "rating": 4 }]
+    "rating": [
+      {
+        "user": 1,
+        "rating": 4
+      }
+    ]
   },
   {
     "id": 4,
@@ -301,7 +380,10 @@
         "ingredients": [
           {
             "id": 401,
-            "ingredient": { "id": 18, "name": "Kartoffeln" },
+            "ingredient": {
+              "id": 18,
+              "name": "Kartoffeln"
+            },
             "text": null,
             "amount": "600",
             "amountPrefix": null,
@@ -309,7 +391,10 @@
           },
           {
             "id": 402,
-            "ingredient": { "id": 19, "name": "Paprika" },
+            "ingredient": {
+              "id": 19,
+              "name": "Paprika"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -317,7 +402,10 @@
           },
           {
             "id": 403,
-            "ingredient": { "id": 6, "name": "Olivenöl" },
+            "ingredient": {
+              "id": 6,
+              "name": "Olivenöl"
+            },
             "text": "zum Beträufeln",
             "amount": null,
             "amountPrefix": null,
@@ -325,7 +413,10 @@
           },
           {
             "id": 404,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": "nach Geschmack",
             "amount": null,
             "amountPrefix": null,
@@ -364,7 +455,10 @@
         "ingredients": [
           {
             "id": 501,
-            "ingredient": { "id": 20, "name": "Tomaten" },
+            "ingredient": {
+              "id": 20,
+              "name": "Tomaten"
+            },
             "text": null,
             "amount": "4",
             "amountPrefix": null,
@@ -372,7 +466,10 @@
           },
           {
             "id": 502,
-            "ingredient": { "id": 21, "name": "Salatgurke" },
+            "ingredient": {
+              "id": 21,
+              "name": "Salatgurke"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -380,7 +477,10 @@
           },
           {
             "id": 503,
-            "ingredient": { "id": 19, "name": "Paprika" },
+            "ingredient": {
+              "id": 19,
+              "name": "Paprika"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -388,7 +488,10 @@
           },
           {
             "id": 504,
-            "ingredient": { "id": 22, "name": "Rote Zwiebel" },
+            "ingredient": {
+              "id": 22,
+              "name": "Rote Zwiebel"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -396,7 +499,10 @@
           },
           {
             "id": 505,
-            "ingredient": { "id": 23, "name": "Feta" },
+            "ingredient": {
+              "id": 23,
+              "name": "Feta"
+            },
             "text": null,
             "amount": "200",
             "amountPrefix": null,
@@ -404,7 +510,10 @@
           },
           {
             "id": 506,
-            "ingredient": { "id": 24, "name": "Oliven (schwarz)" },
+            "ingredient": {
+              "id": 24,
+              "name": "Oliven (schwarz)"
+            },
             "text": null,
             "amount": "100",
             "amountPrefix": null,
@@ -412,7 +521,10 @@
           },
           {
             "id": 507,
-            "ingredient": { "id": 6, "name": "Olivenöl" },
+            "ingredient": {
+              "id": 6,
+              "name": "Olivenöl"
+            },
             "text": null,
             "amount": "4",
             "amountPrefix": null,
@@ -420,7 +532,10 @@
           },
           {
             "id": 508,
-            "ingredient": { "id": 25, "name": "Oregano" },
+            "ingredient": {
+              "id": 25,
+              "name": "Oregano"
+            },
             "text": "getrocknet",
             "amount": "1",
             "amountPrefix": null,
@@ -428,7 +543,10 @@
           },
           {
             "id": 509,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": "nach Geschmack",
             "amount": null,
             "amountPrefix": null,
@@ -445,8 +563,14 @@
       }
     ],
     "rating": [
-      { "user": 1, "rating": 5 },
-      { "user": 3, "rating": 4 }
+      {
+        "user": 1,
+        "rating": 5
+      },
+      {
+        "user": 3,
+        "rating": 4
+      }
     ]
   },
   {
@@ -472,7 +596,10 @@
         "ingredients": [
           {
             "id": 601,
-            "ingredient": { "id": 26, "name": "Hokkaido-Kürbis" },
+            "ingredient": {
+              "id": 26,
+              "name": "Hokkaido-Kürbis"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": "ca.",
@@ -480,7 +607,10 @@
           },
           {
             "id": 602,
-            "ingredient": { "id": 27, "name": "Karotte" },
+            "ingredient": {
+              "id": 27,
+              "name": "Karotte"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -488,7 +618,10 @@
           },
           {
             "id": 603,
-            "ingredient": { "id": 4, "name": "Zwiebel" },
+            "ingredient": {
+              "id": 4,
+              "name": "Zwiebel"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -496,7 +629,10 @@
           },
           {
             "id": 604,
-            "ingredient": { "id": 5, "name": "Knoblauchzehe" },
+            "ingredient": {
+              "id": 5,
+              "name": "Knoblauchzehe"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -504,7 +640,10 @@
           },
           {
             "id": 605,
-            "ingredient": { "id": 30, "name": "Ingwer" },
+            "ingredient": {
+              "id": 30,
+              "name": "Ingwer"
+            },
             "text": "geschält",
             "amount": "20",
             "amountPrefix": null,
@@ -512,7 +651,10 @@
           },
           {
             "id": 606,
-            "ingredient": { "id": 28, "name": "Gemüsebrühe" },
+            "ingredient": {
+              "id": 28,
+              "name": "Gemüsebrühe"
+            },
             "text": null,
             "amount": "800",
             "amountPrefix": null,
@@ -520,7 +662,10 @@
           },
           {
             "id": 607,
-            "ingredient": { "id": 29, "name": "Kokosmilch" },
+            "ingredient": {
+              "id": 29,
+              "name": "Kokosmilch"
+            },
             "text": null,
             "amount": "200",
             "amountPrefix": null,
@@ -528,7 +673,10 @@
           },
           {
             "id": 608,
-            "ingredient": { "id": 6, "name": "Olivenöl" },
+            "ingredient": {
+              "id": 6,
+              "name": "Olivenöl"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -536,7 +684,10 @@
           },
           {
             "id": 609,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": "nach Geschmack",
             "amount": null,
             "amountPrefix": null,
@@ -554,8 +705,14 @@
       }
     ],
     "rating": [
-      { "user": 1, "rating": 5 },
-      { "user": 2, "rating": 5 }
+      {
+        "user": 1,
+        "rating": 5
+      },
+      {
+        "user": 2,
+        "rating": 5
+      }
     ]
   },
   {
@@ -581,7 +738,10 @@
         "ingredients": [
           {
             "id": 701,
-            "ingredient": { "id": 31, "name": "Hähnchenbrustfilet" },
+            "ingredient": {
+              "id": 31,
+              "name": "Hähnchenbrustfilet"
+            },
             "text": null,
             "amount": "600",
             "amountPrefix": null,
@@ -589,7 +749,10 @@
           },
           {
             "id": 702,
-            "ingredient": { "id": 4, "name": "Zwiebel" },
+            "ingredient": {
+              "id": 4,
+              "name": "Zwiebel"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -597,7 +760,10 @@
           },
           {
             "id": 703,
-            "ingredient": { "id": 5, "name": "Knoblauchzehe" },
+            "ingredient": {
+              "id": 5,
+              "name": "Knoblauchzehe"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -605,7 +771,10 @@
           },
           {
             "id": 704,
-            "ingredient": { "id": 30, "name": "Ingwer" },
+            "ingredient": {
+              "id": 30,
+              "name": "Ingwer"
+            },
             "text": "geschält",
             "amount": "20",
             "amountPrefix": null,
@@ -613,7 +782,10 @@
           },
           {
             "id": 705,
-            "ingredient": { "id": 32, "name": "Currypulver" },
+            "ingredient": {
+              "id": 32,
+              "name": "Currypulver"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -621,7 +793,10 @@
           },
           {
             "id": 706,
-            "ingredient": { "id": 3, "name": "Tomaten (gehackt)" },
+            "ingredient": {
+              "id": 3,
+              "name": "Tomaten (gehackt)"
+            },
             "text": null,
             "amount": "400",
             "amountPrefix": null,
@@ -629,7 +804,10 @@
           },
           {
             "id": 707,
-            "ingredient": { "id": 29, "name": "Kokosmilch" },
+            "ingredient": {
+              "id": 29,
+              "name": "Kokosmilch"
+            },
             "text": null,
             "amount": "400",
             "amountPrefix": null,
@@ -637,7 +815,10 @@
           },
           {
             "id": 708,
-            "ingredient": { "id": 6, "name": "Olivenöl" },
+            "ingredient": {
+              "id": 6,
+              "name": "Olivenöl"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -645,7 +826,10 @@
           },
           {
             "id": 709,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": "nach Geschmack",
             "amount": null,
             "amountPrefix": null,
@@ -667,7 +851,10 @@
         "ingredients": [
           {
             "id": 710,
-            "ingredient": { "id": 33, "name": "Basmatireis" },
+            "ingredient": {
+              "id": 33,
+              "name": "Basmatireis"
+            },
             "text": null,
             "amount": "300",
             "amountPrefix": null,
@@ -675,7 +862,10 @@
           },
           {
             "id": 711,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -686,8 +876,14 @@
       }
     ],
     "rating": [
-      { "user": 2, "rating": 5 },
-      { "user": 1, "rating": 4 }
+      {
+        "user": 2,
+        "rating": 5
+      },
+      {
+        "user": 1,
+        "rating": 4
+      }
     ]
   },
   {
@@ -713,7 +909,10 @@
         "ingredients": [
           {
             "id": 801,
-            "ingredient": { "id": 34, "name": "Avocado" },
+            "ingredient": {
+              "id": 34,
+              "name": "Avocado"
+            },
             "text": "reif",
             "amount": "3",
             "amountPrefix": null,
@@ -721,7 +920,10 @@
           },
           {
             "id": 802,
-            "ingredient": { "id": 35, "name": "Limette" },
+            "ingredient": {
+              "id": 35,
+              "name": "Limette"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -729,7 +931,10 @@
           },
           {
             "id": 803,
-            "ingredient": { "id": 22, "name": "Rote Zwiebel" },
+            "ingredient": {
+              "id": 22,
+              "name": "Rote Zwiebel"
+            },
             "text": "klein",
             "amount": "1",
             "amountPrefix": null,
@@ -737,7 +942,10 @@
           },
           {
             "id": 804,
-            "ingredient": { "id": 20, "name": "Tomaten" },
+            "ingredient": {
+              "id": 20,
+              "name": "Tomaten"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -745,7 +953,10 @@
           },
           {
             "id": 805,
-            "ingredient": { "id": 5, "name": "Knoblauchzehe" },
+            "ingredient": {
+              "id": 5,
+              "name": "Knoblauchzehe"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -753,7 +964,10 @@
           },
           {
             "id": 806,
-            "ingredient": { "id": 36, "name": "Koriander" },
+            "ingredient": {
+              "id": 36,
+              "name": "Koriander"
+            },
             "text": "frisch, gehackt",
             "amount": "2",
             "amountPrefix": null,
@@ -761,7 +975,10 @@
           },
           {
             "id": 807,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": "nach Geschmack",
             "amount": null,
             "amountPrefix": null,
@@ -776,7 +993,12 @@
         ]
       }
     ],
-    "rating": [{ "user": 1, "rating": 4 }]
+    "rating": [
+      {
+        "user": 1,
+        "rating": 4
+      }
+    ]
   },
   {
     "id": 9,
@@ -801,7 +1023,10 @@
         "ingredients": [
           {
             "id": 901,
-            "ingredient": { "id": 10, "name": "Mehl (Type 405)" },
+            "ingredient": {
+              "id": 10,
+              "name": "Mehl (Type 405)"
+            },
             "text": null,
             "amount": "250",
             "amountPrefix": null,
@@ -809,7 +1034,10 @@
           },
           {
             "id": 902,
-            "ingredient": { "id": 11, "name": "Zucker" },
+            "ingredient": {
+              "id": 11,
+              "name": "Zucker"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -817,7 +1045,10 @@
           },
           {
             "id": 903,
-            "ingredient": { "id": 15, "name": "Backpulver" },
+            "ingredient": {
+              "id": 15,
+              "name": "Backpulver"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -825,7 +1056,10 @@
           },
           {
             "id": 904,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -833,7 +1067,10 @@
           },
           {
             "id": 905,
-            "ingredient": { "id": 13, "name": "Eier" },
+            "ingredient": {
+              "id": 13,
+              "name": "Eier"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -841,7 +1078,10 @@
           },
           {
             "id": 906,
-            "ingredient": { "id": 14, "name": "Milch" },
+            "ingredient": {
+              "id": 14,
+              "name": "Milch"
+            },
             "text": null,
             "amount": "300",
             "amountPrefix": null,
@@ -849,7 +1089,10 @@
           },
           {
             "id": 907,
-            "ingredient": { "id": 12, "name": "Butter" },
+            "ingredient": {
+              "id": 12,
+              "name": "Butter"
+            },
             "text": "geschmolzen",
             "amount": "30",
             "amountPrefix": null,
@@ -857,7 +1100,10 @@
           },
           {
             "id": 908,
-            "ingredient": { "id": 37, "name": "Ahornsirup" },
+            "ingredient": {
+              "id": 37,
+              "name": "Ahornsirup"
+            },
             "text": "zum Servieren",
             "amount": null,
             "amountPrefix": null,
@@ -874,8 +1120,14 @@
       }
     ],
     "rating": [
-      { "user": 3, "rating": 5 },
-      { "user": 1, "rating": 5 }
+      {
+        "user": 3,
+        "rating": 5
+      },
+      {
+        "user": 1,
+        "rating": 5
+      }
     ]
   },
   {
@@ -901,7 +1153,10 @@
         "ingredients": [
           {
             "id": 1001,
-            "ingredient": { "id": 38, "name": "Römersalat" },
+            "ingredient": {
+              "id": 38,
+              "name": "Römersalat"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -909,7 +1164,10 @@
           },
           {
             "id": 1002,
-            "ingredient": { "id": 31, "name": "Hähnchenbrustfilet" },
+            "ingredient": {
+              "id": 31,
+              "name": "Hähnchenbrustfilet"
+            },
             "text": null,
             "amount": "300",
             "amountPrefix": null,
@@ -917,7 +1175,10 @@
           },
           {
             "id": 1003,
-            "ingredient": { "id": 39, "name": "Croutons" },
+            "ingredient": {
+              "id": 39,
+              "name": "Croutons"
+            },
             "text": null,
             "amount": "50",
             "amountPrefix": null,
@@ -925,7 +1186,10 @@
           },
           {
             "id": 1004,
-            "ingredient": { "id": 8, "name": "Parmesan" },
+            "ingredient": {
+              "id": 8,
+              "name": "Parmesan"
+            },
             "text": "gehobelt",
             "amount": "30",
             "amountPrefix": null,
@@ -944,7 +1208,10 @@
         "ingredients": [
           {
             "id": 1005,
-            "ingredient": { "id": 40, "name": "Mayonnaise" },
+            "ingredient": {
+              "id": 40,
+              "name": "Mayonnaise"
+            },
             "text": null,
             "amount": "3",
             "amountPrefix": null,
@@ -952,7 +1219,10 @@
           },
           {
             "id": 1006,
-            "ingredient": { "id": 5, "name": "Knoblauchzehe" },
+            "ingredient": {
+              "id": 5,
+              "name": "Knoblauchzehe"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -960,7 +1230,10 @@
           },
           {
             "id": 1007,
-            "ingredient": { "id": 41, "name": "Zitrone" },
+            "ingredient": {
+              "id": 41,
+              "name": "Zitrone"
+            },
             "text": "Saft einer halben Zitrone",
             "amount": null,
             "amountPrefix": null,
@@ -968,7 +1241,10 @@
           },
           {
             "id": 1008,
-            "ingredient": { "id": 42, "name": "Senf" },
+            "ingredient": {
+              "id": 42,
+              "name": "Senf"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -976,7 +1252,10 @@
           },
           {
             "id": 1009,
-            "ingredient": { "id": 8, "name": "Parmesan" },
+            "ingredient": {
+              "id": 8,
+              "name": "Parmesan"
+            },
             "text": "gerieben",
             "amount": "20",
             "amountPrefix": null,
@@ -984,7 +1263,10 @@
           },
           {
             "id": 1010,
-            "ingredient": { "id": 6, "name": "Olivenöl" },
+            "ingredient": {
+              "id": 6,
+              "name": "Olivenöl"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -998,7 +1280,12 @@
         ]
       }
     ],
-    "rating": [{ "user": 1, "rating": 5 }]
+    "rating": [
+      {
+        "user": 1,
+        "rating": 5
+      }
+    ]
   },
   {
     "id": 11,
@@ -1026,7 +1313,10 @@
         "ingredients": [
           {
             "id": 1101,
-            "ingredient": { "id": 43, "name": "Rindfleisch (Gulasch)" },
+            "ingredient": {
+              "id": 43,
+              "name": "Rindfleisch (Gulasch)"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -1034,7 +1324,10 @@
           },
           {
             "id": 1102,
-            "ingredient": { "id": 4, "name": "Zwiebel" },
+            "ingredient": {
+              "id": 4,
+              "name": "Zwiebel"
+            },
             "text": null,
             "amount": "4",
             "amountPrefix": null,
@@ -1042,7 +1335,10 @@
           },
           {
             "id": 1103,
-            "ingredient": { "id": 5, "name": "Knoblauchzehe" },
+            "ingredient": {
+              "id": 5,
+              "name": "Knoblauchzehe"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -1050,7 +1346,10 @@
           },
           {
             "id": 1104,
-            "ingredient": { "id": 19, "name": "Paprika" },
+            "ingredient": {
+              "id": 19,
+              "name": "Paprika"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -1058,7 +1357,10 @@
           },
           {
             "id": 1105,
-            "ingredient": { "id": 44, "name": "Paprikapulver (edelsüß)" },
+            "ingredient": {
+              "id": 44,
+              "name": "Paprikapulver (edelsüß)"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -1066,7 +1368,10 @@
           },
           {
             "id": 1106,
-            "ingredient": { "id": 7, "name": "Tomatenmark" },
+            "ingredient": {
+              "id": 7,
+              "name": "Tomatenmark"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -1074,7 +1379,10 @@
           },
           {
             "id": 1107,
-            "ingredient": { "id": 45, "name": "Rinderbrühe" },
+            "ingredient": {
+              "id": 45,
+              "name": "Rinderbrühe"
+            },
             "text": null,
             "amount": "500",
             "amountPrefix": null,
@@ -1082,7 +1390,10 @@
           },
           {
             "id": 1108,
-            "ingredient": { "id": 6, "name": "Olivenöl" },
+            "ingredient": {
+              "id": 6,
+              "name": "Olivenöl"
+            },
             "text": null,
             "amount": "3",
             "amountPrefix": null,
@@ -1090,7 +1401,10 @@
           },
           {
             "id": 1109,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": "nach Geschmack",
             "amount": null,
             "amountPrefix": null,
@@ -1109,8 +1423,14 @@
       }
     ],
     "rating": [
-      { "user": 2, "rating": 5 },
-      { "user": 1, "rating": 4 }
+      {
+        "user": 2,
+        "rating": 5
+      },
+      {
+        "user": 1,
+        "rating": 4
+      }
     ]
   },
   {
@@ -1136,7 +1456,10 @@
         "ingredients": [
           {
             "id": 1201,
-            "ingredient": { "id": 3, "name": "Tomaten (gehackt)" },
+            "ingredient": {
+              "id": 3,
+              "name": "Tomaten (gehackt)"
+            },
             "text": null,
             "amount": "800",
             "amountPrefix": null,
@@ -1144,7 +1467,10 @@
           },
           {
             "id": 1202,
-            "ingredient": { "id": 4, "name": "Zwiebel" },
+            "ingredient": {
+              "id": 4,
+              "name": "Zwiebel"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -1152,7 +1478,10 @@
           },
           {
             "id": 1203,
-            "ingredient": { "id": 5, "name": "Knoblauchzehe" },
+            "ingredient": {
+              "id": 5,
+              "name": "Knoblauchzehe"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -1160,7 +1489,10 @@
           },
           {
             "id": 1204,
-            "ingredient": { "id": 28, "name": "Gemüsebrühe" },
+            "ingredient": {
+              "id": 28,
+              "name": "Gemüsebrühe"
+            },
             "text": null,
             "amount": "400",
             "amountPrefix": null,
@@ -1168,7 +1500,10 @@
           },
           {
             "id": 1205,
-            "ingredient": { "id": 46, "name": "Sahne" },
+            "ingredient": {
+              "id": 46,
+              "name": "Sahne"
+            },
             "text": null,
             "amount": "100",
             "amountPrefix": null,
@@ -1176,7 +1511,10 @@
           },
           {
             "id": 1206,
-            "ingredient": { "id": 7, "name": "Tomatenmark" },
+            "ingredient": {
+              "id": 7,
+              "name": "Tomatenmark"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -1184,7 +1522,10 @@
           },
           {
             "id": 1207,
-            "ingredient": { "id": 6, "name": "Olivenöl" },
+            "ingredient": {
+              "id": 6,
+              "name": "Olivenöl"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -1192,7 +1533,10 @@
           },
           {
             "id": 1208,
-            "ingredient": { "id": 11, "name": "Zucker" },
+            "ingredient": {
+              "id": 11,
+              "name": "Zucker"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -1200,7 +1544,10 @@
           },
           {
             "id": 1209,
-            "ingredient": { "id": 9, "name": "Basilikum" },
+            "ingredient": {
+              "id": 9,
+              "name": "Basilikum"
+            },
             "text": "frisch",
             "amount": null,
             "amountPrefix": null,
@@ -1208,7 +1555,10 @@
           },
           {
             "id": 1210,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": "nach Geschmack",
             "amount": null,
             "amountPrefix": null,
@@ -1225,8 +1575,14 @@
       }
     ],
     "rating": [
-      { "user": 1, "rating": 4 },
-      { "user": 2, "rating": 4 }
+      {
+        "user": 1,
+        "rating": 4
+      },
+      {
+        "user": 2,
+        "rating": 4
+      }
     ]
   },
   {
@@ -1252,7 +1608,10 @@
         "ingredients": [
           {
             "id": 1301,
-            "ingredient": { "id": 10, "name": "Mehl (Type 405)" },
+            "ingredient": {
+              "id": 10,
+              "name": "Mehl (Type 405)"
+            },
             "text": null,
             "amount": "300",
             "amountPrefix": null,
@@ -1260,7 +1619,10 @@
           },
           {
             "id": 1302,
-            "ingredient": { "id": 12, "name": "Butter" },
+            "ingredient": {
+              "id": 12,
+              "name": "Butter"
+            },
             "text": "kalt",
             "amount": "150",
             "amountPrefix": null,
@@ -1268,7 +1630,10 @@
           },
           {
             "id": 1303,
-            "ingredient": { "id": 11, "name": "Zucker" },
+            "ingredient": {
+              "id": 11,
+              "name": "Zucker"
+            },
             "text": null,
             "amount": "120",
             "amountPrefix": null,
@@ -1276,7 +1641,10 @@
           },
           {
             "id": 1304,
-            "ingredient": { "id": 13, "name": "Eier" },
+            "ingredient": {
+              "id": 13,
+              "name": "Eier"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -1284,7 +1652,10 @@
           },
           {
             "id": 1305,
-            "ingredient": { "id": 17, "name": "Salz" },
+            "ingredient": {
+              "id": 17,
+              "name": "Salz"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -1304,7 +1675,10 @@
         "ingredients": [
           {
             "id": 1306,
-            "ingredient": { "id": 47, "name": "Apfel" },
+            "ingredient": {
+              "id": 47,
+              "name": "Apfel"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -1312,7 +1686,10 @@
           },
           {
             "id": 1307,
-            "ingredient": { "id": 11, "name": "Zucker" },
+            "ingredient": {
+              "id": 11,
+              "name": "Zucker"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -1320,7 +1697,10 @@
           },
           {
             "id": 1308,
-            "ingredient": { "id": 48, "name": "Zimt" },
+            "ingredient": {
+              "id": 48,
+              "name": "Zimt"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -1328,7 +1708,10 @@
           },
           {
             "id": 1309,
-            "ingredient": { "id": 41, "name": "Zitrone" },
+            "ingredient": {
+              "id": 41,
+              "name": "Zitrone"
+            },
             "text": "Saft einer halben Zitrone",
             "amount": null,
             "amountPrefix": null,
@@ -1346,16 +1729,25 @@
       }
     ],
     "rating": [
-      { "user": 1, "rating": 5 },
-      { "user": 2, "rating": 5 },
-      { "user": 3, "rating": 4 }
+      {
+        "user": 1,
+        "rating": 5
+      },
+      {
+        "user": 2,
+        "rating": 5
+      },
+      {
+        "user": 3,
+        "rating": 4
+      }
     ]
   },
   {
     "id": 14,
     "owner": 3,
-    "viewers": [1],
-    "editors": [2],
+    "viewers": [],
+    "editors": [],
     "name": "Asiatische Gemüsepfanne mit Reis",
     "tags": ["Vegan", "Asiatisch", "Schnell"],
     "source": null,
@@ -1374,7 +1766,10 @@
         "ingredients": [
           {
             "id": 1401,
-            "ingredient": { "id": 33, "name": "Basmatireis" },
+            "ingredient": {
+              "id": 33,
+              "name": "Basmatireis"
+            },
             "text": null,
             "amount": "250",
             "amountPrefix": null,
@@ -1382,7 +1777,10 @@
           },
           {
             "id": 1402,
-            "ingredient": { "id": 49, "name": "Brokkoli" },
+            "ingredient": {
+              "id": 49,
+              "name": "Brokkoli"
+            },
             "text": "klein",
             "amount": "1",
             "amountPrefix": null,
@@ -1390,7 +1788,10 @@
           },
           {
             "id": 1403,
-            "ingredient": { "id": 27, "name": "Karotte" },
+            "ingredient": {
+              "id": 27,
+              "name": "Karotte"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -1398,7 +1799,10 @@
           },
           {
             "id": 1404,
-            "ingredient": { "id": 19, "name": "Paprika" },
+            "ingredient": {
+              "id": 19,
+              "name": "Paprika"
+            },
             "text": null,
             "amount": "1",
             "amountPrefix": null,
@@ -1406,7 +1810,10 @@
           },
           {
             "id": 1405,
-            "ingredient": { "id": 52, "name": "Frühlingszwiebel" },
+            "ingredient": {
+              "id": 52,
+              "name": "Frühlingszwiebel"
+            },
             "text": null,
             "amount": "3",
             "amountPrefix": null,
@@ -1414,7 +1821,10 @@
           },
           {
             "id": 1406,
-            "ingredient": { "id": 5, "name": "Knoblauchzehe" },
+            "ingredient": {
+              "id": 5,
+              "name": "Knoblauchzehe"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -1422,7 +1832,10 @@
           },
           {
             "id": 1407,
-            "ingredient": { "id": 30, "name": "Ingwer" },
+            "ingredient": {
+              "id": 30,
+              "name": "Ingwer"
+            },
             "text": "geschält",
             "amount": "20",
             "amountPrefix": null,
@@ -1430,7 +1843,10 @@
           },
           {
             "id": 1408,
-            "ingredient": { "id": 50, "name": "Sojasauce" },
+            "ingredient": {
+              "id": 50,
+              "name": "Sojasauce"
+            },
             "text": null,
             "amount": "4",
             "amountPrefix": null,
@@ -1438,7 +1854,10 @@
           },
           {
             "id": 1409,
-            "ingredient": { "id": 51, "name": "Sesamöl" },
+            "ingredient": {
+              "id": 51,
+              "name": "Sesamöl"
+            },
             "text": null,
             "amount": "2",
             "amountPrefix": null,
@@ -1456,9 +1875,10 @@
       }
     ],
     "rating": [
-      { "user": 3, "rating": 4 },
-      { "user": 2, "rating": 5 },
-      { "user": 1, "rating": 4 }
+      {
+        "user": 3,
+        "rating": 4
+      }
     ]
   }
 ]

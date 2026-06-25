@@ -45,29 +45,23 @@ Struktur um die Liste herum, sobald es mehr als eine Handvoll Rezepte gibt.
 - Filtern nach Tags, Volltext-Suche über Namen/Zutaten.
 - Sortierung (Name, Zeit, Rating).
 
-**Dashboard / Startseite** (Idee): Überblicks-Kacheln, u.a.
-- Rezepte, zu denen man **kürzlich hinzugefügt** wurde (als viewer/editor),
-- **eigene kürzlich erstellte** Rezepte,
-- persönliche **Kategorien** (`userCategory`) mit Links,
-- **Gruppen**, in denen man Mitglied ist, mit Links,
-- ggf. weitere Kacheln.
-- ⚠️ Braucht **Timestamps** (`createdAt` + „wann wurde ich hinzugefügt") — die
-  fehlen aktuell im Protokoll (siehe Offene Punkte / Types).
+> **Dashboard / Startseite** ist aus Phase 2 herausgelöst → jetzt **Phase 5**
+> (backend-blockiert auf Timestamps, liegt bei den anderen backend-abhängigen
+> Phasen).
 
-**Listen-Modi (Filter nach Rolle des aktuellen Users)** (Idee, Wortlaut TBD;
-ableitbar aus `owner`/`viewers`/`editors`):
-- **all** — alle
-- **editable** — man ist owner oder editor („user")
-- **shared** — außer einem können noch andere bearbeiten (weitere editors)
-- **provided** — man ist owner, keine editors, aber viewer
-- **private** — keine editors und keine viewer
-- (Modi evtl. nicht disjunkt — exakte Prädikate beim Umsetzen schärfen. Ersetzt
-  das frühere simple „meine vs. geteilte".)
+**Listen-Modi (Filter nach Rolle des aktuellen Users)** — die frühere flache,
+überlappende 5-Modi-Liste ist ersetzt durch ein **Zwei-Achsen-Modell** (Achse 1
+„meine Rolle" owner/editor/viewer × Achse 2 „Collaboration" Private/Shared/
+Collaborative). 6 von 9 Kombinationen gültig, ableitbar aus `owner`/`viewers`/
+`editors`. Voll ausgearbeitet im Spec.
 
-**Listen-Ansichten (umschaltbar)** (Idee):
+**Listen-Ansichten (umschaltbar)** (Idee, Detail nach Phase 1):
 - **detailed** (mit Hauptbild + mehr Meta) ↔ **compact** (kein Bild, weniger
   Details) — das Bild hilft, ein Rezept visuell wiederzuerkennen/auszuwählen.
 - **by category** (Kategorien einzeln ein-/ausklappbar) ↔ **flat list**.
+
+→ Spec (in Arbeit, noch nicht implementierungsreif):
+`phases/phase-2-organisation-navigation.md`
 
 ## Phase 3 — Koch-Modus
 
@@ -77,6 +71,12 @@ Die Detailansicht für das tatsächliche Kochen optimieren.
 - Portionen umrechnen (`basePortionMultiplier` → Mengen skalieren).
 - „Bildschirm anlassen" (`useWakeLock` ist schon da) hier sinnvoll einbinden.
 - Zutaten abhaken (lokaler State, kein Persist nötig).
+- **Timer:** beim Kochen Timer stellen können (lokal, kein Persist nötig).
+  - Custom-Timer: Dauer frei eingeben/starten, mehrere parallel, Hinweis bei
+    Ablauf (Sound/Vibration + visuell; Wake-Lock greift hier ohnehin).
+  - *Idee (optional):* Rezepte bringen voreingestellte Timer mit — z. B. aus
+    `time`/Schritt-Daten abgeleitet, sodass ein Schritt seinen Timer direkt per
+    Tap startet. Erst klären, ob/wie diese Zeiten in den Daten stecken.
 
 ## Phase 4 — Rezepte bearbeiten  (braucht Backend)
 
@@ -94,17 +94,30 @@ als UI-Prototyp mit lokalem State sinnvoll.
 
 → Erst sinnvoll, wenn der Login-/Backend-Workflow steht.
 
-## Phase 5 — Mobile optimieren
+## Phase 5 — Dashboard / Startseite  (braucht Backend)
+
+Überblicks-Startseite mit Kacheln. Aus Phase 2 herausgelöst, weil **blockiert
+auf Timestamps** (`createdAt` + „wann wurde ich hinzugefügt") — fehlen aktuell im
+Protokoll (siehe Offene Punkte / Types). Liegt hier bei den anderen
+backend-abhängigen Phasen.
+
+- Rezepte, zu denen man **kürzlich hinzugefügt** wurde (als viewer/editor),
+- **eigene kürzlich erstellte** Rezepte,
+- persönliche **Kategorien** (`userCategory`) mit Links,
+- **Gruppen**, in denen man Mitglied ist, mit Links,
+- ggf. weitere Kacheln.
+
+## Phase 6 — Mobile optimieren
 
 Die Web-App für Mobile schärfen: Touch-Targets, responsives Layout, Performance,
 ggf. PWA-Grundlagen. Voraussetzung fürs native Wrappen.
 
-## Phase 6 — Als native Mobile-App wrappen
+## Phase 7 — Als native Mobile-App wrappen
 
 Die SPA als native App verpacken (z.B. Capacitor) für iOS/Android: App-Store-
 Präsenz, native Shell, Zugriff auf Geräte-APIs.
 
-## Phase 7 — Offline-Modus (native App)
+## Phase 8 — Offline-Modus (native App)
 
 - Daten **cachen**, solange online; offline bereitstellen (vermutlich lokale
   **SQLite**-DB).
@@ -140,12 +153,60 @@ Beim Sync vergibt der Server die echte id → die Temp-id muss überall
 Basis-Version für Konflikt-Erkennung). Also nicht „unmöglich", nur Extra-
 Modellierung — Details klären wir, wenn die Phase dran ist.
 
-## Phase 8 — Weitere Daten & Funktionen
+## Phase 9 — Weitere Daten & Funktionen
 
 Laufende Erweiterung von Modell und Funktionsumfang, z.B.:
 - **Persönliche Notizen** an Rezepten (privat pro User).
 - **Öffentliche Kommentare** an Rezepten.
+- *Idee:* **Abkürzungsverzeichnis** (z. B. EL = Esslöffel) und **Mengen-
+  verzeichnis** (z. B. 1 EL Zucker = x g) — zum Nachschlagen und ggf. zum
+  Umrechnen von Mengen.
+  - *Weitergedacht:* Abkürzungen automatisch aus den eigenen Rezepten
+    erkennen, sodass jeder im Verzeichnis nur die Abkürzungen sieht, die in
+    seinen Rezepten tatsächlich vorkommen.
 - (weiteres nach Bedarf)
+
+---
+
+## Vorschläge für zukünftige Features (unsortiert)
+
+Lose Ideen, noch keiner Phase fest zugeordnet — hier gesammelt, bis sie
+ausgearbeitet und einsortiert sind.
+
+### Rezept-Import von externen Plattformen
+
+Rezepte von großen Rezept-Plattformen (z. B. **Chefkoch**, **EatSmarter**)
+importieren. **Schreib-Feature → backend-/persistenz-blockiert** (nahe Phase 4:
+ein Import erzeugt einen Rezept-Entwurf, den man im Editier-Formular nachbessert).
+
+- **Wie genau ist offen.** Öffentliche APIs gibt es i. d. R. nicht → realistischer
+  Weg ist, die strukturierten Daten zu parsen, die solche Seiten einbetten
+  (`schema.org/Recipe` als JSON-LD), per Rezept-URL.
+- **Rechtliches/ToS** der Plattformen vorab klären.
+
+### Rezepte abfotografieren (analog → digital)
+
+Ausgedruckte oder handschriftliche/analoge Rezepte **abfotografieren**, die nötigen
+Infos automatisch extrahieren (OCR / Vision-Modell) und als digitales Rezept
+speichern — mit der Option, die erkannten Felder vor dem Speichern zu
+**ändern/korrigieren**.
+
+- Verwandt mit dem Plattform-Import oben: beides ist „Rezept aus externer Quelle",
+  nur anderer Eingang (URL vs. Kamera/Foto). Gleicher Endpunkt: ein Entwurf, der
+  ins Editier-Formular (Phase 4) fließt.
+- **Schreib-Feature → backend-blockiert**; zusätzlich offen, wo die
+  OCR/Extraktion läuft (Client vs. Backend/Service).
+
+### Nährwerte / Inhaltsstoffe anzeigen
+
+Indikator bzw. Tabelle über Inhaltsstoffe je Rezept — Fett, Kohlenhydrate,
+Zucker, ggf. Kalorien/Protein usw.
+
+- **Daten-Haken existiert schon:** Der `Ingredient`-Katalog ist mit künftigen
+  Metadaten inkl. **Nährwerte** vorgesehen (siehe
+  `phases/phase-0-datenaufbereitung.md` und `protocol.ts`). Noch offen: die Werte
+  selbst im Modell, und die **Aggregation pro Rezept** (Summe über Zutaten ×
+  Menge — braucht verlässliche Mengen/Einheiten, vgl. Mengenverzeichnis oben).
 
 ---
 
@@ -158,7 +219,7 @@ Laufende Erweiterung von Modell und Funktionsumfang, z.B.:
 ### Daten-/Protokoll-Fragen (mit Backend klären)
 
 - **Timestamps fehlen** (`createdAt`, „added-at" pro viewer/editor) — blockiert
-  das Phase-2-Dashboard („kürzlich erstellt / hinzugefügt").
+  das Dashboard (Phase 5: „kürzlich erstellt / hinzugefügt").
 - **`Recipe.updatedAt`** (zusätzlich zu `createdAt`): soll nur Änderungen am
   *eigentlichen Rezept* (Inhalt) abbilden — **nicht** Änderungen an
   viewers/editors/Sharing.
