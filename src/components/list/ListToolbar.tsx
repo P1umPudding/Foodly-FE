@@ -1,13 +1,6 @@
 // Toolbar next to the "Rezepte" heading: icon-only sort dropdown + detail toggle.
 import { type ReactNode } from 'react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  ToggleGroup,
-  ToggleGroupItem,
-} from '@postxl/ui-components'
+import { Select, SelectContent, SelectItem, SelectTrigger, ToggleGroup, ToggleGroupItem } from '@postxl/ui-components'
 import {
   ArrowDownAZ,
   ArrowDownZA,
@@ -116,11 +109,7 @@ export function ListToolbar({ state, set }: { state: ListState; set: (patch: Par
         </SelectContent>
       </Select>
 
-      <ToggleGroup
-        type="single"
-        value={state.detail}
-        onValueChange={(v) => v && set({ detail: v as DetailView })}
-      >
+      <ToggleGroup type="single" value={state.detail} onValueChange={(v) => v && set({ detail: v as DetailView })}>
         <ToggleGroupItem
           value="detailed"
           aria-label="Detailliert"
