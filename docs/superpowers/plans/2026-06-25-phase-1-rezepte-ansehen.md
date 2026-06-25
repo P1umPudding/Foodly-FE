@@ -34,7 +34,6 @@
 | `src/catalog/CatalogProvider.tsx` | load tags/users/me once; hooks; graceful degrade | 3 |
 | `src/App.tsx` | wrap routes in `CatalogProvider`; routes for list/detail; remove `Home` | 3, 7, 10 |
 | `src/components/TagText.tsx` | render `{tagId}` tokens in a string → React | 4 |
-| `src/styles/styles.css` | `.recipe-star*` classes (quarter-fill stars) | 5 |
 | `src/components/recipe/Stars.tsx` | quarter-precision 0–5 star bar (pure) | 5 |
 | `src/components/recipe/Rating.tsx` | detail rating: `Stars` + Popover breakdown | 6 |
 | `src/components/recipe/RecipeRow.tsx` | one compact list row | 7 |
@@ -394,40 +393,18 @@ git commit -m "feat(recipe): add TagText token renderer"
 ## Task 5: `<Stars>` quarter-precision bar
 
 **Files:**
-- Modify: `src/styles/styles.css` (append `.recipe-star*` classes)
 - Create: `src/components/recipe/Stars.tsx`
 
 **Interfaces:**
 - Produces: `function Stars({ value }: { value: number }): JSX.Element` — 5-star bar, value in `[0,5]`, filled to nearest quarter. Used by Task 6.
 
-- [ ] **Step 1: Add CSS classes (no inline styles)**
+**No custom CSS.** Quarter precision = 5 discrete fill widths, each expressible
+with a Tailwind width utility (`w-0` `w-1/4` `w-1/2` `w-3/4` `w-full`); the gold
+is the default `text-amber-500`. So this is pure Tailwind in the component — no
+`styles.css` additions (per CLAUDE.md: Tailwind first, `styles.css` only for what
+Tailwind *can't* express).
 
-Append to `src/styles/styles.css`:
-
-```css
-/* Quarter-fill rating stars: an empty base star with an absolutely-positioned
-   golden overlay clipped to a fixed width per quarter step. Width must be a
-   class (not inline style) per project rules, hence the discrete data-fill set. */
-.recipe-star { position: relative; display: inline-flex; }
-.recipe-star__fill {
-  position: absolute;
-  inset: 0;
-  display: inline-flex;
-  overflow: hidden;
-  width: 0;
-  color: #f59e0b; /* amber — app-specific accent, not a brand token */
-}
-.recipe-star[data-fill="0.25"] .recipe-star__fill { width: 25%; }
-.recipe-star[data-fill="0.5"]  .recipe-star__fill { width: 50%; }
-.recipe-star[data-fill="0.75"] .recipe-star__fill { width: 75%; }
-.recipe-star[data-fill="1"]    .recipe-star__fill { width: 100%; }
-
-/* Shared gold accent for the single inline stars (list row, popover rows) — one
-   source of truth instead of betting on a Tailwind amber utility being present. */
-.text-star { color: #f59e0b; }
-```
-
-- [ ] **Step 2: Write the component**
+- [ ] **Step 1: Write the component**
 
 Create `src/components/recipe/Stars.tsx`:
 
@@ -436,19 +413,28 @@ import { Star } from 'lucide-react';
 
 const SIZE = 'h-4 w-4';
 
-// Round a single star's fill to the nearest quarter (0 / .25 / .5 / .75 / 1).
-function quarter(frac: number): 0 | 0.25 | 0.5 | 0.75 | 1 {
-  return (Math.round(Math.min(1, Math.max(0, frac)) * 4) / 4) as 0 | 0.25 | 0.5 | 0.75 | 1;
+// Quarter step → a Tailwind width utility. Literal class strings (not built at
+// runtime) so Tailwind's scanner keeps them.
+const FILL_WIDTH = {
+  0: 'w-0',
+  0.25: 'w-1/4',
+  0.5: 'w-1/2',
+  0.75: 'w-3/4',
+  1: 'w-full',
+} as const;
+
+function quarter(frac: number): keyof typeof FILL_WIDTH {
+  return (Math.round(Math.min(1, Math.max(0, frac)) * 4) / 4) as keyof typeof FILL_WIDTH;
 }
 
 export function Stars({ value }: { value: number }) {
   return (
     <span className="inline-flex items-center gap-0.5" aria-label={`${value} von 5`}>
       {[0, 1, 2, 3, 4].map((i) => (
-        <span key={i} className="recipe-star" data-fill={quarter(value - i)}>
+        <span key={i} className="relative inline-flex">
           <Star className={`${SIZE} text-muted-foreground`} />
-          <span className="recipe-star__fill">
-            <Star className={`${SIZE} fill-current`} />
+          <span className={`absolute left-0 top-0 inline-flex overflow-hidden ${FILL_WIDTH[quarter(value - i)]}`}>
+            <Star className={`${SIZE} fill-current text-amber-500`} />
           </span>
         </span>
       ))}
@@ -457,15 +443,17 @@ export function Stars({ value }: { value: number }) {
 }
 ```
 
-- [ ] **Step 3: Verify build**
+The single inline stars in `RecipeRow`/`Rating` use the same `text-amber-500`.
+
+- [ ] **Step 2: Verify build**
 
 Run: `npm run build`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
-git add src/styles/styles.css src/components/recipe/Stars.tsx
+git add src/components/recipe/Stars.tsx
 git commit -m "feat(recipe): add quarter-precision Stars bar"
 ```
 
@@ -526,7 +514,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
         <div className="flex items-center justify-between">
           <span className="font-medium">Bewertungen</span>
           <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-            <Star className="h-3.5 w-3.5 fill-current text-star" />
+            <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
             {avg.toFixed(1)} · {rows.length}
           </span>
         </div>
@@ -535,7 +523,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
           <div className="mt-3 flex items-center justify-between rounded-md bg-muted px-2 py-1.5">
             <span className="text-sm font-medium">Du</span>
             <span className="inline-flex items-center gap-1 text-sm tabular-nums">
-              <Star className="h-3.5 w-3.5 fill-current text-star" />
+              <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
               {own.rating.toFixed(1)}
             </span>
           </div>
@@ -551,7 +539,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
                 <span className="text-xs text-muted-foreground">{ROLE_LABEL[r.role]}</span>
               </span>
               <span className="inline-flex items-center gap-1 tabular-nums text-muted-foreground">
-                <Star className="h-3.5 w-3.5 fill-current text-star" />
+                <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
                 {r.rating.toFixed(1)}
               </span>
             </li>
@@ -563,7 +551,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
 }
 ```
 
-Note: the single inline stars use the shared `.text-star` class added in Task 5 (gold `#f59e0b`) — one source of truth, no dependency on a Tailwind amber utility being present.
+Note: the single inline stars use the standard `text-amber-500` utility (same gold as the `Stars` bar).
 
 - [ ] **Step 2: Verify build**
 
@@ -630,7 +618,7 @@ export function RecipeRow({ recipe }: { recipe: Recipe }) {
           <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
             {avg !== null && (
               <span className="inline-flex items-center gap-1 tabular-nums">
-                <Star className="h-3.5 w-3.5 fill-current text-star" />
+                <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
                 {avg.toFixed(1)}
               </span>
             )}
@@ -977,4 +965,4 @@ git commit -m "feat(recipe): recipe detail page at /recipes/:id"
 
 **Placeholders:** none — every code step shows complete code.
 
-**Known soft spots flagged for reviewers/smoke:** (a) the gold star accent is the app-owned `.text-star` class (Task 5), independent of Tailwind's amber palette; (b) `Loader` render. Both are verified in the Chrome-MCP smoke and easy to adjust.
+**Known soft spots flagged for reviewers/smoke:** `Loader` render. Verified in the Chrome-MCP smoke.
