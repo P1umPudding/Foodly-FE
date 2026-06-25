@@ -13,7 +13,7 @@ export function tagImageSrc(hash: string): string {
 // In production this whole function is just the backend's image URL.
 const DEV_RECIPE_IMAGE: Record<number, string> = {
   1: '/recipes/1.png',
-  2: '/recipes/2.svg',
+  2: '/recipes/cake.png', // transparent PNG — test fixture for the image backdrop
 }
 
 export function recipeImageSrc(id: ImageId): string {
