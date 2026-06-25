@@ -16,12 +16,15 @@ Details je Phase in `phases/`.
 
 ---
 
-## Phase 0 — Datenaufbereitung  (Querschnitt)
+## Phase 0 — Datenaufbereitung  (Querschnitt) ✅ erledigt
 
 Wie Backend-Daten strukturiert, gecacht und für die Anzeige aufbereitet werden:
 DTOs unangetastet (`protocol.ts`), geteilte Entities flach als Lookup-Maps,
 Resolve an der API-Grenze (View-Modelle in `views.ts`). Klein halten — nur was
 die nächste Phase braucht. → `phases/phase-0-datenaufbereitung.md`
+
+Erste Scheibe umgesetzt (`views.ts`: `averageRating`, `formatIngredient`).
+Lookup-Maps / Cache kommen erst, wenn eine spätere Phase sie braucht.
 
 ## Phase 1 — Rezepte ansehen  ⬅️ JETZT
 
