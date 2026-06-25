@@ -16,7 +16,7 @@ export function SectionBlock({ section }: { section: Section }) {
           is a fixed width via the colgroup. The gap to the divider is the grid
           column-gap (table padding is ignored under border-collapse). leading-snug
           keeps wrapped lines tighter than the gap between items. */}
-      <div className="grid grid-cols-1 gap-y-6 text-[0.95rem] leading-snug md:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)] md:gap-x-[2rem]">
+      <div className="grid grid-cols-1 gap-y-6 text-[0.95rem] leading-snug md:grid-cols-[minmax(0,1fr)_minmax(0,1.55fr)] md:gap-x-4">
         <table className="w-full table-fixed border-collapse">
           <colgroup>
             <col className="w-[8rem]" />
