@@ -1,5 +1,5 @@
-import { Button, Checkbox } from '@postxl/ui-components';
-import type { UserCategory } from '../../api/protocol';
+import { Button, Checkbox } from '@postxl/ui-components'
+import type { UserCategory } from '../../api/protocol'
 
 // Known mock palette → literal Tailwind classes (the v4 scanner only keeps literal
 // strings, so a dynamic `bg-[${hex}]` would not be generated). Unknown colours fall
@@ -10,12 +10,18 @@ const SWATCH: Record<string, string> = {
   '#0ea5e9': 'bg-[#0ea5e9]',
   '#f59e0b': 'bg-[#f59e0b]',
   '#10b981': 'bg-[#10b981]',
-};
+}
 
 export function CategorySidebar({
-  categories, selected, onToggle,
-}: { categories: UserCategory[]; selected: number[]; onToggle: (id: number) => void }) {
-  const ordered = [...categories].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  categories,
+  selected,
+  onToggle,
+}: {
+  categories: UserCategory[]
+  selected: number[]
+  onToggle: (id: number) => void
+}) {
+  const ordered = [...categories].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   return (
     <nav className="flex flex-col gap-1">
       <h2 className="px-2 py-1 text-sm font-medium text-muted-foreground">Kategorien</h2>
@@ -34,5 +40,5 @@ export function CategorySidebar({
         </Button>
       ))}
     </nav>
-  );
+  )
 }
