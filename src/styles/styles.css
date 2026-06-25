@@ -175,3 +175,24 @@ html[data-theme-anim] .site-header {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
+
+/* Quarter-fill rating stars: an empty base star with an absolutely-positioned
+   golden overlay clipped to a fixed width per quarter step. Width must be a
+   class (not inline style) per project rules, hence the discrete data-fill set. */
+.recipe-star { position: relative; display: inline-flex; }
+.recipe-star__fill {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  overflow: hidden;
+  width: 0;
+  color: #f59e0b; /* amber — app-specific accent, not a brand token */
+}
+.recipe-star[data-fill="0.25"] .recipe-star__fill { width: 25%; }
+.recipe-star[data-fill="0.5"]  .recipe-star__fill { width: 50%; }
+.recipe-star[data-fill="0.75"] .recipe-star__fill { width: 75%; }
+.recipe-star[data-fill="1"]    .recipe-star__fill { width: 100%; }
+
+/* Shared gold accent for the single inline stars (list row, popover rows) — one
+   source of truth instead of betting on a Tailwind amber utility being present. */
+.text-star { color: #f59e0b; }
