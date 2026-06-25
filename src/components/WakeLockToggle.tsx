@@ -1,4 +1,4 @@
-import { buttonVariants, cn } from '@postxl/ui-components';
+import { Button, cn } from '@postxl/ui-components';
 import { useWakeLock } from '../hooks/useWakeLock';
 
 const ICON = 'h-4 w-4';
@@ -20,19 +20,20 @@ export function WakeLockToggle() {
   if (!supported) return null;
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={toggle}
       aria-pressed={enabled}
       aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
       title={enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}
       className={cn(
-        buttonVariants({ variant: 'ghost', size: 'icon' }),
         'rounded-full transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
         enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
       )}
     >
       <MugIcon steam={enabled} />
-    </button>
+    </Button>
   );
 }
