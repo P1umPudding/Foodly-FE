@@ -141,6 +141,20 @@
   section[id] {
     scroll-margin-top: 5rem;
   }
+  /* Hide the native up/down spinner on number inputs. `!important` beats
+     @postxl's own `appearance: none` on the input (it lives in a higher cascade
+     layer); Firefox needs `textfield` specifically — its `appearance: none`
+     doesn't hide the spinner, only `textfield` does. */
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    margin: 0 !important;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+  }
 }
 
 /* Tailwind hardcodes `.rounded` to 0.25rem; override to follow --radius so the

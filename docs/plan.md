@@ -26,18 +26,25 @@ die nächste Phase braucht. → `phases/phase-0-datenaufbereitung.md`
 Erste Scheibe umgesetzt (`views.ts`: `averageRating`, `formatIngredient`).
 Lookup-Maps / Cache kommen erst, wenn eine spätere Phase sie braucht.
 
-## Phase 1 — Rezepte ansehen  ⬅️ JETZT
+## Phase 1 — Rezepte ansehen  ✅ erledigt
 
 Das Herzstück: Rezepte durchstöbern und ein Rezept im Detail lesen. Reines
-Lesen, passt 1:1 zu den Mock-Daten.
+Lesen, passt 1:1 zu den Mock-Daten. **Auf `main` gemergt (PR #2).**
 
 - **Rezeptliste** (`/`) — kompakte Zeilen (Name, Zeit, Rating, Tags).
 - **Rezept-Detail** (`/recipes/:id`) — Kopf + Meta-Zeile, Notizen, je Section
   ein 2-Spalten-Block (Zutaten links, Schritte rechts), screen-first.
 
+**Vollständig umgesetzt:** Liste + Detail, `CatalogProvider`, `<TagText>`,
+Rating (kompakt + Detail-Popover nach Rolle), alle Lade-/Fehler-/Leer-Zustände.
+**Über die Spec hinaus** schon gebaut (§13 hatte sie als „später"/backend-
+abhängig eingeplant): **Tag-Icons** (`<TagIcon>`, SVG-Rendering) und **Rezept-
+Bilder** (`mainImage` + Galerie als Kachel-Layout mit Lightbox) — via Dev-Asset-
+Resolver (`src/api/assets.ts`); das echte Backend-`hash`→URL-Schema bleibt offen.
+
 → Volle Spezifikation: `phases/phase-1-rezepte-ansehen.md`
 
-## Phase 2 — Organisation & Navigation
+## Phase 2 — Organisation & Navigation  ⬅️ JETZT
 
 Struktur um die Liste herum, sobald es mehr als eine Handvoll Rezepte gibt.
 
