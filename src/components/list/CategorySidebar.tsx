@@ -27,7 +27,7 @@ export function CategorySidebar({
           onClick={() => onToggle(c.id)}
           className="h-auto w-full justify-start gap-2 px-2 py-1.5 font-normal"
         >
-          <Checkbox checked={selected.includes(c.id)} className="pointer-events-none" />
+          <Checkbox checked={selected.includes(c.id)} readOnly className="pointer-events-none" />
           <span className={`h-3 w-3 shrink-0 rounded-full ${SWATCH[c.color] ?? 'bg-muted'}`} />
           <span className="min-w-0 flex-1 truncate text-left">{c.name}</span>
           <span className="tabular-nums text-xs text-muted-foreground">{c.recipes.length}</span>
