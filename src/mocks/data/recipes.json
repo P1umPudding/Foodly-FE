@@ -14,7 +14,7 @@
     "basePortionMultiplier": 4,
     "notes": ["Schmeckt am nächsten {Vegan} Tag aufgewärmt noch besser. {WIP}"],
     "mainImage": 1,
-    "images": [],
+    "images": [3, 4],
     "sections": [
       {
         "id": 1,
