@@ -68,7 +68,6 @@ export function ListToolbar({ state, set }: { state: ListState; set: (patch: Par
           <TooltipContent>Kompakt</TooltipContent>
         </Tooltip>
       </ToggleGroup>
-
     </div>
   )
 }

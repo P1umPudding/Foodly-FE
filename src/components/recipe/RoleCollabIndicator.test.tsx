@@ -30,7 +30,12 @@ describe('RoleCollabIndicator', () => {
     render(<RoleCollabIndicator recipe={{ ...base, owner: 1 }} />)
     expect(screen.getByLabelText(/Besitzer/i)).toBeTruthy()
     expect(screen.getByLabelText(/privat/i)).toBeTruthy()
-    expect(screen.getByLabelText(/Besitzer/i).querySelector('svg')?.getAttribute('class')).toContain('text-[#f59e0b]')
+    expect(
+      screen
+        .getByLabelText(/Besitzer/i)
+        .querySelector('svg')
+        ?.getAttribute('class'),
+    ).toContain('text-[#f59e0b]')
   })
 
   it('labels viewer + collaborative', () => {

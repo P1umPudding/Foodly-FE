@@ -14,7 +14,10 @@ export const ROLE_COLOR: Record<Role, { icon: string; activeBg: string }> = {
 export const COLLAB_COLOR: Record<Collaboration, { icon: string; activeBg: string }> = {
   private: { icon: 'text-[#64748b]', activeBg: 'data-[state=on]:bg-[#64748b]/15 data-[state=on]:text-foreground' },
   shared: { icon: 'text-[#0ea5e9]', activeBg: 'data-[state=on]:bg-[#0ea5e9]/15 data-[state=on]:text-foreground' },
-  collaborative: { icon: 'text-[#10b981]', activeBg: 'data-[state=on]:bg-[#10b981]/15 data-[state=on]:text-foreground' },
+  collaborative: {
+    icon: 'text-[#10b981]',
+    activeBg: 'data-[state=on]:bg-[#10b981]/15 data-[state=on]:text-foreground',
+  },
 }
 
 // §D validity matrix: my role can force the sharing state. Only these 6 of 9
