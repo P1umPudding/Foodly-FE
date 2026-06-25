@@ -170,8 +170,8 @@ wiederverwendet — **kein neues Datenmodell**).
 - **Rolle** (Icon, „darf ich bearbeiten?"): `owner` / `editor` / `viewer`.
 - **Collaboration** (Icon **+ Farbe**, „wer noch?"): **Private** (grau) /
   **Shared** (blau) / **Collaborative** (grün).
-- Icon-Vorschlag (lucide, final beim Layout): owner `Crown`, editor `Pencil`,
-  viewer `Eye`; Private `Lock`, Shared `Users`, Collaborative `Network`.
+- Icons (lucide): owner `Crown`, editor `Pencil`, viewer `Eye`; Private `Lock`,
+  Shared `Share2` (echtes Share-Icon), Collaborative `Users` (mehrere Personen).
 
 **Regeln:**
 
@@ -186,8 +186,10 @@ wiederverwendet — **kein neues Datenmodell**).
 - Konsistenz mit §D: dieselben drei Collaboration-Farben kann das §D-Control
   wiederverwenden (ein Vokabular für Filter *und* Zeilen-Indikator).
 
-**Offen (Layout, nach Phase 1):** genaue Icons, Platzierung (Cluster bei Titel/
-Tags vs. am Thumbnail), Größe; ob die **`compact`-Ansicht** (§C) die Glyphen
+**Platzierung entschieden:** unten rechts in der Zeile — am Ende der Meta-Zeile
+(`ml-auto`), in der Ecke unter den Tags.
+
+**Offen (Layout):** Glyph-Größe; ob die **`compact`-Ansicht** (§C) die Glyphen
 verdichtet — sie darf die *Darstellung* straffen, nicht die *Kodierung* ändern.
 
 ---

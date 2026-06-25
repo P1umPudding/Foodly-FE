@@ -1,4 +1,4 @@
-import { Crown, Pencil, Eye, Lock, Users, Network } from 'lucide-react';
+import { Crown, Pencil, Eye, Lock, Users, Share2 } from 'lucide-react';
 import { myRole, collaborationState, type Role, type Collaboration } from '../../api/views';
 import { useCurrentUserId } from '../../catalog/CatalogProvider';
 import type { Recipe } from '../../api/protocol';
@@ -13,8 +13,8 @@ const ROLE = {
 // Colour reinforces collaboration but never carries meaning alone — aria-label + title do.
 const COLLAB = {
   private: { Icon: Lock, label: 'privat', tint: 'text-muted-foreground' },
-  shared: { Icon: Users, label: 'geteilt (read-only)', tint: 'text-[#0ea5e9]' },
-  collaborative: { Icon: Network, label: 'kollaborativ', tint: 'text-[#10b981]' },
+  shared: { Icon: Share2, label: 'geteilt (read-only)', tint: 'text-[#0ea5e9]' },
+  collaborative: { Icon: Users, label: 'kollaborativ', tint: 'text-[#10b981]' },
 } satisfies Record<Collaboration, { Icon: typeof Lock; label: string; tint: string }>;
 
 export function RoleCollabIndicator({ recipe }: { recipe: Recipe }) {

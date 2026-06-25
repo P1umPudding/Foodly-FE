@@ -1394,7 +1394,7 @@ Expected: FAIL — module not found.
 - [ ] **Step 3: Implement `RoleCollabIndicator.tsx`**
 
 ```tsx
-import { Crown, Pencil, Eye, Lock, Users, Network } from 'lucide-react';
+import { Crown, Pencil, Eye, Lock, Users, Share2 } from 'lucide-react';
 import { myRole, collaborationState, type Role, type Collaboration } from '../../api/views';
 import { useCurrentUserId } from '../../catalog/CatalogProvider';
 import type { Recipe } from '../../api/protocol';
@@ -1409,8 +1409,8 @@ const ROLE = {
 // Colour reinforces collaboration but never carries meaning alone — aria-label + title do.
 const COLLAB = {
   private: { Icon: Lock, label: 'privat', tint: 'text-muted-foreground' },
-  shared: { Icon: Users, label: 'geteilt (read-only)', tint: 'text-[#0ea5e9]' },
-  collaborative: { Icon: Network, label: 'kollaborativ', tint: 'text-[#10b981]' },
+  shared: { Icon: Share2, label: 'geteilt (read-only)', tint: 'text-[#0ea5e9]' },
+  collaborative: { Icon: Users, label: 'kollaborativ', tint: 'text-[#10b981]' },
 } satisfies Record<Collaboration, { Icon: typeof Lock; label: string; tint: string }>;
 
 export function RoleCollabIndicator({ recipe }: { recipe: Recipe }) {
@@ -1514,10 +1514,7 @@ export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact
         )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-            <span className="flex min-w-0 items-center gap-2">
-              <RoleCollabIndicator recipe={recipe} />
-              <span className="truncate font-medium"><TagText value={recipe.name} /></span>
-            </span>
+            <span className="truncate font-medium"><TagText value={recipe.name} /></span>
             {recipe.tags.length > 0 && (
               <span className="flex flex-wrap gap-1">
                 {recipe.tags.map((t) => (
@@ -1526,6 +1523,8 @@ export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact
               </span>
             )}
           </div>
+          {/* Meta line: rating + time on the left; the role/collab indicator pinned
+              bottom-right (ml-auto) so it sits in the corner, under the tags. */}
           <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
             {rating !== null && (
               <span className="inline-flex items-center gap-1 tabular-nums">
@@ -1535,6 +1534,7 @@ export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact
             )}
             {rating !== null && recipe.time && <span aria-hidden>·</span>}
             {recipe.time && <span>🕒 <TagText value={recipe.time} /></span>}
+            <span className="ml-auto"><RoleCollabIndicator recipe={recipe} /></span>
           </div>
         </div>
       </Card>
