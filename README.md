@@ -79,11 +79,14 @@ src/
   styles/      theme.css (brand tokens) + styles.css (Tailwind v4 wiring)
 ```
 
-## Deployment (Cloudflare Pages, static)
+## Deployment (static)
 
-Frontend-only → static hosting, **no** Pages Functions.
+Frontend-only → builds to static files and can be served by any static host.
+The target isn't fixed yet (likely a dedicated server, not necessarily
+Cloudflare Pages).
 
-- Build command: `npm run build`
-- Output directory: `dist`
-- `public/_redirects` provides the SPA fallback (`/* /index.html 200`).
-- Set `VITE_WS_URL` as a build environment variable in the Pages project.
+- Build command: `npm run build` → output in `dist/`.
+- Needs an **SPA fallback** (serve `index.html` for unknown routes).
+  `public/_redirects` (`/* /index.html 200`) covers Cloudflare-style hosts; on a
+  plain server configure the equivalent (e.g. nginx `try_files`).
+- Provide `VITE_WS_URL` as a build-time env var for the target environment.

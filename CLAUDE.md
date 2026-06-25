@@ -5,8 +5,9 @@ Guidance for Claude Code when working in this repository.
 ## Git — pushing
 
 **Never push on your own.** Committing locally is fine; push only when the user
-explicitly says "push" in that request (a push triggers a deploy). Approval to
-push once does not carry over to later changes.
+explicitly says "push" in that request, and that approval does not carry over to
+later changes. (This isn't about deploys — pushing `main` currently deploys
+nothing. The user just wants to decide when work lands on the remote.)
 
 **Do NOT add a `Co-Authored-By` trailer** (or any AI / Claude co-author line) to
 commits in this repo.
@@ -20,10 +21,11 @@ land in `package.json`).
 
 ## What this is
 
-**Foodly** — a **frontend-only** React SPA (Vite + React Router + TypeScript),
-intended for static hosting on Cloudflare Pages. It has **no backend of its
-own**: it talks to a separate, foreign backend over a **WebSocket**. There are
-no Pages Functions, no server code, and no secrets in the repo.
+**Foodly** — a **frontend-only** React SPA (Vite + React Router + TypeScript)
+that builds to static files. The hosting target isn't fixed yet (likely a
+dedicated static server, not necessarily Cloudflare Pages). It has **no backend
+of its own**: it talks to a separate, foreign backend over a **WebSocket**.
+There's no server code and no secrets in the repo.
 
 ## Architecture
 
