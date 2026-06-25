@@ -4,6 +4,7 @@ import { Footer } from './components/Footer';
 import { NotFound } from './pages/NotFound';
 import { CatalogProvider } from './catalog/CatalogProvider';
 import { RecipeList } from './pages/RecipeList';
+import { RecipeDetail } from './pages/RecipeDetail';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <CatalogProvider>
           <Routes>
             <Route path="/" element={<RecipeList />} />
+            <Route path="/recipes/:id" element={<RecipeDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </CatalogProvider>
