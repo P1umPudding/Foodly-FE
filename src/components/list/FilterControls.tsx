@@ -110,9 +110,10 @@ export function FilterControls({
                 <ToggleGroupItem
                   key={r}
                   value={r}
-                  className={`flex flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${ROLE_COLOR[r].activeBg} ${disabled ? 'opacity-40' : ''}`}
+                  className={`flex h-auto flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${ROLE_COLOR[r].activeBg} ${disabled ? 'opacity-40' : ''}`}
                 >
-                  <meta.Icon className={`size-7 ${ROLE_COLOR[r].icon}`} />
+                  {/* size-3.5 matches the row indicator icons (RoleCollabIndicator h-3.5 w-3.5) */}
+                  <meta.Icon className={`size-3.5 shrink-0 ${ROLE_COLOR[r].icon}`} />
                   {meta.label}
                 </ToggleGroupItem>
               )
@@ -142,9 +143,10 @@ export function FilterControls({
                 <ToggleGroupItem
                   key={c}
                   value={c}
-                  className={`flex flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${COLLAB_COLOR[c].activeBg} ${disabled ? 'opacity-40' : ''}`}
+                  className={`flex h-auto flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${COLLAB_COLOR[c].activeBg} ${disabled ? 'opacity-40' : ''}`}
                 >
-                  <meta.Icon className={`size-7 ${COLLAB_COLOR[c].icon}`} />
+                  {/* size-3.5 matches the row indicator icons (RoleCollabIndicator h-3.5 w-3.5) */}
+                  <meta.Icon className={`size-3.5 shrink-0 ${COLLAB_COLOR[c].icon}`} />
                   {meta.label}
                 </ToggleGroupItem>
               )

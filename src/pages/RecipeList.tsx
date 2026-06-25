@@ -66,45 +66,46 @@ export function RecipeList() {
             <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
             <ResultCount matching={visible.length} total={allRecipes.length} />
           </div>
-          <div className="flex items-center gap-3">
-            <ListToolbar state={state} set={set} />
-            {/* Mobile-only filter drawer trigger */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5 md:hidden">
-                  <Filter className="h-4 w-4" />
-                  Filter
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[20rem] overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>Filter</SheetTitle>
-                </SheetHeader>
-                <div className="mt-4">{filters}</div>
-              </SheetContent>
-            </Sheet>
-          </div>
+          {/* Mobile-only filter drawer trigger */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5 md:hidden">
+                <Filter className="h-4 w-4" />
+                Filter
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[20rem] overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Filter</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4">{filters}</div>
+            </SheetContent>
+          </Sheet>
         </div>
 
-        <div className="relative mb-6">
-          <Input
-            placeholder="Rezepte suchen…"
-            value={state.search}
-            onChange={(e) => set({ search: e.target.value })}
-            className="w-full pr-9 focus-visible:ring-0 focus-visible:ring-offset-0"
-          />
-          {state.search !== '' && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Suche leeren"
-              onClick={() => set({ search: '' })}
-              className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+        {/* Search bar with the sort/view toolbar in the same row, to its right */}
+        <div className="mb-6 flex items-center gap-3">
+          <div className="relative flex-1">
+            <Input
+              placeholder="Rezepte suchen…"
+              value={state.search}
+              onChange={(e) => set({ search: e.target.value })}
+              className="w-full pr-9 focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
+            {state.search !== '' && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Suche leeren"
+                onClick={() => set({ search: '' })}
+                className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <ListToolbar state={state} set={set} />
         </div>
 
         {recipesReq.status === 'loading' && (
@@ -151,8 +152,8 @@ export function RecipeList() {
         )}
       </div>
 
-      {/* Desktop rail (right) */}
-      <aside className="hidden md:sticky md:top-4 md:flex md:flex-col md:gap-4 md:self-start">{filters}</aside>
+      {/* Desktop rail (right). mt aligns the "Kategorien" header with the taller "Rezepte" h1. */}
+      <aside className="hidden md:sticky md:top-4 md:mt-2 md:flex md:flex-col md:gap-4 md:self-start">{filters}</aside>
     </div>
   )
 }
