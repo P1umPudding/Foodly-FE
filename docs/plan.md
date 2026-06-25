@@ -113,6 +113,23 @@ Präsenz, native Shell, Zugriff auf Geräte-APIs.
 - **Konflikte:** Edits, die wegen Konflikten nicht angewandt werden konnten,
   dem Nutzer als Fehlermeldung anzeigen.
 
+**Offline-Settings (lokal gespeichert), detailliert konfigurierbar:**
+- Offline-Modus überhaupt **an/aus**.
+- **Downward-Sync** (Daten laden): nur WLAN ↔ auch mobile Daten.
+- **Upward-Sync** (Edits hochladen): nur WLAN ↔ auch mobile Daten.
+- **Bilder** lokal speichern: ja/nein (und falls ja: ggf. nur über WLAN, da
+  Bilder die schweren Payloads sind).
+
+Weitere Kandidaten (zu entscheiden):
+- **Scope:** welche Rezepte offline halten — alle vs. nur Favoriten/„angepinnte"
+  vs. zuletzt geöffnete (alles-cachen skaliert auf Mobile schlecht).
+- **Speicher-Limit + Eviction:** Cache-Obergrenze + was zuerst rausfliegt; dazu
+  belegten Speicher anzeigen und „lokalen Cache leeren".
+- **Sync-Trigger/-Frequenz:** auto bei App-Start / periodisch / nur manuell /
+  bei Reconnect; ggf. nur im Vordergrund (Akku).
+- **Konflikt-Verhalten:** wie Konflikte gemeldet/aufgelöst werden (das Backend
+  verwirft kollidierende Changes — siehe Backend-README).
+
 **Types-Implikation (kein Blocker, nur Vorausschau):** machbar — Standard-
 Offline-Pattern — aber offline **neu erstellte** Entities haben noch keine
 server-`id` (die ist `number`, server-vergeben). Man braucht also eine
