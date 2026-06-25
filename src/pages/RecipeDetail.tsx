@@ -1,31 +1,31 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { Clock, Info } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components';
-import { foodly } from '../api';
-import { useRequest } from '../hooks/useRequest';
-import { averageRating } from '../api/views';
-import { recipeImageSrc } from '../api/assets';
-import { TagText } from '../components/TagText';
-import { Rating } from '../components/recipe/Rating';
-import { TagChips } from '../components/recipe/TagChips';
-import { SectionBlock } from '../components/recipe/SectionBlock';
-import { Lightbox } from '../components/recipe/Lightbox';
+import { useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { Clock, Info } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components'
+import { foodly } from '../api'
+import { useRequest } from '../hooks/useRequest'
+import { averageRating } from '../api/views'
+import { recipeImageSrc } from '../api/assets'
+import { TagText } from '../components/TagText'
+import { Rating } from '../components/recipe/Rating'
+import { TagChips } from '../components/recipe/TagChips'
+import { SectionBlock } from '../components/recipe/SectionBlock'
+import { Lightbox } from '../components/recipe/Lightbox'
 
 function isUrl(s: string): boolean {
-  return /^https?:\/\//i.test(s.trim());
+  return /^https?:\/\//i.test(s.trim())
 }
 
 export function RecipeDetail() {
-  const { id } = useParams();
-  const recipeId = Number(id);
-  const { status, data: recipe, error } = useRequest(() => foodly.getRecipe(recipeId), [recipeId]);
+  const { id } = useParams()
+  const recipeId = Number(id)
+  const { status, data: recipe, error } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
 
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   // All images of the recipe in viewer order: main first, then the gallery.
-  const hasMain = !!recipe && recipe.mainImage !== null;
-  const allImages = recipe ? (hasMain ? [recipe.mainImage as number, ...recipe.images] : recipe.images) : [];
+  const hasMain = !!recipe && recipe.mainImage !== null
+  const allImages = recipe ? (hasMain ? [recipe.mainImage as number, ...recipe.images] : recipe.images) : []
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -46,7 +46,9 @@ export function RecipeDetail() {
           <AlertTitle>Rezept nicht gefunden</AlertTitle>
           <AlertDescription className="flex flex-col gap-2">
             <span>{error?.message}</span>
-            <Button asChild variant="outline" size="sm"><Link to="/">Zur Liste</Link></Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/">Zur Liste</Link>
+            </Button>
           </AlertDescription>
         </Alert>
       )}
@@ -64,9 +66,7 @@ export function RecipeDetail() {
             {/* Rating natural-width left, portions natural-width right, time
                 centred in the remaining space between them. */}
             <div className="mt-1 flex items-center gap-4 text-xl">
-              <div className="shrink-0">
-                {averageRating(recipe) !== null && <Rating recipe={recipe} />}
-              </div>
+              <div className="shrink-0">{averageRating(recipe) !== null && <Rating recipe={recipe} />}</div>
               <div className="flex-1 text-center">
                 {recipe.time && (
                   <span className="inline-flex items-center gap-2">
@@ -75,9 +75,7 @@ export function RecipeDetail() {
                   </span>
                 )}
               </div>
-              <div className="shrink-0">
-                {recipe.amount && <TagText value={recipe.amount} size="md" />}
-              </div>
+              <div className="shrink-0">{recipe.amount && <TagText value={recipe.amount} size="md" />}</div>
             </div>
           </header>
 
@@ -95,13 +93,17 @@ export function RecipeDetail() {
               {recipe.notes.map((note, i) => (
                 <p key={i} className="flex items-center gap-2 text-foreground/75">
                   <Info className="h-5 w-5 shrink-0" />
-                  <span><TagText value={note} /></span>
+                  <span>
+                    <TagText value={note} />
+                  </span>
                 </p>
               ))}
             </div>
           )}
 
-          {recipe.sections.map((section) => <SectionBlock key={section.id} section={section} />)}
+          {recipe.sections.map((section) => (
+            <SectionBlock key={section.id} section={section} />
+          ))}
 
           {recipe.images.length > 0 && (
             <div className="mt-12 flex flex-wrap items-start gap-3">
@@ -120,9 +122,13 @@ export function RecipeDetail() {
           {recipe.source && (
             <footer className="mt-16 text-[0.95rem] text-foreground/75">
               Quelle:{' '}
-              {isUrl(recipe.source)
-                ? <a href={recipe.source} target="_blank" rel="noopener noreferrer" className="underline">{recipe.source}</a>
-                : <TagText value={recipe.source} />}
+              {isUrl(recipe.source) ? (
+                <a href={recipe.source} target="_blank" rel="noopener noreferrer" className="underline">
+                  {recipe.source}
+                </a>
+              ) : (
+                <TagText value={recipe.source} />
+              )}
             </footer>
           )}
 
@@ -137,5 +143,5 @@ export function RecipeDetail() {
         </article>
       )}
     </div>
-  );
+  )
 }

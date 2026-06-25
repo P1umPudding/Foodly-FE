@@ -1,14 +1,14 @@
-import { Link } from 'react-router-dom';
-import { Star, Clock, UtensilsCrossed } from 'lucide-react';
-import { Card } from '@postxl/ui-components';
-import { TagText } from '../TagText';
-import { TagChips } from './TagChips';
-import { averageRating } from '../../api/views';
-import { recipeImageSrc } from '../../api/assets';
-import type { Recipe } from '../../api/protocol';
+import { Link } from 'react-router-dom'
+import { Star, Clock, UtensilsCrossed } from 'lucide-react'
+import { Card } from '@postxl/ui-components'
+import { TagText } from '../TagText'
+import { TagChips } from './TagChips'
+import { averageRating } from '../../api/views'
+import { recipeImageSrc } from '../../api/assets'
+import type { Recipe } from '../../api/protocol'
 
 export function RecipeRow({ recipe }: { recipe: Recipe }) {
-  const avg = averageRating(recipe);
+  const avg = averageRating(recipe)
 
   return (
     <Link to={`/recipes/${recipe.id}`} className="block">
@@ -24,7 +24,9 @@ export function RecipeRow({ recipe }: { recipe: Recipe }) {
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-            <span className="truncate font-medium"><TagText value={recipe.name} /></span>
+            <span className="truncate font-medium">
+              <TagText value={recipe.name} />
+            </span>
             <TagChips tags={recipe.tags} />
           </div>
 
@@ -45,5 +47,5 @@ export function RecipeRow({ recipe }: { recipe: Recipe }) {
         </div>
       </Card>
     </Link>
-  );
+  )
 }

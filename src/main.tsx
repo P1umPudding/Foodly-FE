@@ -1,12 +1,12 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from './theme/ThemeProvider';
-import { bootstrap } from './api';
-import App from './App';
-import './styles/styles.css';
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import { ThemeProvider } from './theme/ThemeProvider'
+import { bootstrap } from './api'
+import App from './App'
+import './styles/styles.css'
 
-const root = ReactDOM.createRoot(document.getElementById('root')!);
+const root = ReactDOM.createRoot(document.getElementById('root')!)
 
 function render() {
   root.render(
@@ -17,7 +17,7 @@ function render() {
         </ThemeProvider>
       </BrowserRouter>
     </React.StrictMode>,
-  );
+  )
 }
 
 // Prepare the backend before mounting: open the real connection, or install the
@@ -25,4 +25,4 @@ function render() {
 // keeps mocks out of the prod bundle), so rendering first lets the app's first
 // requests race ahead of the responder and reject with "socket not connected".
 // Waiting for bootstrap to settle avoids that.
-bootstrap().finally(render);
+bootstrap().finally(render)

@@ -1,6 +1,6 @@
-import { TagText } from '../TagText';
-import { IngredientLine } from './IngredientLine';
-import type { Section } from '../../api/protocol';
+import { TagText } from '../TagText'
+import { IngredientLine } from './IngredientLine'
+import type { Section } from '../../api/protocol'
 
 export function SectionBlock({ section }: { section: Section }) {
   return (
@@ -23,7 +23,9 @@ export function SectionBlock({ section }: { section: Section }) {
             <col />
           </colgroup>
           <tbody>
-            {section.ingredients.map((line) => <IngredientLine key={line.id} line={line} />)}
+            {section.ingredients.map((line) => (
+              <IngredientLine key={line.id} line={line} />
+            ))}
           </tbody>
         </table>
 
@@ -31,11 +33,13 @@ export function SectionBlock({ section }: { section: Section }) {
           {section.steps.map((step, i) => (
             <li key={i} className="flex gap-3">
               <span className="shrink-0 tabular-nums text-foreground/75">{i + 1}.</span>
-              <span className="min-w-0"><TagText value={step} /></span>
+              <span className="min-w-0">
+                <TagText value={step} />
+              </span>
             </li>
           ))}
         </ol>
       </div>
     </section>
-  );
+  )
 }

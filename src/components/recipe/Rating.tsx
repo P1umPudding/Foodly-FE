@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Star } from 'lucide-react'
 import {
   Avatar,
   AvatarFallback,
@@ -7,21 +7,21 @@ import {
   PopoverContent,
   PopoverTrigger,
   Separator,
-} from '@postxl/ui-components';
-import { Stars } from './Stars';
-import { averageRating, ratingsByRole, type RatedRole } from '../../api/views';
-import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider';
-import { userImageSrc } from '../../api/assets';
-import type { Recipe, UserId } from '../../api/protocol';
+} from '@postxl/ui-components'
+import { Stars } from './Stars'
+import { averageRating, ratingsByRole, type RatedRole } from '../../api/views'
+import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
+import { userImageSrc } from '../../api/assets'
+import type { Recipe, UserId } from '../../api/protocol'
 
 const ROLE_LABEL: Record<RatedRole, string> = {
   owner: 'Besitzer',
   editor: 'Bearbeiter',
   viewer: 'Betrachter',
   other: 'Weitere',
-};
+}
 
-const ROLE_ORDER: RatedRole[] = ['owner', 'editor', 'viewer', 'other'];
+const ROLE_ORDER: RatedRole[] = ['owner', 'editor', 'viewer', 'other']
 
 // Single star + number — compact, for the per-rater rows.
 function StarValue({ value }: { value: number }) {
@@ -30,7 +30,7 @@ function StarValue({ value }: { value: number }) {
       <Star className="h-3.5 w-3.5 fill-current text-star" />
       {value.toFixed(1)}
     </span>
-  );
+  )
 }
 
 // Full 5-star bar + number — for the Durchschnitt / Du summary rows. The number
@@ -41,13 +41,13 @@ function StarsValue({ value }: { value: number }) {
       <Stars value={value} size="xs" />
       {value.toFixed(1)}
     </span>
-  );
+  )
 }
 
 function RaterRow({ id, rating, isCurrent }: { id: UserId; rating: number; isCurrent: boolean }) {
-  const user = useUser(id);
-  const name = user?.name ?? `User ${id}`;
-  const initial = name.trim().charAt(0).toUpperCase() || '?';
+  const user = useUser(id)
+  const name = user?.name ?? `User ${id}`
+  const initial = name.trim().charAt(0).toUpperCase() || '?'
   return (
     <li className="flex items-center justify-between gap-2 text-sm">
       <span className="flex min-w-0 items-center gap-2">
@@ -64,16 +64,16 @@ function RaterRow({ id, rating, isCurrent }: { id: UserId; rating: number; isCur
         <StarValue value={rating} />
       </span>
     </li>
-  );
+  )
 }
 
 export function Rating({ recipe }: { recipe: Recipe }) {
-  const avg = averageRating(recipe);
-  const currentUserId = useCurrentUserId();
-  if (avg === null) return null;
+  const avg = averageRating(recipe)
+  const currentUserId = useCurrentUserId()
+  if (avg === null) return null
 
-  const rows = ratingsByRole(recipe);
-  const own = currentUserId === null ? undefined : rows.find((r) => r.user === currentUserId);
+  const rows = ratingsByRole(recipe)
+  const own = currentUserId === null ? undefined : rows.find((r) => r.user === currentUserId)
 
   return (
     <Popover>
@@ -85,7 +85,9 @@ export function Rating({ recipe }: { recipe: Recipe }) {
       </PopoverTrigger>
       <PopoverContent className="max-h-[60vh] w-72 overflow-y-auto">
         <div className="flex items-center justify-between font-medium">
-          <span>Durchschnitt <span className="font-normal text-muted-foreground">({rows.length})</span></span>
+          <span>
+            Durchschnitt <span className="font-normal text-muted-foreground">({rows.length})</span>
+          </span>
           <StarsValue value={avg} />
         </div>
         {own && (
@@ -96,8 +98,8 @@ export function Rating({ recipe }: { recipe: Recipe }) {
         )}
 
         {ROLE_ORDER.map((role) => {
-          const members = rows.filter((r) => r.role === role);
-          if (members.length === 0) return null;
+          const members = rows.filter((r) => r.role === role)
+          if (members.length === 0) return null
           return (
             <div key={role}>
               <Separator className="my-3" />
@@ -110,9 +112,9 @@ export function Rating({ recipe }: { recipe: Recipe }) {
                 ))}
               </ul>
             </div>
-          );
+          )
         })}
       </PopoverContent>
     </Popover>
-  );
+  )
 }

@@ -1,10 +1,10 @@
-import { Routes, Route } from 'react-router-dom';
-import { Nav } from './components/Nav';
-import { Footer } from './components/Footer';
-import { NotFound } from './pages/NotFound';
-import { CatalogProvider } from './catalog/CatalogProvider';
-import { RecipeList } from './pages/RecipeList';
-import { RecipeDetail } from './pages/RecipeDetail';
+import { Routes, Route } from 'react-router-dom'
+import { Nav } from './components/Nav'
+import { Footer } from './components/Footer'
+import { NotFound } from './pages/NotFound'
+import { CatalogProvider } from './catalog/CatalogProvider'
+import { RecipeList } from './pages/RecipeList'
+import { RecipeDetail } from './pages/RecipeDetail'
 
 export default function App() {
   return (
@@ -21,5 +21,5 @@ export default function App() {
       </main>
       <Footer />
     </div>
-  );
+  )
 }

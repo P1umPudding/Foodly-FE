@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components';
-import { foodly } from '../api';
-import { useRequest } from '../hooks/useRequest';
-import { RecipeRow } from '../components/recipe/RecipeRow';
+import { useState } from 'react'
+import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components'
+import { foodly } from '../api'
+import { useRequest } from '../hooks/useRequest'
+import { RecipeRow } from '../components/recipe/RecipeRow'
 
 export function RecipeList() {
   // Retry by bumping a nonce in the deps → useRequest re-runs (no full reload).
-  const [nonce, setNonce] = useState(0);
-  const { status, data, error } = useRequest(() => foodly.listRecipes(), [nonce]);
+  const [nonce, setNonce] = useState(0)
+  const { status, data, error } = useRequest(() => foodly.listRecipes(), [nonce])
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -15,7 +15,9 @@ export function RecipeList() {
 
       {status === 'loading' && (
         <div className="space-y-3">
-          {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))}
         </div>
       )}
 
@@ -37,9 +39,11 @@ export function RecipeList() {
 
       {status === 'ready' && data && data.length > 0 && (
         <div className="space-y-3">
-          {data.map((recipe) => <RecipeRow key={recipe.id} recipe={recipe} />)}
+          {data.map((recipe) => (
+            <RecipeRow key={recipe.id} recipe={recipe} />
+          ))}
         </div>
       )}
     </div>
-  );
+  )
 }

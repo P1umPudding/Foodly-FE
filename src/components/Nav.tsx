@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom';
-import { ThemeToggle } from './ThemeToggle';
-import { WakeLockToggle } from './WakeLockToggle';
-import { ConnectionDot } from './ConnectionDot';
+import { Link } from 'react-router-dom'
+import { ThemeToggle } from './ThemeToggle'
+import { WakeLockToggle } from './WakeLockToggle'
+import { ConnectionDot } from './ConnectionDot'
 
 export function Nav() {
   return (
@@ -11,10 +11,7 @@ export function Nav() {
           Foodly
         </Link>
         <nav className="flex items-center gap-2 text-[0.95rem] sm:gap-3">
-          <Link
-            to="/"
-            className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
-          >
+          <Link to="/" className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
             Start
           </Link>
           <ConnectionDot />
@@ -23,5 +20,5 @@ export function Nav() {
         </nav>
       </div>
     </header>
-  );
+  )
 }
