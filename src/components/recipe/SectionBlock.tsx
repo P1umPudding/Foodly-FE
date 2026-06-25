@@ -16,7 +16,7 @@ export function SectionBlock({ section }: { section: Section }) {
           the quantity column is a fixed width via the colgroup. leading-snug keeps
           wrapped lines tighter than the gap between items. Divider between them. */}
       <div className="grid grid-cols-1 gap-y-6 text-[0.95rem] leading-snug md:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
-        <table className="w-full table-fixed border-collapse md:pr-8">
+        <table className="w-full table-fixed border-collapse md:pr-6">
           <colgroup>
             <col className="w-[8.5rem]" />
             <col />
@@ -26,7 +26,7 @@ export function SectionBlock({ section }: { section: Section }) {
           </tbody>
         </table>
 
-        <ol className="space-y-2.5 md:border-l md:border-border md:pl-8">
+        <ol className="space-y-2.5 md:border-l md:border-border md:pl-5">
           {section.steps.map((step, i) => (
             <li key={i} className="flex gap-3">
               <span className="shrink-0 tabular-nums text-foreground/70">{i + 1}.</span>

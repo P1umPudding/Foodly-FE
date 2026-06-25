@@ -94,6 +94,19 @@ export function RecipeDetail() {
 
           {recipe.sections.map((section) => <SectionBlock key={section.id} section={section} />)}
 
+          {recipe.images.length > 0 && (
+            <div className="mt-12 flex flex-wrap items-start gap-3">
+              {recipe.images.map((imgId) => (
+                <img
+                  key={imgId}
+                  src={recipeImageSrc(imgId)}
+                  alt=""
+                  className="h-56 w-auto rounded-xl object-cover"
+                />
+              ))}
+            </div>
+          )}
+
           {recipe.source && (
             <footer className="mt-16 text-[0.95rem] text-muted-foreground">
               Quelle:{' '}
