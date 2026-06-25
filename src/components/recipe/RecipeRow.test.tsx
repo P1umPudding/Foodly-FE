@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeRow } from './RecipeRow'
 import type { Recipe } from '../../api/protocol'
 
@@ -30,9 +31,11 @@ const base: Recipe = {
 
 it('shared recipe shows the own rating, not the average', () => {
   render(
-    <MemoryRouter>
-      <RecipeRow recipe={base} />
-    </MemoryRouter>,
+    <TooltipProvider>
+      <MemoryRouter>
+        <RecipeRow recipe={base} />
+      </MemoryRouter>
+    </TooltipProvider>,
   )
   expect(screen.getByText('5.0')).toBeTruthy() // own, not avg (3.0)
 })

@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeListView } from './RecipeListView'
 import type { Recipe, UserCategory } from '../../api/protocol'
 
@@ -35,9 +36,11 @@ const cats: UserCategory[] = [
 
 it('by-category shows a recipe under each of its categories + Ohne Kategorie bucket', () => {
   render(
-    <MemoryRouter>
-      <RecipeListView recipes={recipes} categories={cats} group="by-category" detail="detailed" />
-    </MemoryRouter>,
+    <TooltipProvider>
+      <MemoryRouter>
+        <RecipeListView recipes={recipes} categories={cats} group="by-category" detail="detailed" />
+      </MemoryRouter>
+    </TooltipProvider>,
   )
   expect(screen.getByText('Fav')).toBeTruthy()
   expect(screen.getByText('Quick')).toBeTruthy()

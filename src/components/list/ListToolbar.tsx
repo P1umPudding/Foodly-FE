@@ -7,6 +7,9 @@ import {
   SelectValue,
   ToggleGroup,
   ToggleGroupItem,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from '@postxl/ui-components'
 import { Rows3, Rows4, List, FolderTree } from 'lucide-react'
 import type { ListState, SortKey, DetailView, GroupView } from '../../list/state'
@@ -48,22 +51,42 @@ export function ListToolbar({ state, set }: { state: ListState; set: (patch: Par
 
       {/* Detail view: Detailed vs Compact */}
       <ToggleGroup type="single" value={state.detail} onValueChange={(v) => v && set({ detail: v as DetailView })}>
-        <ToggleGroupItem value="detailed" aria-label="Detailliert" title="Detailliert">
-          <Rows3 className="size-4" />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="compact" aria-label="Kompakt" title="Kompakt">
-          <Rows4 className="size-4" />
-        </ToggleGroupItem>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <ToggleGroupItem value="detailed" aria-label="Detailliert">
+              <Rows3 className="size-4" />
+            </ToggleGroupItem>
+          </TooltipTrigger>
+          <TooltipContent>Detailliert</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <ToggleGroupItem value="compact" aria-label="Kompakt">
+              <Rows4 className="size-4" />
+            </ToggleGroupItem>
+          </TooltipTrigger>
+          <TooltipContent>Kompakt</TooltipContent>
+        </Tooltip>
       </ToggleGroup>
 
       {/* Group view: Flat list vs By category */}
       <ToggleGroup type="single" value={state.group} onValueChange={(v) => v && set({ group: v as GroupView })}>
-        <ToggleGroupItem value="flat" aria-label="Flache Liste" title="Flache Liste">
-          <List className="size-4" />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="by-category" aria-label="Nach Kategorie" title="Nach Kategorie">
-          <FolderTree className="size-4" />
-        </ToggleGroupItem>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <ToggleGroupItem value="flat" aria-label="Flache Liste">
+              <List className="size-4" />
+            </ToggleGroupItem>
+          </TooltipTrigger>
+          <TooltipContent>Flache Liste</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <ToggleGroupItem value="by-category" aria-label="Nach Kategorie">
+              <FolderTree className="size-4" />
+            </ToggleGroupItem>
+          </TooltipTrigger>
+          <TooltipContent>Nach Kategorie</TooltipContent>
+        </Tooltip>
       </ToggleGroup>
     </div>
   )

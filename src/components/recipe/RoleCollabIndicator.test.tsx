@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { TooltipProvider } from '@postxl/ui-components'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import type { Recipe } from '../../api/protocol'
 
@@ -25,13 +26,21 @@ const base: Recipe = {
 }
 
 it('labels owner + private', () => {
-  render(<RoleCollabIndicator recipe={{ ...base, owner: 1 }} />)
+  render(
+    <TooltipProvider>
+      <RoleCollabIndicator recipe={{ ...base, owner: 1 }} />
+    </TooltipProvider>,
+  )
   expect(screen.getByLabelText(/Besitzer/i)).toBeTruthy()
   expect(screen.getByLabelText(/privat/i)).toBeTruthy()
 })
 
 it('labels viewer + collaborative', () => {
-  render(<RoleCollabIndicator recipe={{ ...base, owner: 2, editors: [3], viewers: [1] }} />)
+  render(
+    <TooltipProvider>
+      <RoleCollabIndicator recipe={{ ...base, owner: 2, editors: [3], viewers: [1] }} />
+    </TooltipProvider>,
+  )
   expect(screen.getByLabelText(/Betrachter/i)).toBeTruthy()
   expect(screen.getByLabelText(/kollaborativ/i)).toBeTruthy()
 })
