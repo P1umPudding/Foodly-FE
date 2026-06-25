@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { TooltipProvider } from '@postxl/ui-components'
+import { describe, it, expect, vi } from 'vitest'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import type { Recipe } from '../../api/protocol'
 
@@ -25,22 +25,17 @@ const base: Recipe = {
   sections: [],
 }
 
-it('labels owner + private', () => {
-  render(
-    <TooltipProvider>
-      <RoleCollabIndicator recipe={{ ...base, owner: 1 }} />
-    </TooltipProvider>,
-  )
-  expect(screen.getByLabelText(/Besitzer/i)).toBeTruthy()
-  expect(screen.getByLabelText(/privat/i)).toBeTruthy()
-})
+describe('RoleCollabIndicator', () => {
+  it('labels owner + private', () => {
+    render(<RoleCollabIndicator recipe={{ ...base, owner: 1 }} />)
+    expect(screen.getByLabelText(/Besitzer/i)).toBeTruthy()
+    expect(screen.getByLabelText(/privat/i)).toBeTruthy()
+    expect(screen.getByLabelText(/Besitzer/i).querySelector('svg')?.getAttribute('class')).toContain('text-[#f59e0b]')
+  })
 
-it('labels viewer + collaborative', () => {
-  render(
-    <TooltipProvider>
-      <RoleCollabIndicator recipe={{ ...base, owner: 2, editors: [3], viewers: [1] }} />
-    </TooltipProvider>,
-  )
-  expect(screen.getByLabelText(/Betrachter/i)).toBeTruthy()
-  expect(screen.getByLabelText(/kollaborativ/i)).toBeTruthy()
+  it('labels viewer + collaborative', () => {
+    render(<RoleCollabIndicator recipe={{ ...base, owner: 2, editors: [3], viewers: [1] }} />)
+    expect(screen.getByLabelText(/Betrachter/i)).toBeTruthy()
+    expect(screen.getByLabelText(/kollaborativ/i)).toBeTruthy()
+  })
 })
