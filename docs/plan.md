@@ -168,6 +168,48 @@ Laufende Erweiterung von Modell und Funktionsumfang, z.B.:
 
 ---
 
+## Vorschläge für zukünftige Features (unsortiert)
+
+Lose Ideen, noch keiner Phase fest zugeordnet — hier gesammelt, bis sie
+ausgearbeitet und einsortiert sind.
+
+### Rezept-Import von externen Plattformen
+
+Rezepte von großen Rezept-Plattformen (z. B. **Chefkoch**, **EatSmarter**)
+importieren. **Schreib-Feature → backend-/persistenz-blockiert** (nahe Phase 4:
+ein Import erzeugt einen Rezept-Entwurf, den man im Editier-Formular nachbessert).
+
+- **Wie genau ist offen.** Öffentliche APIs gibt es i. d. R. nicht → realistischer
+  Weg ist, die strukturierten Daten zu parsen, die solche Seiten einbetten
+  (`schema.org/Recipe` als JSON-LD), per Rezept-URL.
+- **Rechtliches/ToS** der Plattformen vorab klären.
+
+### Rezepte abfotografieren (analog → digital)
+
+Ausgedruckte oder handschriftliche/analoge Rezepte **abfotografieren**, die nötigen
+Infos automatisch extrahieren (OCR / Vision-Modell) und als digitales Rezept
+speichern — mit der Option, die erkannten Felder vor dem Speichern zu
+**ändern/korrigieren**.
+
+- Verwandt mit dem Plattform-Import oben: beides ist „Rezept aus externer Quelle",
+  nur anderer Eingang (URL vs. Kamera/Foto). Gleicher Endpunkt: ein Entwurf, der
+  ins Editier-Formular (Phase 4) fließt.
+- **Schreib-Feature → backend-blockiert**; zusätzlich offen, wo die
+  OCR/Extraktion läuft (Client vs. Backend/Service).
+
+### Nährwerte / Inhaltsstoffe anzeigen
+
+Indikator bzw. Tabelle über Inhaltsstoffe je Rezept — Fett, Kohlenhydrate,
+Zucker, ggf. Kalorien/Protein usw.
+
+- **Daten-Haken existiert schon:** Der `Ingredient`-Katalog ist mit künftigen
+  Metadaten inkl. **Nährwerte** vorgesehen (siehe
+  `phases/phase-0-datenaufbereitung.md` und `protocol.ts`). Noch offen: die Werte
+  selbst im Modell, und die **Aggregation pro Rezept** (Summe über Zutaten ×
+  Menge — braucht verlässliche Mengen/Einheiten, vgl. Mengenverzeichnis oben).
+
+---
+
 ## Offene Punkte (später)
 
 - Login-/Auth-Workflow (Voraussetzung für Phase 4 und echtes Multi-User).
