@@ -31,7 +31,7 @@ export function Lightbox({
     const img = imgRef.current;
     if (!img || !img.naturalWidth) return;
     const imageAspect = img.naturalWidth / img.naturalHeight;
-    const boxAspect = window.innerWidth / window.innerHeight; // 50vw / 50vh
+    const boxAspect = (window.innerWidth / window.innerHeight) * (50 / 64); // box is 50vw × 64vh
     setFit(imageAspect >= boxAspect ? 'w' : 'h');
   };
   useEffect(() => {
@@ -93,7 +93,7 @@ export function Lightbox({
     'flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white/60';
   // Upscale small images too: force the limiting side to the box max, the other
   // follows the aspect ratio (so the element == the visible image, no letterbox).
-  const imgFit = fit === 'w' ? 'w-[50vw] h-auto' : 'h-[50vh] w-auto';
+  const imgFit = fit === 'w' ? 'w-[50vw] h-auto' : 'h-[64vh] w-auto';
 
   return createPortal(
     // cursor-zoom-out: clicking the backdrop shrinks the image again.
@@ -110,7 +110,7 @@ export function Lightbox({
 
       {/* Fixed-height image area (always 50vh) so the caption + strip below it
           stay put regardless of the image's aspect ratio. */}
-      <div className="relative flex h-[50vh] w-full items-center justify-center">
+      <div className="relative flex h-[64vh] w-full items-center justify-center">
         {n > 1 && (
           <Button variant="ghost" size="icon" aria-label="Vorheriges Bild"
             onClick={(e) => { stop(e); go(-1); }}
@@ -124,7 +124,7 @@ export function Lightbox({
           alt={imageName(id)}
           onLoad={computeFit}
           onClick={stop}
-          className={`${imgFit} max-h-[50vh] max-w-[50vw] cursor-default rounded-lg object-contain shadow-2xl`}
+          className={`${imgFit} max-h-[64vh] max-w-[50vw] cursor-default rounded-lg object-contain shadow-2xl`}
         />
         {n > 1 && (
           <Button variant="ghost" size="icon" aria-label="Nächstes Bild"
