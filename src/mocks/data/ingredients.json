@@ -15,5 +15,7 @@
   { "id": 14, "name": "Milch" },
   { "id": 15, "name": "Backpulver" },
   { "id": 16, "name": "Zartbitterschokolade" },
-  { "id": 17, "name": "Salz" }
+  { "id": 17, "name": "Salz" },
+  { "id": 18, "name": "Kartoffeln" },
+  { "id": 19, "name": "Paprika" }
 ]

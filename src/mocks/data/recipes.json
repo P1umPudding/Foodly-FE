@@ -7,12 +7,13 @@
     "name": "Spaghetti Bolognese",
     "tags": ["Hauptgericht", "Italienisch"],
     "source": "Omas Rezept",
-    "time": null,
+    "time": "20 min + {Kochzeit} 25 min",
     "workMinutes": 20,
     "overallMinutes": 45,
     "amount": "4 {Portionen}",
     "basePortionMultiplier": 4,
-    "notes": ["Schmeckt am nächsten Tag aufgewärmt noch besser."],
+    "notes": ["Schmeckt am nächsten Tag aufgewärmt noch besser. {WIP}"],
+    "mainImage": null,
     "images": [],
     "sections": [
       {
@@ -61,12 +62,13 @@
     "name": "Saftiger Schokokuchen",
     "tags": ["Backen", "Dessert"],
     "source": "https://example.com/schokokuchen",
-    "time": null,
+    "time": "25 min inkl. {Backzeit} 45 min",
     "workMinutes": 25,
     "overallMinutes": 70,
     "amount": "26 cm {Springform}",
     "basePortionMultiplier": 1,
     "notes": [],
+    "mainImage": null,
     "images": [],
     "sections": [
       {
@@ -103,12 +105,13 @@
     "name": "Pfannkuchen",
     "tags": ["Vegetarisch", "Schnell"],
     "source": null,
-    "time": null,
+    "time": "25 min",
     "workMinutes": 10,
     "overallMinutes": 25,
     "amount": "4 {Portionen}",
     "basePortionMultiplier": 4,
     "notes": ["Geht auch herzhaft mit Käse und Schinken."],
+    "mainImage": null,
     "images": [],
     "sections": [
       {
@@ -131,5 +134,40 @@
     "rating": [
       { "user": 1, "rating": 4 }
     ]
+  },
+  {
+    "id": 4,
+    "owner": 1,
+    "viewers": [],
+    "editors": [],
+    "name": "Ofengemüse",
+    "tags": ["Vegetarisch"],
+    "source": null,
+    "time": null,
+    "workMinutes": 15,
+    "overallMinutes": 40,
+    "amount": "2 {Portionen}",
+    "basePortionMultiplier": 2,
+    "notes": [],
+    "mainImage": null,
+    "images": [],
+    "sections": [
+      {
+        "id": 5,
+        "name": null,
+        "ingredients": [
+          { "id": 401, "ingredient": { "id": 18, "name": "Kartoffeln" }, "text": null, "amount": "600", "amountPrefix": null, "unit": "g" },
+          { "id": 402, "ingredient": { "id": 19, "name": "Paprika" }, "text": null, "amount": "2", "amountPrefix": null, "unit": null },
+          { "id": 403, "ingredient": { "id": 6, "name": "Olivenöl" }, "text": "zum Beträufeln", "amount": null, "amountPrefix": null, "unit": null },
+          { "id": 404, "ingredient": { "id": 17, "name": "Salz" }, "text": "nach Geschmack", "amount": null, "amountPrefix": null, "unit": null }
+        ],
+        "steps": [
+          "Gemüse in mundgerechte Stücke schneiden.",
+          "Mit Öl und Salz mischen, auf ein Blech geben.",
+          "Bei 200 °C ca. 30 Minuten rösten."
+        ]
+      }
+    ],
+    "rating": []
   }
 ]

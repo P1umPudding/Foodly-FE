@@ -6,5 +6,8 @@
   { "id": "Dessert", "svg": null },
   { "id": "Schnell", "svg": null },
   { "id": "Portionen", "svg": null },
-  { "id": "Springform", "svg": null }
+  { "id": "Springform", "svg": null },
+  { "id": "Backzeit", "svg": null },
+  { "id": "Kochzeit", "svg": null },
+  { "id": "Formgröße", "svg": null }
 ]
