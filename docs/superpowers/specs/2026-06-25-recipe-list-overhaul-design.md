@@ -239,20 +239,50 @@ Approach A category palette:
   others in the mock data) → full Tailwind class sets; neutral fallback for
   unknown. Replaces the inline `SWATCH` in `CategorySidebar`.
 
-## State changes (`state.ts`)
+## State changes (`state.ts` + wiring)
 
 - Remove `group: GroupView` and the `GroupView` type.
 - Remove `durationField` and its uses (`'work' | 'overall'`).
-- Update `DEFAULT_STATE`, `clearedState`, URL/persistence (`url.ts`,
-  `persistence.ts`) to drop both fields. `isFilterActive` unchanged except no
-  longer references `durationField`.
+- `state.ts`: update `DEFAULT_STATE`, `clearedState`; `isFilterActive` no longer
+  references `durationField` (it never referenced `group`).
+- `url.ts`: drop the `GroupView` import, the `GROUPS` const, and the `group` +
+  `dfield` lines in both `toSearchParams` and `fromSearchParams`.
+- `useListState.ts`: remove `'dfield'` and `'group'` from `OUR_KEYS`.
+- `filter.ts`: `withinDuration` drops its `field` param and always reads
+  `recipe.workMinutes`; `filterRecipes` calls it without `state.durationField`.
+- `persistence.ts`: no change needed (it spreads `Omit<ListState,'search'>`);
+  stale `group`/`dfield` keys in old localStorage are harmless (ignored on
+  `{ ...DEFAULT_STATE, ...persisted }` merge in `useListState`).
+
+## Implementation notes (non-obvious)
+
+- **Sort trigger is icon-only:** Radix `SelectValue` renders the selected item's
+  *text*; with icon-only `SelectItem`s the trigger would be empty. Render the
+  current `(sortKey, sortDir)` pair's icons **directly inside `SelectTrigger`**
+  (not via `SelectValue`). Each `SelectItem` keeps an `aria-label` for a11y.
+- **Search clear `X`:** postxl `Input` has no affix slot — wrap in a `relative`
+  container, add right padding to the input (`pr-9`), and absolutely-position a
+  ghost icon `Button` with the `X`.
+- **Collapsibles:** `Collapse` is Radix Collapsible — default-collapsed =
+  omit/`defaultOpen={false}` (Tags, Zutaten); default-expanded =
+  `defaultOpen` (category groups). Category open/closed is local component
+  state keyed by category id.
+- **Category active tint via literal classes:** `bg-[#e11d48]/15`,
+  `border-[#e11d48]`, `text-[#e11d48]`, `border-l-[#e11d48]` are all literal, so
+  the v4 scanner keeps them — store the full set per hex in `palette.ts`.
 
 ## Testing
 
-- Update/extend the existing tests that reference removed state
-  (`group`, `durationField`) and the changed `RoleCollabIndicator` (tooltips
-  gone): `RecipeListView.test.tsx`, `RecipeRow.test.tsx`,
-  `RoleCollabIndicator.test.tsx`, plus any `state`/`url`/`persistence` tests.
+Concrete test edits (verified call sites):
+- `src/components/list/RecipeListView.test.tsx:41` — remove the `group=` prop.
+- `src/list/state.test.ts:22,28` — remove the `group` field/assertion.
+- `src/list/url.test.ts:15,22` — remove `durationField` and `group` from the
+  round-trip fixture.
+- `src/list/filter.test.ts` — drop `durationField` from any literal `ListState`
+  it constructs (spread `DEFAULT_STATE` instead where possible).
+- `src/components/recipe/RoleCollabIndicator.test.tsx` — keeps working as-is
+  (assertions use `getByLabelText`; we keep the `aria-label`s). Simplify by
+  dropping the now-unneeded `TooltipProvider` wrapper.
 - Add unit tests for `access.ts` validity helpers against the §10 matrix
   (all 9 cells) and the relax-on-click behaviour.
 - Add a test for the `x/y` count (matching/total).
