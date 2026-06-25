@@ -20,6 +20,18 @@ export function recipeImageSrc(id: ImageId): string {
   return DEV_RECIPE_IMAGE[id] ?? `/recipes/${id}.svg`;
 }
 
+// Dev-only image display names (the real `Image.name` comes from the backend).
+const DEV_IMAGE_NAME: Record<number, string> = {
+  1: 'Fertiger Teller',
+  2: 'Anschnitt',
+  3: 'Im Topf (Hochformat)',
+  4: 'Angerichtet (Querformat)',
+};
+
+export function imageName(id: ImageId): string {
+  return DEV_IMAGE_NAME[id] ?? `Bild ${id}`;
+}
+
 export function userImageSrc(hash: string): string {
   return `/users/${hash}.svg`;
 }
