@@ -1,7 +1,9 @@
+import { Fragment, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle, Badge, Button, Skeleton } from '@postxl/ui-components';
 import { foodly } from '../api';
 import { useRequest } from '../hooks/useRequest';
+import { averageRating } from '../api/views';
 import { TagText } from '../components/TagText';
 import { Rating } from '../components/recipe/Rating';
 import { SectionBlock } from '../components/recipe/SectionBlock';
@@ -53,9 +55,20 @@ export function RecipeDetail() {
             </div>
 
             <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-              <Rating recipe={recipe} />
-              {recipe.time && <><span aria-hidden>·</span><span>🕒 <TagText value={recipe.time} /></span></>}
-              {recipe.amount && <><span aria-hidden>·</span><span><TagText value={recipe.amount} /></span></>}
+              {(() => {
+                // Rating first, then time, then portions — only the present ones,
+                // joined by "·" so there's never a stray leading separator.
+                const parts: ReactNode[] = [];
+                if (averageRating(recipe) !== null) parts.push(<Rating recipe={recipe} />);
+                if (recipe.time) parts.push(<span>🕒 <TagText value={recipe.time} /></span>);
+                if (recipe.amount) parts.push(<span><TagText value={recipe.amount} /></span>);
+                return parts.map((node, i) => (
+                  <Fragment key={i}>
+                    {i > 0 && <span aria-hidden>·</span>}
+                    {node}
+                  </Fragment>
+                ));
+              })()}
             </div>
           </header>
 
