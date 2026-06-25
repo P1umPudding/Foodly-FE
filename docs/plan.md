@@ -45,14 +45,9 @@ Struktur um die Liste herum, sobald es mehr als eine Handvoll Rezepte gibt.
 - Filtern nach Tags, Volltext-Suche über Namen/Zutaten.
 - Sortierung (Name, Zeit, Rating).
 
-**Dashboard / Startseite** (Idee): Überblicks-Kacheln, u.a.
-- Rezepte, zu denen man **kürzlich hinzugefügt** wurde (als viewer/editor),
-- **eigene kürzlich erstellte** Rezepte,
-- persönliche **Kategorien** (`userCategory`) mit Links,
-- **Gruppen**, in denen man Mitglied ist, mit Links,
-- ggf. weitere Kacheln.
-- ⚠️ Braucht **Timestamps** (`createdAt` + „wann wurde ich hinzugefügt") — die
-  fehlen aktuell im Protokoll (siehe Offene Punkte / Types).
+> **Dashboard / Startseite** ist aus Phase 2 herausgelöst → jetzt **Phase 5**
+> (backend-blockiert auf Timestamps, liegt bei den anderen backend-abhängigen
+> Phasen).
 
 **Listen-Modi (Filter nach Rolle des aktuellen Users)** (Idee, Wortlaut TBD;
 ableitbar aus `owner`/`viewers`/`editors`):
@@ -94,17 +89,30 @@ als UI-Prototyp mit lokalem State sinnvoll.
 
 → Erst sinnvoll, wenn der Login-/Backend-Workflow steht.
 
-## Phase 5 — Mobile optimieren
+## Phase 5 — Dashboard / Startseite  (braucht Backend)
+
+Überblicks-Startseite mit Kacheln. Aus Phase 2 herausgelöst, weil **blockiert
+auf Timestamps** (`createdAt` + „wann wurde ich hinzugefügt") — fehlen aktuell im
+Protokoll (siehe Offene Punkte / Types). Liegt hier bei den anderen
+backend-abhängigen Phasen.
+
+- Rezepte, zu denen man **kürzlich hinzugefügt** wurde (als viewer/editor),
+- **eigene kürzlich erstellte** Rezepte,
+- persönliche **Kategorien** (`userCategory`) mit Links,
+- **Gruppen**, in denen man Mitglied ist, mit Links,
+- ggf. weitere Kacheln.
+
+## Phase 6 — Mobile optimieren
 
 Die Web-App für Mobile schärfen: Touch-Targets, responsives Layout, Performance,
 ggf. PWA-Grundlagen. Voraussetzung fürs native Wrappen.
 
-## Phase 6 — Als native Mobile-App wrappen
+## Phase 7 — Als native Mobile-App wrappen
 
 Die SPA als native App verpacken (z.B. Capacitor) für iOS/Android: App-Store-
 Präsenz, native Shell, Zugriff auf Geräte-APIs.
 
-## Phase 7 — Offline-Modus (native App)
+## Phase 8 — Offline-Modus (native App)
 
 - Daten **cachen**, solange online; offline bereitstellen (vermutlich lokale
   **SQLite**-DB).
@@ -140,7 +148,7 @@ Beim Sync vergibt der Server die echte id → die Temp-id muss überall
 Basis-Version für Konflikt-Erkennung). Also nicht „unmöglich", nur Extra-
 Modellierung — Details klären wir, wenn die Phase dran ist.
 
-## Phase 8 — Weitere Daten & Funktionen
+## Phase 9 — Weitere Daten & Funktionen
 
 Laufende Erweiterung von Modell und Funktionsumfang, z.B.:
 - **Persönliche Notizen** an Rezepten (privat pro User).
@@ -158,7 +166,7 @@ Laufende Erweiterung von Modell und Funktionsumfang, z.B.:
 ### Daten-/Protokoll-Fragen (mit Backend klären)
 
 - **Timestamps fehlen** (`createdAt`, „added-at" pro viewer/editor) — blockiert
-  das Phase-2-Dashboard („kürzlich erstellt / hinzugefügt").
+  das Dashboard (Phase 5: „kürzlich erstellt / hinzugefügt").
 - **`Recipe.updatedAt`** (zusätzlich zu `createdAt`): soll nur Änderungen am
   *eigentlichen Rezept* (Inhalt) abbilden — **nicht** Änderungen an
   viewers/editors/Sharing.
