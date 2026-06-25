@@ -1,7 +1,7 @@
 import { buttonVariants, cn } from '@postxl/ui-components';
 import { useWakeLock } from '../hooks/useWakeLock';
 
-const ICON = 'h-4 w-4';
+const ICON = 'size-4';
 
 function MugIcon({ steam }: { steam: boolean }) {
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Clock, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components';
@@ -21,21 +21,11 @@ export function RecipeDetail() {
   const recipeId = Number(id);
   const { status, data: recipe, error } = useRequest(() => foodly.getRecipe(recipeId), [recipeId]);
 
-  const heroRef = useRef<HTMLImageElement>(null);
-  const galleryRef = useRef<HTMLDivElement>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // All images of the recipe in viewer order: main first, then the gallery.
   const hasMain = !!recipe && recipe.mainImage !== null;
   const allImages = recipe ? (hasMain ? [recipe.mainImage as number, ...recipe.images] : recipe.images) : [];
-
-  // As the active image changes, scroll the page to it (main → hero, else
-  // gallery), so closing the viewer leaves that image in view.
-  useEffect(() => {
-    if (lightboxIndex === null) return;
-    const el = hasMain && lightboxIndex === 0 ? heroRef.current : galleryRef.current;
-    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [lightboxIndex, hasMain]);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -93,7 +83,6 @@ export function RecipeDetail() {
 
           {recipe.mainImage !== null && (
             <img
-              ref={heroRef}
               src={recipeImageSrc(recipe.mainImage)}
               alt={recipe.name}
               onClick={() => setLightboxIndex(0)}
@@ -115,7 +104,7 @@ export function RecipeDetail() {
           {recipe.sections.map((section) => <SectionBlock key={section.id} section={section} />)}
 
           {recipe.images.length > 0 && (
-            <div ref={galleryRef} className="mt-12 flex flex-wrap items-start gap-3">
+            <div className="mt-12 flex flex-wrap items-start gap-3">
               {recipe.images.map((imgId, gi) => (
                 <img
                   key={imgId}
