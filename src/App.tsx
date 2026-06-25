@@ -1,9 +1,11 @@
-import { Routes, Route } from 'react-router-dom';
-import { TooltipProvider } from '@postxl/ui-components';
-import { Nav } from './components/Nav';
-import { Footer } from './components/Footer';
-import { Home } from './pages/Home';
-import { NotFound } from './pages/NotFound';
+import { Routes, Route } from 'react-router-dom'
+import { TooltipProvider } from '@postxl/ui-components'
+import { Nav } from './components/Nav'
+import { Footer } from './components/Footer'
+import { NotFound } from './pages/NotFound'
+import { CatalogProvider } from './catalog/CatalogProvider'
+import { RecipeList } from './pages/RecipeList'
+import { RecipeDetail } from './pages/RecipeDetail'
 
 export default function App() {
   return (
@@ -11,13 +13,16 @@ export default function App() {
       <div className="flex min-h-screen flex-col bg-background text-foreground">
         <Nav />
         <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <CatalogProvider>
+            <Routes>
+              <Route path="/" element={<RecipeList />} />
+              <Route path="/recipes/:id" element={<RecipeDetail />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </CatalogProvider>
         </main>
         <Footer />
       </div>
     </TooltipProvider>
-  );
+  )
 }
