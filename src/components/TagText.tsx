@@ -5,6 +5,12 @@ import type { Tag } from '../api/protocol';
 // {X} or {!X}; X = tag id (anything but braces). Global flag → iterate matches.
 const TOKEN = /\{(!?)([^{}]+)\}/g;
 
+// Resolve a tag image hash to a URL. The real backend hash→URL scheme is still
+// TBD; in dev the mock stores a filename stem served from public/tags.
+function tagImageSrc(hash: string): string {
+  return `/tags/${hash}.svg`;
+}
+
 export function TagText({ value }: { value: string }) {
   const { byId } = useTags();
   const nodes: Array<string | JSX.Element> = [];
@@ -19,12 +25,12 @@ export function TagText({ value }: { value: string }) {
     if (!tag) {
       nodes.push(full); // unknown tag → keep literal (incl. braces / leading !)
     } else if (bang === '!' || tag.svg === null) {
-      nodes.push(id); // forced name, or no image available → name without braces
+      nodes.push(id); // forced name, or no image → name without braces
     } else {
-      // Tag has an svg. Real image loading is backend-dependent and deferred
-      // (Phase 1: no tag has an svg, so this branch is unreached). Fall back to
-      // the readable name rather than an empty box.
-      nodes.push(id);
+      // Tag has an image → render it inline, sized to the surrounding text.
+      nodes.push(
+        <img src={tagImageSrc(tag.svg)} alt={id} className="inline-block h-[1em] w-auto align-[-0.15em]" />,
+      );
     }
     last = start + full.length;
   }

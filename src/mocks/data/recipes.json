@@ -148,7 +148,7 @@
     "overallMinutes": 40,
     "amount": "2 {Portionen}",
     "basePortionMultiplier": 2,
-    "notes": [],
+    "notes": ["100 % pflanzlich {Vegan}"],
     "mainImage": null,
     "images": [],
     "sections": [
