@@ -71,6 +71,12 @@ Die Detailansicht für das tatsächliche Kochen optimieren.
 - Portionen umrechnen (`basePortionMultiplier` → Mengen skalieren).
 - „Bildschirm anlassen" (`useWakeLock` ist schon da) hier sinnvoll einbinden.
 - Zutaten abhaken (lokaler State, kein Persist nötig).
+- **Timer:** beim Kochen Timer stellen können (lokal, kein Persist nötig).
+  - Custom-Timer: Dauer frei eingeben/starten, mehrere parallel, Hinweis bei
+    Ablauf (Sound/Vibration + visuell; Wake-Lock greift hier ohnehin).
+  - *Idee (optional):* Rezepte bringen voreingestellte Timer mit — z. B. aus
+    `time`/Schritt-Daten abgeleitet, sodass ein Schritt seinen Timer direkt per
+    Tap startet. Erst klären, ob/wie diese Zeiten in den Daten stecken.
 
 ## Phase 4 — Rezepte bearbeiten  (braucht Backend)
 
@@ -152,6 +158,12 @@ Modellierung — Details klären wir, wenn die Phase dran ist.
 Laufende Erweiterung von Modell und Funktionsumfang, z.B.:
 - **Persönliche Notizen** an Rezepten (privat pro User).
 - **Öffentliche Kommentare** an Rezepten.
+- *Idee:* **Abkürzungsverzeichnis** (z. B. EL = Esslöffel) und **Mengen-
+  verzeichnis** (z. B. 1 EL Zucker = x g) — zum Nachschlagen und ggf. zum
+  Umrechnen von Mengen.
+  - *Weitergedacht:* Abkürzungen automatisch aus den eigenen Rezepten
+    erkennen, sodass jeder im Verzeichnis nur die Abkürzungen sieht, die in
+    seinen Rezepten tatsächlich vorkommen.
 - (weiteres nach Bedarf)
 
 ---
