@@ -33,6 +33,16 @@ export function averageRating(recipe: Recipe): number | null {
   return Math.round((sum / ratings.length) * 10) / 10;
 }
 
+// The rating visible to the current user, accounting for collaboration mode.
+// Private/Shared: shows only the current user's own rating (null if not rated).
+// Collaborative: shows the pooled average of all ratings.
+export function visibleRating(recipe: Recipe, currentUserId: UserId | null): number | null {
+  if (collaborationState(recipe) === 'collaborative') return averageRating(recipe);
+  if (currentUserId === null) return null;
+  const own = recipe.rating.find((rt) => rt.user === currentUserId);
+  return own ? own.rating : null;
+}
+
 // Compose one ingredient line: "amountPrefix amount unit name/text".
 export function formatIngredient(line: RecipeIngredient): string {
   const quantity = [line.amountPrefix, line.amount, line.unit]

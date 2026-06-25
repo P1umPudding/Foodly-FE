@@ -1,4 +1,4 @@
-import { roleOf, myRole, collaborationState } from './views';
+import { roleOf, myRole, collaborationState, visibleRating } from './views';
 import type { Recipe } from './protocol';
 
 const base: Recipe = {
@@ -34,5 +34,25 @@ describe('collaborationState', () => {
   it('collaborative when any editor', () => {
     expect(collaborationState(r({ viewers: [], editors: [2] }))).toBe('collaborative');
     expect(collaborationState(r({ viewers: [3], editors: [2] }))).toBe('collaborative');
+  });
+});
+
+describe('visibleRating', () => {
+  it('private/shared: shows only the current user own rating', () => {
+    const shared = r({ owner: 1, viewers: [2], editors: [],
+      rating: [{ user: 1, rating: 5 }, { user: 2, rating: 1 }] });
+    expect(visibleRating(shared, 1)).toBe(5); // own, not the average
+    const noOwn = r({ owner: 2, viewers: [1], editors: [],
+      rating: [{ user: 2, rating: 4 }] });
+    expect(visibleRating(noOwn, 1)).toBeNull(); // I have not rated
+  });
+  it('collaborative: shows the pooled average', () => {
+    const collab = r({ owner: 1, editors: [2], viewers: [],
+      rating: [{ user: 1, rating: 5 }, { user: 2, rating: 3 }] });
+    expect(visibleRating(collab, 1)).toBe(4);
+  });
+  it('null current user: private/shared yields null', () => {
+    const shared = r({ owner: 1, viewers: [2], rating: [{ user: 1, rating: 5 }] });
+    expect(visibleRating(shared, null)).toBeNull();
   });
 });
