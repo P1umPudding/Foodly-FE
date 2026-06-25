@@ -10,8 +10,8 @@
 > - **Layout/Design** (Sidebar, Filter-Leiste, Zeilen- & Ansichts-Varianten) —
 >   erst nach Phase 1, weil Phase 2 visuell auf der dort entstehenden Liste
 >   aufbaut.
-> - **A — Filtern/Suchen/Sortieren:** Semantik teils offen (Volltext-Scope,
->   Tag-Filter-Verknüpfung AND/OR, Sort-Optionen & Default).
+> - **A — Filtern/Suchen/Sortieren:** Kern entschieden (siehe §A); offen nur noch
+>   Kategorie-Sidebar single-/multi-select und finale Sort-Bestätigung.
 > - **C — Listen-Ansichten** (`detailed ↔ compact`, `by category ↔ flat`):
 >   noch nicht spezifiziert.
 > - **Achse-1-Benennung** der Rollen-Modi (§D) final festlegen.
@@ -105,11 +105,48 @@ Beide Achsen als sichtbare Controls (z.B. zwei segmented controls), inklusive
 
 ---
 
-## A — Filtern / Suchen / Sortieren
+## A — Filtern / Suchen / Sortieren ✅ größtenteils entschieden
 
-> Noch zu diskutieren — entkoppelt, kann großteils **vor** Phase-1-Ende geklärt
-> werden: Tag-Filter-Verknüpfung (AND/OR), Volltext-Scope (Name / Zutaten /
-> Schritte?), Sort-Optionen & Default, Zusammenspiel Kategorie-Sidebar ↔ Filter.
+Mehrere Verengungen wirken gleichzeitig auf die Liste. **Alle Facetten
+kombinieren als UND** (Schnittmenge): ein Rezept wird gezeigt, wenn es *jede*
+aktive Facette erfüllt.
+
+### Facetten
+
+1. **Kategorie** (Sidebar, `userCategory`) — ein Rezept matcht, wenn seine `id`
+   in `userCategory.recipes` liegt. (`UserCategory.recipes: RecipeId[]` — ein
+   Rezept kann in mehreren Kategorien sein.) → *offen:* Sidebar single-select
+   („eine Kategorie ansehen") vs. multi-select; Tendenz single-select.
+2. **Tags** — Mehrfachauswahl, **UND** verknüpft (Rezept muss *alle* gewählten
+   Tags haben).
+3. **Zutaten** — Auswahl nur aus dem **globalen `Ingredient`-Katalog**;
+   Mehrfachauswahl **UND** verknüpft. Match: Rezept hat je ein `RecipeIngredient`
+   mit passender `ingredient.id`. Reine Freitext-Zutaten (`ingredient === null`)
+   sind nicht filterbar.
+4. **Dauer** — **Max-Schwellwert („bis")** auf **`workMinutes`** (kein Range; ein
+   „von" hat real keinen Nutzen). `overallMinutes` als sekundäre, weniger
+   prominente Option (Umschalter „auf Gesamtzeit"). Rezepte mit
+   `workMinutes === null` fallen bei aktivem Filter raus („unbekannt" ≠ „≤ X").
+   Filtert die **rohen** Minuten-Felder, nicht den gerenderten `time`-String.
+5. **Rollen-Modi** — siehe [§D](#d--rollen-modi-filter-nach-rolle--entschieden);
+   zählt als eine weitere UND-Facette.
+6. **Volltext-Suche** — durchsucht **`recipe.name` (Titel) + `Section.name`
+   (Abschnitts-Subtitel) + Tag-Namen**, ODER-verknüpft über diese Felder. Tags
+   sind dabei, weil billig & bequem (tippen statt Tag-Filter öffnen) — kein
+   Konflikt mit dem präzisen Tag-Filter. **Bewusst NICHT durchsucht:**
+   Zutatennamen (dafür der strukturierte Zutaten-Filter) und Schritt-Text.
+
+### Sortierung (Vorschlag, zu bestätigen)
+
+- Optionen: **Name** (A–Z), **`workMinutes`** (aufsteigend), **Rating**
+  (absteigend; `averageRating` aus `views.ts`).
+- Default: **Name A–Z**, Richtung je Option umschaltbar.
+- Rezepte mit `null` im Sortierfeld ans Ende.
+
+### Offen in A
+
+> - **Kategorie-Sidebar:** single- vs. multi-select (Tendenz single).
+> - **Sort:** finale Options-/Default-Bestätigung.
 
 ## C — Listen-Ansichten
 
