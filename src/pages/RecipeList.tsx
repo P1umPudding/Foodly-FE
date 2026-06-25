@@ -4,7 +4,7 @@ import { foodly } from '../api';
 import { useRequest } from '../hooks/useRequest';
 import { useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider';
 import { useListState } from '../list/useListState';
-import { filterRecipes } from '../list/filter';
+import { filterRecipes, groupingCategories } from '../list/filter';
 import { sortRecipes } from '../list/sort';
 import { roleGridCounts, usedIngredients } from '../list/counts';
 import { isFilterActive } from '../list/state';
@@ -86,7 +86,7 @@ export function RecipeList() {
         )}
 
         {recipesReq.status === 'ready' && visible.length > 0 && (
-          <RecipeListView recipes={visible} categories={categories} group={state.group} detail={state.detail} />
+          <RecipeListView recipes={visible} categories={groupingCategories(categories, state.categories)} group={state.group} detail={state.detail} />
         )}
       </div>
     </div>

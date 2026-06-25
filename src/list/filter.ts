@@ -1,4 +1,10 @@
 import type { Recipe, UserId, UserCategory } from '../api/protocol';
+
+// When the category facet is active, by-category grouping should show only the
+// selected categories; otherwise all. (Sidebar still shows all categories.)
+export function groupingCategories(categories: UserCategory[], selected: number[]): UserCategory[] {
+  return selected.length > 0 ? categories.filter((c) => selected.includes(c.id)) : categories;
+}
 import type { ListState } from './state';
 import { roleOf, collaborationState } from '../api/views';
 import { matchesSearch } from './search';

@@ -3,7 +3,6 @@ import { FilterControls } from './FilterControls';
 import { DEFAULT_STATE } from '../../list/state';
 import { roleCellKey } from '../../list/counts';
 
-const noop = () => {};
 const counts = { [roleCellKey('owner', 'private')]: 2, [roleCellKey('viewer', 'shared')]: 1 };
 
 it('search input pushes a q patch', () => {

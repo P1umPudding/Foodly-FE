@@ -1,4 +1,4 @@
-import { filterRecipes } from './filter';
+import { filterRecipes, groupingCategories } from './filter';
 import { DEFAULT_STATE } from './state';
 import type { Recipe, UserCategory } from '../api/protocol';
 
@@ -48,5 +48,16 @@ describe('filterRecipes', () => {
   });
   it('facets AND together', () => {
     expect(ids(filterRecipes(recipes, { ...DEFAULT_STATE, tags: ['Vegan'], durationMax: 15 }, 1, cats))).toEqual([1]);
+  });
+});
+
+describe('groupingCategories', () => {
+  it('selected non-empty → returns only selected categories', () => {
+    const result = groupingCategories(cats, [10]);
+    expect(result.map((c) => c.id)).toEqual([10]);
+  });
+  it('selected empty → returns all categories unchanged', () => {
+    const result = groupingCategories(cats, []);
+    expect(result).toEqual(cats);
   });
 });

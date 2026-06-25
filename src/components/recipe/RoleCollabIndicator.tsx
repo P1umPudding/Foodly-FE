@@ -13,7 +13,7 @@ const ROLE = {
 // Colour reinforces collaboration but never carries meaning alone — aria-label + title do.
 const COLLAB = {
   private: { Icon: Lock, label: 'privat', tint: 'text-muted-foreground' },
-  shared: { Icon: Share2, label: 'geteilt (read-only)', tint: 'text-[#0ea5e9]' },
+  shared: { Icon: Share2, label: 'geteilt (nur lesen)', tint: 'text-[#0ea5e9]' },
   collaborative: { Icon: Users, label: 'kollaborativ', tint: 'text-[#10b981]' },
 } satisfies Record<Collaboration, { Icon: typeof Lock; label: string; tint: string }>;
 
