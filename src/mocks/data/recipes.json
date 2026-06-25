@@ -4,21 +4,21 @@
     "owner": 1,
     "viewers": [],
     "editors": [2],
-    "name": "Spaghetti Bolognese {Vegan}",
+    "name": "Spaghetti {Vegan} Bolognese",
     "tags": ["Hauptgericht", "Italienisch", "Vegan"],
     "source": "Omas Rezept",
-    "time": "20 min + {Kochzeit} 25 min",
+    "time": "20 min + {Vegan} {Kochzeit} 25 min",
     "workMinutes": 20,
     "overallMinutes": 45,
-    "amount": "4 {Portionen}",
+    "amount": "4 {Vegan} {Portionen}",
     "basePortionMultiplier": 4,
-    "notes": ["Schmeckt am nächsten Tag aufgewärmt noch besser. {WIP} {Vegan}"],
+    "notes": ["Schmeckt am nächsten {Vegan} Tag aufgewärmt noch besser. {WIP}"],
     "mainImage": 1,
     "images": [],
     "sections": [
       {
         "id": 1,
-        "name": "Bolognese {Vegan}",
+        "name": "{Vegan} Bolognese",
         "ingredients": [
           { "id": 101, "ingredient": { "id": 2, "name": "Hackfleisch (Rind)" }, "text": null, "amount": "500", "amountPrefix": null, "unit": "g" },
           { "id": 102, "ingredient": { "id": 4, "name": "Zwiebel" }, "text": null, "amount": "1", "amountPrefix": null, "unit": null },
@@ -26,14 +26,14 @@
           { "id": 104, "ingredient": { "id": 3, "name": "Tomaten (gehackt)" }, "text": null, "amount": "800", "amountPrefix": "ca.", "unit": "g" },
           { "id": 105, "ingredient": { "id": 7, "name": "Tomatenmark" }, "text": null, "amount": "2", "amountPrefix": null, "unit": "EL" },
           { "id": 106, "ingredient": { "id": 6, "name": "Olivenöl" }, "text": null, "amount": "2", "amountPrefix": null, "unit": "EL" },
-          { "id": 107, "ingredient": { "id": 17, "name": "Salz" }, "text": "nach Geschmack {Vegan}", "amount": null, "amountPrefix": null, "unit": null }
+          { "id": 107, "ingredient": { "id": 17, "name": "Salz" }, "text": "nach {Vegan} Geschmack", "amount": null, "amountPrefix": null, "unit": null }
         ],
         "steps": [
           "Zwiebel und Knoblauch fein hacken.",
           "Hackfleisch in Olivenöl krümelig anbraten.",
           "Tomatenmark zugeben und kurz mitrösten.",
           "Mit den Tomaten ablöschen und 30 Minuten köcheln lassen.",
-          "Mit Salz abschmecken. {Vegan}"
+          "Mit {Vegan} Salz abschmecken."
         ]
       },
       {
