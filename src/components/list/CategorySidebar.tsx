@@ -24,7 +24,6 @@ export function CategorySidebar({
   const ordered = [...categories].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   return (
     <nav className="flex flex-col gap-1">
-      <h2 className="px-2 py-1 text-sm font-medium text-muted-foreground">Kategorien</h2>
       {ordered.map((c) => (
         <Button
           key={c.id}

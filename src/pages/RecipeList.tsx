@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, AlertDescription, AlertTitle, Button, Separator, Skeleton } from '@postxl/ui-components'
+import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
@@ -8,7 +8,6 @@ import { filterRecipes, groupingCategories } from '../list/filter'
 import { sortRecipes } from '../list/sort'
 import { usedIngredients } from '../list/counts'
 import { isFilterActive } from '../list/state'
-import { CategorySidebar } from '../components/list/CategorySidebar'
 import { FilterControls } from '../components/list/FilterControls'
 import { ListToolbar } from '../components/list/ListToolbar'
 import { RecipeListView } from '../components/list/RecipeListView'
@@ -30,20 +29,23 @@ export function RecipeList() {
 
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-10 md:grid-cols-[18rem_1fr]">
-      <aside className="flex flex-col gap-4 md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:self-start md:overflow-y-auto">
-        <CategorySidebar
+      <aside className="flex flex-col gap-4 md:sticky md:top-4 md:self-start">
+        <FilterControls
+          state={state}
+          set={set}
           categories={categories}
-          selected={state.categories}
-          onToggle={(id) =>
+          onToggleCategory={(id) =>
             set({
               categories: state.categories.includes(id)
                 ? state.categories.filter((x) => x !== id)
                 : [...state.categories, id],
             })
           }
+          tags={tagList}
+          ingredients={usedIngredientList}
+          active={isFilterActive(state)}
+          onClear={clear}
         />
-        <Separator />
-        <FilterControls state={state} set={set} tags={tagList} ingredients={usedIngredientList} />
       </aside>
 
       <div className="min-w-0">
