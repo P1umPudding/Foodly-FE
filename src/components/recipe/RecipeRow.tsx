@@ -13,7 +13,7 @@ export function RecipeRow({ recipe }: { recipe: Recipe }) {
   return (
     <Link to={`/recipes/${recipe.id}`} className="block">
       <Card className="flex items-center gap-3 p-3 transition-colors hover:bg-muted/50">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full">
           {recipe.mainImage !== null ? (
             <img src={recipeImageSrc(recipe.mainImage)} alt="" className="h-full w-full object-cover" />
           ) : (
