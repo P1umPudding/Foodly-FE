@@ -19,7 +19,7 @@ export function SectionBlock({ section }: { section: Section }) {
       <div className="grid grid-cols-1 gap-y-6 text-[0.95rem] leading-snug md:grid-cols-[minmax(0,1fr)_minmax(0,1.55fr)] md:gap-x-4">
         <table className="w-full table-fixed border-collapse">
           <colgroup>
-            <col className="w-[8rem]" />
+            <col className="w-32" />
             <col />
           </colgroup>
           <tbody>
@@ -27,10 +27,10 @@ export function SectionBlock({ section }: { section: Section }) {
           </tbody>
         </table>
 
-        <ol className="space-y-2.5 md:border-l md:border-border md:pl-[1.25rem]">
+        <ol className="space-y-2.5 md:border-l md:border-border md:pl-5">
           {section.steps.map((step, i) => (
             <li key={i} className="flex gap-3">
-              <span className="shrink-0 tabular-nums text-foreground/70">{i + 1}.</span>
+              <span className="shrink-0 tabular-nums text-foreground/75">{i + 1}.</span>
               <span className="min-w-0"><TagText value={step} /></span>
             </li>
           ))}

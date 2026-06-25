@@ -70,7 +70,7 @@ export function RecipeDetail() {
               <div className="flex-1 text-center">
                 {recipe.time && (
                   <span className="inline-flex items-center gap-2">
-                    <Clock className="h-5 w-5 shrink-0 text-muted-foreground" />
+                    <Clock className="h-5 w-5 shrink-0 text-foreground/75" />
                     <TagText value={recipe.time} size="md" />
                   </span>
                 )}
@@ -93,7 +93,7 @@ export function RecipeDetail() {
           {recipe.notes.length > 0 && (
             <div className="mt-6 space-y-1.5">
               {recipe.notes.map((note, i) => (
-                <p key={i} className="flex items-center gap-2 text-muted-foreground">
+                <p key={i} className="flex items-center gap-2 text-foreground/75">
                   <Info className="h-5 w-5 shrink-0" />
                   <span><TagText value={note} /></span>
                 </p>
@@ -118,7 +118,7 @@ export function RecipeDetail() {
           )}
 
           {recipe.source && (
-            <footer className="mt-16 text-[0.95rem] text-muted-foreground">
+            <footer className="mt-16 text-[0.95rem] text-foreground/75">
               Quelle:{' '}
               {isUrl(recipe.source)
                 ? <a href={recipe.source} target="_blank" rel="noopener noreferrer" className="underline">{recipe.source}</a>

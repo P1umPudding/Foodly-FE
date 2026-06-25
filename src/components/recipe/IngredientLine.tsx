@@ -8,7 +8,7 @@ export function IngredientLine({ line }: { line: RecipeIngredient }) {
   const { quantity, name } = ingredientParts(line);
   return (
     <tr>
-      <td className="py-1 pr-3 text-right align-baseline text-foreground/70">
+      <td className="py-1 pr-3 text-right align-baseline text-foreground/75">
         <TagText value={quantity} />
       </td>
       <td className="py-1 align-baseline">

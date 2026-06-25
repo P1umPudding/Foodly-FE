@@ -21,7 +21,7 @@ export function TagChips({
   const items = tags.map((t) => {
     const svg = byId[t]?.svg ?? null;
     if (!svg) {
-      return <span key={t} className="text-muted-foreground">{t}</span>;
+      return <span key={t} className="text-foreground/75">{t}</span>;
     }
     const icon = <TagIcon hash={svg} alt={t} size={size === 'lg' ? 'md' : 'sm'} />;
     if (!hoverName) return <span key={t} className="inline-flex">{icon}</span>;
