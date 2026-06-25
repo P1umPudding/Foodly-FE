@@ -1,9 +1,7 @@
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-border/60 py-10">
-      <p className="text-center text-[0.95rem] text-muted-foreground">
-        © {new Date().getFullYear()} · Foodly
-      </p>
+    <footer className="px-6 pb-2 pt-10">
+      <p className="text-center text-xs text-muted-foreground/60">© {new Date().getFullYear()} · Foodly</p>
     </footer>
-  );
+  )
 }

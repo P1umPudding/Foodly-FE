@@ -18,16 +18,13 @@
     <script>
       // Set the theme class before React mounts to avoid a flash of the wrong
       // theme. Mirrors src/theme/ThemeProvider.tsx (key + resolution logic).
-      (function () {
+      ;(function () {
         try {
-          var v = localStorage.getItem('foodly-theme');
-          var dark =
-            v === 'dark' ||
-            (v !== 'light' &&
-              window.matchMedia('(prefers-color-scheme: dark)').matches);
-          document.documentElement.classList.toggle('dark', dark);
+          var v = localStorage.getItem('foodly-theme')
+          var dark = v === 'dark' || (v !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.classList.toggle('dark', dark)
         } catch (e) {}
-      })();
+      })()
     </script>
   </head>
   <body>

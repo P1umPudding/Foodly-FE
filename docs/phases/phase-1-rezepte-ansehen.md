@@ -204,7 +204,8 @@ aufgeräumter, gut zum Scannen). Zentrierte Spalte `max-w-5xl`.
 - **Loading:** ein paar `Skeleton`-Zeilen.
 - **Error:** `Alert` (variant destructive) mit Meldung + „Erneut versuchen"
   (Retry über Re-Mount/Key der Anfrage).
-- **Empty:** `Empty`-Komponente, freundlicher „Noch keine Rezepte"-Hinweis.
+- **Empty:** freundlicher „Noch keine Rezepte"-Hinweis (schlichter, gestylter
+  `<p>` — `@postxl/ui-components` exportiert kein `Empty`).
 
 ---
 
@@ -342,7 +343,7 @@ Mock-Erweiterungen müssen typkonform zu `protocol.ts` bleiben.
 
 - Interaktive Elemente **ausschließlich** über `@postxl/ui-components`
   (`Card`, `Badge`, `Button`, `Avatar`, `Popover`, `Separator`, `Skeleton`,
-  `Alert`, `Empty`, …) — keine rohen `<button>`/`<input>`.
+  `Alert`, `Skeleton`, …) — keine rohen `<button>`/`<input>`.
 - Größen über `size`/`variant`-Props, nicht per Tailwind nachbauen.
 - Keine Inline-Styles; Spacing/Layout via Tailwind-Utilities, sonst Klasse in
   `styles.css`. Text-Größen über die Tokens, nicht hand-sizen.

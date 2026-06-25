@@ -1,0 +1,8 @@
+dist
+node_modules
+
+# Markdown is authored/formatted by hand — keep Prettier out of it.
+**/*.md
+
+# Generated / vendored
+package-lock.json
