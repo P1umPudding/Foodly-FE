@@ -38,6 +38,7 @@
   --destructive: hsl(0 72.2% 50.6%);
   --success: hsl(161.4 93.5% 30.4%);
   --warning: hsl(32.1 94.6% 43.7%);
+  --star: hsl(38 92% 50%); /* rating stars (gold); adapts with theme */
 
   /* lines / focus */
   --border: hsl(214 32% 91%);
@@ -95,6 +96,7 @@
   --destructive: hsl(0 84.2% 60.2%);
   --success: hsl(160.1 84.1% 39.4%);
   --warning: hsl(37.7 92.1% 50.2%);
+  --star: hsl(43 96% 56%); /* slightly brighter gold for dark backgrounds */
 
   --border: #2e303a;
   --input: #2e303a;

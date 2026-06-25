@@ -400,7 +400,7 @@ git commit -m "feat(recipe): add TagText token renderer"
 
 **No custom CSS.** Quarter precision = 5 discrete fill widths, each expressible
 with a Tailwind width utility (`w-0` `w-1/4` `w-1/2` `w-3/4` `w-full`); the gold
-is the default `text-amber-500`. So this is pure Tailwind in the component — no
+is the themed `text-star` token (defined in `theme.css` for light+dark). Pure Tailwind in the component — no
 `styles.css` additions (per CLAUDE.md: Tailwind first, `styles.css` only for what
 Tailwind *can't* express).
 
@@ -434,7 +434,7 @@ export function Stars({ value }: { value: number }) {
         <span key={i} className="relative inline-flex">
           <Star className={`${SIZE} text-muted-foreground`} />
           <span className={`absolute left-0 top-0 inline-flex overflow-hidden ${FILL_WIDTH[quarter(value - i)]}`}>
-            <Star className={`${SIZE} fill-current text-amber-500`} />
+            <Star className={`${SIZE} fill-current text-star`} />
           </span>
         </span>
       ))}
@@ -443,7 +443,7 @@ export function Stars({ value }: { value: number }) {
 }
 ```
 
-The single inline stars in `RecipeRow`/`Rating` use the same `text-amber-500`.
+The single inline stars in `RecipeRow`/`Rating` use the same `text-star`.
 
 - [ ] **Step 2: Verify build**
 
@@ -514,7 +514,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
         <div className="flex items-center justify-between">
           <span className="font-medium">Bewertungen</span>
           <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-            <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
+            <Star className="h-3.5 w-3.5 fill-current text-star" />
             {avg.toFixed(1)} · {rows.length}
           </span>
         </div>
@@ -523,7 +523,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
           <div className="mt-3 flex items-center justify-between rounded-md bg-muted px-2 py-1.5">
             <span className="text-sm font-medium">Du</span>
             <span className="inline-flex items-center gap-1 text-sm tabular-nums">
-              <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
+              <Star className="h-3.5 w-3.5 fill-current text-star" />
               {own.rating.toFixed(1)}
             </span>
           </div>
@@ -539,7 +539,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
                 <span className="text-xs text-muted-foreground">{ROLE_LABEL[r.role]}</span>
               </span>
               <span className="inline-flex items-center gap-1 tabular-nums text-muted-foreground">
-                <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
+                <Star className="h-3.5 w-3.5 fill-current text-star" />
                 {r.rating.toFixed(1)}
               </span>
             </li>
@@ -551,7 +551,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
 }
 ```
 
-Note: the single inline stars use the standard `text-amber-500` utility (same gold as the `Stars` bar).
+Note: the single inline stars use the themed `text-star` token (same gold as the `Stars` bar).
 
 - [ ] **Step 2: Verify build**
 
@@ -618,7 +618,7 @@ export function RecipeRow({ recipe }: { recipe: Recipe }) {
           <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
             {avg !== null && (
               <span className="inline-flex items-center gap-1 tabular-nums">
-                <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
+                <Star className="h-3.5 w-3.5 fill-current text-star" />
                 {avg.toFixed(1)}
               </span>
             )}

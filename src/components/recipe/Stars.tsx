@@ -25,7 +25,7 @@ export function Stars({ value }: { value: number }) {
         <span key={i} className="relative inline-flex">
           <Star className={`${SIZE} text-muted-foreground`} />
           <span className={`absolute left-0 top-0 inline-flex overflow-hidden ${FILL_WIDTH[quarter(value - i)]}`}>
-            <Star className={`${SIZE} fill-current text-amber-500`} />
+            <Star className={`${SIZE} fill-current text-star`} />
           </span>
         </span>
       ))}

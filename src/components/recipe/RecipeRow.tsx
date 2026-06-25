@@ -32,7 +32,7 @@ export function RecipeRow({ recipe }: { recipe: Recipe }) {
           <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
             {avg !== null && (
               <span className="inline-flex items-center gap-1 tabular-nums">
-                <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
+                <Star className="h-3.5 w-3.5 fill-current text-star" />
                 {avg.toFixed(1)}
               </span>
             )}
