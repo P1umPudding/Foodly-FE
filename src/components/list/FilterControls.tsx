@@ -11,6 +11,7 @@ import {
 } from '@postxl/ui-components'
 import { Crown, Pencil, Eye, Lock, Share2, Users, ChevronDown } from 'lucide-react'
 import type { ListState, RoleFilter, CollabFilter } from '../../list/state'
+import { ROLE_COLOR, COLLAB_COLOR, collabDisabled, roleDisabled, roleAllowsCollab } from '../../list/access'
 import { normalizeText } from '../../list/search'
 import type { Tag, Ingredient, UserCategory } from '../../api/protocol'
 import { CategorySidebar } from './CategorySidebar'
@@ -84,7 +85,7 @@ export function FilterControls({
 
       <Separator />
 
-      {/* Deselecting the active segment resets that axis to 'any'. */}
+      {/* Deselecting the active segment resets that axis to 'any'. Greyed options stay clickable — relax-on-click resets the sister axis. */}
       <FilterGroup title="Zugriff">
         <div className="flex flex-col gap-1.5">
           <FieldLabel>Rolle</FieldLabel>
@@ -92,29 +93,30 @@ export function FilterControls({
             type="single"
             className="w-full"
             value={state.role === 'any' ? '' : state.role}
-            onValueChange={(v) => set({ role: (v || 'any') as RoleFilter })}
+            onValueChange={(v) => {
+              const role = (v || 'any') as RoleFilter
+              // last-click-wins: relax collab if the new role can't pair with it
+              set({ role, collab: roleAllowsCollab(role, state.collab) ? state.collab : 'any' })
+            }}
           >
-            <ToggleGroupItem
-              value="owner"
-              className="flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px] leading-tight data-[state=on]:bg-primary/15 data-[state=on]:text-foreground"
-            >
-              <Crown className="size-6" />
-              Besitzer
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="editor"
-              className="flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px] leading-tight data-[state=on]:bg-primary/15 data-[state=on]:text-foreground"
-            >
-              <Pencil className="size-6" />
-              Bearbeiter
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="viewer"
-              className="flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px] leading-tight data-[state=on]:bg-primary/15 data-[state=on]:text-foreground"
-            >
-              <Eye className="size-6" />
-              Betrachter
-            </ToggleGroupItem>
+            {(['owner', 'editor', 'viewer'] as const).map((r) => {
+              const meta = {
+                owner: { Icon: Crown, label: 'Besitzer' },
+                editor: { Icon: Pencil, label: 'Bearbeiter' },
+                viewer: { Icon: Eye, label: 'Betrachter' },
+              }[r]
+              const disabled = roleDisabled(r, state.collab)
+              return (
+                <ToggleGroupItem
+                  key={r}
+                  value={r}
+                  className={`flex flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${ROLE_COLOR[r].activeBg} ${disabled ? 'opacity-40' : ''}`}
+                >
+                  <meta.Icon className={`size-7 ${ROLE_COLOR[r].icon}`} />
+                  {meta.label}
+                </ToggleGroupItem>
+              )
+            })}
           </ToggleGroup>
         </div>
 
@@ -124,29 +126,29 @@ export function FilterControls({
             type="single"
             className="w-full"
             value={state.collab === 'any' ? '' : state.collab}
-            onValueChange={(v) => set({ collab: (v || 'any') as CollabFilter })}
+            onValueChange={(v) => {
+              const collab = (v || 'any') as CollabFilter
+              set({ collab, role: roleAllowsCollab(state.role, collab) ? state.role : 'any' })
+            }}
           >
-            <ToggleGroupItem
-              value="private"
-              className="flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px] leading-tight data-[state=on]:bg-foreground/10 data-[state=on]:text-foreground"
-            >
-              <Lock className="size-6" />
-              Privat
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="shared"
-              className="flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px] leading-tight data-[state=on]:bg-[#0ea5e9]/15 data-[state=on]:text-foreground"
-            >
-              <Share2 className="size-6" />
-              Geteilt
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="collaborative"
-              className="flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px] leading-tight data-[state=on]:bg-[#10b981]/15 data-[state=on]:text-foreground"
-            >
-              <Users className="size-6" />
-              Kollaborativ
-            </ToggleGroupItem>
+            {(['private', 'shared', 'collaborative'] as const).map((c) => {
+              const meta = {
+                private: { Icon: Lock, label: 'Privat' },
+                shared: { Icon: Share2, label: 'Geteilt' },
+                collaborative: { Icon: Users, label: 'Kollaborativ' },
+              }[c]
+              const disabled = collabDisabled(c, state.role)
+              return (
+                <ToggleGroupItem
+                  key={c}
+                  value={c}
+                  className={`flex flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${COLLAB_COLOR[c].activeBg} ${disabled ? 'opacity-40' : ''}`}
+                >
+                  <meta.Icon className={`size-7 ${COLLAB_COLOR[c].icon}`} />
+                  {meta.label}
+                </ToggleGroupItem>
+              )
+            })}
           </ToggleGroup>
         </div>
       </FilterGroup>
