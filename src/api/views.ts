@@ -2,7 +2,7 @@
 // protocol.ts. Pure functions turning DTOs into display-ready shapes; no React,
 // no I/O.
 
-import type { Recipe, RecipeIngredient } from './protocol';
+import type { Recipe, RecipeIngredient, UserId } from './protocol';
 
 // null (not 0) when there are no ratings, so the UI can omit the stars.
 export function averageRating(recipe: Recipe): number | null {
@@ -30,3 +30,23 @@ export function formatIngredient(line: RecipeIngredient): string {
 // No time/portion formatters here on purpose: `recipe.time` is shown as-is,
 // minutes are filter-only, and {tag} substitution is a render-time concern
 // (the phase-1 tag renderer), not a string helper.
+
+export type RatedRole = 'owner' | 'editor' | 'viewer' | 'other';
+
+const ROLE_ORDER: Record<RatedRole, number> = { owner: 0, editor: 1, viewer: 2, other: 3 };
+
+// A rater's role is derived from the recipe itself (owner/editors/viewers), not
+// from any user catalog — so this stays a pure DTO function.
+export function ratingsByRole(
+  recipe: Recipe,
+): { user: UserId; rating: number; role: RatedRole }[] {
+  const roleOf = (u: UserId): RatedRole =>
+    u === recipe.owner ? 'owner'
+      : recipe.editors.includes(u) ? 'editor'
+        : recipe.viewers.includes(u) ? 'viewer'
+          : 'other';
+
+  return recipe.rating
+    .map((r) => ({ user: r.user, rating: r.rating, role: roleOf(r.user) }))
+    .sort((a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role] || b.rating - a.rating);
+}
