@@ -1,29 +1,53 @@
 import { useState, type ReactNode } from 'react'
-import { Input, Badge, Separator, ToggleGroup, ToggleGroupItem } from '@postxl/ui-components'
-import { Crown, Pencil, Eye, Lock, Share2, Users } from 'lucide-react'
+import {
+  Input,
+  Badge,
+  Separator,
+  ToggleGroup,
+  ToggleGroupItem,
+  Collapse,
+  CollapseTrigger,
+  CollapseContent,
+} from '@postxl/ui-components'
+import { Crown, Pencil, Eye, Lock, Share2, Users, ChevronDown } from 'lucide-react'
 import type { ListState, RoleFilter, CollabFilter } from '../../list/state'
 import { normalizeText } from '../../list/search'
 import type { Tag, Ingredient, UserCategory } from '../../api/protocol'
 import { CategorySidebar } from './CategorySidebar'
+import { TagIcon } from '../TagText'
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((x) => x !== value) : [...list, value]
 }
 
-// One labelled filter group (uppercase header + body). The groups — Kategorien,
-// Verfeinern, Zugriff — give the rail a scannable structure.
+// One labelled filter group — scannable structure across Kategorien, Zugriff, Weitere Filter.
 function FilterGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-2">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h3>
+    <section className="flex flex-col gap-3">
+      <h3 className="text-base font-semibold text-foreground">{title}</h3>
       {children}
     </section>
   )
 }
 
-// A sub-field label inside a group (Tags, Zutaten, Rolle, …).
+// A sub-field label inside a group (Rolle, Freigabe, …).
 function FieldLabel({ children }: { children: ReactNode }) {
   return <span className="text-sm text-muted-foreground">{children}</span>
+}
+
+// A collapsible sub-field with a labelled trigger — used for Tags and Zutaten.
+// Defaults collapsed (Radix Collapsible opens only when defaultOpen is set).
+function CollapsibleField({ title, count, children }: { title: string; count?: number; children: ReactNode }) {
+  return (
+    <Collapse className="group/field flex flex-col gap-1.5">
+      <CollapseTrigger className="flex items-center gap-2 text-sm text-muted-foreground">
+        <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=closed]/field:-rotate-90" />
+        <span>{title}</span>
+        {count !== undefined && <span className="tabular-nums text-xs">{count}</span>}
+      </CollapseTrigger>
+      <CollapseContent className="flex flex-col gap-1.5 pt-1">{children}</CollapseContent>
+    </Collapse>
+  )
 }
 
 export function FilterControls({
@@ -42,76 +66,20 @@ export function FilterControls({
   ingredients: Ingredient[]
 }) {
   const [ingredientQuery, setIngredientQuery] = useState('')
+  const [tagQuery, setTagQuery] = useState('')
 
   const filteredIngredients =
     ingredientQuery.trim() === ''
       ? ingredients
       : ingredients.filter((i) => normalizeText(i.name).includes(normalizeText(ingredientQuery)))
 
+  const filteredTags =
+    tagQuery.trim() === '' ? tags : tags.filter((t) => normalizeText(t.id).includes(normalizeText(tagQuery)))
+
   return (
     <div className="flex flex-col gap-4">
       <FilterGroup title="Kategorien">
         <CategorySidebar categories={categories} selected={state.categories} onToggle={onToggleCategory} />
-      </FilterGroup>
-
-      <Separator />
-
-      <FilterGroup title="Verfeinern">
-        {tags.length > 0 && (
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Tags</FieldLabel>
-            <div className="flex flex-wrap gap-1">
-              {tags.map((t) => (
-                <Badge
-                  key={t.id}
-                  variant={state.tags.includes(t.id) ? 'default' : 'secondary'}
-                  className="cursor-pointer"
-                  onClick={() => set({ tags: toggle(state.tags, t.id) })}
-                >
-                  {t.id}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {ingredients.length > 0 && (
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Zutaten</FieldLabel>
-            <Input
-              placeholder="Zutat suchen…"
-              value={ingredientQuery}
-              onChange={(e) => setIngredientQuery(e.target.value)}
-            />
-            <div className="flex max-h-32 flex-wrap gap-1 overflow-y-auto">
-              {filteredIngredients.map((i) => (
-                <Badge
-                  key={i.id}
-                  variant={state.ingredients.includes(i.id) ? 'default' : 'secondary'}
-                  className="cursor-pointer"
-                  onClick={() => set({ ingredients: toggle(state.ingredients, i.id) })}
-                >
-                  {i.name}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-col gap-1.5">
-          <FieldLabel>Maximale Arbeitszeit</FieldLabel>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">≤</span>
-            <Input
-              type="number"
-              className="w-20"
-              placeholder="Minuten"
-              value={state.durationMax ?? ''}
-              onChange={(e) => set({ durationMax: e.target.value === '' ? null : Number(e.target.value) })}
-            />
-            <span className="text-sm text-muted-foreground">Arbeitszeit</span>
-          </div>
-        </div>
       </FilterGroup>
 
       <Separator />
@@ -180,6 +148,74 @@ export function FilterControls({
               Kollaborativ
             </ToggleGroupItem>
           </ToggleGroup>
+        </div>
+      </FilterGroup>
+
+      <Separator />
+
+      <FilterGroup title="Weitere Filter">
+        <div className="flex flex-col gap-5">
+          {tags.length > 0 && (
+            <CollapsibleField title="Tags" count={state.tags.length || undefined}>
+              <Input
+                placeholder="Tag suchen…"
+                value={tagQuery}
+                onChange={(e) => setTagQuery(e.target.value)}
+                className="focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+              <div className="flex max-h-40 flex-wrap gap-1 overflow-y-auto">
+                {filteredTags.map((t) => (
+                  <Badge
+                    key={t.id}
+                    variant={state.tags.includes(t.id) ? 'default' : 'secondary'}
+                    className="flex cursor-pointer items-center gap-1 text-sm"
+                    onClick={() => set({ tags: toggle(state.tags, t.id) })}
+                  >
+                    {t.svg && <TagIcon hash={t.svg} alt={t.id} size="sm" />}
+                    {t.id}
+                  </Badge>
+                ))}
+              </div>
+            </CollapsibleField>
+          )}
+
+          {ingredients.length > 0 && (
+            <CollapsibleField title="Zutaten" count={state.ingredients.length || undefined}>
+              <Input
+                placeholder="Zutat suchen…"
+                value={ingredientQuery}
+                onChange={(e) => setIngredientQuery(e.target.value)}
+                className="focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+              <div className="flex max-h-32 flex-wrap gap-1 overflow-y-auto">
+                {filteredIngredients.map((i) => (
+                  <Badge
+                    key={i.id}
+                    variant={state.ingredients.includes(i.id) ? 'default' : 'secondary'}
+                    className="cursor-pointer text-sm"
+                    onClick={() => set({ ingredients: toggle(state.ingredients, i.id) })}
+                  >
+                    {i.name}
+                  </Badge>
+                ))}
+              </div>
+            </CollapsibleField>
+          )}
+
+          <div className="flex flex-col gap-1.5">
+            <FieldLabel>Maximale Arbeitszeit</FieldLabel>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">≤</span>
+              <Input
+                type="number"
+                className="w-20 focus-visible:ring-0 focus-visible:ring-offset-0"
+                placeholder="Minuten"
+                value={state.durationMax ?? ''}
+                onChange={(e) => set({ durationMax: e.target.value === '' ? null : Number(e.target.value) })}
+              />
+              <span className="text-sm text-muted-foreground">Arbeitszeit</span>
+            </div>
+          </div>
         </div>
       </FilterGroup>
     </div>
