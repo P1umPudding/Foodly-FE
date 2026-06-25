@@ -1,0 +1,150 @@
+# Foodly Frontend — Bau-Plan
+
+Lebendes Dokument. Reihenfolge der Phasen ist bewusst so gewählt, dass alles
+**ohne Backend** (mit Mock-Daten aus `src/mocks`) baubar und sichtbar ist.
+Persistenz-abhängige Features kommen ans Ende.
+
+## Leitplanken
+
+- **Kein Backend / keine Persistenz** bis auf Weiteres. Lesen ist echt (Mocks),
+  Schreiben würde nur im Browser-State leben → Schreib-Features nach hinten.
+- Alle Daten über `src/api` (`foodly.*`), nie direkt am Socket.
+- UI ausschließlich mit `@postxl/ui-components` + Tailwind-Tokens.
+- Kein Login/Auth jetzt — „aktueller User" ist gemockt (`CURRENT_USER_ID = 1`).
+
+Details je Phase in `phases/`.
+
+---
+
+## Phase 0 — Datenaufbereitung  (Querschnitt)
+
+Wie Backend-Daten strukturiert, gecacht und für die Anzeige aufbereitet werden:
+DTOs unangetastet (`protocol.ts`), geteilte Entities flach als Lookup-Maps,
+Resolve an der API-Grenze (View-Modelle in `views.ts`). Klein halten — nur was
+die nächste Phase braucht. → `phases/phase-0-datenaufbereitung.md`
+
+## Phase 1 — Rezepte ansehen  ⬅️ JETZT
+
+Das Herzstück: Rezepte durchstöbern und ein Rezept im Detail lesen. Reines
+Lesen, passt 1:1 zu den Mock-Daten.
+
+- **Rezeptliste** (`/`) — kompakte Zeilen (Name, Zeit, Rating, Tags).
+- **Rezept-Detail** (`/recipes/:id`) — Kopf + Meta-Zeile, Notizen, je Section
+  ein 2-Spalten-Block (Zutaten links, Schritte rechts), screen-first.
+
+→ Volle Spezifikation: `phases/phase-1-rezepte-ansehen.md`
+
+## Phase 2 — Organisation & Navigation
+
+Struktur um die Liste herum, sobald es mehr als eine Handvoll Rezepte gibt.
+
+- Kategorien (`userCategory`) als Sidebar/Filter, inkl. Farben.
+- Filtern nach Tags, Volltext-Suche über Namen/Zutaten.
+- Sortierung (Name, Zeit, Rating).
+
+**Dashboard / Startseite** (Idee): Überblicks-Kacheln, u.a.
+- Rezepte, zu denen man **kürzlich hinzugefügt** wurde (als viewer/editor),
+- **eigene kürzlich erstellte** Rezepte,
+- persönliche **Kategorien** (`userCategory`) mit Links,
+- **Gruppen**, in denen man Mitglied ist, mit Links,
+- ggf. weitere Kacheln.
+- ⚠️ Braucht **Timestamps** (`createdAt` + „wann wurde ich hinzugefügt") — die
+  fehlen aktuell im Protokoll (siehe Offene Punkte / Types).
+
+**Listen-Modi (Filter nach Rolle des aktuellen Users)** (Idee, Wortlaut TBD;
+ableitbar aus `owner`/`viewers`/`editors`):
+- **all** — alle
+- **editable** — man ist owner oder editor („user")
+- **shared** — außer einem können noch andere bearbeiten (weitere editors)
+- **provided** — man ist owner, keine editors, aber viewer
+- **private** — keine editors und keine viewer
+- (Modi evtl. nicht disjunkt — exakte Prädikate beim Umsetzen schärfen. Ersetzt
+  das frühere simple „meine vs. geteilte".)
+
+**Listen-Ansichten (umschaltbar)** (Idee):
+- **detailed** (mit Hauptbild + mehr Meta) ↔ **compact** (kein Bild, weniger
+  Details) — das Bild hilft, ein Rezept visuell wiederzuerkennen/auszuwählen.
+- **by category** (Kategorien einzeln ein-/ausklappbar) ↔ **flat list**.
+
+## Phase 3 — Koch-Modus
+
+Die Detailansicht für das tatsächliche Kochen optimieren.
+
+- Schritt-für-Schritt-Ansicht (ein Schritt groß, durchblättern).
+- Portionen umrechnen (`basePortionMultiplier` → Mengen skalieren).
+- „Bildschirm anlassen" (`useWakeLock` ist schon da) hier sinnvoll einbinden.
+- Zutaten abhaken (lokaler State, kein Persist nötig).
+
+## Phase 4 — Rezepte bearbeiten  (braucht Backend)
+
+Anlegen/Editieren von Rezepten. **Blockiert auf Persistenz** — ohne Backend nur
+als UI-Prototyp mit lokalem State sinnvoll.
+
+- Formular für Rezept (Sections, Zutaten, Schritte).
+- Rezept duplizieren (Kopie, bei der man selbst owner wird).
+- Rating abgeben, Notizen bearbeiten.
+
+→ Erst sinnvoll, wenn der Login-/Backend-Workflow steht.
+
+## Phase 5 — Mobile optimieren
+
+Die Web-App für Mobile schärfen: Touch-Targets, responsives Layout, Performance,
+ggf. PWA-Grundlagen. Voraussetzung fürs native Wrappen.
+
+## Phase 6 — Als native Mobile-App wrappen
+
+Die SPA als native App verpacken (z.B. Capacitor) für iOS/Android: App-Store-
+Präsenz, native Shell, Zugriff auf Geräte-APIs.
+
+## Phase 7 — Offline-Modus (native App)
+
+- Daten **cachen**, solange online; offline bereitstellen (vermutlich lokale
+  **SQLite**-DB).
+- Edits offline **lokal ausführen + queuen**, gegen das Backend syncen, sobald
+  wieder online.
+- **Konflikte:** Edits, die wegen Konflikten nicht angewandt werden konnten,
+  dem Nutzer als Fehlermeldung anzeigen.
+
+**Types-Implikation (kein Blocker, nur Vorausschau):** machbar — Standard-
+Offline-Pattern — aber offline **neu erstellte** Entities haben noch keine
+server-`id` (die ist `number`, server-vergeben). Man braucht also eine
+**temporäre Client-id** (z.B. UUID/negative Zahl), um sie lokal zu referenzieren
+(welche Section gehört zu welchem Rezept?) und in der Edit-Queue anzusprechen.
+Beim Sync vergibt der Server die echte id → die Temp-id muss überall
+**nachgezogen (remapped)** werden. Dazu Sync-Metadaten (dirty-Flags, Queue,
+Basis-Version für Konflikt-Erkennung). Also nicht „unmöglich", nur Extra-
+Modellierung — Details klären wir, wenn die Phase dran ist.
+
+## Phase 8 — Weitere Daten & Funktionen
+
+Laufende Erweiterung von Modell und Funktionsumfang, z.B.:
+- **Persönliche Notizen** an Rezepten (privat pro User).
+- **Öffentliche Kommentare** an Rezepten.
+- (weiteres nach Bedarf)
+
+---
+
+## Offene Punkte (später)
+
+- Login-/Auth-Workflow (Voraussetzung für Phase 4 und echtes Multi-User).
+- Bilder: `image.hash` → echte Image-URL (Backend-abhängig).
+- Tag-SVGs (`tag.svg` Hash) rendern.
+
+### Daten-/Protokoll-Fragen (mit Backend klären)
+
+- **Timestamps fehlen** (`createdAt`, „added-at" pro viewer/editor) — blockiert
+  das Phase-2-Dashboard („kürzlich erstellt / hinzugefügt").
+- **Notification-/Activity-Feed nötig**, um zu erfahren, wenn man irgendwo
+  hinzugefügt wurde (liefert auch das „added-at" oben). DB-Modellierung noch
+  offen — gemeinsam besprechen.
+- **Gruppen ↔ Rezepte (zeitnah überdenken):** Rezepte werden *nicht* direkt an
+  eine Gruppe geteilt; Idee war, beim Teilen alle Gruppenmitglieder
+  vorauszuwählen. Aber: fügt man später jemanden zur Gruppe hinzu, ist er
+  *nicht* automatisch in den vorher geteilten Rezepten → Modell nochmal
+  durchdenken.
+- **`tagId = name`:** Tag-Identität *ist* der Anzeigename → Umbenennen bräche
+  alle Referenzen (war nicht eingeplant). Falls Tags je editierbar werden,
+  stabile id getrennt vom Label nötig.
+- **`UserRating` ist DB-only:** wird im Frontend nie direkt geholt (nur
+  `recipe.rating` kommt mit). Gehört damit nicht in den Wire-Vertrag
+  (`protocol.ts`) → entfernen bzw. als backend-only behandeln.
