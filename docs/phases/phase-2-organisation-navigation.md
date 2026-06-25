@@ -1,22 +1,32 @@
 # Phase 2 — Organisation & Navigation (Spec — in Arbeit)
 
-> ⚠️ **Noch NICHT implementierungsreif.** Dieses Spec entsteht inkrementell,
-> während [Phase 1](./phase-1-rezepte-ansehen.md) läuft. **Entkoppelte**
-> Entscheidungen (Logik, Datenmodell, Scope) werden jetzt festgezurrt; alles
-> **Visuelle/Layout** kommt **nach Phase 1**, sobald die Liste real gerendert
-> vorliegt und wir darauf aufsetzen können.
+> ⚠️ **Logik/Datenseitig implementierungsreif — nur Visuelles offen.** Dieses
+> Spec entstand inkrementell, während [Phase 1](./phase-1-rezepte-ansehen.md)
+> lief. Alle **entkoppelten** Entscheidungen (Logik, Datenmodell, State, Scope)
+> sind jetzt festgezurrt; offen bleibt nur das **Visuelle/Layout**, das bewusst
+> **nach Phase 1** kommt — sobald die real gerenderte Liste vorliegt und wir
+> darauf aufsetzen können.
 >
-> **Offene Themen vor der Umsetzung:**
-> - **Layout/Design** (Sidebar, Filter-Leiste, Zeilen- & Ansichts-Varianten) —
->   erst nach Phase 1, weil Phase 2 visuell auf der dort entstehenden Liste
->   aufbaut.
-> - **A — Filtern/Suchen/Sortieren:** Kern entschieden (siehe §A); offen nur noch
->   Kategorie-Sidebar single-/multi-select und finale Sort-Bestätigung.
+> **Entschieden (Logik/Daten/State) — siehe jeweiligen Abschnitt:**
+> - **A — Filtern/Suchen/Sortieren:** Facetten + UND/ODER-Verknüpfung, Sortierung,
+>   Counts, Such-Semantik, Empty-Zustand, Client-seitig → [§A](#a--filtern--suchen--sortieren--entschieden). ✅
+> - **D — Rollen-Modi:** Zwei-Achsen-Modell, gültige Zellen, Relax-Verhalten → [§D](#d--rollen-modi-filter-nach-rolle--entschieden). ✅
+> - **State / URL / Persistenz** → [§State](#state--url--persistenz--entschieden). ✅
+> - **Zutaten-Filter-Quelle** → [§Zutaten-Quelle](#zutaten-filter-quelle--entschieden). ✅
+> - **Mock-Ausbau** (Voraussetzung, damit D/Suche/Sort sichtbar werden) → [§Mock-Ausbau](#mock-ausbau--stand--restlücke). ✅
+>
+> **Noch offen — alles visuell/benennend, nach Phase 1:**
+> - **Layout/Design** — Sidebar, Filter-Leiste, Zeilen- & Ansichts-Varianten,
+>   Mobile-Drawer. Baut auf der in Phase 1 entstehenden Liste auf.
 > - **C — Listen-Ansichten** (`detailed ↔ compact`, `by category ↔ flat`):
->   noch nicht spezifiziert.
-> - **Achse-1-Benennung** der Rollen-Modi (§D) final festlegen.
-> - Diverse **Protokoll-/Backend-Fragen** — siehe `../plan.md` „Offene Punkte"
->   (mit dem Backend-Team zu klären, später).
+>   Anatomie, einklappbare Gruppen, Default-Ansicht. Logik-Rahmen steht ([§C](#c--listen-ansichten)).
+> - **Achse-1-Label-Wortlaut** der Rollen-Modi + single-/multi-select je Achse
+>   (Annahme: single + `Any`). Grau-Tooltip = optionale Politur.
+> - Diverse **Protokoll-/Backend-Fragen** — siehe `../plan.md` „Offene Punkte".
+>
+> **Implementierungs-Startpunkt:** Branch **`phase-1-rezepte-ansehen`** (enthält
+> die Phase-1-App *und* die 14 Mock-Rezepte aus PR #3) — **nicht** `main`
+> abzweigen. Phase 2 baut direkt auf Phase 1 auf.
 
 ## Scope
 
@@ -97,32 +107,45 @@ Beide Achsen als sichtbare Controls (z.B. zwei segmented controls), inklusive
   lehrt die Regel schon beim Tun. Erst nachrüsten, wenn sich im echten Gebrauch
   Bedarf zeigt.
 
-### Offen in D
+### Offen in D (nur noch visuell/benennend)
 
-> Ob jede Achse **single-select** (ein Wert + `Any`) oder **multi-select** ist.
-> Aktuelle Annahme: **single-select je Achse mit `Any`** (deckt „all" ab). Final
-> beim Layout-Schliff nach Phase 1. Achse-1-**Label-Wortlaut** ebenfalls dort.
+> - **Single- vs. multi-select je Achse.** Annahme: **single-select je Achse mit
+>   `Any`** (deckt „all" ab). Final beim Layout-Schliff nach Phase 1.
+> - **Achse-1-Label-Wortlaut** ebenfalls dort.
+> - Beide ändern die Logik nicht — nur die Control-Form.
 
 ---
 
-## A — Filtern / Suchen / Sortieren ✅ größtenteils entschieden
+## A — Filtern / Suchen / Sortieren ✅ entschieden
 
-Mehrere Verengungen wirken gleichzeitig auf die Liste. **Alle Facetten
-kombinieren als UND** (Schnittmenge): ein Rezept wird gezeigt, wenn es *jede*
-aktive Facette erfüllt.
+Mehrere Verengungen wirken gleichzeitig auf die Liste. **Facetten kombinieren
+untereinander als UND** (Schnittmenge): ein Rezept wird gezeigt, wenn es *jede*
+aktive Facette erfüllt. *Innerhalb* einer Facette gilt die jeweils notierte
+Verknüpfung (Tags/Zutaten UND, Kategorie ODER).
+
+**Alles client-seitig:** Filtern, Suchen und Sortieren laufen über das einmal
+geladene `listRecipes()`-Array — kein Server-Query, kein Refetch pro Facette.
+(Skaliert für die absehbare Rezeptzahl problemlos; Server-seitige Queries/
+Pagination wären eine spätere, separate Entscheidung.)
 
 ### Facetten
 
-1. **Kategorie** (Sidebar, `userCategory`) — ein Rezept matcht, wenn seine `id`
-   in `userCategory.recipes` liegt. (`UserCategory.recipes: RecipeId[]` — ein
-   Rezept kann in mehreren Kategorien sein.) → *offen:* Sidebar single-select
-   („eine Kategorie ansehen") vs. multi-select; Tendenz single-select.
+1. **Kategorie** (Sidebar, `userCategory`) — **Multi-select, ODER-verknüpft:**
+   ein Rezept matcht, wenn seine `id` in `userCategory.recipes` **irgendeiner**
+   gewählten Kategorie liegt. (`UserCategory.recipes: RecipeId[]` — ein Rezept
+   kann in mehreren Kategorien sein.) Das ist die **eine bewusste Ausnahme** von
+   „innerhalb UND": Kategorien intern ODER (Schnittmengen von Kategorien sind
+   unintuitiv, und ODER spielt sauber mit der `by-category`-Gruppierung — mehrere
+   Gruppen sichtbar). Als *Facette* bleibt Kategorie weiter **UND** mit Tags/
+   Zutaten/Dauer/Rolle/Suche. Jede Kategorie zeigt einen **statischen Zähler**
+   (`userCategory.recipes.length`, ungefiltert — billig).
 2. **Tags** — Mehrfachauswahl, **UND** verknüpft (Rezept muss *alle* gewählten
    Tags haben).
-3. **Zutaten** — Auswahl nur aus dem **globalen `Ingredient`-Katalog**;
-   Mehrfachauswahl **UND** verknüpft. Match: Rezept hat je ein `RecipeIngredient`
-   mit passender `ingredient.id`. Reine Freitext-Zutaten (`ingredient === null`)
-   sind nicht filterbar.
+3. **Zutaten** — Mehrfachauswahl **UND** verknüpft. Match: Rezept hat je ein
+   `RecipeIngredient` mit passender `ingredient.id`. Reine Freitext-Zutaten
+   (`ingredient === null`) sind nicht filterbar. **Quelle der Auswahlliste:**
+   siehe [§Zutaten-Quelle](#zutaten-filter-quelle--entschieden) (Katalog als
+   Namens-Quelle, angeboten nur die tatsächlich verwendeten Zutaten).
 4. **Dauer** — **Max-Schwellwert („bis")** auf **`workMinutes`** (kein Range; ein
    „von" hat real keinen Nutzen). `overallMinutes` als sekundäre, weniger
    prominente Option (Umschalter „auf Gesamtzeit"). Rezepte mit
@@ -136,20 +159,153 @@ aktive Facette erfüllt.
    Konflikt mit dem präzisen Tag-Filter. **Bewusst NICHT durchsucht:**
    Zutatennamen (dafür der strukturierte Zutaten-Filter) und Schritt-Text.
 
-### Sortierung (Vorschlag, zu bestätigen)
+### Counts an Optionen
 
-- Optionen: **Name** (A–Z), **`workMinutes`** (aufsteigend), **Rating**
-  (absteigend; `averageRating` aus `views.ts`).
-- Default: **Name A–Z**, Richtung je Option umschaltbar.
-- Rezepte mit `null` im Sortierfeld ans Ende.
+- **Rollen-Grid (§D):** **Live-Counts** — jede gültige Zelle zeigt ihre
+  Trefferzahl gegen die übrigen aktiven Facetten; das trägt die „0-vs-grau"-
+  Unterscheidung (gültig-aber-leer = „0", logisch unmöglich = grau).
+- **Kategorien:** **statischer** Zähler (`recipes.length`, ungefiltert).
+- **Tags / Zutaten:** **keine** Zähler — schlichte Multi-Select-Toggles.
+- (Volle faceted counts über *alle* Facetten wären schöner, aber spürbar mehr
+  Rechen-/Datenfluss-Aufwand — bewusst nicht in Phase 2.)
 
-### Offen in A
+### Sortierung ✅
 
-> - **Kategorie-Sidebar:** single- vs. multi-select (Tendenz single).
-> - **Sort:** finale Options-/Default-Bestätigung.
+- Optionen: **Name** (A–Z) · **`workMinutes`** (↑) · **`overallMinutes`** (↑) ·
+  **Rating** (↓; `averageRating` aus `views.ts`).
+- Default: **Name A–Z**. Richtung je Option umschaltbar.
+- Rezepte mit `null` im Sortierfeld **ans Ende** (in beide Richtungen).
+- (`overallMinutes` ergänzt, passend dazu, dass der Dauer-Filter beide
+  Minuten-Felder kennt. „Zuletzt erstellt" wäre wünschenswert, ist aber auf
+  fehlendes `createdAt` blockiert — siehe `../plan.md` / Phase 5.)
+
+### Such-Semantik
+
+- **Teilstring**, **case-insensitiv** und **diakritik-insensitiv** (z.B. „apfel"
+  matcht „Apfelkuchen", „creme" matcht „Crème").
+- Durchsucht **`recipe.name` + `Section.name` + Tag-Namen**, **ODER** über diese
+  Felder. **Nicht** durchsucht: Zutatennamen (dafür der Zutaten-Filter) und
+  Schritt-Text.
+
+### Empty-Zustand (gefiltert leer)
+
+Wenn aktive Facetten alles ausschließen, **nicht** das Phase-1-Empty
+(„Noch keine Rezepte") zeigen, sondern einen eigenen Treffer-leer-Hinweis
+(„Keine Treffer") **plus „Filter zurücksetzen"** (leert alle Facetten + Suche →
+URL/State neutral). Unterscheidet „du hast keine Rezepte" von „dein Filter ist
+zu eng".
+
+---
+
+## State / URL / Persistenz ✅ entschieden
+
+**Zwei Schichten**, damit gefilterte Sichten *teilbar* sind **und** ein frisches
+Öffnen nicht bei null beginnt:
+
+- **URL-Query** = die **aktive, teilbare** Sicht (Deep-Link, Back-Button, F5-fest).
+  React Router ist schon da. Hier liegen Filter, Sortierung, Ansicht **und** die
+  Suche (solange aktiv).
+- **`localStorage`** = der **letzte Zustand** fürs frische Öffnen.
+
+**Vorrang beim Laden:**
+
+- **URL hat Query-Params** (man folgt einem geteilten/Deep-Link) → **URL gewinnt**;
+  dieser Zustand wird zugleich in `localStorage` geschrieben.
+- **URL ist nackt** (man öffnet `/` frisch) → aus `localStorage` **hydrieren** und
+  in die URL **spiegeln**.
+
+**Was persistiert** (localStorage): strukturierte Filter (Kategorie, Tags,
+Zutaten, Dauer, Rollen-Modi) **+ Sortierung + Ansicht** (`detailed/compact`,
+`by-category/flat`).
+
+**Was NICHT persistiert:** die **Volltext-Suche** — startet beim Öffnen immer
+leer (ein wiederhergestellter alter Suchbegriff fühlt sich wie „wo sind meine
+Rezepte?" an). Sie ist aber, *während sie aktiv ist*, in der URL und damit
+teilbar.
+
+**Key & Robustheit:** `foodly:list-state:<userId>` (nach aktuellem User
+benannt — zukunftssicher für späteren Login) mit **Schema-Versionsfeld**; bei
+Versions-Mismatch oder Parse-Fehler **verwerfen** (auf Defaults zurückfallen),
+nicht crashen.
+
+---
+
+## Zutaten-Filter-Quelle ✅ entschieden
+
+- Der **globale `Ingredient`-Katalog** wird im **`CatalogProvider`** geladen
+  (`foodly.listIngredients()` → `ingredientsById`) — er ist die **kanonische**
+  Quelle für id→Name (und später Icon/Einheit/Nährwerte, siehe `protocol.ts`).
+  Das erweitert den Phase-1-`CatalogProvider` (lädt bisher nur Tags/Users/me) um
+  einen vierten Katalog (gleiche Graceful-Degrade-Logik: Filter degradiert,
+  Rezepte bleiben sichtbar).
+- **Angeboten** werden im Filter aber **nur die Zutaten, die in ≥1 geladenen
+  Rezept tatsächlich vorkommen** (Vereinigung der `ingredient.id` über
+  `listRecipes()`), alphabetisch nach Katalog-Name. → keine toten Optionen, die
+  immer 0 treffen.
+- Match wie gehabt: Rezept hat ein `RecipeIngredient` mit passender
+  `ingredient.id`; reine Freitext-Zutaten (`ingredient === null`) sind nicht
+  filterbar.
+
+---
+
+## Mock-Ausbau — Stand & Restlücke
+
+Voraussetzung, damit D / Suche / Sortierung / Zutaten-Filter real vorführbar
+sind. **Stand auf `phase-1-rezepte-ansehen`** (PR #3, ids 1–14; User 1=Kolja,
+2=Mara, 3=Jonas) — die meiste Arbeit ist schon da:
+
+**Rollen×Collaboration-Abdeckung für Kolja (User 1):**
+
+| Zelle | # Rezepte | Status |
+|---|---|---|
+| owner × Private | 4 (4, 5, 10, 12) | ✅ |
+| owner × Shared | 3 (2, 6, 13) | ✅ |
+| owner × Collaborative | 2 (1, 8) | ✅ |
+| editor × Collaborative | 1 (11) | ✅ |
+| viewer × Shared | 3 (3, 7, 9) | ✅ |
+| **viewer × Collaborative** | **0** | ❌ **Lücke** |
+
+`workMinutes`/`overallMinutes` sind durchgängig befüllt, Ratings gestreut (inkl.
+0-Rating bei #4) — Suche/Sortierung sind damit greifbar.
+
+**Noch zu tun:**
+
+1. **Lücke `viewer × Collaborative` schließen:** ein Rezept, das **einem anderen
+   User gehört**, Kolja als **viewer** führt **und** ≥1 weiteren **editor** hat
+   (z.B. `owner: 2, editors: [3], viewers: [1]`). Damit sind alle **6** gültigen
+   Zellen belegt.
+2. **Cleanup Rezept 14** („Asiatische Gemüsepfanne"): aktuell fremd-owned,
+   **Private**, ohne Kolja-Rolle (`none`) — ein echtes Backend würde Kolja so ein
+   Rezept **nie ausliefern**. Entweder Kolja eine Rolle geben (z.B. als zweites
+   `viewer × Collaborative`-Beispiel nutzen) **oder** entfernen. Kein Rezept im
+   `listRecipes()`-Mock sollte für den aktuellen User rollenlos sein.
+3. **Zutaten-Katalog** (`ingredients.json`) prüfen/befüllen, sodass die in den
+   Rezepten referenzierten `ingredient.id` darin existieren (kanonische Namen für
+   den Zutaten-Filter).
+4. **Kategorien** (`categories.json`): genug Streuung, damit Multi-ODER und die
+   `by-category`-Gruppierung (mehrere Gruppen, Mehrfach-Zugehörigkeit, „Ohne
+   Kategorie") sichtbar werden.
+
+Alle Mock-Erweiterungen müssen **typkonform zu `protocol.ts`** bleiben.
+
+---
 
 ## C — Listen-Ansichten
 
-> Noch zu diskutieren, primär **nach Phase 1** (baut auf der dort entstehenden
-> Zeile/Liste auf): `detailed ↔ compact`, `by category ↔ flat`, Persistenz der
-> Auswahl, Default-Ansicht.
+> **Visuelle Anatomie noch offen** (nach Phase 1, baut auf der dort entstehenden
+> Zeile/Liste auf): `detailed ↔ compact`, einklappbare `by-category`-Gruppen,
+> Default-Ansicht.
+
+**Logik-Rahmen steht** (entkoppelt, gilt schon jetzt):
+
+- **`detailed ↔ compact`** und **`by-category ↔ flat`** sind **zwei
+  orthogonale** Ansichts-Umschalter; beide werden persistiert (siehe §State).
+- **`by-category` ist eine reine Ansichts-Gruppierung über die bereits
+  gefilterte Menge** (orthogonal zur Kategorie-**Filter**-Facette in §A — nicht
+  derselbe Mechanismus):
+  - Rezepte werden unter **Kategorie-Überschriften** gruppiert.
+  - Ein Rezept in **mehreren** Kategorien erscheint **in jeder** dieser Gruppen.
+  - Rezepte **ohne** Kategorie kommen in einen **„Ohne Kategorie"**-Topf.
+  - Ist die Kategorie-Filter-Facette aktiv, gruppiert `by-category` eben nur die
+    durchgelassenen (ODER-) Kategorien — konsistent, kein Sonderfall.
+- **`flat`** = die heutige Phase-1-Liste, nur eben gefiltert/sortiert.
