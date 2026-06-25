@@ -9,5 +9,14 @@
   { "id": "Springform", "svg": null },
   { "id": "Backzeit", "svg": null },
   { "id": "Kochzeit", "svg": null },
-  { "id": "Formgröße", "svg": null }
+  { "id": "Formgröße", "svg": null },
+  { "id": "Salat", "svg": null },
+  { "id": "Suppe", "svg": null },
+  { "id": "Vegan", "svg": null },
+  { "id": "Indisch", "svg": null },
+  { "id": "Mexikanisch", "svg": null },
+  { "id": "Vorspeise", "svg": null },
+  { "id": "Frühstück", "svg": null },
+  { "id": "Asiatisch", "svg": null },
+  { "id": "Stück", "svg": null }
 ]
