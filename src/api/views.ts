@@ -27,6 +27,19 @@ export function formatIngredient(line: RecipeIngredient): string {
   return [quantity, name].filter(Boolean).join(' ').trim();
 }
 
+// Split an ingredient into its two display columns: quantity (amountPrefix +
+// amount + unit) and name (ingredient name + suffix, or free text). Same pieces
+// as formatIngredient, kept separate for the two-column layout.
+export function ingredientParts(line: RecipeIngredient): { quantity: string; name: string } {
+  const quantity = [line.amountPrefix, line.amount, line.unit]
+    .filter((part): part is string => Boolean(part))
+    .join(' ');
+  const name = line.ingredient
+    ? [line.ingredient.name, line.text].filter(Boolean).join(' ')
+    : (line.text ?? '');
+  return { quantity, name };
+}
+
 // No time/portion formatters here on purpose: `recipe.time` is shown as-is,
 // minutes are filter-only, and {tag} substitution is a render-time concern
 // (the phase-1 tag renderer), not a string helper.
