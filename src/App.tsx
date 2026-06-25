@@ -1,9 +1,9 @@
 import { Routes, Route } from 'react-router-dom';
 import { Nav } from './components/Nav';
 import { Footer } from './components/Footer';
-import { Home } from './pages/Home';
 import { NotFound } from './pages/NotFound';
 import { CatalogProvider } from './catalog/CatalogProvider';
+import { RecipeList } from './pages/RecipeList';
 
 export default function App() {
   return (
@@ -12,7 +12,7 @@ export default function App() {
       <main className="flex-1">
         <CatalogProvider>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<RecipeList />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </CatalogProvider>
