@@ -12,7 +12,7 @@ const TOKEN = /\{(!?)([^{}]+)\}/g;
 const TAG_ICON_SIZE = {
   sm: 'h-[1.15em] align-[-0.22em]', // ingredients, steps, notes, chips
   md: 'h-[1.2em] align-[-0.25em]', // time, portions, section headings
-  lg: 'h-[1.2em] align-[-0.28em]', // title
+  lg: 'h-[1.2em] align-[-0.23em]', // title (optically centred on cap height)
 } as const;
 
 export type TagSize = keyof typeof TAG_ICON_SIZE;
