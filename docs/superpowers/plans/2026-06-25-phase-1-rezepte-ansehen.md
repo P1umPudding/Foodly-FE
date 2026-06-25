@@ -15,7 +15,7 @@
 - **No new dependencies.** Use only what's installed. Never add a test runner, `@playwright/test`, or anything else to `package.json`.
 - **Verification model:** there is no unit-test runner. Every task's gate is **`npm run build`** (runs `tsc` strict typecheck + `vite build`) ending **green**, plus the inspection notes in the task. The pipeline ends with a Chrome-MCP smoke (orchestrated outside these tasks).
 - **All backend access via `src/api` (`foodly.*`)** — never open ad-hoc sockets/fetches. Backend URL only via `import.meta.env.VITE_WS_URL` (already handled in `socket.ts`).
-- **UI only via `@postxl/ui-components`** (`Card`, `Badge`, `Button`, `Avatar`, `Popover`, `Separator`, `Skeleton`, `Alert`, `Empty`, `Loader`, …). No raw `<button>`/`<input>`. Style via `variant`/`size` props; Tailwind only for spacing/layout.
+- **UI only via `@postxl/ui-components`** (`Card`, `Badge`, `Button`, `Avatar`, `Popover`, `Separator`, `Skeleton`, `Alert`, `Loader`, …). No raw `<button>`/`<input>`. (Note: there is **no** `Empty` export — use a styled paragraph for empty states.) Style via `variant`/`size` props; Tailwind only for spacing/layout.
 - **No inline styles** (`style={{…}}`). Anything Tailwind can't express → a class in `src/styles/styles.css`. Do **not** edit `src/styles/theme.css` (brand tokens, synced with sibling apps).
 - **Comments:** explain *why*, not *what*. No comment-wall above every function. Short file headers OK.
 - **Commits:** Conventional-commit style, present in this repo (e.g. `feat(catalog): …`). **No `Co-Authored-By` trailer.** Do **not** push.
@@ -72,7 +72,7 @@ In `src/mocks/data/tags.json`, append three tags (all `svg: null`) so the new `t
 
 In `src/mocks/data/recipes.json`, apply these edits (keep everything else):
 
-- Add `"mainImage": null` to **every** recipe object (required field; place it right before `"images"`).
+- Add `"mainImage": null` to **every** recipe object — explicitly recipes 1, 2 and 3 need it added (recipe 4 below already includes it); place it right before `"images"`. **This fixes the currently-red build** (`src/mocks/index.ts` casts `as Recipe[]`, and `mainImage` is now required) — after this step `npm run build` must go green.
 - Recipe 1 (Bolognese): set `"time": "20 min + {Kochzeit} 25 min"`. Add an unknown token to a note: change its note to `"Schmeckt am nächsten Tag aufgewärmt noch besser. {WIP}"` (`WIP` is **not** a tag → must render literal).
 - Recipe 2 (Schokokuchen): set `"time": "25 min inkl. {Backzeit} 45 min"`. Leave its single rating.
 - Recipe 3 (Pfannkuchen): set `"time": "25 min"` (plain, no token).
@@ -177,6 +177,10 @@ export function ratingsByRole(
 }
 ```
 
+> The secondary `b.rating - a.rating` tie-break (highest rating first within a
+> role group) is an intentional addition beyond the spec, which only mandates the
+> role order. Keep it.
+
 - [ ] **Step 2: Verify build**
 
 Run: `npm run build`
@@ -209,6 +213,7 @@ git commit -m "feat(views): add ratingsByRole helper"
   - `useTag(id: TagId): Tag | undefined`
   - `useUser(id: UserId): User | undefined`
   - `useCurrentUserId(): UserId | null`
+  - (The spec's `useCatalogStatus()` is folded into `useTags()`/`useUsers()`, which each return a `status` field — no separate hook needed for Phase 1.)
 
 - [ ] **Step 1: Write the provider**
 
@@ -416,6 +421,10 @@ Append to `src/styles/styles.css`:
 .recipe-star[data-fill="0.5"]  .recipe-star__fill { width: 50%; }
 .recipe-star[data-fill="0.75"] .recipe-star__fill { width: 75%; }
 .recipe-star[data-fill="1"]    .recipe-star__fill { width: 100%; }
+
+/* Shared gold accent for the single inline stars (list row, popover rows) — one
+   source of truth instead of betting on a Tailwind amber utility being present. */
+.text-star { color: #f59e0b; }
 ```
 
 - [ ] **Step 2: Write the component**
@@ -517,7 +526,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
         <div className="flex items-center justify-between">
           <span className="font-medium">Bewertungen</span>
           <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-            <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
+            <Star className="h-3.5 w-3.5 fill-current text-star" />
             {avg.toFixed(1)} · {rows.length}
           </span>
         </div>
@@ -526,7 +535,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
           <div className="mt-3 flex items-center justify-between rounded-md bg-muted px-2 py-1.5">
             <span className="text-sm font-medium">Du</span>
             <span className="inline-flex items-center gap-1 text-sm tabular-nums">
-              <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
+              <Star className="h-3.5 w-3.5 fill-current text-star" />
               {own.rating.toFixed(1)}
             </span>
           </div>
@@ -542,7 +551,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
                 <span className="text-xs text-muted-foreground">{ROLE_LABEL[r.role]}</span>
               </span>
               <span className="inline-flex items-center gap-1 tabular-nums text-muted-foreground">
-                <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
+                <Star className="h-3.5 w-3.5 fill-current text-star" />
                 {r.rating.toFixed(1)}
               </span>
             </li>
@@ -554,7 +563,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
 }
 ```
 
-Note: if `text-amber-500` is not available in the Tailwind build, replace those three icon `className`s with `text-warning`. Verify in the Chrome smoke that the icons render gold.
+Note: the single inline stars use the shared `.text-star` class added in Task 5 (gold `#f59e0b`) — one source of truth, no dependency on a Tailwind amber utility being present.
 
 - [ ] **Step 2: Verify build**
 
@@ -579,7 +588,7 @@ git commit -m "feat(recipe): add detail Rating with role-sorted popover"
 - Delete: `src/pages/Home.tsx`
 
 **Interfaces:**
-- Consumes: `foodly.listRecipes`, `useRequest`, `TagText`, `Stars`-free inline list rating (single star + number), `averageRating` from `views.ts`, `Avatar`/`AvatarFallback`/`Badge`/`Card`/`Skeleton`/`Alert`/`Empty`/`Button` from UI lib, `Link` from router; `Recipe` from `protocol.ts`.
+- Consumes: `foodly.listRecipes`, `useRequest`, `TagText`, inline list rating (single star + number), `averageRating` from `views.ts`, `Avatar`/`AvatarFallback`/`Badge`/`Card`/`Skeleton`/`Alert`/`Button` from UI lib, `Link` from router; `Recipe` from `protocol.ts`. Empty state is a plain styled `<p>` (no `Empty` export exists).
 - Produces: `RecipeList` page; `RecipeRow` component.
 
 - [ ] **Step 1: Write `RecipeRow`**
@@ -621,7 +630,7 @@ export function RecipeRow({ recipe }: { recipe: Recipe }) {
           <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
             {avg !== null && (
               <span className="inline-flex items-center gap-1 tabular-nums">
-                <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
+                <Star className="h-3.5 w-3.5 fill-current text-star" />
                 {avg.toFixed(1)}
               </span>
             )}
@@ -640,13 +649,16 @@ export function RecipeRow({ recipe }: { recipe: Recipe }) {
 Create `src/pages/RecipeList.tsx`:
 
 ```tsx
-import { Alert, AlertDescription, AlertTitle, Button, Empty, Skeleton } from '@postxl/ui-components';
+import { useState } from 'react';
+import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components';
 import { foodly } from '../api';
 import { useRequest } from '../hooks/useRequest';
 import { RecipeRow } from '../components/recipe/RecipeRow';
 
 export function RecipeList() {
-  const { status, data, error } = useRequest(() => foodly.listRecipes(), []);
+  // Retry by bumping a nonce in the deps → useRequest re-runs (no full reload).
+  const [nonce, setNonce] = useState(0);
+  const { status, data, error } = useRequest(() => foodly.listRecipes(), [nonce]);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -663,7 +675,7 @@ export function RecipeList() {
           <AlertTitle>Konnte Rezepte nicht laden</AlertTitle>
           <AlertDescription className="flex flex-col gap-2">
             <span>{error?.message}</span>
-            <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+            <Button variant="outline" size="sm" onClick={() => setNonce((n) => n + 1)}>
               Erneut versuchen
             </Button>
           </AlertDescription>
@@ -671,7 +683,7 @@ export function RecipeList() {
       )}
 
       {status === 'ready' && data && data.length === 0 && (
-        <Empty>Noch keine Rezepte.</Empty>
+        <p className="py-10 text-center text-muted-foreground">Noch keine Rezepte.</p>
       )}
 
       {status === 'ready' && data && data.length > 0 && (
@@ -684,7 +696,6 @@ export function RecipeList() {
 }
 ```
 
-(If the `Empty` API differs — e.g. requires a title prop — adapt to its actual signature; check `node_modules/@postxl/ui-components/dist/index.d.ts`.)
 
 - [ ] **Step 3: Wire route, remove Home**
 
@@ -919,7 +930,7 @@ export function RecipeDetail() {
             <footer className="mt-10 text-sm text-muted-foreground">
               Quelle:{' '}
               {isUrl(recipe.source)
-                ? <a href={recipe.source} target="_blank" rel="noopener" className="underline">{recipe.source}</a>
+                ? <a href={recipe.source} target="_blank" rel="noopener noreferrer" className="underline">{recipe.source}</a>
                 : <TagText value={recipe.source} />}
             </footer>
           )}
@@ -966,4 +977,4 @@ git commit -m "feat(recipe): recipe detail page at /recipes/:id"
 
 **Placeholders:** none — every code step shows complete code.
 
-**Known soft spots flagged for reviewers/smoke:** (a) `text-amber-500` availability in the Tailwind build (fallback: `text-warning`); (b) `Empty` component's exact prop API; (c) `Loader` render. All three are verified in the Chrome-MCP smoke and easy to adjust.
+**Known soft spots flagged for reviewers/smoke:** (a) the gold star accent is the app-owned `.text-star` class (Task 5), independent of Tailwind's amber palette; (b) `Loader` render. Both are verified in the Chrome-MCP smoke and easy to adjust.
