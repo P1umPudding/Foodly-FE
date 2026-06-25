@@ -103,11 +103,29 @@ restating its name and signature. Don't do that.
 - Don't hand-size text: the compact text scale in `src/styles/styles.css`
   (`@theme { --text-* }`) drives sizing via tokens, so the component `size`
   props already render at the right proportions.
-- No inline styles (`style={{…}}`). Use Tailwind utilities, or a class in
-  `styles.css` for anything Tailwind can't express. A page-specific scoped CSS
-  block is usually a sign the content should be React components instead.
+- **Tailwind first — for essentially everything. No inline styles (`style={{…}}`),
+  and CSS is the rare exception, not a peer option.** Tailwind covers almost every
+  case, *including one-off custom values* via arbitrary-value utilities:
+  `w-[37.35px]`, `text-[13px]`, `gap-[3px]`, `bg-[#f59e0b]`, `grid-cols-[1fr_1.5fr]`,
+  `translate-x-[2px]`, … — any property, any value. So **a custom number is never a
+  reason to write CSS.** Likewise a *dynamic-but-discrete* value (e.g. quarter-fill
+  star widths) maps to fixed utilities (`w-1/4 w-1/2 w-3/4 w-full`) or arbitrary
+  values — not a `data-*`-attribute + CSS table.
+  - **Reused styling → a styled React component** (Tailwind classes inside it),
+    not a shared CSS class.
+  - Reach for `styles.css` / raw CSS **only** when Tailwind genuinely can't express
+    it: complex multi-step `@keyframes`, or styling browser-native / third-party
+    elements you can't attach classes to. Keep it minimal — don't recreate
+    utilities (colors, sizes, spacing, widths) as CSS rules. A new CSS rule for one
+    of those is almost always the wrong call; if you're writing one, stop and find
+    the Tailwind way first.
 - `theme.css` (brand tokens) is a manual copy shared with the Homepage/Recipes
-  apps — keep them in sync when changing colors/radii/shadows.
+  apps — keep them in sync when changing colors/radii/shadows. **If a value must
+  differ by light/dark (e.g. an accent color), that's the one legit reason to add
+  CSS here:** add the token to *both* the `:root` and `.dark` blocks, map it once
+  in `styles.css` `@theme inline` (`--color-x: var(--x)`), then use the generated
+  utility (`text-x`/`bg-x`). Do this *sparingly* — only for genuinely theme-able
+  values, don't tokenize one-offs. (Example: `--star`, the rating-star gold.)
 - `styles.css` restores Tailwind v3's default `border-color: var(--border)` (v4
   drops it, so a bare `border` would fall back to `currentColor` — too bright in
   dark, too dark in light). Add explicit `border-*` only to override.
