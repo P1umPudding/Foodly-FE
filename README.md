@@ -1,6 +1,7 @@
 # Foodly — Frontend
 
-A **frontend-only** React SPA that talks to a (foreign) backend over a
+A **frontend-only** React SPA that talks to a separate backend —
+[**Foodly-backend**](https://github.com/klassenserver7b/Foodly-backend) — over a
 **WebSocket**. Same stack/look as the sibling Homepage app.
 
 **Stack:** Vite · React · TypeScript · React Router · Tailwind v4 ·
@@ -32,6 +33,8 @@ your host).
 
 ## Backend connection (WebSocket)
 
+The backend lives in a separate repo:
+[**klassenserver7b/Foodly-backend**](https://github.com/klassenserver7b/Foodly-backend).
 All backend access goes through the single shared socket in `src/api/`:
 
 - `src/api/socket.ts` — the `SocketClient`: connect + **auto-reconnect**
