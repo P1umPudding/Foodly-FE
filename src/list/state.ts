@@ -1,0 +1,55 @@
+// The full filter/search/sort/view state of the recipe list. One object, mirrored
+// to the URL (shareable) and localStorage (personal defaults) — see url.ts / persistence.ts.
+
+export type RoleFilter = 'any' | 'owner' | 'editor' | 'viewer';
+export type CollabFilter = 'any' | 'private' | 'shared' | 'collaborative';
+export type SortKey = 'name' | 'work' | 'overall' | 'rating';
+export type SortDir = 'asc' | 'desc';
+export type DetailView = 'detailed' | 'compact';
+export type GroupView = 'flat' | 'by-category';
+
+export interface ListState {
+  categories: number[];   // OR within this facet
+  tags: string[];         // AND
+  ingredients: number[];  // AND (ingredient ids)
+  durationMax: number | null;
+  durationField: 'work' | 'overall';
+  role: RoleFilter;
+  collab: CollabFilter;
+  search: string;
+  sortKey: SortKey;
+  sortDir: SortDir;
+  detail: DetailView;
+  group: GroupView;
+}
+
+export const DEFAULT_STATE: ListState = {
+  categories: [], tags: [], ingredients: [],
+  durationMax: null, durationField: 'work',
+  role: 'any', collab: 'any',
+  search: '',
+  sortKey: 'name', sortDir: 'asc',
+  detail: 'detailed', group: 'flat',
+};
+
+export function isFilterActive(s: ListState): boolean {
+  return (
+    s.categories.length > 0 ||
+    s.tags.length > 0 ||
+    s.ingredients.length > 0 ||
+    s.durationMax !== null ||
+    s.role !== 'any' ||
+    s.collab !== 'any' ||
+    s.search.trim() !== ''
+  );
+}
+
+export function clearedState(s: ListState): ListState {
+  return {
+    ...s,
+    categories: [], tags: [], ingredients: [],
+    durationMax: null, durationField: 'work',
+    role: 'any', collab: 'any',
+    search: '',
+  };
+}
