@@ -11,6 +11,8 @@
 > - **A — Filtern/Suchen/Sortieren:** Facetten + UND/ODER-Verknüpfung, Sortierung,
 >   Counts, Such-Semantik, Empty-Zustand, Client-seitig → [§A](#a--filtern--suchen--sortieren--entschieden). ✅
 > - **D — Rollen-Modi:** Zwei-Achsen-Modell, gültige Zellen, Relax-Verhalten → [§D](#d--rollen-modi-filter-nach-rolle--entschieden). ✅
+> - **Rating-Sichtbarkeit** (kollaborationsabhängig: eigenes Rating vs. Durchschnitt) → [§Rating-Sichtbarkeit](#rating-sichtbarkeit-kollaborationsabhängig--entschieden). ✅
+> - **Rollen-/Collaboration-Indikator** in der Listenzeile (zwei Glyphen, Farbe verstärkt) → [§Indikator](#rollen-collaboration-indikator-listenzeile--kodierung-entschieden). ✅
 > - **State / URL / Persistenz** → [§State](#state--url--persistenz--entschieden). ✅
 > - **Zutaten-Filter-Quelle** → [§Zutaten-Quelle](#zutaten-filter-quelle--entschieden). ✅
 > - **Mock-Ausbau** (Voraussetzung, damit D/Suche/Sort sichtbar werden) → [§Mock-Ausbau](#mock-ausbau--stand--restlücke). ✅
@@ -113,6 +115,80 @@ Beide Achsen als sichtbare Controls (z.B. zwei segmented controls), inklusive
 >   `Any`** (deckt „all" ab). Final beim Layout-Schliff nach Phase 1.
 > - **Achse-1-Label-Wortlaut** ebenfalls dort.
 > - Beide ändern die Logik nicht — nur die Control-Form.
+
+---
+
+## Rating-Sichtbarkeit (kollaborationsabhängig) ✅ entschieden
+
+Wer welche Bewertung sieht, hängt vom **Collaboration-Zustand** ab (Achse 2 aus
+[§D](#d--rollen-modi-filter-nach-rolle--entschieden)) — Bewertungen sind in
+nicht-kollaborativen Rezepten **privat pro Rater**:
+
+- **Private & Shared (nicht-kollaborativ):** jeder sieht **nur die eigene**
+  Bewertung — **kein** Durchschnitt, **keine** fremden Ratings.
+- **Collaborative:** jeder sieht den **Gesamtdurchschnitt** über alle
+  Bewertungen (gepoolt).
+
+**Konsequenz fürs Frontend (verfeinert Phase 1):**
+
+- Neuer reiner Helfer in `views.ts`, z.B.
+  `visibleRating(recipe, currentUserId): number | null` → bei Private/Shared das
+  **eigene** Rating, bei Collaborative der **Durchschnitt** (`averageRating`);
+  `null`, wenn nichts anzuzeigen ist (nicht selbst bewertet bzw. keine Ratings).
+  Ersetzt den pauschalen `averageRating`-Aufruf an den Anzeigestellen.
+- **Liste (`RecipeRow`):** das `★ <Zahl>` nutzt `visibleRating` (eigenes Rating
+  bzw. Durchschnitt), statt immer den Durchschnitt zu zeigen.
+- **Detail (`Rating`-Popover):**
+  - Private/Shared → nur **„Deine Bewertung"**, **kein** Breakdown (es gibt
+    nichts Fremdes zu zeigen).
+  - Collaborative → **Durchschnitt** als Kopf; der Phase-1-Breakdown nach Rolle
+    bleibt **nur hier** sinnvoll (einziger Kontext, in dem fremde Ratings
+    sichtbar sind). Ob der Breakdown auch dort gezeigt wird, ist eine kleine
+    Layout-Wahl (Default: ja).
+- **Defensiv:** liefert das Backend für nicht-kollaborative Rezepte trotzdem
+  fremde Ratings mit, **filtert** das Frontend sie für die Anzeige weg — nie mehr
+  zeigen, als die Regel erlaubt.
+
+> **Backend-/Protokoll-Implikation:** idealerweise sendet das Backend fremde
+> Ratings für nicht-kollaborative Rezepte gar nicht erst mit (Privacy an der
+> Quelle). Gehört zu den „Offene Punkte" in `../plan.md`, mit dem Backend-Team
+> zu klären.
+
+---
+
+## Rollen-/Collaboration-Indikator (Listenzeile) ✅ Kodierung entschieden
+
+Man soll **ohne Detail-View** sehen, welche **Rechte/Rolle** man an einem Rezept
+hat und ob es **Shared/Collaborative** ist. Dafür pro Zeile **zwei kleine
+Glyphen**, die genau die zwei [§D](#d--rollen-modi-filter-nach-rolle--entschieden)-Achsen
+spiegeln — gespeist aus denselben reinen Helfern wie der §D-Filter
+(`myRole(recipe, currentUserId)` / `collaborationState(recipe)` in `views.ts`,
+wiederverwendet — **kein neues Datenmodell**).
+
+**Kodierung — zwei Glyphen, Farbe verstärkt:**
+
+- **Rolle** (Icon, „darf ich bearbeiten?"): `owner` / `editor` / `viewer`.
+- **Collaboration** (Icon **+ Farbe**, „wer noch?"): **Private** (grau) /
+  **Shared** (blau) / **Collaborative** (grün).
+- Icon-Vorschlag (lucide, final beim Layout): owner `Crown`, editor `Pencil`,
+  viewer `Eye`; Private `Lock`, Shared `Users`, Collaborative `Network`.
+
+**Regeln:**
+
+- **Farbe ist nie der alleinige Kanal** (Farbsehschwäche): die Bedeutung tragen
+  **Icon + Tooltip** (Klartext, z.B. „Bearbeiter · kollaborativ"); Farbe nur als
+  Verstärkung fürs schnelle Scannen.
+- Beide Glyphen **immer** zeigen (auch owner/Private) — konsistente
+  Zeichensprache, kein „mal da, mal weg".
+- Collaboration-Farben als eigene **Tokens** (grau/blau/grün); falls sie je
+  Theme variieren müssen, über die übliche `theme.css`→`styles.css`-Brücke
+  light/dark-fähig (siehe CLAUDE.md).
+- Konsistenz mit §D: dieselben drei Collaboration-Farben kann das §D-Control
+  wiederverwenden (ein Vokabular für Filter *und* Zeilen-Indikator).
+
+**Offen (Layout, nach Phase 1):** genaue Icons, Platzierung (Cluster bei Titel/
+Tags vs. am Thumbnail), Größe; ob die **`compact`-Ansicht** (§C) die Glyphen
+verdichtet — sie darf die *Darstellung* straffen, nicht die *Kodierung* ändern.
 
 ---
 
