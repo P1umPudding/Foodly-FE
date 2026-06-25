@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Input, Badge, Button, Separator, ToggleGroup, ToggleGroupItem } from '@postxl/ui-components'
+import { Input, Badge, Separator, ToggleGroup, ToggleGroupItem } from '@postxl/ui-components'
 import { Crown, Pencil, Eye, Lock, Share2, Users } from 'lucide-react'
 import type { ListState, RoleFilter, CollabFilter } from '../../list/state'
 import { normalizeText } from '../../list/search'
@@ -33,8 +33,6 @@ export function FilterControls({
   onToggleCategory,
   tags,
   ingredients,
-  active,
-  onClear,
 }: {
   state: ListState
   set: (patch: Partial<ListState>) => void
@@ -42,8 +40,6 @@ export function FilterControls({
   onToggleCategory: (id: number) => void
   tags: Tag[]
   ingredients: Ingredient[]
-  active: boolean
-  onClear: () => void
 }) {
   const [ingredientQuery, setIngredientQuery] = useState('')
 
@@ -54,15 +50,6 @@ export function FilterControls({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <Input placeholder="Rezepte suchen…" value={state.search} onChange={(e) => set({ search: e.target.value })} />
-        {active && (
-          <Button variant="ghost" size="sm" onClick={onClear} className="h-auto shrink-0 px-2 py-1 text-xs">
-            Zurücksetzen
-          </Button>
-        )}
-      </div>
-
       <FilterGroup title="Kategorien">
         <CategorySidebar categories={categories} selected={state.categories} onToggle={onToggleCategory} />
       </FilterGroup>

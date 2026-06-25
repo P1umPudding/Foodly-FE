@@ -1,5 +1,18 @@
 import { useState } from 'react'
-import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components'
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  Button,
+  Input,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  Skeleton,
+} from '@postxl/ui-components'
+import { X, Filter } from 'lucide-react'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
@@ -11,6 +24,7 @@ import { isFilterActive } from '../list/state'
 import { FilterControls } from '../components/list/FilterControls'
 import { ListToolbar } from '../components/list/ListToolbar'
 import { RecipeListView } from '../components/list/RecipeListView'
+import { ResultCount } from '../components/list/ResultCount'
 
 export function RecipeList() {
   const [nonce, setNonce] = useState(0)
@@ -27,31 +41,70 @@ export function RecipeList() {
   const usedIngredientList = usedIngredients(allRecipes, ingredients.byId)
   const visible = sortRecipes(filterRecipes(allRecipes, state, currentUserId, categories), state, currentUserId)
 
-  return (
-    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-10 md:grid-cols-[18rem_1fr]">
-      <aside className="flex flex-col gap-4 md:sticky md:top-4 md:self-start">
-        <FilterControls
-          state={state}
-          set={set}
-          categories={categories}
-          onToggleCategory={(id) =>
-            set({
-              categories: state.categories.includes(id)
-                ? state.categories.filter((x) => x !== id)
-                : [...state.categories, id],
-            })
-          }
-          tags={tagList}
-          ingredients={usedIngredientList}
-          active={isFilterActive(state)}
-          onClear={clear}
-        />
-      </aside>
+  const filters = (
+    <FilterControls
+      state={state}
+      set={set}
+      categories={categories}
+      onToggleCategory={(id) =>
+        set({
+          categories: state.categories.includes(id)
+            ? state.categories.filter((x) => x !== id)
+            : [...state.categories, id],
+        })
+      }
+      tags={tagList}
+      ingredients={usedIngredientList}
+    />
+  )
 
+  return (
+    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-10 md:grid-cols-[1fr_18rem]">
       <div className="min-w-0">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
-          <ListToolbar state={state} set={set} />
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <div className="flex items-baseline gap-3">
+            <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
+            <ResultCount matching={visible.length} total={allRecipes.length} />
+          </div>
+          <div className="flex items-center gap-3">
+            <ListToolbar state={state} set={set} />
+            {/* Mobile-only filter drawer trigger */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 md:hidden">
+                  <Filter className="h-4 w-4" />
+                  Filter
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[20rem] overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>Filter</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4">{filters}</div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+
+        <div className="relative mb-6">
+          <Input
+            placeholder="Rezepte suchen…"
+            value={state.search}
+            onChange={(e) => set({ search: e.target.value })}
+            className="w-full pr-9 focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          {state.search !== '' && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Suche leeren"
+              onClick={() => set({ search: '' })}
+              className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         {recipesReq.status === 'loading' && (
@@ -97,6 +150,9 @@ export function RecipeList() {
           />
         )}
       </div>
+
+      {/* Desktop rail (right) */}
+      <aside className="hidden md:sticky md:top-4 md:flex md:flex-col md:gap-4 md:self-start">{filters}</aside>
     </div>
   )
 }
