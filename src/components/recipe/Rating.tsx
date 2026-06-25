@@ -1,5 +1,5 @@
 import { Star } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger, Separator, Button } from '@postxl/ui-components';
+import { Popover, PopoverContent, PopoverTrigger, Separator } from '@postxl/ui-components';
 import { Stars } from './Stars';
 import { averageRating, ratingsByRole, type RatedRole } from '../../api/views';
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider';
@@ -27,11 +27,12 @@ export function Rating({ recipe }: { recipe: Recipe }) {
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-auto gap-1.5 px-1.5 py-0.5">
-          <Stars value={avg} />
-          <span className="text-sm tabular-nums text-muted-foreground">{avg.toFixed(1)}</span>
-        </Button>
+      {/* The library's Button doesn't forwardRef, so `PopoverTrigger asChild`
+          + Button leaves Radix without an anchor (popover renders off-screen).
+          Use the trigger's own ref-forwarding button and style it directly. */}
+      <PopoverTrigger className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-sm text-muted-foreground transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+        <Stars value={avg} />
+        <span className="tabular-nums">{avg.toFixed(1)}</span>
       </PopoverTrigger>
       <PopoverContent className="w-72">
         <div className="flex items-center justify-between">
