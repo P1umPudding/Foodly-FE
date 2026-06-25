@@ -1,4 +1,4 @@
-import { Button, cn } from '@postxl/ui-components';
+import { Button, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components';
 import { useWakeLock } from '../hooks/useWakeLock';
 
 const ICON = 'h-4 w-4';
@@ -20,20 +20,24 @@ export function WakeLockToggle() {
   if (!supported) return null;
 
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      onClick={toggle}
-      aria-pressed={enabled}
-      aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
-      title={enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}
-      className={cn(
-        'rounded-full transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
-        enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
-      )}
-    >
-      <MugIcon steam={enabled} />
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={toggle}
+          aria-pressed={enabled}
+          aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
+          className={cn(
+            'rounded-full transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+            enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          <MugIcon steam={enabled} />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}</TooltipContent>
+    </Tooltip>
   );
 }
