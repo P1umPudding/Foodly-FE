@@ -12,6 +12,8 @@ const ROLE_LABEL: Record<RatedRole, string> = {
   other: 'Weitere',
 };
 
+const ROLE_ORDER: RatedRole[] = ['owner', 'editor', 'viewer', 'other'];
+
 function UserName({ id }: { id: UserId }) {
   const user = useUser(id);
   return <>{user?.name ?? `User ${id}`}</>;
@@ -53,22 +55,30 @@ export function Rating({ recipe }: { recipe: Recipe }) {
           </div>
         )}
 
-        <Separator className="my-3" />
-
-        <ul className="space-y-1">
-          {rows.map((r) => (
-            <li key={r.user} className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2">
-                <UserName id={r.user} />
-                <span className="text-xs text-muted-foreground">{ROLE_LABEL[r.role]}</span>
-              </span>
-              <span className="inline-flex items-center gap-1 tabular-nums text-muted-foreground">
-                <Star className="h-3.5 w-3.5 fill-current text-star" />
-                {r.rating.toFixed(1)}
-              </span>
-            </li>
-          ))}
-        </ul>
+        {/* One labelled group per role, each preceded by a separator. */}
+        {ROLE_ORDER.map((role) => {
+          const members = rows.filter((r) => r.role === role);
+          if (members.length === 0) return null;
+          return (
+            <div key={role}>
+              <Separator className="my-3" />
+              <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {ROLE_LABEL[role]}
+              </p>
+              <ul className="space-y-1">
+                {members.map((r) => (
+                  <li key={r.user} className="flex items-center justify-between text-sm">
+                    <UserName id={r.user} />
+                    <span className="inline-flex items-center gap-1 tabular-nums text-muted-foreground">
+                      <Star className="h-3.5 w-3.5 fill-current text-star" />
+                      {r.rating.toFixed(1)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
       </PopoverContent>
     </Popover>
   );
