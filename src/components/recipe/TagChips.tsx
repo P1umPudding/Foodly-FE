@@ -39,7 +39,7 @@ export function TagChips({
         <TooltipTrigger asChild>
           <span className="inline-flex cursor-default">{icon}</span>
         </TooltipTrigger>
-        <TooltipContent>{t}</TooltipContent>
+        <TooltipContent side="bottom">{t}</TooltipContent>
       </Tooltip>
     )
   })
