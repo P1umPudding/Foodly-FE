@@ -12,14 +12,12 @@ describe('url serialisation', () => {
       tags: ['Vegan', 'Schnell'],
       ingredients: [3, 9],
       durationMax: 30,
-      durationField: 'overall',
       role: 'editor',
       collab: 'collaborative',
       search: 'apfel kuchen',
       sortKey: 'rating',
       sortDir: 'desc',
       detail: 'compact',
-      group: 'by-category',
     }
     expect(fromSearchParams(toSearchParams(s))).toEqual(s)
   })

@@ -19,12 +19,10 @@ describe('list state helpers', () => {
       tags: ['X'],
       search: 'y',
       sortKey: 'rating' as const,
-      group: 'by-category' as const,
     }
     const out = clearedState(dirty)
     expect(out.tags).toEqual([])
     expect(out.search).toBe('')
     expect(out.sortKey).toBe('rating')
-    expect(out.group).toBe('by-category')
   })
 })

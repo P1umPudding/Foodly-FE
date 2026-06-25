@@ -6,21 +6,18 @@ export type CollabFilter = 'any' | 'private' | 'shared' | 'collaborative'
 export type SortKey = 'name' | 'work' | 'overall' | 'rating'
 export type SortDir = 'asc' | 'desc'
 export type DetailView = 'detailed' | 'compact'
-export type GroupView = 'flat' | 'by-category'
 
 export interface ListState {
   categories: number[] // OR within this facet
   tags: string[] // AND
   ingredients: number[] // AND (ingredient ids)
-  durationMax: number | null
-  durationField: 'work' | 'overall'
+  durationMax: number | null // ≤, applied to workMinutes
   role: RoleFilter
   collab: CollabFilter
   search: string
   sortKey: SortKey
   sortDir: SortDir
   detail: DetailView
-  group: GroupView
 }
 
 export const DEFAULT_STATE: ListState = {
@@ -28,14 +25,12 @@ export const DEFAULT_STATE: ListState = {
   tags: [],
   ingredients: [],
   durationMax: null,
-  durationField: 'work',
   role: 'any',
   collab: 'any',
   search: '',
   sortKey: 'name',
   sortDir: 'asc',
   detail: 'detailed',
-  group: 'flat',
 }
 
 export function isFilterActive(s: ListState): boolean {
@@ -57,7 +52,6 @@ export function clearedState(s: ListState): ListState {
     tags: [],
     ingredients: [],
     durationMax: null,
-    durationField: 'work',
     role: 'any',
     collab: 'any',
     search: '',

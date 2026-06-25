@@ -38,7 +38,7 @@ it('by-category shows a recipe under each of its categories + Ohne Kategorie buc
   render(
     <TooltipProvider>
       <MemoryRouter>
-        <RecipeListView recipes={recipes} categories={cats} group="by-category" detail="detailed" />
+        <RecipeListView recipes={recipes} categories={cats} detail="detailed" />
       </MemoryRouter>
     </TooltipProvider>,
   )

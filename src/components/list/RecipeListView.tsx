@@ -1,6 +1,6 @@
 import { RecipeRow } from '../recipe/RecipeRow'
 import type { Recipe, UserCategory } from '../../api/protocol'
-import type { GroupView, DetailView } from '../../list/state'
+import type { DetailView } from '../../list/state'
 
 function Rows({ recipes, compact }: { recipes: Recipe[]; compact: boolean }) {
   return (
@@ -15,18 +15,13 @@ function Rows({ recipes, compact }: { recipes: Recipe[]; compact: boolean }) {
 export function RecipeListView({
   recipes,
   categories,
-  group,
   detail,
 }: {
   recipes: Recipe[]
   categories: UserCategory[]
-  group: GroupView
   detail: DetailView
 }) {
   const compact = detail === 'compact'
-
-  if (group === 'flat') return <Rows recipes={recipes} compact={compact} />
-
   const ordered = [...categories].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   const inAnyCategory = new Set<number>()
   for (const c of categories) for (const id of c.recipes) inAnyCategory.add(id)

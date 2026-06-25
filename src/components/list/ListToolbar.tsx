@@ -11,8 +11,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@postxl/ui-components'
-import { Rows3, Rows4, List, FolderTree } from 'lucide-react'
-import type { ListState, SortKey, DetailView, GroupView } from '../../list/state'
+import { Rows3, Rows4 } from 'lucide-react'
+import type { ListState, SortKey, DetailView } from '../../list/state'
 
 // One combined dropdown entry per (sort key × direction); value is `${key}|${dir}`.
 const SORT_OPTIONS: { value: string; label: string }[] = [
@@ -69,25 +69,6 @@ export function ListToolbar({ state, set }: { state: ListState; set: (patch: Par
         </Tooltip>
       </ToggleGroup>
 
-      {/* Group view: Flat list vs By category */}
-      <ToggleGroup type="single" value={state.group} onValueChange={(v) => v && set({ group: v as GroupView })}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <ToggleGroupItem value="flat" aria-label="Flache Liste">
-              <List className="size-4" />
-            </ToggleGroupItem>
-          </TooltipTrigger>
-          <TooltipContent>Flache Liste</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <ToggleGroupItem value="by-category" aria-label="Nach Kategorie">
-              <FolderTree className="size-4" />
-            </ToggleGroupItem>
-          </TooltipTrigger>
-          <TooltipContent>Nach Kategorie</TooltipContent>
-        </Tooltip>
-      </ToggleGroup>
     </div>
   )
 }

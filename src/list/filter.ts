@@ -30,10 +30,9 @@ function hasAllIngredients(recipe: Recipe, ingredients: number[]): boolean {
   return ingredients.every((id) => have.has(id))
 }
 
-function withinDuration(recipe: Recipe, max: number | null, field: 'work' | 'overall'): boolean {
+function withinDuration(recipe: Recipe, max: number | null): boolean {
   if (max === null) return true
-  const mins = field === 'work' ? recipe.workMinutes : recipe.overallMinutes
-  return mins !== null && mins <= max // unknown (null) is excluded
+  return recipe.workMinutes !== null && recipe.workMinutes <= max // unknown (null) excluded
 }
 
 export function filterRecipes(
@@ -47,7 +46,7 @@ export function filterRecipes(
       inSelectedCategory(recipe, state.categories, categories) &&
       hasAllTags(recipe, state.tags) &&
       hasAllIngredients(recipe, state.ingredients) &&
-      withinDuration(recipe, state.durationMax, state.durationField) &&
+      withinDuration(recipe, state.durationMax) &&
       (state.role === 'any' || (currentUserId !== null && roleOf(recipe, currentUserId) === state.role)) &&
       (state.collab === 'any' || collaborationState(recipe) === state.collab) &&
       matchesSearch(recipe, state.search),

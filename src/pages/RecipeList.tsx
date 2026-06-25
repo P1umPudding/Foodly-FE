@@ -93,7 +93,6 @@ export function RecipeList() {
           <RecipeListView
             recipes={visible}
             categories={groupingCategories(categories, state.categories)}
-            group={state.group}
             detail={state.detail}
           />
         )}

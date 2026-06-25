@@ -5,7 +5,7 @@ import { DEFAULT_STATE, clearedState, type ListState } from './state'
 import { fromSearchParams, toSearchParams } from './url'
 import { loadPersisted, savePersisted } from './persistence'
 
-const OUR_KEYS = ['cat', 'tag', 'ing', 'dmax', 'dfield', 'role', 'collab', 'q', 'sort', 'dir', 'view', 'group']
+const OUR_KEYS = ['cat', 'tag', 'ing', 'dmax', 'role', 'collab', 'q', 'sort', 'dir', 'view']
 
 export function useListState(): { state: ListState; set: (patch: Partial<ListState>) => void; clear: () => void } {
   const [params, setParams] = useSearchParams()

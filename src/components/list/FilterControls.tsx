@@ -111,37 +111,18 @@ export function FilterControls({
           </div>
         )}
 
-        {/* "≤" prefix makes the predicate (workMinutes/overallMinutes ≤ durationMax)
-            explicit; the inline toggle picks which time field it applies to. */}
         <div className="flex flex-col gap-1.5">
-          <FieldLabel>Maximale Zeit</FieldLabel>
+          <FieldLabel>Maximale Arbeitszeit</FieldLabel>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">≤</span>
             <Input
               type="number"
               className="w-20"
-              placeholder="Min."
+              placeholder="Minuten"
               value={state.durationMax ?? ''}
               onChange={(e) => set({ durationMax: e.target.value === '' ? null : Number(e.target.value) })}
             />
-            <ToggleGroup
-              type="single"
-              value={state.durationField}
-              onValueChange={(v) => v && set({ durationField: v as 'work' | 'overall' })}
-            >
-              <ToggleGroupItem
-                value="work"
-                className="px-2 text-xs data-[state=on]:bg-primary/15 data-[state=on]:text-foreground"
-              >
-                Arbeitszeit
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="overall"
-                className="px-2 text-xs data-[state=on]:bg-primary/15 data-[state=on]:text-foreground"
-              >
-                Gesamtzeit
-              </ToggleGroupItem>
-            </ToggleGroup>
+            <span className="text-sm text-muted-foreground">Arbeitszeit</span>
           </div>
         </div>
       </FilterGroup>
