@@ -21,6 +21,8 @@
 - **Branch**: work on `phase-2-organisation-navigation` (already created off `phase-1-rezepte-ansehen`; has the Phase-1 app + 14 mock recipes + this spec). Do not branch from `main`.
 - **Spec**: `docs/phases/phase-2-organisation-navigation.md` is the source of truth for behaviour. Visual layout (sidebar placement, filter-bar arrangement, compact-row anatomy, exact icons) is the deliberately-tunable surface; the UI tasks below give a working baseline consistent with Phase 1 — refine arrangement without changing tested interfaces/behaviour.
 
+> **Layout-Schliff (post-merge, applied):** the UI tasks' baseline arrangement was tuned after merging the Phase-1 detail overhaul — per the tunable-surface constraint above, behaviour/interfaces unchanged. Final form is documented in the spec's **§Finale UI-Umsetzung**: filters grouped in a fixed left rail (Suche · Kategorien · Verfeinern · Zugriff); sort as a `Select` dropdown + view toggles moved to a top toolbar; the Task-15 "role grid" shipped as **two segmented role/collaboration toggles** (same two-axis logic, no cell matrix), so its planned **live grid counts (Task 7 `roleGridCounts`) were dropped**.
+
 ---
 
 ## File Structure

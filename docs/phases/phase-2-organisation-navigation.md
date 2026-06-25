@@ -42,6 +42,58 @@ Phase 2 = **A + C + D**. Das **Dashboard/Startseite** ist herausgelöst zu
 
 ---
 
+## Finale UI-Umsetzung (Layout-Schliff) ✅ implementiert
+
+> Beim Layout-Schliff nach dem Phase-1-Merge konkretisiert. Schließt die in §D,
+> §A, §C und beim Indikator als „offen (visuell)" markierten Punkte ab; die
+> **Logik** der jeweiligen Sektionen bleibt unverändert — hier steht nur die
+> finale **Control-Form & Anordnung**.
+
+**Zweispaltiges Seiten-Layout** (`md:grid-cols-[18rem_1fr]`): links ein **fester
+Filter-Rail** (`sticky top-4`, kein eigenes Scroll-Container), rechts Überschrift
++ Toolbar + Liste in voller Breite.
+
+- **Filter-Rail (links), vier betitelte Gruppen** (Versal-Header + Trenner), von
+  oben nach unten nach mentalem Modell:
+  1. **Suche** — Volltext-Input ganz oben; daneben **„Zurücksetzen"** (nur sichtbar
+     wenn ein Filter/Suche aktiv ist → ersetzt den separaten Reset im Empty-Zustand
+     nicht, ergänzt ihn).
+  2. **Kategorien** — die Multi-Select-Liste (ODER), mit statischem Zähler.
+  3. **Verfeinern** — **Tags** (Toggle-Badges), **Zutaten** (durchsuchbares
+     Inline-Feld + gefilterte Badge-Liste) und **Maximale Zeit** (`≤`-Präfix +
+     Minuten-Input + Inline-Toggle `Arbeitszeit/Gesamtzeit`).
+  4. **Zugriff** — **Rolle** und **Freigabe** als **zwei segmentierte 3er-Toggles**
+     (Piktogramm über Name, je Achse single-select, erneuter Klick aufs aktive
+     Segment = zurück auf „Alle"). Ersetzt die ursprünglich skizzierte
+     **3×3-Matrix/„Grid"** aus §D-Variante (a): selbe Zwei-Achsen-Logik (Rolle ×
+     Collaboration, relaxte Schwester-Achse), aber als zwei nebeneinander gelegte
+     Segment-Reihen statt einer Zell-Matrix — übersichtlicher und ohne ausgegraute
+     Zellen. Aktiv-Tönung dezent: Rolle Primär-Hue, Freigabe semantisch
+     (Privat neutral, **Geteilt blau**, **Kollaborativ grün**) — dasselbe
+     Farbvokabular wie der Zeilen-Indikator.
+  - Strukturell: `FilterControls` orchestriert alle Gruppen über wiederverwendbare
+    `FilterGroup`/`FieldLabel`; `CategorySidebar` liefert nur noch die Body der
+    Kategorien-Gruppe (eigene Überschrift entfernt).
+
+- **Toolbar (oben rechts, neben „Rezepte"):** „Wie anzeigen" — orthogonal zu den
+  Filtern und daher **nicht** im Rail:
+  - **Sortierung** als **Dropdown** (`Select`): die acht Kombinationen aus
+    Sortierschlüssel × Richtung (Name/Arbeitszeit/Gesamtzeit/Bewertung, je auf-/
+    absteigend) als eine Liste — statt separater Button-Reihe.
+  - **Detail** (`detailed/compact`) und **Gruppierung** (`flat/by-category`) als
+    zwei **Icon-Toggle-Gruppen**.
+
+- **Live-Counts (§A „Counts an Optionen"):** **zurückgestellt.** Die in §D/§A
+  skizzierten Live-Trefferzahlen am Rollen-Grid entfielen mit dem Wechsel auf
+  segmentierte Toggles; Kategorien behalten ihren statischen Zähler. Volle faceted
+  counts bleiben wie dort vermerkt bewusst außerhalb Phase 2.
+
+- **Zeilen-Indikator:** wie in §Indikator entschieden — unten rechts in der
+  Meta-Zeile (`ml-auto`); Icons `Crown/Pencil/Eye` (Rolle) und `Lock/Share2/Users`
+  (Freigabe) mit Klartext-`title`/`aria-label`.
+
+---
+
 ## D — Rollen-Modi (Filter nach Rolle) ✅ entschieden
 
 Ersetzt die frühere flache, überlappende 5-Modi-Liste (`all / editable / shared
@@ -93,6 +145,11 @@ echten Widersprüchen, nicht aus Designgeschmack → die UI braucht **keine**
 willkürlichen Prioritätsregeln, um Überlappungen aufzulösen.
 
 ### Darstellung & Interaktion — Variante (a)
+
+> **Umgesetzt als zwei segmentierte 3er-Toggles** (nicht als 3×3-Matrix) — siehe
+> [§Finale UI-Umsetzung](#finale-ui-umsetzung-layout-schliff--implementiert). Die
+> Zwei-Achsen-Logik unten gilt unverändert; die ausgegrauten-Zellen-/Matrix-
+> Darstellung entfiel zugunsten zweier nebeneinander gelegter Segment-Reihen.
 
 Beide Achsen als sichtbare Controls (z.B. zwei segmented controls), inklusive
 `Any`.
@@ -370,9 +427,10 @@ Alle Mock-Erweiterungen müssen **typkonform zu `protocol.ts`** bleiben.
 
 ## C — Listen-Ansichten
 
-> **Visuelle Anatomie noch offen** (nach Phase 1, baut auf der dort entstehenden
-> Zeile/Liste auf): `detailed ↔ compact`, einklappbare `by-category`-Gruppen,
-> Default-Ansicht.
+> **Visuelle Anatomie umgesetzt:** die beiden Umschalter sitzen als Icon-Toggle-
+> Gruppen in der **Toolbar oben rechts** (nicht im Filter-Rail) — siehe
+> [§Finale UI-Umsetzung](#finale-ui-umsetzung-layout-schliff--implementiert).
+> Default-Ansicht: `detailed` + `flat`. Logik-Rahmen wie unten.
 
 **Logik-Rahmen steht** (entkoppelt, gilt schon jetzt):
 
