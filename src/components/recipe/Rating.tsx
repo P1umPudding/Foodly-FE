@@ -23,10 +23,22 @@ const ROLE_LABEL: Record<RatedRole, string> = {
 
 const ROLE_ORDER: RatedRole[] = ['owner', 'editor', 'viewer', 'other'];
 
+// Single star + number — compact, for the per-rater rows.
 function StarValue({ value }: { value: number }) {
   return (
     <span className="inline-flex items-center gap-1 tabular-nums">
       <Star className="h-3.5 w-3.5 fill-current text-star" />
+      {value.toFixed(1)}
+    </span>
+  );
+}
+
+// Full 5-star bar + number — for the Durchschnitt / Du summary rows. The number
+// is fixed-width (tabular, always N.N), so the star bars line up across rows.
+function StarsValue({ value }: { value: number }) {
+  return (
+    <span className="inline-flex items-center gap-2 tabular-nums">
+      <Stars value={value} size="xs" />
       {value.toFixed(1)}
     </span>
   );
@@ -68,20 +80,18 @@ export function Rating({ recipe }: { recipe: Recipe }) {
       {/* PopoverTrigger is the library's own ref-forwarding button (the @postxl
           Button doesn't forwardRef, which breaks Radix positioning). cursor-pointer
           is explicit until the lib ships it for interactive elements. */}
-      <PopoverTrigger className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+      <PopoverTrigger className="inline-flex cursor-pointer items-center rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
         <Stars value={avg} size="md" />
-        <span className="tabular-nums">{avg.toFixed(1)}</span>
       </PopoverTrigger>
       <PopoverContent className="max-h-[60vh] w-72 overflow-y-auto">
         <div className="flex items-center justify-between font-medium">
-          <span>Durchschnitt</span>
-          <StarValue value={avg} />
-          <span className="sr-only">aus {rows.length} Bewertungen</span>
+          <span>Durchschnitt <span className="font-normal text-muted-foreground">({rows.length})</span></span>
+          <StarsValue value={avg} />
         </div>
         {own && (
-          <div className="mt-1 flex items-center justify-between font-medium">
+          <div className="mt-1.5 flex items-center justify-between font-medium">
             <span>Du</span>
-            <StarValue value={own.rating} />
+            <StarsValue value={own.rating} />
           </div>
         )}
 
