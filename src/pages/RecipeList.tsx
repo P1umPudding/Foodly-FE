@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components';
+import { Alert, AlertDescription, AlertTitle, Button, Separator, Skeleton } from '@postxl/ui-components';
 import { foodly } from '../api';
 import { useRequest } from '../hooks/useRequest';
 import { useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider';
 import { useListState } from '../list/useListState';
 import { filterRecipes, groupingCategories } from '../list/filter';
 import { sortRecipes } from '../list/sort';
-import { roleGridCounts, usedIngredients } from '../list/counts';
+import { usedIngredients } from '../list/counts';
 import { isFilterActive } from '../list/state';
 import { CategorySidebar } from '../components/list/CategorySidebar';
 import { FilterControls } from '../components/list/FilterControls';
+import { ListToolbar } from '../components/list/ListToolbar';
 import { RecipeListView } from '../components/list/RecipeListView';
 
 export function RecipeList() {
@@ -25,16 +26,14 @@ export function RecipeList() {
   const categories = categoriesReq.data ?? [];
   const tagList = Object.values(tags.byId);
   const usedIngredientList = usedIngredients(allRecipes, ingredients.byId);
-  const gridCounts = roleGridCounts(allRecipes, state, currentUserId, categories);
-
   const visible = sortRecipes(
     filterRecipes(allRecipes, state, currentUserId, categories),
     state, currentUserId,
   );
 
   return (
-    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-10 md:grid-cols-[14rem_1fr]">
-      <aside className="md:sticky md:top-4 md:self-start">
+    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-10 md:grid-cols-[18rem_1fr]">
+      <aside className="flex flex-col gap-4 md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:self-start md:overflow-y-auto">
         <CategorySidebar
           categories={categories}
           selected={state.categories}
@@ -44,16 +43,17 @@ export function RecipeList() {
               : [...state.categories, id],
           })}
         />
+        <Separator />
+        <FilterControls
+          state={state} set={set}
+          tags={tagList} ingredients={usedIngredientList}
+        />
       </aside>
 
       <div className="min-w-0">
-        <h1 className="font-display mb-6 text-3xl text-foreground">Rezepte</h1>
-
-        <div className="mb-6">
-          <FilterControls
-            state={state} set={set}
-            tags={tagList} ingredients={usedIngredientList} gridCounts={gridCounts}
-          />
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
+          <ListToolbar state={state} set={set} />
         </div>
 
         {recipesReq.status === 'loading' && (
