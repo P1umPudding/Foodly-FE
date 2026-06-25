@@ -4,6 +4,27 @@
 
 import type { Recipe, RecipeIngredient, UserId } from './protocol';
 
+export type Role = 'owner' | 'editor' | 'viewer' | 'other';
+
+export function roleOf(recipe: Recipe, user: UserId): Role {
+  return user === recipe.owner ? 'owner'
+    : recipe.editors.includes(user) ? 'editor'
+      : recipe.viewers.includes(user) ? 'viewer'
+        : 'other';
+}
+
+export function myRole(recipe: Recipe, currentUserId: UserId | null): Role {
+  return currentUserId === null ? 'other' : roleOf(recipe, currentUserId);
+}
+
+export type Collaboration = 'private' | 'shared' | 'collaborative';
+
+export function collaborationState(recipe: Recipe): Collaboration {
+  if (recipe.editors.length > 0) return 'collaborative';
+  if (recipe.viewers.length > 0) return 'shared';
+  return 'private';
+}
+
 // null (not 0) when there are no ratings, so the UI can omit the stars.
 export function averageRating(recipe: Recipe): number | null {
   const ratings = recipe.rating;
@@ -31,22 +52,16 @@ export function formatIngredient(line: RecipeIngredient): string {
 // minutes are filter-only, and {tag} substitution is a render-time concern
 // (the phase-1 tag renderer), not a string helper.
 
-export type RatedRole = 'owner' | 'editor' | 'viewer' | 'other';
+export type RatedRole = Role; // back-compat alias for existing imports
 
-const ROLE_ORDER: Record<RatedRole, number> = { owner: 0, editor: 1, viewer: 2, other: 3 };
+const ROLE_ORDER: Record<Role, number> = { owner: 0, editor: 1, viewer: 2, other: 3 };
 
 // A rater's role is derived from the recipe itself (owner/editors/viewers), not
 // from any user catalog — so this stays a pure DTO function.
 export function ratingsByRole(
   recipe: Recipe,
-): { user: UserId; rating: number; role: RatedRole }[] {
-  const roleOf = (u: UserId): RatedRole =>
-    u === recipe.owner ? 'owner'
-      : recipe.editors.includes(u) ? 'editor'
-        : recipe.viewers.includes(u) ? 'viewer'
-          : 'other';
-
+): { user: UserId; rating: number; role: Role }[] {
   return recipe.rating
-    .map((r) => ({ user: r.user, rating: r.rating, role: roleOf(r.user) }))
+    .map((rt) => ({ user: rt.user, rating: rt.rating, role: roleOf(recipe, rt.user) }))
     .sort((a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role] || b.rating - a.rating);
 }
