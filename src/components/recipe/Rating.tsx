@@ -37,7 +37,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
         <div className="flex items-center justify-between">
           <span className="font-medium">Bewertungen</span>
           <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-            <Star className="h-3.5 w-3.5 fill-current text-star" />
+            <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
             {avg.toFixed(1)} · {rows.length}
           </span>
         </div>
@@ -46,7 +46,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
           <div className="mt-3 flex items-center justify-between rounded-md bg-muted px-2 py-1.5">
             <span className="text-sm font-medium">Du</span>
             <span className="inline-flex items-center gap-1 text-sm tabular-nums">
-              <Star className="h-3.5 w-3.5 fill-current text-star" />
+              <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
               {own.rating.toFixed(1)}
             </span>
           </div>
@@ -62,7 +62,7 @@ export function Rating({ recipe }: { recipe: Recipe }) {
                 <span className="text-xs text-muted-foreground">{ROLE_LABEL[r.role]}</span>
               </span>
               <span className="inline-flex items-center gap-1 tabular-nums text-muted-foreground">
-                <Star className="h-3.5 w-3.5 fill-current text-star" />
+                <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
                 {r.rating.toFixed(1)}
               </span>
             </li>
