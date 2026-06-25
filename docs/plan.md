@@ -49,20 +49,19 @@ Struktur um die Liste herum, sobald es mehr als eine Handvoll Rezepte gibt.
 > (backend-blockiert auf Timestamps, liegt bei den anderen backend-abhängigen
 > Phasen).
 
-**Listen-Modi (Filter nach Rolle des aktuellen Users)** (Idee, Wortlaut TBD;
-ableitbar aus `owner`/`viewers`/`editors`):
-- **all** — alle
-- **editable** — man ist owner oder editor („user")
-- **shared** — außer einem können noch andere bearbeiten (weitere editors)
-- **provided** — man ist owner, keine editors, aber viewer
-- **private** — keine editors und keine viewer
-- (Modi evtl. nicht disjunkt — exakte Prädikate beim Umsetzen schärfen. Ersetzt
-  das frühere simple „meine vs. geteilte".)
+**Listen-Modi (Filter nach Rolle des aktuellen Users)** — die frühere flache,
+überlappende 5-Modi-Liste ist ersetzt durch ein **Zwei-Achsen-Modell** (Achse 1
+„meine Rolle" owner/editor/viewer × Achse 2 „Collaboration" Private/Shared/
+Collaborative). 6 von 9 Kombinationen gültig, ableitbar aus `owner`/`viewers`/
+`editors`. Voll ausgearbeitet im Spec.
 
-**Listen-Ansichten (umschaltbar)** (Idee):
+**Listen-Ansichten (umschaltbar)** (Idee, Detail nach Phase 1):
 - **detailed** (mit Hauptbild + mehr Meta) ↔ **compact** (kein Bild, weniger
   Details) — das Bild hilft, ein Rezept visuell wiederzuerkennen/auszuwählen.
 - **by category** (Kategorien einzeln ein-/ausklappbar) ↔ **flat list**.
+
+→ Spec (in Arbeit, noch nicht implementierungsreif):
+`phases/phase-2-organisation-navigation.md`
 
 ## Phase 3 — Koch-Modus
 
