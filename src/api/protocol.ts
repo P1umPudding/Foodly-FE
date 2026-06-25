@@ -21,8 +21,8 @@ export type Recipe = {
     id: RecipeId;
 
     owner: UserId; // "my recipes" area im frontend (mit personal filter für alle rezepte die nicht geshared sind)
-    viewers: UserId[]; // jeder viewer (und editor und owner) kann eine kopie des rezeptes erstellen wo er dann owner ist (viewers und editors sind dort erst leer)
-    editors: UserId[];
+    editors: UserId[]; // jeder viewer (und editor und owner) kann eine kopie des rezeptes erstellen wo er dann owner ist (viewers und editors sind dort erst leer)
+    viewers: UserId[];
 
     name: string;
     tags: TagId[];
