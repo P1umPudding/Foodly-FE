@@ -12,12 +12,13 @@ export function SectionBlock({ section }: { section: Section }) {
       )}
 
       {/* Fixed splits, identical for every recipe/section: ingredients↔steps is a
-          hard 1:2 (minmax(0,…) so content can't distort it); within the table the
-          quantity column is a fixed width via the colgroup. Divider between them. */}
-      <div className="grid grid-cols-1 gap-y-6 text-[0.875rem] md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          hard 1:1.85 (minmax(0,…) so content can't distort it); within the table
+          the quantity column is a fixed width via the colgroup. leading-snug keeps
+          wrapped lines tighter than the gap between items. Divider between them. */}
+      <div className="grid grid-cols-1 gap-y-6 text-[0.95rem] leading-snug md:grid-cols-[minmax(0,1fr)_minmax(0,1.85fr)]">
         <table className="w-full table-fixed border-collapse md:pr-8">
           <colgroup>
-            <col className="w-[5.5rem]" />
+            <col className="w-[6.25rem]" />
             <col />
           </colgroup>
           <tbody>
@@ -28,7 +29,7 @@ export function SectionBlock({ section }: { section: Section }) {
         <ol className="space-y-2.5 md:border-l md:border-border md:pl-8">
           {section.steps.map((step, i) => (
             <li key={i} className="flex gap-3">
-              <span className="shrink-0 tabular-nums text-muted-foreground/60">{i + 1}.</span>
+              <span className="shrink-0 tabular-nums text-foreground/70">{i + 1}.</span>
               <span className="min-w-0"><TagText value={step} /></span>
             </li>
           ))}

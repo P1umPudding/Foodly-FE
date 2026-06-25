@@ -50,12 +50,12 @@ export function RecipeDetail() {
               <h1 className="font-display text-4xl text-foreground">
                 <TagText value={recipe.name} size="lg" />
               </h1>
-              <TagChips tags={recipe.tags} hoverName />
+              <TagChips tags={recipe.tags} hoverName size="lg" />
             </div>
 
             {/* Rating natural-width left, portions natural-width right, time
                 centred in the remaining space between them. */}
-            <div className="mt-5 flex items-center gap-4 text-xl">
+            <div className="mt-1 flex items-center gap-4 text-xl">
               <div className="shrink-0">
                 {averageRating(recipe) !== null && <Rating recipe={recipe} />}
               </div>
@@ -95,7 +95,7 @@ export function RecipeDetail() {
           {recipe.sections.map((section) => <SectionBlock key={section.id} section={section} />)}
 
           {recipe.source && (
-            <footer className="mt-16 text-[0.875rem] text-muted-foreground">
+            <footer className="mt-16 text-[0.95rem] text-muted-foreground">
               Quelle:{' '}
               {isUrl(recipe.source)
                 ? <a href={recipe.source} target="_blank" rel="noopener noreferrer" className="underline">{recipe.source}</a>
