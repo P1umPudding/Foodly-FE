@@ -86,6 +86,11 @@ als UI-Prototyp mit lokalem State sinnvoll.
 - Formular für Rezept (Sections, Zutaten, Schritte).
 - Rezept duplizieren (Kopie, bei der man selbst owner wird).
 - Rating abgeben, Notizen bearbeiten.
+- **Tag-/Emoji-Picker** (jederzeit öffenbar; bei `recipe.tags` am präsentesten,
+  aber auch in `time`, `steps` etc. verfügbar): zeigt **alle** Tags (erst die mit
+  Bild, dann die ohne), durchsuchbar. Auswahl fügt `{tagId}` an der Cursorstelle
+  ein. **Toggle „Name statt Icon"** fügt stattdessen `{!tagId}` ein — der Toggle
+  setzt sich beim Schließen/Neuöffnen wieder auf „Icon" zurück.
 
 → Erst sinnvoll, wenn der Login-/Backend-Workflow steht.
 
@@ -137,6 +142,11 @@ Laufende Erweiterung von Modell und Funktionsumfang, z.B.:
 
 - **Timestamps fehlen** (`createdAt`, „added-at" pro viewer/editor) — blockiert
   das Phase-2-Dashboard („kürzlich erstellt / hinzugefügt").
+- **`Recipe.updatedAt`** (zusätzlich zu `createdAt`): soll nur Änderungen am
+  *eigentlichen Rezept* (Inhalt) abbilden — **nicht** Änderungen an
+  viewers/editors/Sharing.
+- **`userCategory` Icon:** Kategorien könnten ein Icon bekommen (`icon?`, darf
+  fehlen / `undefined`).
 - **Notification-/Activity-Feed nötig**, um zu erfahren, wenn man irgendwo
   hinzugefügt wurde (liefert auch das „added-at" oben). DB-Modellierung noch
   offen — gemeinsam besprechen.

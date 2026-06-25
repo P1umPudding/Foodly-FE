@@ -123,13 +123,19 @@ Generischer Mechanismus, **nicht** nur für `amount`: in jedem anzeigbaren Strin
 darf `{tagId}` stehen und wird beim Rendern ersetzt. Wird auf `time`, `amount`
 und perspektivisch jeden gerenderten Text angewandt.
 
-Regeln pro `{X}`-Token:
+Regeln pro Token:
 
-| Fall | Ergebnis |
-|---|---|
-| `X` ist ein existierender Tag **mit** `svg` | Tag-**Bild** rendern |
-| `X` ist ein existierender Tag **ohne** `svg` (`svg === null`) | nur `X`, **ohne** Klammern |
-| `X` ist **kein** existierender Tag | **literal** `{X}` lassen (erlaubt echte `{}` im Text) |
+| Token | Fall | Ergebnis |
+|---|---|---|
+| `{X}` | `X` existierender Tag **mit** `svg` | Tag-**Bild** rendern |
+| `{X}` | `X` existierender Tag **ohne** `svg` (`svg === null`) | nur `X`, **ohne** Klammern |
+| `{X}` | `X` **kein** existierender Tag | **literal** `{X}` lassen (erlaubt echte `{}` im Text) |
+| `{!X}` | `X` existierender Tag | immer **Name** `X` (ohne Klammern), auch wenn ein Icon existiert |
+| `{!X}` | `X` kein existierender Tag | literal `{!X}` |
+
+**Name erzwingen:** `{!tagId}` zeigt bewusst das Wort statt des Icons — z.B. bei
+`recipe.tags`-Chips, wo man den Namen lesen will, obwohl der Tag ein Bild hätte.
+(Syntax noch offen — `{!tagId}` ist der Vorschlag.)
 
 - Gibt **React** zurück (Text-Fragmente + Tag-Bilder), kein reiner String →
   gehört in die Render-Schicht, nicht in `views.ts`.
