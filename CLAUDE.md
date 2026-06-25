@@ -118,6 +118,10 @@ restating its name and signature. Don't do that.
 - Use `@postxl/ui-components` for all interactive UI — buttons, inputs,
   checkboxes, selects, dropdowns, dialogs, etc. Never hand-roll them with raw
   HTML controls (`<button>`, `<input>`, …).
+- **Tooltips:** always use the postxl `Tooltip` (`Tooltip` + `TooltipTrigger
+  asChild` + `TooltipContent`) — never the native `title=""` attribute. The
+  shared `TooltipProvider` lives once at the app root (`src/App.tsx`); individual
+  tooltips just need the trigger/content wrapper, not their own provider.
 - Style components through their `variant`/`size` props, not by re-implementing
   their look in Tailwind. You MAY add Tailwind classes to tweak spacing/layout —
   just don't rebuild what a prop already does.

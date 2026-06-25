@@ -1,4 +1,4 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@postxl/ui-components'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { useTags } from '../../catalog/CatalogProvider'
 import { TagIcon } from '../TagText'
 import type { TagId } from '../../api/protocol'
@@ -44,10 +44,10 @@ export function TagChips({
     )
   })
 
-  const row = (
+  // Tooltips use the app-root TooltipProvider (src/App.tsx) — no own provider here.
+  return (
     <div className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 ${size === 'lg' ? 'text-lg' : 'text-sm'}`}>
       {items}
     </div>
   )
-  return hoverName ? <TooltipProvider delayDuration={150}>{row}</TooltipProvider> : row
 }

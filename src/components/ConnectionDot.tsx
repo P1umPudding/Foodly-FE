@@ -1,3 +1,4 @@
+import { Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { useSocketStatus } from '../hooks/useSocketStatus'
 
 const LABEL: Record<string, string> = {
@@ -15,12 +16,14 @@ const DOT: Record<string, string> = {
 export function ConnectionDot() {
   const status = useSocketStatus()
   return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground"
-      title={`Backend: ${LABEL[status]}`}
-    >
-      <span className={`h-2 w-2 rounded-full ${DOT[status]}`} />
-      <span className="hidden sm:inline">{LABEL[status]}</span>
-    </span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
+          <span className={`h-2 w-2 rounded-full ${DOT[status]}`} />
+          <span className="hidden sm:inline">{LABEL[status]}</span>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>Backend: {LABEL[status]}</TooltipContent>
+    </Tooltip>
   )
 }
