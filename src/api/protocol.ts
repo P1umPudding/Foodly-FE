@@ -77,11 +77,15 @@ export type Tag = {
     svg: Hash | null;
 };
 
-export type UserRating = {
-    recipe: RecipeId;
-    user: UserId;
-    rating: number;
-};
+// Backend/DB-only — NOT a wire type. This is how a rating is stored (one row
+// per user+recipe). The frontend never fetches it directly; it only receives
+// the embedded `recipe.rating`. Kept here (commented) so the backend team sees
+// what needs to exist server-side.
+// export type UserRating = {
+//     recipe: RecipeId;
+//     user: UserId;
+//     rating: number;
+// };
 
 export type ImageId = number;
 export type Image = {
