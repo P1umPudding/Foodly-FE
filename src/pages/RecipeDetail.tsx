@@ -5,11 +5,11 @@ import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/u
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { averageRating } from '../api/views'
-import { recipeImageSrc } from '../api/assets'
 import { TagText } from '../components/TagText'
 import { Rating } from '../components/recipe/Rating'
 import { TagChips } from '../components/recipe/TagChips'
 import { SectionBlock } from '../components/recipe/SectionBlock'
+import { RecipeImages } from '../components/recipe/RecipeImages'
 import { Lightbox } from '../components/recipe/Lightbox'
 
 function isUrl(s: string): boolean {
@@ -79,14 +79,7 @@ export function RecipeDetail() {
             </div>
           </header>
 
-          {recipe.mainImage !== null && (
-            <img
-              src={recipeImageSrc(recipe.mainImage)}
-              alt={recipe.name}
-              onClick={() => setLightboxIndex(0)}
-              className="mt-6 max-h-80 w-full cursor-zoom-in rounded-xl object-cover"
-            />
-          )}
+          <RecipeImages images={allImages} alt={recipe.name} onOpen={setLightboxIndex} />
 
           {recipe.notes.length > 0 && (
             <div className="mt-6 space-y-1.5">
@@ -105,22 +98,8 @@ export function RecipeDetail() {
             <SectionBlock key={section.id} section={section} />
           ))}
 
-          {recipe.images.length > 0 && (
-            <div className="mt-12 flex flex-wrap items-start gap-3">
-              {recipe.images.map((imgId, gi) => (
-                <img
-                  key={imgId}
-                  src={recipeImageSrc(imgId)}
-                  alt=""
-                  onClick={() => setLightboxIndex((hasMain ? 1 : 0) + gi)}
-                  className="h-56 w-auto cursor-zoom-in rounded-xl object-cover"
-                />
-              ))}
-            </div>
-          )}
-
           {recipe.source && (
-            <footer className="mt-12 text-[0.95rem] text-foreground/75">
+            <footer className="mt-16 text-[0.95rem] text-foreground/75">
               Quelle:{' '}
               {isUrl(recipe.source) ? (
                 <a href={recipe.source} target="_blank" rel="noopener noreferrer" className="underline">
