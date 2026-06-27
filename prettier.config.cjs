@@ -1,5 +1,4 @@
-// Shared Skaile platform Prettier config (kept in sync with PXL/usp by hand).
-// .cjs because package.json is "type": "module".
+// Prettier config (Skaile house style). .cjs because package.json is "type": "module".
 module.exports = {
   semi: false,
   trailingComma: 'all',

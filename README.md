@@ -2,7 +2,7 @@
 
 A **frontend-only** React SPA that talks to a separate backend —
 [**Foodly-backend**](https://github.com/klassenserver7b/Foodly-backend) — over a
-**WebSocket**. Same stack/look as the sibling Homepage app.
+**WebSocket**.
 
 **Stack:** Vite · React · TypeScript · React Router · Tailwind v4 ·
 [`@postxl/ui-components`](https://www.npmjs.com/package/@postxl/ui-components)

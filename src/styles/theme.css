@@ -1,7 +1,7 @@
-/* Brand design tokens (the Skaile purple theme), shared with the Homepage /
-   Recipes apps. Var NAMES follow the shadcn-style schema so the Tailwind wiring
-   in styles.css stays generic. Re-theme by editing the VALUES below; if you want
-   to stay in sync with the sibling apps, mirror changes in their theme.css. */
+/* Brand design tokens (the Skaile purple theme) — Foodly's own. (The schema was
+   originally copied from another Skaile app, but there's no ongoing sync; edit
+   freely.) Var NAMES follow the shadcn-style schema so the Tailwind wiring in
+   styles.css stays generic. Re-theme by editing the VALUES below. */
 
 :root {
   color-scheme: light;
