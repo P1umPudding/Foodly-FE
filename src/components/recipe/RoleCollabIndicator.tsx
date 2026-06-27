@@ -40,10 +40,10 @@ export function RoleCollabIndicator({
   const collab = COLLAB[collabKey]
   return (
     <span className="inline-flex items-center gap-1">
-      <span aria-label={role.label}>
+      <span role="img" aria-label={role.label}>
         <role.Icon className={iconClass(activeRole === roleKey, ROLE_COLOR[roleKey])} />
       </span>
-      <span aria-label={collab.label}>
+      <span role="img" aria-label={collab.label}>
         <collab.Icon className={iconClass(activeCollab === collabKey, COLLAB_COLOR[collabKey])} />
       </span>
     </span>

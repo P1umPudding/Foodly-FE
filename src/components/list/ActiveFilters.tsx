@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Badge, Button } from '@postxl/ui-components'
 import { X, RotateCcw } from 'lucide-react'
 import type { ListState } from '../../list/state'
+import { UNCATEGORIZED_ID } from '../../list/filter'
 import type { Tag, Ingredient, UserCategory } from '../../api/protocol'
 
 const ROLE_LABELS = { owner: 'Besitzer', editor: 'Bearbeiter', viewer: 'Betrachter' } as const
@@ -31,7 +32,8 @@ export function ActiveFilters({
   ingredients: Ingredient[]
 }) {
   const [expanded, setExpanded] = useState(false)
-  const catName = (id: number) => categories.find((c) => c.id === id)?.name ?? `#${id}`
+  const catName = (id: number) =>
+    id === UNCATEGORIZED_ID ? 'Ohne Kategorie' : (categories.find((c) => c.id === id)?.name ?? `#${id}`)
   const ingName = (id: number) => ingredients.find((i) => i.id === id)?.name ?? `#${id}`
 
   const chips: Chip[] = [

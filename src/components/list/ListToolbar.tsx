@@ -20,7 +20,7 @@ import {
   Timer,
   Star,
   ArrowUpAZ,
-  ArrowDownAZ,
+  ArrowDownZA,
   ArrowUpNarrowWide,
   ArrowDownWideNarrow,
   LayoutList,
@@ -39,10 +39,10 @@ const SORT_CRITERIA: Criterion[] = [
   { key: 'rating', label: 'Bewertung', Icon: Star },
 ]
 
-// Direction glyph: the ARROW flips up (ascending) / down (descending). For name
-// the letters ride along (A–Z), for the numeric keys the bars go narrow→wide.
+// Direction glyph: the ARROW flips up (ascending) / down (descending). For name the
+// letters also swap (A→Z up vs Z→A down); for the numeric keys the bars go narrow→wide.
 function dirIcon(sortKey: SortKey, dir: SortDir): LucideIcon {
-  if (sortKey === 'name') return dir === 'asc' ? ArrowUpAZ : ArrowDownAZ
+  if (sortKey === 'name') return dir === 'asc' ? ArrowUpAZ : ArrowDownZA
   return dir === 'asc' ? ArrowUpNarrowWide : ArrowDownWideNarrow
 }
 
@@ -126,11 +126,20 @@ export function ListToolbar({ state, set }: { state: ListState; set: (patch: Par
         </Tooltip>
 
         <Select value={state.sortKey} onValueChange={(v) => set({ sortKey: v as SortKey })}>
-          {/* fixed width so the trigger doesn't resize per criterion; icon trails the label */}
-          <SelectTrigger aria-label="Sortierkriterium" className="w-auto gap-2 px-3 sm:w-40 sm:justify-between">
-            <span className="flex items-center gap-1.5">
-              <span className="hidden text-sm sm:inline">{criterion.label}</span>
-              <criterion.Icon className="h-4 w-4" />
+          {/* Width = the widest criterion (invisible sizers reserve it), so the
+              trigger never resizes per selection but also carries no slack. Icon trails the label. */}
+          <SelectTrigger aria-label="Sortierkriterium" className="w-auto gap-2 px-3">
+            <span className="grid">
+              {SORT_CRITERIA.map((c) => (
+                <span key={c.key} aria-hidden className="invisible col-start-1 row-start-1 flex items-center gap-1.5">
+                  <span className="hidden text-sm sm:inline">{c.label}</span>
+                  <c.Icon className="h-4 w-4" />
+                </span>
+              ))}
+              <span className="col-start-1 row-start-1 flex items-center gap-1.5">
+                <span className="hidden text-sm sm:inline">{criterion.label}</span>
+                <criterion.Icon className="h-4 w-4" />
+              </span>
             </span>
           </SelectTrigger>
           <SelectContent>

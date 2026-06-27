@@ -49,6 +49,10 @@ export function RecipeList() {
   const usedIngredientList = usedIngredients(accessibleRecipes, ingredients.byId)
   const visible = sortRecipes(filterRecipes(accessibleRecipes, state, currentUserId, categories), state, currentUserId)
 
+  // Count of accessible recipes in no category — drives the "Ohne Kategorie" filter.
+  const categorizedIds = new Set(categories.flatMap((c) => c.recipes))
+  const uncategorizedCount = accessibleRecipes.filter((r) => !categorizedIds.has(r.id)).length
+
   // Per-category collapse state (clicking a sticky group header folds that group),
   // persisted per user. Closed group keys; empty = all open. First visit (nothing
   // stored) starts with the "Ohne Kategorie" inbox folded.
@@ -59,18 +63,30 @@ export function RecipeList() {
     saveCollapsed(currentUserId, next)
   }
 
-  // The sticky page header has a variable height (active-filter chips wrap). Measure
-  // it and expose its bottom edge as --list-sticky-top, so the category headers can
-  // stick exactly beneath it. useLayoutEffect sets it before paint (no first-frame jump).
+  // Measure the exact site-nav height (its border makes it a non-round px value, so a
+  // hardcoded rem leaves a ~1px sticky drift on first scroll) and the variable-height
+  // page header, exposing both as CSS vars so the header / category headers / rail stick
+  // pixel-perfectly beneath. useLayoutEffect → set before paint (no first-frame jump).
   const headerRef = useRef<HTMLDivElement>(null)
+  const searchRowRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     const el = headerRef.current
     if (!el) return
-    const apply = () =>
-      document.documentElement.style.setProperty('--list-sticky-top', `calc(var(--site-nav-h) + ${el.offsetHeight}px)`)
+    const nav = document.querySelector('header.site-header')
+    const root = document.documentElement.style
+    const apply = () => {
+      if (nav) root.setProperty('--site-nav-h', `${nav.getBoundingClientRect().height}px`)
+      root.setProperty('--list-sticky-top', `calc(var(--site-nav-h) + ${el.getBoundingClientRect().height}px)`)
+      // Where the search row sits inside the header → the rail aligns its content there.
+      if (searchRowRef.current) {
+        const offset = searchRowRef.current.getBoundingClientRect().top - el.getBoundingClientRect().top
+        root.setProperty('--list-search-offset', `${offset}px`)
+      }
+    }
     apply()
     const ro = new ResizeObserver(apply)
     ro.observe(el)
+    if (nav) ro.observe(nav)
     return () => ro.disconnect()
   }, [])
 
@@ -104,6 +120,7 @@ export function RecipeList() {
             : [...state.categories, id],
         })
       }
+      uncategorizedCount={uncategorizedCount}
       tags={tagList}
       ingredients={usedIngredientList}
     />
@@ -150,7 +167,7 @@ export function RecipeList() {
           </div>
 
           {/* Search bar with the sort/view toolbar to its right (drops below on mobile). */}
-          <div className="mt-2.5 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div ref={searchRowRef} className="mt-2.5 flex flex-col gap-3 sm:flex-row sm:items-center">
             <SearchInput
               value={state.search}
               onChange={(v) => set({ search: v })}
@@ -240,7 +257,7 @@ export function RecipeList() {
 
       {/* Desktop rail. Climbs up beside the header (top-aligned, below the site nav)
           and only ever scrolls inside itself — never as part of the page. */}
-      <aside className="hidden md:sticky md:top-[var(--site-nav-h)] md:flex md:max-h-[calc(100vh-var(--site-nav-h)-1rem)] md:flex-col md:gap-4 md:self-start md:overflow-y-auto md:pt-6">
+      <aside className="hidden md:sticky md:top-[var(--site-nav-h)] md:flex md:max-h-[calc(100vh-var(--site-nav-h)-1rem)] md:flex-col md:gap-4 md:self-start md:overflow-y-auto md:pt-[var(--list-search-offset,4.5rem)]">
         {filters}
       </aside>
     </div>

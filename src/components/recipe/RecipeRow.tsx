@@ -37,7 +37,7 @@ function CompactName({ name }: { name: string }) {
   }, [name])
 
   const label = (
-    <span ref={ref} className="min-w-0 shrink truncate text-base font-medium text-foreground">
+    <span ref={ref} className="min-w-0 shrink truncate text-[15px] font-medium text-foreground">
       <TagText value={name} />
     </span>
   )
@@ -93,11 +93,12 @@ export function RecipeRow({
     )
   }
 
-  // Detailed: card with thumbnail. Name + rating/time on the left; tags pinned to the
-  // right with the access icons beneath them.
+  // Detailed: card whose height is set by the thumbnail (+ equal padding). The text
+  // columns stretch to that height and pin their two rows to the extremes — name &
+  // tags up top, rating/time & access icons at the bottom.
   return (
     <Link to={`/recipes/${recipe.id}`} className="group block">
-      <Card className="flex items-start gap-3 p-2 transition-colors hover:bg-muted/50">
+      <Card className="flex items-stretch gap-3 p-2 transition-colors hover:bg-muted/50">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full">
           {recipe.mainImage !== null ? (
             <img src={recipeImageSrc(recipe.mainImage)} alt="" className="h-full w-full object-cover" />
@@ -107,12 +108,12 @@ export function RecipeRow({
           )}
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col justify-between gap-1">
           <span className="block truncate font-medium">
             <TagText value={recipe.name} />
           </span>
           {/* gap-x-6 gives rating and time clear breathing room */}
-          <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground">
             {rating !== null && <Rating value={rating} />}
             {recipe.time && (
               <span className="inline-flex items-center gap-1.5">
@@ -123,7 +124,7 @@ export function RecipeRow({
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-1.5">
+        <div className="flex shrink-0 flex-col items-end justify-between gap-1">
           <TagChips tags={recipe.tags} align="end" />
           {indicator}
         </div>

@@ -1,4 +1,4 @@
-import { filterRecipes, groupingCategories } from './filter'
+import { filterRecipes, groupingCategories, UNCATEGORIZED_ID } from './filter'
 import { DEFAULT_STATE } from './state'
 import type { Recipe, UserCategory } from '../api/protocol'
 
@@ -54,6 +54,15 @@ describe('filterRecipes', () => {
   })
   it('categories OR', () => {
     expect(ids(filterRecipes(recipes, { ...DEFAULT_STATE, categories: [10, 11] }, 1, cats))).toEqual([1, 2, 3])
+  })
+  it('Ohne Kategorie sentinel matches only uncategorised recipes', () => {
+    // recipe 4 is in no category
+    expect(ids(filterRecipes(recipes, { ...DEFAULT_STATE, categories: [UNCATEGORIZED_ID] }, 1, cats))).toEqual([4])
+  })
+  it('Ohne Kategorie ORs with a real category', () => {
+    expect(ids(filterRecipes(recipes, { ...DEFAULT_STATE, categories: [11, UNCATEGORIZED_ID] }, 1, cats))).toEqual([
+      3, 4,
+    ])
   })
   it('tags AND', () => {
     expect(ids(filterRecipes(recipes, { ...DEFAULT_STATE, tags: ['Vegan', 'Schnell'] }, 1, cats))).toEqual([1])

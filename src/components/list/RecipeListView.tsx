@@ -53,12 +53,12 @@ function CategoryGroup({
       {/* A real (postxl) Button as the trigger — Button asChild merges onto the
           Radix trigger (which forwards refs), so we get button semantics +
           cursor-pointer without changing the heading's look. Sticky so the category
-          stays labelled while scrolling; top clears the site header, bg keeps rows
-          from showing through. */}
+          stays labelled while scrolling; top clears the site header. Solid (not
+          frosted): two stacked backdrop-blurs would seam against the page header. */}
       <Button
         asChild
         variant="ghost"
-        className={`sticky top-[var(--list-sticky-top,var(--site-nav-h))] z-20 mb-2 h-auto w-full justify-start gap-2 rounded-none bg-background px-0 py-1.5 text-lg font-semibold hover:bg-transparent dark:hover:bg-transparent has-[>svg]:px-0 ${c.text} ${c.textHover}`}
+        className={`sticky top-[var(--list-sticky-top,var(--site-nav-h))] z-20 mb-2 h-auto w-full justify-start gap-2 rounded-none bg-background px-0 py-1.5 text-lg font-semibold hover:bg-background dark:hover:bg-background has-[>svg]:px-0 ${c.text} ${c.textHover}`}
       >
         <CollapseTrigger>
           <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=closed]/cat:-rotate-90" />

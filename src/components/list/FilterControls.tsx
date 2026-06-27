@@ -176,6 +176,7 @@ export function FilterControls({
   categories,
   categoriesLoading = false,
   onToggleCategory,
+  uncategorizedCount = 0,
   tags,
   ingredients,
 }: {
@@ -184,6 +185,7 @@ export function FilterControls({
   categories: UserCategory[]
   categoriesLoading?: boolean
   onToggleCategory: (id: number) => void
+  uncategorizedCount?: number
   tags: Tag[]
   ingredients: Ingredient[]
 }) {
@@ -239,7 +241,12 @@ export function FilterControls({
             ))}
           </div>
         ) : (
-          <CategorySidebar categories={categories} selected={state.categories} onToggle={onToggleCategory} />
+          <CategorySidebar
+            categories={categories}
+            selected={state.categories}
+            onToggle={onToggleCategory}
+            uncategorizedCount={uncategorizedCount}
+          />
         )}
       </FilterGroup>
 
