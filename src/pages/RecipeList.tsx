@@ -61,6 +61,21 @@ export function RecipeList() {
     saveCollapsed(currentUserId, next)
   }
 
+  // The sticky page header has a variable height (active-filter chips wrap). Measure
+  // it and expose its bottom edge as --list-sticky-top, so the category headers and
+  // the filter rail can stick exactly beneath it (3.25rem = site-nav height).
+  const headerRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const apply = () =>
+      document.documentElement.style.setProperty('--list-sticky-top', `calc(3.25rem + ${el.offsetHeight}px)`)
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   // Restore scroll position when returning from a recipe (within the session): track
   // the live position, then re-apply it once the list has rendered. sessionStorage so
   // a fresh load starts at the top.
@@ -97,9 +112,15 @@ export function RecipeList() {
   )
 
   return (
-    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-10 md:grid-cols-[1fr_18rem]">
-      <div className="min-w-0">
-        <div className="mb-4 flex items-center justify-between gap-4">
+    <div className="mx-auto max-w-6xl px-6 pb-10">
+      {/* Sticky page header: title + search + active filters stay pinned below the
+          site nav. Its measured height feeds --list-sticky-top so the category
+          headers and the filter rail tuck right beneath it (see effect above). */}
+      <div
+        ref={headerRef}
+        className="sticky top-[3.25rem] z-30 -mx-6 bg-background px-6 pb-3 pt-6"
+      >
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-baseline gap-3">
             <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
             <ResultCount matching={visible.length} total={accessibleRecipes.length} />
@@ -127,11 +148,11 @@ export function RecipeList() {
         </div>
 
         {/* Search bar with the sort/view toolbar to its right (drops below on mobile). */}
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="mt-2.5 flex flex-col gap-3 sm:flex-row sm:items-center">
           <SearchInput
             value={state.search}
             onChange={(v) => set({ search: v })}
-            placeholder="Suchen nach Name oder Tag…"
+            placeholder="Name, Tag oder Abschnitt suchen…"
             clearLabel="Suche leeren"
             className="flex-1"
           />
@@ -142,7 +163,7 @@ export function RecipeList() {
         </div>
 
         {/* Removable chips for the active filters + reset-all. */}
-        <div className="mb-6 empty:mb-0">
+        <div className="mt-5 empty:mt-0">
           <ActiveFilters
             state={state}
             set={set}
@@ -152,7 +173,12 @@ export function RecipeList() {
             ingredients={usedIngredientList}
           />
         </div>
+      </div>
 
+      {/* Body: list + (desktop) filter rail. Rail can shrink a little when space is
+          tight before the layout would break. */}
+      <div className="grid grid-cols-1 gap-6 pt-4 md:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)]">
+        <div className="min-w-0">
         {recipesReq.status === 'loading' && (
           <div className="space-y-3">
             {[0, 1, 2, 3].map((i) => (
@@ -187,7 +213,7 @@ export function RecipeList() {
             {/* Search ignores ingredients on purpose — point users at the Zutaten filter. */}
             {state.search.trim() !== '' && (
               <p className="max-w-xs text-sm text-muted-foreground/80">
-                Die Suche durchsucht Name &amp; Tags – nach Zutaten filterst du über den Zutaten-Filter.
+                Die Suche durchsucht Name, Tags &amp; Abschnitte – nach Zutaten filterst du über den Zutaten-Filter.
               </p>
             )}
             {isFilterActive(state) && (
@@ -210,12 +236,13 @@ export function RecipeList() {
             onCollapsedChange={setCollapsed}
           />
         )}
-      </div>
+        </div>
 
-      {/* Desktop rail (right). Sticks below the sticky site header; scrolls internally if taller than the viewport. */}
-      <aside className="hidden md:sticky md:top-[4.5rem] md:flex md:max-h-[calc(100vh-5.5rem)] md:flex-col md:gap-4 md:self-start md:overflow-y-auto">
-        {filters}
-      </aside>
+        {/* Desktop rail (right). Sticks below the sticky page header; scrolls internally if taller than the viewport. */}
+        <aside className="hidden md:sticky md:top-[var(--list-sticky-top,4.5rem)] md:flex md:max-h-[calc(100vh-var(--list-sticky-top,5.5rem)-1rem)] md:flex-col md:gap-4 md:self-start md:overflow-y-auto">
+          {filters}
+        </aside>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { Collapse, CollapseContent, CollapseTrigger } from '@postxl/ui-components'
+import { Button, Collapse, CollapseContent, CollapseTrigger } from '@postxl/ui-components'
 import { ChevronDown } from 'lucide-react'
 import { RecipeRow } from '../recipe/RecipeRow'
 import { colorClasses } from '../../list/palette'
@@ -50,15 +50,22 @@ function CategoryGroup({
   const c = colorClasses(color)
   return (
     <Collapse open={open} onOpenChange={onOpenChange} className="group/cat">
-      {/* sticky so the category stays labelled while you scroll its recipes; top
-          clears the sticky site header, bg keeps rows from showing through. */}
-      <CollapseTrigger
-        className={`sticky top-[3.75rem] z-20 mb-2 flex w-full items-center gap-2 bg-background py-1.5 text-lg font-semibold ${c.text}`}
+      {/* A real (postxl) Button as the trigger — Button asChild merges onto the
+          Radix trigger (which forwards refs), so we get button semantics +
+          cursor-pointer without changing the heading's look. Sticky so the category
+          stays labelled while scrolling; top clears the site header, bg keeps rows
+          from showing through. */}
+      <Button
+        asChild
+        variant="ghost"
+        className={`sticky top-[var(--list-sticky-top,3.75rem)] z-20 mb-2 h-auto w-full justify-start gap-2 rounded-none bg-background px-0 py-1.5 text-lg font-semibold hover:bg-transparent ${c.text}`}
       >
-        <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=closed]/cat:-rotate-90" />
-        <span className="min-w-0 truncate">{name}</span>
-        <span className="tabular-nums text-sm font-normal text-muted-foreground">{recipes.length}</span>
-      </CollapseTrigger>
+        <CollapseTrigger>
+          <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=closed]/cat:-rotate-90" />
+          <span className="min-w-0 truncate">{name}</span>
+          <span className="tabular-nums text-sm font-normal text-muted-foreground">{recipes.length}</span>
+        </CollapseTrigger>
+      </Button>
       <CollapseContent>
         {/* line nudged right (ml-[7px]) so the 2px rule centres under the chevron's bottom tip */}
         <div className={`ml-[7px] border-l-2 pl-4 ${c.line}`}>
