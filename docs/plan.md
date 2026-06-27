@@ -171,6 +171,16 @@ Laufende Erweiterung von Modell und Funktionsumfang, z.B.:
   - *Weitergedacht:* Abkürzungen automatisch aus den eigenen Rezepten
     erkennen, sodass jeder im Verzeichnis nur die Abkürzungen sieht, die in
     seinen Rezepten tatsächlich vorkommen.
+- **Nährwerte pro Rezept:** **Kalorien + Makronährstoffe** (Fett, Kohlenhydrate,
+  Protein) werden **immer** angezeigt, dazu **beliebige weitere** Werte (z. B.
+  Zucker, Ballaststoffe, Salz). Alle Werte **skalieren mit der Portionsangabe**
+  — ändert man die Portionen (vgl. Phase 3, `basePortionMultiplier`), werden die
+  Nährwerte jeweils entsprechend mit-multipliziert.
+  - **Daten-Haken existiert schon:** Der `Ingredient`-Katalog ist mit künftigen
+    Metadaten inkl. **Nährwerte** vorgesehen (siehe
+    `phases/phase-0-datenaufbereitung.md` und `protocol.ts`). Offen: die Werte
+    selbst im Modell + die **Aggregation pro Rezept** (Summe über Zutaten ×
+    Menge — braucht verlässliche Mengen/Einheiten, vgl. Mengenverzeichnis).
 - (weiteres nach Bedarf)
 
 ---
@@ -203,17 +213,6 @@ speichern — mit der Option, die erkannten Felder vor dem Speichern zu
   ins Editier-Formular (Phase 4) fließt.
 - **Schreib-Feature → backend-blockiert**; zusätzlich offen, wo die
   OCR/Extraktion läuft (Client vs. Backend/Service).
-
-### Nährwerte / Inhaltsstoffe anzeigen
-
-Indikator bzw. Tabelle über Inhaltsstoffe je Rezept — Fett, Kohlenhydrate,
-Zucker, ggf. Kalorien/Protein usw.
-
-- **Daten-Haken existiert schon:** Der `Ingredient`-Katalog ist mit künftigen
-  Metadaten inkl. **Nährwerte** vorgesehen (siehe
-  `phases/phase-0-datenaufbereitung.md` und `protocol.ts`). Noch offen: die Werte
-  selbst im Modell, und die **Aggregation pro Rezept** (Summe über Zutaten ×
-  Menge — braucht verlässliche Mengen/Einheiten, vgl. Mengenverzeichnis oben).
 
 ---
 
