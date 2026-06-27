@@ -251,10 +251,13 @@ export function RecipeList() {
         </div>
       </div>
 
-      {/* Desktop rail. Climbs up beside the header (top-aligned, below the site nav)
-          and only ever scrolls inside itself — never as part of the page. */}
-      <aside className="hidden md:sticky md:top-[var(--site-nav-h)] md:flex md:max-h-[calc(100vh-var(--site-nav-h)-1rem)] md:flex-col md:gap-4 md:self-start md:overflow-y-auto md:pt-[var(--list-search-offset,4.5rem)]">
-        {filters}
+      {/* Desktop rail. Sticks beside the header and only ever scrolls INSIDE itself —
+          the box is capped to the viewport, a non-scrolling spacer aligns its content
+          with the search bar, and overflow lives on the content (so the scrollbar
+          starts at the content, not up in the spacer). */}
+      <aside className="hidden md:sticky md:top-[var(--site-nav-h)] md:flex md:max-h-[calc(100vh-var(--site-nav-h)-1rem)] md:flex-col md:self-start">
+        <div className="h-[var(--list-search-offset,4.5rem)] shrink-0" />
+        <div className="min-h-0 flex-1 overflow-y-auto pb-4">{filters}</div>
       </aside>
     </div>
   )
