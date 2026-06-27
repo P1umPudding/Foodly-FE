@@ -47,7 +47,7 @@ function ClearButton({ onClick, label = 'Zurücksetzen' }: { onClick: () => void
       variant="ghost"
       size="sm"
       onClick={onClick}
-      className="-my-1 h-7 gap-1 px-2 text-muted-foreground hover:text-foreground"
+      className="h-7 gap-1 px-2 text-muted-foreground hover:text-foreground"
     >
       <X className="h-3.5 w-3.5" />
       {label}
@@ -69,17 +69,27 @@ function FilterGroup({
   action?: ReactNode
   children: ReactNode
 }) {
+  const heading = (
+    <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
+      {title}
+      {count !== undefined && count > 0 && (
+        <span className="tabular-nums text-xs font-normal text-muted-foreground">{count}</span>
+      )}
+    </h3>
+  )
   return (
     <section className="flex flex-col gap-3">
-      <div className="flex min-h-7 items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
-          {title}
-          {count !== undefined && count > 0 && (
-            <span className="tabular-nums text-xs font-normal text-muted-foreground">{count}</span>
-          )}
-        </h3>
-        {action}
-      </div>
+      {/* The "Zurücksetzen" button is absolutely placed so it overlays the heading row
+          (taller than the text) without changing its height — the heading, and the
+          content below, stay put whether or not the button is shown. */}
+      {action ? (
+        <div className="relative">
+          {heading}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2">{action}</div>
+        </div>
+      ) : (
+        heading
+      )}
       {children}
     </section>
   )
@@ -109,7 +119,7 @@ function clamp(v: number): number {
 function DurationFilter({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
   const presetActive = (DURATION_PRESETS as readonly number[]).includes(value ?? -1)
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
         {/* px gives the knob's hover ring room — the sticky rail's overflow-y-auto
             also clips horizontally, which would otherwise cut the ring at the ends.
@@ -141,7 +151,7 @@ function DurationFilter({ value, onChange }: { value: number | null; onChange: (
           showSpinButtons={false}
           prefix="≤"
           suffix="Min"
-          wrapperClassName="w-28 shrink-0"
+          wrapperClassName="min-h-8 w-28 shrink-0"
           // dark:bg-transparent so the input area matches the wrapper (the lib leaves
           // dark:bg-input/30 on the input, which otherwise differs from prefix/suffix).
           className="bg-transparent text-right dark:bg-transparent"

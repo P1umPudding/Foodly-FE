@@ -1,5 +1,5 @@
 /**
- * App stylesheet entry — Tailwind v4 wiring (mirrors the Homepage/Recipes setup).
+ * App stylesheet entry — Tailwind v4 wiring.
  *
  * Split: theme.css = token VALUES; this file = the wiring (@custom-variant,
  * @theme inline, compact text scale, base CSS). Preflight is ON.
@@ -97,8 +97,8 @@
   --shadow-2xl: var(--shadow-2xl);
 }
 
-/* Compact TEXT SCALE — same as the Skaile platform / Homepage: Tailwind's text
-   tokens are redefined smaller than the defaults (--text-base 12px, not 16px).
+/* Compact TEXT SCALE — Tailwind's text tokens are redefined smaller than the
+   defaults (--text-base 13px, not 16px).
    This is why the @postxl Button/Input/labels look compact via their `size`
    prop alone. Display sizes (text-2xl+) stay larger for headings. */
 @theme {
@@ -158,6 +158,19 @@
     -moz-appearance: textfield !important;
     appearance: textfield !important;
   }
+}
+
+/* Project preference: the postxl inputs should look identical focused and at rest.
+   They mark themselves with data-slot="input" (the NumberInput shows focus on its
+   wrapper via focus-within). On focus the component adds a ring and recolours the
+   border to --ring; we zero the ring (--tw-ring-shadow) and restore the resting
+   border (--input). The resting shadow is left untouched (we don't set box-shadow).
+   UNLAYERED on purpose — the component's focus utilities live in @layer utilities, so
+   a layered rule (even @layer base) would lose to them. */
+input[data-slot='input']:focus-visible,
+div:has(> input[data-slot='input']):focus-within {
+  --tw-ring-shadow: 0 0 #0000;
+  border-color: var(--input);
 }
 
 /* Tailwind hardcodes `.rounded` to 0.25rem; override to follow --radius so the

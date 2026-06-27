@@ -109,7 +109,9 @@ export function RecipeRow({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col justify-between gap-1">
-          <span className="block truncate font-medium">
+          {/* leading-tight: the inherited 1.6 line-height otherwise makes the name
+              taller than the thumbnail and unbalances the box's top/bottom padding. */}
+          <span className="block truncate font-medium leading-tight">
             <TagText value={recipe.name} />
           </span>
           {/* gap-x-6 gives rating and time clear breathing room */}
