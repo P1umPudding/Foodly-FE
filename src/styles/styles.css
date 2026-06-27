@@ -121,6 +121,9 @@
   :root {
     /* Distinctive display face for headings (loaded in index.html). */
     --font-display: 'Bricolage Grotesque', var(--font-sans);
+    /* Height of the sticky site nav — single source for everything that sticks
+       just beneath it (the list's sticky header, category headers, filter rail). */
+    --site-nav-h: 3.75rem;
   }
   html {
     -webkit-text-size-adjust: 100%;

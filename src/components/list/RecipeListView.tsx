@@ -58,7 +58,7 @@ function CategoryGroup({
       <Button
         asChild
         variant="ghost"
-        className={`sticky top-[var(--list-sticky-top,3.75rem)] z-20 mb-2 h-auto w-full justify-start gap-2 rounded-none bg-background px-0 py-1.5 text-lg font-semibold hover:bg-transparent has-[>svg]:px-0 ${c.text} ${c.textHover}`}
+        className={`sticky top-[var(--list-sticky-top,var(--site-nav-h))] z-20 mb-2 h-auto w-full justify-start gap-2 rounded-none bg-background px-0 py-1.5 text-lg font-semibold hover:bg-transparent dark:hover:bg-transparent has-[>svg]:px-0 ${c.text} ${c.textHover}`}
       >
         <CollapseTrigger>
           <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=closed]/cat:-rotate-90" />

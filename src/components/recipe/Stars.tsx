@@ -29,7 +29,7 @@ function quarter(frac: number): keyof typeof FILL_WIDTH {
 export function Stars({ value, size = 'sm' }: { value: number; size?: StarSize }) {
   const cls = STAR_SIZE[size]
   return (
-    <span className="inline-flex items-center gap-0.5" aria-label={`${value} von 5`}>
+    <span className="inline-flex items-center gap-0.5" aria-label={`${value.toFixed(1)} von 5`}>
       {[0, 1, 2, 3, 4].map((i) => (
         <span key={i} className="relative inline-flex">
           <Star className={`${cls} text-muted-foreground/40`} />
@@ -77,7 +77,7 @@ function pct5(frac: number): keyof typeof METER_WIDTH {
 export function StarMeter({ value, max = 5, size = 'sm' }: { value: number; max?: number; size?: StarSize }) {
   const cls = STAR_SIZE[size]
   return (
-    <span className="relative inline-flex shrink-0" aria-label={`${value} von ${max}`}>
+    <span className="relative inline-flex shrink-0" aria-label={`${value.toFixed(1)} von ${max}`}>
       <Star className={`${cls} text-muted-foreground/40`} />
       <span className={`absolute left-0 top-0 overflow-hidden ${METER_WIDTH[pct5(value / max)]}`}>
         <Star className={`${cls} shrink-0 fill-current text-star`} />

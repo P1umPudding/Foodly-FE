@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   Alert,
   AlertDescription,
@@ -60,14 +60,14 @@ export function RecipeList() {
   }
 
   // The sticky page header has a variable height (active-filter chips wrap). Measure
-  // it and expose its bottom edge as --list-sticky-top, so the category headers and
-  // the filter rail can stick exactly beneath it (3.25rem = site-nav height).
+  // it and expose its bottom edge as --list-sticky-top, so the category headers can
+  // stick exactly beneath it. useLayoutEffect sets it before paint (no first-frame jump).
   const headerRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = headerRef.current
     if (!el) return
     const apply = () =>
-      document.documentElement.style.setProperty('--list-sticky-top', `calc(3.25rem + ${el.offsetHeight}px)`)
+      document.documentElement.style.setProperty('--list-sticky-top', `calc(var(--site-nav-h) + ${el.offsetHeight}px)`)
     apply()
     const ro = new ResizeObserver(apply)
     ro.observe(el)
@@ -118,7 +118,10 @@ export function RecipeList() {
         {/* Sticky page header over the scrolling list. Translucent + blurred like the
             site nav. Its measured height feeds --list-sticky-top so the category
             headers tuck right beneath it. (.list-header: theme-anim backdrop exception.) */}
-        <div ref={headerRef} className="list-header sticky top-[3.25rem] z-30 bg-background/70 pb-3 pt-6 backdrop-blur-md">
+        <div
+          ref={headerRef}
+          className="list-header sticky top-[var(--site-nav-h)] z-30 bg-background/70 pb-3 pt-6 backdrop-blur-md"
+        >
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-baseline gap-4">
               <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
@@ -237,7 +240,7 @@ export function RecipeList() {
 
       {/* Desktop rail. Climbs up beside the header (top-aligned, below the site nav)
           and only ever scrolls inside itself — never as part of the page. */}
-      <aside className="hidden md:sticky md:top-[3.25rem] md:flex md:max-h-[calc(100vh-3.25rem-1rem)] md:flex-col md:gap-4 md:self-start md:overflow-y-auto md:pt-6">
+      <aside className="hidden md:sticky md:top-[var(--site-nav-h)] md:flex md:max-h-[calc(100vh-var(--site-nav-h)-1rem)] md:flex-col md:gap-4 md:self-start md:overflow-y-auto md:pt-6">
         {filters}
       </aside>
     </div>
