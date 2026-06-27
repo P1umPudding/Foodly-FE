@@ -187,11 +187,9 @@
   z-index: 0;
 }
 
-/* While a theme view-transition runs, a sticky header's backdrop-filter renders
-   incorrectly inside the snapshot — drop it for that moment (site nav + the recipe
-   list's own sticky header). */
-html[data-theme-anim] .site-header,
-html[data-theme-anim] .list-header {
+/* While a theme view-transition runs, the sticky header's backdrop-filter
+   renders incorrectly inside the snapshot — drop it for that moment. */
+html[data-theme-anim] .site-header {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }

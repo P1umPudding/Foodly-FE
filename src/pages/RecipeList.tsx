@@ -132,13 +132,9 @@ export function RecipeList() {
     // (18→13.5rem) instead of only the list.
     <div className="mx-auto grid max-w-6xl gap-6 px-6 pb-10 md:grid-cols-[minmax(28rem,1fr)_minmax(13.5rem,18rem)]">
       <div className="min-w-0">
-        {/* Sticky page header over the scrolling list. Translucent + blurred like the
-            site nav. Its measured height feeds --list-sticky-top so the category
-            headers tuck right beneath it. (.list-header: theme-anim backdrop exception.) */}
-        <div
-          ref={headerRef}
-          className="list-header sticky top-[var(--site-nav-h)] z-30 bg-background/70 pb-3 pt-6 backdrop-blur-md"
-        >
+        {/* Sticky page header over the scrolling list (solid — no blur). Its measured
+            height feeds --list-sticky-top so the category headers tuck right beneath it. */}
+        <div ref={headerRef} className="sticky top-[var(--site-nav-h)] z-30 bg-background pb-3 pt-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-baseline gap-4">
               <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
