@@ -152,7 +152,7 @@ function DurationFilter({ value, onChange }: { value: number | null; onChange: (
           prefix="≤"
           suffix="min"
           // suffix is the wrapper's last child span → shrink just "min"
-          wrapperClassName="min-h-8 w-28 shrink-0 [&>span:last-child]:text-xs [&>span:first-child]:text-sm"
+          wrapperClassName="min-h-8 w-28 shrink-0 [&>span:last-child]:text-xs [&>span:first-child]:text-base"
           // dark:bg-transparent so the input area matches the wrapper (the lib leaves
           // dark:bg-input/30 on the input, which otherwise differs from prefix/suffix).
           className="bg-transparent text-right dark:bg-transparent"
