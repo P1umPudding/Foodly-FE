@@ -4,26 +4,16 @@ import { RecipeRow } from '../recipe/RecipeRow'
 import { colorClasses } from '../../list/palette'
 import { deriveGroups } from '../../list/grouping'
 import type { Recipe, UserCategory } from '../../api/protocol'
-import type { DetailView, RoleFilter, CollabFilter } from '../../list/state'
-
-// The active role/Freigabe filters, forwarded to each row so a matching icon
-// lights up in its access colour.
-type AccessFilters = { activeRole: RoleFilter; activeCollab: CollabFilter }
+import type { DetailView } from '../../list/state'
 
 const NONE_COLLAPSED: ReadonlySet<string> = new Set()
 
-function Rows({ recipes, compact, access }: { recipes: Recipe[]; compact: boolean; access: AccessFilters }) {
+function Rows({ recipes, compact }: { recipes: Recipe[]; compact: boolean }) {
   // Compact rows sit close together as one list; detailed rows are spaced cards.
   return (
     <div className={compact ? 'space-y-0.5' : 'space-y-2'}>
       {recipes.map((r) => (
-        <RecipeRow
-          key={r.id}
-          recipe={r}
-          compact={compact}
-          activeRole={access.activeRole}
-          activeCollab={access.activeCollab}
-        />
+        <RecipeRow key={r.id} recipe={r} compact={compact} />
       ))}
     </div>
   )
@@ -35,7 +25,6 @@ function CategoryGroup({
   color,
   recipes,
   compact,
-  access,
   open,
   onOpenChange,
 }: {
@@ -43,7 +32,6 @@ function CategoryGroup({
   color: string
   recipes: Recipe[]
   compact: boolean
-  access: AccessFilters
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
@@ -69,7 +57,7 @@ function CategoryGroup({
       <CollapseContent>
         {/* line nudged right (ml-[7px]) so the 2px rule centres under the chevron's bottom tip */}
         <div className={`ml-[7px] border-l-2 pl-4 ${c.line}`}>
-          <Rows recipes={recipes} compact={compact} access={access} />
+          <Rows recipes={recipes} compact={compact} />
         </div>
       </CollapseContent>
     </Collapse>
@@ -83,8 +71,6 @@ export function RecipeListView({
   categories,
   detail,
   grouped = true,
-  activeRole = 'any',
-  activeCollab = 'any',
   collapsed = NONE_COLLAPSED,
   onCollapsedChange,
 }: {
@@ -92,16 +78,13 @@ export function RecipeListView({
   categories: UserCategory[]
   detail: DetailView
   grouped?: boolean
-  activeRole?: RoleFilter
-  activeCollab?: CollabFilter
   collapsed?: ReadonlySet<string>
   onCollapsedChange?: (next: Set<string>) => void
 }) {
   const compact = detail === 'compact'
-  const access: AccessFilters = { activeRole, activeCollab }
 
   // Flat list: one sorted sequence, no category headers or collapse.
-  if (!grouped) return <Rows recipes={recipes} compact={compact} access={access} />
+  if (!grouped) return <Rows recipes={recipes} compact={compact} />
 
   const groups = deriveGroups(recipes, categories)
 
@@ -122,7 +105,6 @@ export function RecipeListView({
           color={g.color}
           recipes={g.recipes}
           compact={compact}
-          access={access}
           open={!collapsed.has(g.key)}
           onOpenChange={(o) => setOpen(g.key, o)}
         />

@@ -260,8 +260,6 @@ export function RecipeList() {
                 categories={groupingCats}
                 detail={state.detail}
                 grouped={state.grouped}
-                activeRole={state.role}
-                activeCollab={state.collab}
                 collapsed={collapsed}
                 onCollapsedChange={setCollapsed}
               />

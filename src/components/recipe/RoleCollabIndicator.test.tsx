@@ -3,12 +3,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import type { Recipe } from '../../api/protocol'
-import type { RoleFilter, CollabFilter } from '../../list/state'
 
-function renderIndicator(recipe: Recipe, active?: { activeRole?: RoleFilter; activeCollab?: CollabFilter }) {
+function renderIndicator(recipe: Recipe) {
   return render(
     <TooltipProvider>
-      <RoleCollabIndicator recipe={recipe} {...active} />
+      <RoleCollabIndicator recipe={recipe} />
     </TooltipProvider>,
   )
 }
@@ -53,15 +52,5 @@ describe('RoleCollabIndicator', () => {
     renderIndicator({ ...base, owner: 2, editors: [3], viewers: [1] })
     expect(screen.getByLabelText(/Betrachter/i)).toBeTruthy()
     expect(screen.getByLabelText(/kollaborativ/i)).toBeTruthy()
-  })
-
-  it('colours the icon permanently when its value is the active filter', () => {
-    renderIndicator({ ...base, owner: 1 }, { activeRole: 'owner' })
-    const ownerClass = screen
-      .getByLabelText(/Besitzer/i)
-      .querySelector('svg')
-      ?.getAttribute('class')
-    expect(ownerClass).toContain('text-[#a07b3f]')
-    expect(ownerClass).not.toContain('text-muted-foreground/70')
   })
 })

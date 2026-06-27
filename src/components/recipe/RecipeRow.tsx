@@ -10,7 +10,6 @@ import { visibleRating } from '../../api/views'
 import { recipeImageSrc } from '../../api/assets'
 import { useCurrentUserId } from '../../catalog/CatalogProvider'
 import type { Recipe } from '../../api/protocol'
-import type { RoleFilter, CollabFilter } from '../../list/state'
 
 function Rating({ value }: { value: number }) {
   return (
@@ -50,19 +49,9 @@ function CompactName({ name }: { name: string }) {
   )
 }
 
-export function RecipeRow({
-  recipe,
-  compact = false,
-  activeRole = 'any',
-  activeCollab = 'any',
-}: {
-  recipe: Recipe
-  compact?: boolean
-  activeRole?: RoleFilter
-  activeCollab?: CollabFilter
-}) {
+export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact?: boolean }) {
   const rating = visibleRating(recipe, useCurrentUserId())
-  const indicator = <RoleCollabIndicator recipe={recipe} activeRole={activeRole} activeCollab={activeCollab} />
+  const indicator = <RoleCollabIndicator recipe={recipe} />
 
   // Compact: one tight line — name · rating · time on the left, access + tags pinned
   // right. Time gives up width first (shrink-[100]), then the name; the name keeps a
