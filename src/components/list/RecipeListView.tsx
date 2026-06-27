@@ -74,6 +74,7 @@ export function RecipeListView({
   recipes,
   categories,
   detail,
+  grouped = true,
   activeRole = 'any',
   activeCollab = 'any',
   collapsed = NONE_COLLAPSED,
@@ -82,6 +83,7 @@ export function RecipeListView({
   recipes: Recipe[]
   categories: UserCategory[]
   detail: DetailView
+  grouped?: boolean
   activeRole?: RoleFilter
   activeCollab?: CollabFilter
   collapsed?: ReadonlySet<string>
@@ -89,6 +91,10 @@ export function RecipeListView({
 }) {
   const compact = detail === 'compact'
   const access: AccessFilters = { activeRole, activeCollab }
+
+  // Flat list: one sorted sequence, no category headers or collapse.
+  if (!grouped) return <Rows recipes={recipes} compact={compact} access={access} />
+
   const groups = deriveGroups(recipes, categories)
 
   const setOpen = (key: string, open: boolean) => {

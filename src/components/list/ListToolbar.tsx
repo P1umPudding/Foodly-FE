@@ -1,147 +1,164 @@
-// Toolbar next to the search bar: sort dropdown (icon + label) + detail-density toggle.
-import { type ReactNode } from 'react'
-import { Select, SelectContent, SelectItem, SelectTrigger, ToggleGroup, ToggleGroupItem } from '@postxl/ui-components'
+// Toolbar next to the search bar: a sort control (direction toggle + criterion
+// picker) and two view toggles — density (detailed/compact) and layout
+// (by-category/flat). The two toggles are separate segmented groups, spaced apart
+// from the sort control so it reads as "sort … | view".
 import {
-  ArrowDownAZ,
-  ArrowDownZA,
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  ToggleGroup,
+  ToggleGroupItem,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@postxl/ui-components'
+import {
+  ALargeSmall,
   Clock,
   Timer,
   Star,
-  ArrowUpNarrowWide,
-  ArrowDownWideNarrow,
-  Rows3,
-  Rows4,
+  ArrowDownAZ,
+  ArrowDownZA,
+  ArrowDown01,
+  ArrowDown10,
+  LayoutList,
+  ListTree,
+  List,
+  type LucideIcon,
 } from 'lucide-react'
 import type { ListState, SortKey, SortDir, DetailView } from '../../list/state'
 
-const Up = ArrowUpNarrowWide
-const Down = ArrowDownWideNarrow
-
-// value = `${sortKey}|${sortDir}`; node = the icon(s) shown in trigger + item.
-// `label` is the full menu wording; `short` is the compact trigger wording (the
-// direction is already carried by the icon there).
-const SORT_OPTIONS: { value: string; label: string; short: string; node: ReactNode }[] = [
-  { value: 'name|asc', label: 'Name A–Z', short: 'Name A–Z', node: <ArrowDownAZ className="h-4 w-4" /> },
-  { value: 'name|desc', label: 'Name Z–A', short: 'Name Z–A', node: <ArrowDownZA className="h-4 w-4" /> },
-  {
-    value: 'work|asc',
-    label: 'Arbeitszeit kurz zuerst',
-    short: 'Arbeitszeit',
-    node: (
-      <span className="flex items-center gap-0.5">
-        <Clock className="h-4 w-4" />
-        <Up className="h-3.5 w-3.5" />
-      </span>
-    ),
-  },
-  {
-    value: 'work|desc',
-    label: 'Arbeitszeit lang zuerst',
-    short: 'Arbeitszeit',
-    node: (
-      <span className="flex items-center gap-0.5">
-        <Clock className="h-4 w-4" />
-        <Down className="h-3.5 w-3.5" />
-      </span>
-    ),
-  },
-  {
-    value: 'overall|asc',
-    label: 'Gesamtzeit kurz zuerst',
-    short: 'Gesamtzeit',
-    node: (
-      <span className="flex items-center gap-0.5">
-        <Timer className="h-4 w-4" />
-        <Up className="h-3.5 w-3.5" />
-      </span>
-    ),
-  },
-  {
-    value: 'overall|desc',
-    label: 'Gesamtzeit lang zuerst',
-    short: 'Gesamtzeit',
-    node: (
-      <span className="flex items-center gap-0.5">
-        <Timer className="h-4 w-4" />
-        <Down className="h-3.5 w-3.5" />
-      </span>
-    ),
-  },
-  {
-    value: 'rating|desc',
-    label: 'Bewertung beste zuerst',
-    short: 'Bewertung',
-    node: (
-      <span className="flex items-center gap-0.5">
-        <Star className="h-4 w-4" />
-        <Down className="h-3.5 w-3.5" />
-      </span>
-    ),
-  },
-  {
-    value: 'rating|asc',
-    label: 'Bewertung schlechteste zuerst',
-    short: 'Bewertung',
-    node: (
-      <span className="flex items-center gap-0.5">
-        <Star className="h-4 w-4" />
-        <Up className="h-3.5 w-3.5" />
-      </span>
-    ),
-  },
+type Criterion = { key: SortKey; label: string; Icon: LucideIcon }
+const SORT_CRITERIA: Criterion[] = [
+  { key: 'name', label: 'Name', Icon: ALargeSmall },
+  { key: 'work', label: 'Arbeitszeit', Icon: Clock },
+  { key: 'overall', label: 'Gesamtzeit', Icon: Timer },
+  { key: 'rating', label: 'Bewertung', Icon: Star },
 ]
 
-export function ListToolbar({ state, set }: { state: ListState; set: (patch: Partial<ListState>) => void }) {
-  const current = `${state.sortKey}|${state.sortDir}`
-  const currentOption = SORT_OPTIONS.find((o) => o.value === current)
-  return (
-    <div className="flex items-center gap-3">
-      <Select
-        value={current}
-        onValueChange={(v) => {
-          const [key, dir] = v.split('|') as [SortKey, SortDir]
-          set({ sortKey: key, sortDir: dir })
-        }}
-      >
-        <SelectTrigger aria-label="Sortierung" className="w-auto gap-2 px-3">
-          {currentOption && (
-            <span className="flex items-center gap-1.5">
-              {currentOption.node}
-              <span className="hidden text-sm sm:inline">{currentOption.short}</span>
-            </span>
-          )}
-        </SelectTrigger>
-        <SelectContent>
-          {SORT_OPTIONS.map((o) => (
-            // textValue powers Radix typeahead + the accessible name.
-            <SelectItem key={o.value} value={o.value} textValue={o.label}>
-              <span className="flex items-center gap-2">
-                {o.node}
-                <span className="text-sm">{o.label}</span>
-              </span>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+// Direction glyph: the arrow always points DOWN — only the letters/digits flip to
+// show the order (A–Z / Z–A for name, 0–1 / 1–0 for the numeric keys). So "more
+// of this first" consistently reads as the 1–0 / Z–A variant, never an up arrow.
+function dirIcon(sortKey: SortKey, dir: SortDir): LucideIcon {
+  if (sortKey === 'name') return dir === 'asc' ? ArrowDownAZ : ArrowDownZA
+  return dir === 'asc' ? ArrowDown01 : ArrowDown10
+}
 
-      <ToggleGroup type="single" value={state.detail} onValueChange={(v) => v && set({ detail: v as DetailView })}>
-        <ToggleGroupItem
-          value="detailed"
-          aria-label="Detailliert"
-          className="gap-1.5 px-2.5 data-[state=on]:bg-foreground/10 data-[state=on]:text-foreground"
-        >
-          <Rows3 className="h-4 w-4" />
-          {state.detail === 'detailed' && <span className="text-sm">Detailliert</span>}
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          value="compact"
-          aria-label="Kompakt"
-          className="gap-1.5 px-2.5 data-[state=on]:bg-foreground/10 data-[state=on]:text-foreground"
-        >
-          <Rows4 className="h-4 w-4" />
-          {state.detail === 'compact' && <span className="text-sm">Kompakt</span>}
-        </ToggleGroupItem>
-      </ToggleGroup>
+// Plain-language meaning of the current direction, per criterion (toggle tooltip).
+function dirLabel(sortKey: SortKey, dir: SortDir): string {
+  if (sortKey === 'name') return dir === 'asc' ? 'A → Z' : 'Z → A'
+  if (sortKey === 'rating') return dir === 'asc' ? 'Schlechteste zuerst' : 'Beste zuerst'
+  return dir === 'asc' ? 'Kürzeste zuerst' : 'Längste zuerst'
+}
+
+type ViewOption<T extends string> = { value: T; label: string; Icon: LucideIcon }
+
+// Icon-only segmented toggle with a tooltip per option. Selection is styled via a
+// JS flag (not `data-[state=on]:`): the Tooltip wrapping each item overwrites
+// Radix's `data-state`, so a data-state variant would never match (same reason as
+// the access toggles in FilterControls).
+function ViewToggle<T extends string>({
+  value,
+  onChange,
+  options,
+  ariaLabel,
+}: {
+  value: T
+  onChange: (v: T) => void
+  options: ViewOption<T>[]
+  ariaLabel: string
+}) {
+  return (
+    <ToggleGroup type="single" value={value} onValueChange={(v) => v && onChange(v as T)} aria-label={ariaLabel}>
+      {options.map((o) => {
+        const selected = value === o.value
+        return (
+          <Tooltip key={o.value}>
+            <TooltipTrigger asChild>
+              <ToggleGroupItem
+                value={o.value}
+                aria-label={o.label}
+                className={`px-2.5 ${selected ? 'bg-foreground/10 text-foreground' : ''}`}
+              >
+                <o.Icon className="h-4 w-4" />
+              </ToggleGroupItem>
+            </TooltipTrigger>
+            <TooltipContent>{o.label}</TooltipContent>
+          </Tooltip>
+        )
+      })}
+    </ToggleGroup>
+  )
+}
+
+export function ListToolbar({ state, set }: { state: ListState; set: (patch: Partial<ListState>) => void }) {
+  const criterion = SORT_CRITERIA.find((c) => c.key === state.sortKey) ?? SORT_CRITERIA[0]
+  const DirIcon = dirIcon(state.sortKey, state.sortDir)
+  const toggleDir = () => set({ sortDir: state.sortDir === 'asc' ? 'desc' : 'asc' })
+
+  return (
+    <div className="flex items-center gap-4">
+      {/* Sort: direction toggle, then the criterion picker behind it. */}
+      <div className="flex items-center gap-1.5">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={`Sortierrichtung umschalten – ${dirLabel(state.sortKey, state.sortDir)}`}
+              onClick={toggleDir}
+            >
+              <DirIcon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{dirLabel(state.sortKey, state.sortDir)}</TooltipContent>
+        </Tooltip>
+
+        <Select value={state.sortKey} onValueChange={(v) => set({ sortKey: v as SortKey })}>
+          <SelectTrigger aria-label="Sortierkriterium" className="w-auto gap-2 px-3">
+            <span className="flex items-center gap-1.5">
+              <criterion.Icon className="h-4 w-4" />
+              <span className="hidden text-sm sm:inline">{criterion.label}</span>
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_CRITERIA.map((c) => (
+              // label first, criterion icon trailing.
+              <SelectItem key={c.key} value={c.key} textValue={c.label}>
+                <span className="flex items-center gap-2">
+                  <span className="text-sm">{c.label}</span>
+                  <c.Icon className="h-4 w-4 text-muted-foreground" />
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* View: density + layout, each its own segmented group, a gap apart. */}
+      <div className="flex items-center gap-2.5">
+        <ViewToggle
+          ariaLabel="Dichte"
+          value={state.detail}
+          onChange={(v: DetailView) => set({ detail: v })}
+          options={[
+            { value: 'detailed', label: 'Detailliert', Icon: LayoutList },
+            { value: 'compact', label: 'Kompakt', Icon: List },
+          ]}
+        />
+        <ViewToggle
+          ariaLabel="Gliederung"
+          value={state.grouped ? 'grouped' : 'flat'}
+          onChange={(v) => set({ grouped: v === 'grouped' })}
+          options={[
+            { value: 'grouped', label: 'Nach Kategorie', Icon: ListTree },
+            { value: 'flat', label: 'Einfache Liste', Icon: List },
+          ]}
+        />
+      </div>
     </div>
   )
 }

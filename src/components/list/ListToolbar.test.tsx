@@ -1,26 +1,33 @@
 import { render, screen } from '@testing-library/react'
+import { TooltipProvider } from '@postxl/ui-components'
 import { ListToolbar } from './ListToolbar'
 import type { ListState } from '../../list/state'
 import { DEFAULT_STATE } from '../../list/state'
 
 const base: ListState = DEFAULT_STATE
 
-it('sort trigger has aria-label "Sortierung"', () => {
-  render(<ListToolbar state={base} set={() => undefined} />)
-  expect(screen.getByRole('combobox', { name: 'Sortierung' })).toBeTruthy()
+// The shared TooltipProvider lives at the app root; supply one in isolation.
+const renderToolbar = (state: ListState) =>
+  render(
+    <TooltipProvider>
+      <ListToolbar state={state} set={() => undefined} />
+    </TooltipProvider>,
+  )
+
+it('has a sort-criterion picker and a direction toggle', () => {
+  renderToolbar(base)
+  expect(screen.getByRole('combobox', { name: 'Sortierkriterium' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: /Sortierrichtung/ })).toBeTruthy()
 })
 
-it('shows active detail label "Detailliert" when detail is detailed', () => {
-  render(<ListToolbar state={{ ...base, detail: 'detailed' }} set={() => undefined} />)
-  expect(screen.getByText('Detailliert')).toBeTruthy()
+it('exposes density toggles by accessible name (icons only)', () => {
+  renderToolbar({ ...base, detail: 'detailed' })
+  expect(screen.getByRole('radio', { name: 'Detailliert' })).toBeTruthy()
+  expect(screen.getByRole('radio', { name: 'Kompakt' })).toBeTruthy()
 })
 
-it('shows active detail label "Kompakt" when detail is compact', () => {
-  render(<ListToolbar state={{ ...base, detail: 'compact' }} set={() => undefined} />)
-  expect(screen.getByText('Kompakt')).toBeTruthy()
-})
-
-it('does not show "Kompakt" text when detail is detailed', () => {
-  render(<ListToolbar state={{ ...base, detail: 'detailed' }} set={() => undefined} />)
-  expect(screen.queryByText('Kompakt')).toBeNull()
+it('exposes layout toggles (by-category / flat list)', () => {
+  renderToolbar(base)
+  expect(screen.getByRole('radio', { name: 'Nach Kategorie' })).toBeTruthy()
+  expect(screen.getByRole('radio', { name: 'Einfache Liste' })).toBeTruthy()
 })

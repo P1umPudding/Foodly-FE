@@ -22,6 +22,7 @@ import { sortRecipes } from '../list/sort'
 import { usedIngredients } from '../list/counts'
 import { canViewRecipe } from '../api/views'
 import { activeFacetCount, isFilterActive } from '../list/state'
+import { loadCollapsed, saveCollapsed } from '../list/persistence'
 import { ActiveFilters } from '../components/list/ActiveFilters'
 import { FilterControls } from '../components/list/FilterControls'
 import { ListToolbar } from '../components/list/ListToolbar'
@@ -48,10 +49,17 @@ export function RecipeList() {
   const usedIngredientList = usedIngredients(accessibleRecipes, ingredients.byId)
   const visible = sortRecipes(filterRecipes(accessibleRecipes, state, currentUserId, categories), state, currentUserId)
 
-  // Per-category collapse state (clicking a sticky group header folds that group).
-  // Closed group keys; empty = all open.
+  // Per-category collapse state (clicking a sticky group header folds that group),
+  // persisted per user. Closed group keys; empty = all open. First visit (nothing
+  // stored) starts with the "Ohne Kategorie" inbox folded.
   const groupingCats = groupingCategories(categories, state.categories)
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const [collapsed, setCollapsedState] = useState<Set<string>>(
+    () => new Set(loadCollapsed(currentUserId) ?? ['uncat']),
+  )
+  const setCollapsed = (next: Set<string>) => {
+    setCollapsedState(next)
+    saveCollapsed(currentUserId, next)
+  }
 
   // Restore scroll position when returning from a recipe (within the session): track
   // the live position, then re-apply it once the list has rendered. sessionStorage so
@@ -195,6 +203,7 @@ export function RecipeList() {
             recipes={visible}
             categories={groupingCats}
             detail={state.detail}
+            grouped={state.grouped}
             activeRole={state.role}
             activeCollab={state.collab}
             collapsed={collapsed}
