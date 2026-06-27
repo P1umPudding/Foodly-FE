@@ -4,8 +4,8 @@ import type { ImageId } from '../../api/protocol'
 // Image area for the recipe detail view: the main image and the right-edge
 // tiles sit next to each other as one group, centred in the row. The hardcoded
 // row height drives the geometry: stacked tiles are half of it; a lone extra
-// image fills the full height (twice the size of a stacked tile). Images get a
-// muted backdrop so transparent PNGs don't show the page through them.
+// image fills the full height (twice the size of a stacked tile). No backdrop or
+// shadow — transparent PNGs just blend onto the page in this view.
 const ROW_H = 'h-[400px]'
 const GAP = 'gap-3' // one gap everywhere: main↔tiles, between stacked tiles; its px (0.75rem) is baked into the max-width calc below
 
@@ -35,7 +35,7 @@ export function RecipeImages({
         src={recipeImageSrc(hero)}
         alt={alt}
         onClick={() => onOpen(0)}
-        className={`h-full w-auto ${mainMaxW} cursor-zoom-in rounded-xl bg-muted object-contain`}
+        className={`h-full w-auto ${mainMaxW} cursor-zoom-in rounded-xl object-contain`}
       />
 
       {/* One extra image → a single tile at full row height (≈ 2× a stacked tile). */}
@@ -73,7 +73,7 @@ function Tile({
     <button
       type="button"
       onClick={onClick}
-      className={`relative cursor-zoom-in overflow-hidden rounded-xl bg-muted ${className}`}
+      className={`relative cursor-zoom-in overflow-hidden rounded-xl ${className}`}
     >
       <img src={recipeImageSrc(id)} alt="" className="h-full w-full object-cover" />
       {overlay && (
