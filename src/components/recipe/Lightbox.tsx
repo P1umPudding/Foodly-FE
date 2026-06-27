@@ -139,7 +139,7 @@ export function Lightbox({
           alt={imageName(id)}
           onLoad={computeFit}
           onClick={stop}
-          className={`${imgFit} max-h-[64vh] max-w-[50vw] cursor-default rounded-lg object-contain shadow-2xl`}
+          className={`${imgFit} max-h-[64vh] max-w-[50vw] cursor-default rounded-lg object-contain`}
         />
         {n > 1 && (
           <Button
