@@ -4,7 +4,7 @@ import type { Section } from '../../api/protocol'
 
 export function SectionBlock({ section }: { section: Section }) {
   return (
-    <section className="mt-10">
+    <section className="mt-12">
       {section.name && (
         <h2 className="mb-4 font-display text-2xl text-foreground">
           <TagText value={section.name} size="md" />

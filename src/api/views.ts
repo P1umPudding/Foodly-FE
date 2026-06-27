@@ -4,12 +4,54 @@
 
 import type { Recipe, RecipeIngredient, UserId } from './protocol'
 
+export type Role = 'owner' | 'editor' | 'viewer' | 'other'
+
+export function roleOf(recipe: Recipe, user: UserId): Role {
+  return user === recipe.owner
+    ? 'owner'
+    : recipe.editors.includes(user)
+      ? 'editor'
+      : recipe.viewers.includes(user)
+        ? 'viewer'
+        : 'other'
+}
+
+export function myRole(recipe: Recipe, currentUserId: UserId | null): Role {
+  return currentUserId === null ? 'other' : roleOf(recipe, currentUserId)
+}
+
+// Access control: a recipe is visible only to a user who owns it or is an
+// editor/viewer on it. The backend should already scope this, but the list
+// guards too so another user's private (or only-shared-with-others) recipe is
+// never rendered. No current user → nothing is viewable.
+export function canViewRecipe(recipe: Recipe, currentUserId: UserId | null): boolean {
+  return myRole(recipe, currentUserId) !== 'other'
+}
+
+export type Collaboration = 'private' | 'shared' | 'collaborative'
+
+export function collaborationState(recipe: Recipe): Collaboration {
+  if (recipe.editors.length > 0) return 'collaborative'
+  if (recipe.viewers.length > 0) return 'shared'
+  return 'private'
+}
+
 // null (not 0) when there are no ratings, so the UI can omit the stars.
 export function averageRating(recipe: Recipe): number | null {
   const ratings = recipe.rating
   if (ratings.length === 0) return null
   const sum = ratings.reduce((acc, r) => acc + r.rating, 0)
   return Math.round((sum / ratings.length) * 10) / 10
+}
+
+// The rating visible to the current user, accounting for collaboration mode.
+// Private/Shared: shows only the current user's own rating (null if not rated).
+// Collaborative: shows the pooled average of all ratings.
+export function visibleRating(recipe: Recipe, currentUserId: UserId | null): number | null {
+  if (collaborationState(recipe) === 'collaborative') return averageRating(recipe)
+  if (currentUserId === null) return null
+  const own = recipe.rating.find((rt) => rt.user === currentUserId)
+  return own ? own.rating : null
 }
 
 // Compose one ingredient line: "amountPrefix amount unit name/text".
@@ -36,23 +78,14 @@ export function ingredientParts(line: RecipeIngredient): { quantity: string; nam
 // minutes are filter-only, and {tag} substitution is a render-time concern
 // (the phase-1 tag renderer), not a string helper.
 
-export type RatedRole = 'owner' | 'editor' | 'viewer' | 'other'
+export type RatedRole = Role // back-compat alias for existing imports
 
-const ROLE_ORDER: Record<RatedRole, number> = { owner: 0, editor: 1, viewer: 2, other: 3 }
+const ROLE_ORDER: Record<Role, number> = { owner: 0, editor: 1, viewer: 2, other: 3 }
 
 // A rater's role is derived from the recipe itself (owner/editors/viewers), not
 // from any user catalog — so this stays a pure DTO function.
-export function ratingsByRole(recipe: Recipe): { user: UserId; rating: number; role: RatedRole }[] {
-  const roleOf = (u: UserId): RatedRole =>
-    u === recipe.owner
-      ? 'owner'
-      : recipe.editors.includes(u)
-        ? 'editor'
-        : recipe.viewers.includes(u)
-          ? 'viewer'
-          : 'other'
-
+export function ratingsByRole(recipe: Recipe): { user: UserId; rating: number; role: Role }[] {
   return recipe.rating
-    .map((r) => ({ user: r.user, rating: r.rating, role: roleOf(r.user) }))
+    .map((rt) => ({ user: rt.user, rating: rt.rating, role: roleOf(recipe, rt.user) }))
     .sort((a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role] || b.rating - a.rating)
 }
