@@ -1,22 +1,57 @@
 import type { Role, Collaboration } from '../api/views'
 import type { RoleFilter, CollabFilter } from './state'
 
-// Colour reinforces the access type but never carries meaning alone — the icon
-// and the aria-label do. One source for both the filter toggles and the row
-// indicator. `activeBg` is the data-[state=on] tint used by ToggleGroupItem.
-export const ROLE_COLOR: Record<Role, { icon: string; activeBg: string }> = {
-  owner: { icon: 'text-[#f59e0b]', activeBg: 'data-[state=on]:bg-[#f59e0b]/15 data-[state=on]:text-foreground' },
-  editor: { icon: 'text-[#8b5cf6]', activeBg: 'data-[state=on]:bg-[#8b5cf6]/15 data-[state=on]:text-foreground' },
-  viewer: { icon: 'text-[#64748b]', activeBg: 'data-[state=on]:bg-[#64748b]/15 data-[state=on]:text-foreground' },
-  other: { icon: 'text-muted-foreground', activeBg: '' },
+// Access (role/Freigabe) colour is the *muted* axis — category colour is the loud
+// one. These hues are deliberately desaturated and chosen to never collide with a
+// category hex (#e11d48 / #0ea5e9 / #f59e0b / #10b981). Colour never carries
+// meaning alone — the icon shape and the aria-label/tooltip do.
+//
+// One source for both surfaces:
+//   • `icon`        — the muted text colour, shown always on the filter toggles.
+//   • `iconHover`   — grouped so the row indicator stays neutral grey at rest and
+//                     only reveals the muted colour on row hover/focus.
+//   • `selected`    — the styling for the chosen Rolle/Freigabe segment: an
+//                     access-colour fill + inset ring + medium weight. Applied via
+//                     a JS-computed `selected` flag, NOT `data-[state=on]:` — the
+//                     Tooltip wrapping each ToggleGroupItem clobbers Radix's
+//                     `data-state` (it becomes the tooltip's open/closed), so a
+//                     `data-[state=on]:` variant would never match.
+type AccessColor = { icon: string; iconHover: string; selected: string }
+
+export const ROLE_COLOR: Record<Role, AccessColor> = {
+  owner: {
+    icon: 'text-[#a07b3f]',
+    iconHover: 'group-hover:text-[#a07b3f] group-focus-visible:text-[#a07b3f]',
+    selected: 'bg-[#a07b3f]/20 font-medium text-foreground ring-1 ring-inset ring-[#a07b3f]/60',
+  },
+  editor: {
+    icon: 'text-[#7b6ca6]',
+    iconHover: 'group-hover:text-[#7b6ca6] group-focus-visible:text-[#7b6ca6]',
+    selected: 'bg-[#7b6ca6]/20 font-medium text-foreground ring-1 ring-inset ring-[#7b6ca6]/60',
+  },
+  viewer: {
+    icon: 'text-[#6b7280]',
+    iconHover: 'group-hover:text-[#6b7280] group-focus-visible:text-[#6b7280]',
+    selected: 'bg-[#6b7280]/20 font-medium text-foreground ring-1 ring-inset ring-[#6b7280]/60',
+  },
+  other: { icon: 'text-muted-foreground', iconHover: '', selected: '' },
 }
 
-export const COLLAB_COLOR: Record<Collaboration, { icon: string; activeBg: string }> = {
-  private: { icon: 'text-[#64748b]', activeBg: 'data-[state=on]:bg-[#64748b]/15 data-[state=on]:text-foreground' },
-  shared: { icon: 'text-[#0ea5e9]', activeBg: 'data-[state=on]:bg-[#0ea5e9]/15 data-[state=on]:text-foreground' },
+export const COLLAB_COLOR: Record<Collaboration, AccessColor> = {
+  private: {
+    icon: 'text-[#6b7280]',
+    iconHover: 'group-hover:text-[#6b7280] group-focus-visible:text-[#6b7280]',
+    selected: 'bg-[#6b7280]/20 font-medium text-foreground ring-1 ring-inset ring-[#6b7280]/60',
+  },
+  shared: {
+    icon: 'text-[#5f7f9c]',
+    iconHover: 'group-hover:text-[#5f7f9c] group-focus-visible:text-[#5f7f9c]',
+    selected: 'bg-[#5f7f9c]/20 font-medium text-foreground ring-1 ring-inset ring-[#5f7f9c]/60',
+  },
   collaborative: {
-    icon: 'text-[#10b981]',
-    activeBg: 'data-[state=on]:bg-[#10b981]/15 data-[state=on]:text-foreground',
+    icon: 'text-[#5a9183]',
+    iconHover: 'group-hover:text-[#5a9183] group-focus-visible:text-[#5a9183]',
+    selected: 'bg-[#5a9183]/20 font-medium text-foreground ring-1 ring-inset ring-[#5a9183]/60',
   },
 }
 

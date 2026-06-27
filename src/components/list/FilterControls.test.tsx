@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
+import { TooltipProvider } from '@postxl/ui-components'
 import { FilterControls } from './FilterControls'
 import { DEFAULT_STATE, type ListState } from '../../list/state'
 
@@ -10,17 +11,23 @@ const baseProps = {
   ingredients: [],
 }
 
+function renderControls(state: ListState, set = vi.fn()) {
+  render(
+    <TooltipProvider>
+      <FilterControls state={state} set={set} {...baseProps} />
+    </TooltipProvider>,
+  )
+  return { set }
+}
+
 it('role and sharing filter labels are rendered', () => {
-  const set = vi.fn()
-  render(<FilterControls state={DEFAULT_STATE} set={set} {...baseProps} />)
+  renderControls(DEFAULT_STATE)
   expect(screen.getByText('Rolle')).toBeTruthy()
   expect(screen.getByText('Freigabe')).toBeTruthy()
 })
 
 function setup(state: ListState) {
-  const set = vi.fn()
-  render(<FilterControls state={state} set={set} {...baseProps} />)
-  return { set }
+  return renderControls(state)
 }
 
 // Note: postxl ToggleGroupItem renders as role="radio" (inside a RadioGroup),
@@ -38,5 +45,21 @@ describe('Zugriff grey-out + relax', () => {
     const { set } = setup({ ...DEFAULT_STATE, role: 'editor' })
     fireEvent.click(screen.getByRole('radio', { name: /Privat/i }))
     expect(set).toHaveBeenCalledWith({ collab: 'private', role: 'any' })
+  })
+})
+
+// The Tooltip wrapping each ToggleGroupItem hijacks Radix's data-state, so the
+// selected styling is driven by a JS flag instead — guard that it actually lands
+// on the chosen segment (and only that one).
+describe('Zugriff selected indication', () => {
+  it('applies the selected styling to the chosen role, not the others', () => {
+    setup({ ...DEFAULT_STATE, role: 'owner' })
+    expect(screen.getByRole('radio', { name: /Besitzer/i }).className).toContain('ring-[#a07b3f]/60')
+    expect(screen.getByRole('radio', { name: /Bearbeiter/i }).className).not.toContain('ring-[#7b6ca6]/60')
+  })
+
+  it('applies the selected styling to the chosen Freigabe', () => {
+    setup({ ...DEFAULT_STATE, collab: 'collaborative' })
+    expect(screen.getByRole('radio', { name: /Kollaborativ/i }).className).toContain('bg-[#5a9183]/20')
   })
 })

@@ -45,6 +45,19 @@ export function isFilterActive(s: ListState): boolean {
   )
 }
 
+// Number of active filter facets that live in the filter panel/drawer — search is
+// excluded (it has its own always-visible input). Drives the mobile Filter badge.
+export function activeFacetCount(s: ListState): number {
+  return (
+    s.categories.length +
+    s.tags.length +
+    s.ingredients.length +
+    (s.durationMax !== null ? 1 : 0) +
+    (s.role !== 'any' ? 1 : 0) +
+    (s.collab !== 'any' ? 1 : 0)
+  )
+}
+
 export function clearedState(s: ListState): ListState {
   return {
     ...s,

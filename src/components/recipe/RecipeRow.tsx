@@ -8,12 +8,23 @@ import { visibleRating } from '../../api/views'
 import { recipeImageSrc } from '../../api/assets'
 import { useCurrentUserId } from '../../catalog/CatalogProvider'
 import type { Recipe } from '../../api/protocol'
+import type { RoleFilter, CollabFilter } from '../../list/state'
 
-export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact?: boolean }) {
+export function RecipeRow({
+  recipe,
+  compact = false,
+  activeRole = 'any',
+  activeCollab = 'any',
+}: {
+  recipe: Recipe
+  compact?: boolean
+  activeRole?: RoleFilter
+  activeCollab?: CollabFilter
+}) {
   const rating = visibleRating(recipe, useCurrentUserId())
 
   return (
-    <Link to={`/recipes/${recipe.id}`} className="block">
+    <Link to={`/recipes/${recipe.id}`} className="group block">
       <Card className="flex items-center gap-3 p-3 transition-colors hover:bg-muted/50">
         {!compact && (
           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full">
@@ -27,9 +38,16 @@ export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact
         )}
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-            <span className="truncate font-medium">
-              <TagText value={recipe.name} />
+          {/* Name + ownership + tags flow together from the left — no justify-between,
+              so on a wide row the tags stay next to the name instead of drifting far right. */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="truncate font-medium">
+                <TagText value={recipe.name} />
+              </span>
+              <span className="shrink-0">
+                <RoleCollabIndicator recipe={recipe} activeRole={activeRole} activeCollab={activeCollab} />
+              </span>
             </span>
             <TagChips tags={recipe.tags} />
           </div>
@@ -47,9 +65,6 @@ export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact
                 <TagText value={recipe.time} />
               </span>
             )}
-            <span className="ml-auto">
-              <RoleCollabIndicator recipe={recipe} />
-            </span>
           </div>
         </div>
       </Card>

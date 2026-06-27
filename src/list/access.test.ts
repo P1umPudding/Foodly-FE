@@ -44,9 +44,18 @@ describe('disabled helpers', () => {
   })
 })
 
+const CATEGORY_HEXES = ['#e11d48', '#0ea5e9', '#f59e0b', '#10b981']
+
 describe('colour maps', () => {
   it('exposes literal icon classes per type', () => {
-    expect(ROLE_COLOR.owner.icon).toBe('text-[#f59e0b]')
-    expect(COLLAB_COLOR.collaborative.icon).toBe('text-[#10b981]')
+    expect(ROLE_COLOR.owner.icon).toBe('text-[#a07b3f]')
+    expect(COLLAB_COLOR.collaborative.icon).toBe('text-[#5a9183]')
+  })
+
+  it('never reuses a category hue (access is the muted, distinct axis)', () => {
+    const accessIcons = [...Object.values(ROLE_COLOR), ...Object.values(COLLAB_COLOR)].map((c) => c.icon)
+    for (const hex of CATEGORY_HEXES) {
+      expect(accessIcons.some((cls) => cls.includes(hex))).toBe(false)
+    }
   })
 })
