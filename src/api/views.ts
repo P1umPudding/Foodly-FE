@@ -20,6 +20,14 @@ export function myRole(recipe: Recipe, currentUserId: UserId | null): Role {
   return currentUserId === null ? 'other' : roleOf(recipe, currentUserId)
 }
 
+// Access control: a recipe is visible only to a user who owns it or is an
+// editor/viewer on it. The backend should already scope this, but the list
+// guards too so another user's private (or only-shared-with-others) recipe is
+// never rendered. No current user → nothing is viewable.
+export function canViewRecipe(recipe: Recipe, currentUserId: UserId | null): boolean {
+  return myRole(recipe, currentUserId) !== 'other'
+}
+
 export type Collaboration = 'private' | 'shared' | 'collaborative'
 
 export function collaborationState(recipe: Recipe): Collaboration {

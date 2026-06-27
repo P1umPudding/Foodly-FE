@@ -1,4 +1,4 @@
-import { roleOf, myRole, collaborationState, visibleRating } from './views'
+import { roleOf, myRole, collaborationState, visibleRating, canViewRecipe } from './views'
 import type { Recipe } from './protocol'
 
 const base: Recipe = {
@@ -35,6 +35,23 @@ describe('roleOf / myRole', () => {
   })
   it('myRole returns other for null user', () => {
     expect(myRole(r({ owner: 1 }), null)).toBe('other')
+  })
+})
+
+describe('canViewRecipe', () => {
+  it('hides another user private recipe (no access)', () => {
+    expect(canViewRecipe(r({ owner: 3, editors: [], viewers: [] }), 1)).toBe(false)
+  })
+  it('shows recipes where the user is owner, editor, or viewer', () => {
+    expect(canViewRecipe(r({ owner: 1 }), 1)).toBe(true)
+    expect(canViewRecipe(r({ owner: 2, editors: [1] }), 1)).toBe(true)
+    expect(canViewRecipe(r({ owner: 2, viewers: [1] }), 1)).toBe(true)
+  })
+  it('hides a recipe shared only with other users', () => {
+    expect(canViewRecipe(r({ owner: 2, viewers: [3], editors: [] }), 1)).toBe(false)
+  })
+  it('hides everything when there is no current user', () => {
+    expect(canViewRecipe(r({ owner: 1 }), null)).toBe(false)
   })
 })
 
