@@ -9,11 +9,11 @@ export function tagImageSrc(hash: string): string {
 }
 
 // Dev-only: map mock ImageIds → public asset URLs. Any raster/vector format
-// works (the browser <img> doesn't care) — id 1 is a real .png, id 2 a .svg.
+// works (the browser <img> doesn't care) — id 1 is a real .png, id 2 a .png.
 // In production this whole function is just the backend's image URL.
 const DEV_RECIPE_IMAGE: Record<number, string> = {
   1: '/recipes/1.png',
-  2: '/recipes/2.svg',
+  2: '/recipes/cake.png', // transparent PNG — test fixture for the image backdrop (Schokokuchen)
 }
 
 export function recipeImageSrc(id: ImageId): string {
