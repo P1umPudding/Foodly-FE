@@ -52,14 +52,14 @@ describe('Zugriff grey-out + relax', () => {
 // selected styling is driven by a JS flag instead — guard that it actually lands
 // on the chosen segment (and only that one).
 describe('Zugriff selected indication', () => {
-  it('applies the selected styling to the chosen role, not the others', () => {
+  it('applies the neutral selected styling to the chosen role, not the others', () => {
     setup({ ...DEFAULT_STATE, role: 'owner' })
-    expect(screen.getByRole('radio', { name: /Besitzer/i }).className).toContain('ring-[#a07b3f]/60')
-    expect(screen.getByRole('radio', { name: /Bearbeiter/i }).className).not.toContain('ring-[#7b6ca6]/60')
+    expect(screen.getByRole('radio', { name: /Besitzer/i }).className).toContain('ring-foreground/30')
+    expect(screen.getByRole('radio', { name: /Bearbeiter/i }).className).not.toContain('ring-foreground/30')
   })
 
   it('applies the selected styling to the chosen Freigabe', () => {
     setup({ ...DEFAULT_STATE, collab: 'collaborative' })
-    expect(screen.getByRole('radio', { name: /Kollaborativ/i }).className).toContain('bg-[#5a9183]/20')
+    expect(screen.getByRole('radio', { name: /Kollaborativ/i }).className).toContain('bg-foreground/15')
   })
 })

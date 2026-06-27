@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import {
   Badge,
   Button,
-  Input,
+  NumberInput,
   Separator,
   Skeleton,
   Slider,
@@ -12,9 +12,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@postxl/ui-components'
-import { Crown, Pencil, Eye, Lock, Share2, Users, ListChecks } from 'lucide-react'
+import { Crown, Pencil, Eye, Lock, Share2, Users, X } from 'lucide-react'
 import type { ListState, RoleFilter, CollabFilter } from '../../list/state'
-import { ROLE_COLOR, COLLAB_COLOR, collabDisabled, roleDisabled, roleAllowsCollab } from '../../list/access'
+import { collabDisabled, roleDisabled, roleAllowsCollab } from '../../list/access'
 import { normalizeText } from '../../list/search'
 import type { Tag, Ingredient, UserCategory } from '../../api/protocol'
 import { CategorySidebar } from './CategorySidebar'
@@ -26,25 +26,60 @@ import { TagIcon } from '../TagText'
 const DURATION_MAX = 180
 const DURATION_PRESETS = [15, 30, 60] as const
 
-// Neutral "selected" emphasis for filter chips — selection reads via fill + ring +
-// weight, not a brand hue (colour stays reserved for category/access meaning).
+// Neutral "selected" emphasis for filter chips/toggles — selection reads via fill +
+// ring + weight, not a brand hue (colour stays reserved for category/access meaning).
 const SELECTED_CHIP = 'bg-foreground/15 font-medium text-foreground ring-1 ring-inset ring-foreground/30'
+
+// Extra row gap below the "selected" chips so they read as their own block.
+const SELECTED_ROW = 'mb-2.5 flex flex-wrap gap-1'
+const REST_ROW = 'flex flex-wrap gap-1'
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((x) => x !== value) : [...list, value]
 }
 
+// Reset link for a single facet — sits right-aligned next to the group heading,
+// only while that facet has a selection.
+function ClearButton({ onClick, label = 'Leeren' }: { onClick: () => void; label?: string }) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      className="-my-1 h-7 gap-1 px-2 text-muted-foreground hover:text-foreground"
+    >
+      <X className="h-3.5 w-3.5" />
+      {label}
+    </Button>
+  )
+}
+
 // One labelled filter group — scannable structure across Kategorien, Tags, Zutaten,
-// Arbeitszeit, Zugriff. `count` shows how many options are selected in this group.
-function FilterGroup({ title, count, children }: { title: string; count?: number; children: ReactNode }) {
+// Arbeitszeit, Zugriff. `count` shows how many options are selected; `action` (the
+// per-facet clear) is right-aligned in the heading row.
+function FilterGroup({
+  title,
+  count,
+  action,
+  children,
+}: {
+  title: string
+  count?: number
+  action?: ReactNode
+  children: ReactNode
+}) {
   return (
     <section className="flex flex-col gap-3">
-      <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
-        {title}
-        {count !== undefined && count > 0 && (
-          <span className="tabular-nums text-xs font-normal text-muted-foreground">{count}</span>
-        )}
-      </h3>
+      <div className="flex min-h-7 items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
+          {title}
+          {count !== undefined && count > 0 && (
+            <span className="tabular-nums text-xs font-normal text-muted-foreground">{count}</span>
+          )}
+        </h3>
+        {action}
+      </div>
       {children}
     </section>
   )
@@ -53,56 +88,6 @@ function FilterGroup({ title, count, children }: { title: string; count?: number
 // A sub-field label inside a group (Rolle, Freigabe, …).
 function FieldLabel({ children }: { children: ReactNode }) {
   return <span className="text-sm text-muted-foreground">{children}</span>
-}
-
-// Search field + a select/deselect-all toggle for the visible options. `ids` are
-// the currently-filtered option ids; the toggle adds them all or removes them all.
-function FieldSearchRow<T extends string | number>({
-  query,
-  onQuery,
-  placeholder,
-  ids,
-  selected,
-  onChange,
-}: {
-  query: string
-  onQuery: (v: string) => void
-  placeholder: string
-  ids: T[]
-  selected: T[]
-  onChange: (next: T[]) => void
-}) {
-  const allSelected = ids.length > 0 && ids.every((id) => selected.includes(id))
-  const toggleAll = () => {
-    if (allSelected) {
-      const drop = new Set<T>(ids)
-      onChange(selected.filter((id) => !drop.has(id)))
-    } else {
-      onChange(Array.from(new Set<T>([...selected, ...ids])))
-    }
-  }
-  return (
-    <div className="flex items-center gap-1.5">
-      <SearchInput value={query} onChange={onQuery} placeholder={placeholder} className="flex-1" />
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            aria-label={allSelected ? 'Auswahl aufheben' : 'Alle auswählen'}
-            disabled={ids.length === 0}
-            onClick={toggleAll}
-            className="shrink-0 gap-1.5"
-          >
-            <ListChecks className="h-4 w-4" />
-            {allSelected ? 'Keine' : 'Alle'}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>{allSelected ? 'Auswahl aufheben' : 'Alle auswählen'}</TooltipContent>
-      </Tooltip>
-    </div>
-  )
 }
 
 const ROLE_META = {
@@ -117,14 +102,19 @@ const COLLAB_META = {
   collaborative: { Icon: Users, label: 'Kollaborativ', desc: 'Nur kollaborativ bearbeitete Rezepte' },
 } as const
 
+function clamp(v: number): number {
+  return Math.min(DURATION_MAX, Math.max(0, v))
+}
+
 function DurationFilter({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
+  const presetActive = (DURATION_PRESETS as readonly number[]).includes(value ?? -1)
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
         {/* px gives the knob's hover ring room — the sticky rail's overflow-y-auto
             also clips horizontally, which would otherwise cut the ring at the ends.
             Needs ≥ half-thumb (8px) + ring (4px). */}
-        <div className="flex-1 px-4">
+        <div className="min-w-0 flex-1 px-4">
           <Slider
             aria-label="Maximale Arbeitszeit"
             // Neutral (not the brand purple): colour is reserved for meaning. Range
@@ -141,34 +131,39 @@ function DurationFilter({ value, onChange }: { value: number | null; onChange: (
             className="w-full [&_[data-slot=slider-thumb]]:border-muted-foreground [&_[data-slot=slider-thumb]]:ring-muted-foreground/40"
           />
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm text-muted-foreground">≤</span>
-          <Input
-            type="number"
-            min={0}
-            max={DURATION_MAX}
-            className="w-16"
-            value={value ?? ''}
-            onChange={(e) => onChange(e.target.value === '' ? null : Math.max(0, Number(e.target.value)))}
-          />
-          <span className="text-sm text-muted-foreground">Min</span>
-        </div>
+        {/* Real numeric field (digits only, right-aligned); ≤ / Min as affixes. */}
+        <NumberInput
+          aria-label="Maximale Arbeitszeit in Minuten"
+          value={value ?? undefined}
+          onChange={(v) => onChange(v === undefined ? null : clamp(v))}
+          min={0}
+          max={DURATION_MAX}
+          showSpinButtons={false}
+          prefix="≤"
+          suffix="Min"
+          wrapperClassName="w-28 shrink-0"
+          className="text-right"
+        />
       </div>
-      <div className="flex gap-1.5">
+      {/* Ghost segmented presets — same look as the Zugriff toggles (no outline/fill
+          until active or hovered). Selection is JS-driven so typing 60 lights ≤60. */}
+      <ToggleGroup
+        type="single"
+        className="w-full"
+        value={presetActive ? String(value) : ''}
+        onValueChange={(v) => onChange(v === '' ? null : Number(v))}
+      >
         {DURATION_PRESETS.map((m) => (
-          <Button
+          <ToggleGroupItem
             key={m}
-            type="button"
-            variant="outline"
-            size="sm"
-            aria-pressed={value === m}
-            onClick={() => onChange(value === m ? null : m)}
-            className={`flex-1 ${value === m ? 'border-foreground/30 bg-foreground/10 font-medium text-foreground' : ''}`}
+            value={String(m)}
+            aria-label={`≤ ${m} Minuten`}
+            className={`flex-1 text-sm ${value === m ? SELECTED_CHIP : ''}`}
           >
             ≤ {m} Min
-          </Button>
+          </ToggleGroupItem>
         ))}
-      </div>
+      </ToggleGroup>
     </div>
   )
 }
@@ -201,13 +196,44 @@ export function FilterControls({
   const filteredTags =
     tagQuery.trim() === '' ? tags : tags.filter((t) => normalizeText(t.id).includes(normalizeText(tagQuery)))
 
+  const tagSelected = (id: string) => state.tags.includes(id)
+  const ingSelected = (id: number) => state.ingredients.includes(id)
+
+  const tagChip = (t: Tag) => (
+    <Badge
+      key={t.id}
+      variant="secondary"
+      className={`flex cursor-pointer items-center gap-1 text-sm ${tagSelected(t.id) ? SELECTED_CHIP : ''}`}
+      onClick={() => set({ tags: toggle(state.tags, t.id) })}
+    >
+      {t.svg && <TagIcon hash={t.svg} alt={t.id} size="sm" />}
+      {t.id}
+    </Badge>
+  )
+
+  const ingChip = (i: Ingredient) => (
+    <Badge
+      key={i.id}
+      variant="secondary"
+      className={`cursor-pointer text-sm ${ingSelected(i.id) ? SELECTED_CHIP : ''}`}
+      onClick={() => set({ ingredients: toggle(state.ingredients, i.id) })}
+    >
+      {i.name}
+    </Badge>
+  )
+
+  // pr keeps the inner Tags/Zutaten scrollbars off the rail's own scrollbar.
   return (
-    <div className="flex flex-col gap-4">
-      <FilterGroup title="Kategorien" count={state.categories.length}>
+    <div className="flex flex-col gap-4 pr-1.5">
+      <FilterGroup
+        title="Kategorien"
+        count={state.categories.length}
+        action={state.categories.length > 0 ? <ClearButton onClick={() => set({ categories: [] })} /> : undefined}
+      >
         {categoriesLoading ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2">
             {[0, 1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-8 w-24 rounded-md" />
+              <Skeleton key={i} className="h-8 w-full rounded-md" />
             ))}
           </div>
         ) : (
@@ -218,27 +244,17 @@ export function FilterControls({
       {tags.length > 0 && (
         <>
           <Separator />
-          <FilterGroup title="Tags" count={state.tags.length}>
-            <FieldSearchRow
-              query={tagQuery}
-              onQuery={setTagQuery}
-              placeholder="Tag suchen…"
-              ids={filteredTags.map((t) => t.id)}
-              selected={state.tags}
-              onChange={(next) => set({ tags: next })}
-            />
-            <div className="flex max-h-40 flex-wrap gap-1 overflow-y-auto">
-              {filteredTags.map((t) => (
-                <Badge
-                  key={t.id}
-                  variant="secondary"
-                  className={`flex cursor-pointer items-center gap-1 text-sm ${state.tags.includes(t.id) ? SELECTED_CHIP : ''}`}
-                  onClick={() => set({ tags: toggle(state.tags, t.id) })}
-                >
-                  {t.svg && <TagIcon hash={t.svg} alt={t.id} size="sm" />}
-                  {t.id}
-                </Badge>
-              ))}
+          <FilterGroup
+            title="Tags"
+            count={state.tags.length}
+            action={state.tags.length > 0 ? <ClearButton onClick={() => set({ tags: [] })} /> : undefined}
+          >
+            <SearchInput value={tagQuery} onChange={setTagQuery} placeholder="Tag suchen…" />
+            <div className="flex max-h-40 flex-col overflow-y-auto">
+              {filteredTags.some((t) => tagSelected(t.id)) && (
+                <div className={SELECTED_ROW}>{filteredTags.filter((t) => tagSelected(t.id)).map(tagChip)}</div>
+              )}
+              <div className={REST_ROW}>{filteredTags.filter((t) => !tagSelected(t.id)).map(tagChip)}</div>
             </div>
           </FilterGroup>
         </>
@@ -247,26 +263,17 @@ export function FilterControls({
       {ingredients.length > 0 && (
         <>
           <Separator />
-          <FilterGroup title="Zutaten" count={state.ingredients.length}>
-            <FieldSearchRow
-              query={ingredientQuery}
-              onQuery={setIngredientQuery}
-              placeholder="Zutat suchen…"
-              ids={filteredIngredients.map((i) => i.id)}
-              selected={state.ingredients}
-              onChange={(next) => set({ ingredients: next })}
-            />
-            <div className="flex max-h-32 flex-wrap gap-1 overflow-y-auto">
-              {filteredIngredients.map((i) => (
-                <Badge
-                  key={i.id}
-                  variant="secondary"
-                  className={`cursor-pointer text-sm ${state.ingredients.includes(i.id) ? SELECTED_CHIP : ''}`}
-                  onClick={() => set({ ingredients: toggle(state.ingredients, i.id) })}
-                >
-                  {i.name}
-                </Badge>
-              ))}
+          <FilterGroup
+            title="Zutaten"
+            count={state.ingredients.length}
+            action={state.ingredients.length > 0 ? <ClearButton onClick={() => set({ ingredients: [] })} /> : undefined}
+          >
+            <SearchInput value={ingredientQuery} onChange={setIngredientQuery} placeholder="Zutat suchen…" />
+            <div className="flex max-h-32 flex-col overflow-y-auto">
+              {filteredIngredients.some((i) => ingSelected(i.id)) && (
+                <div className={SELECTED_ROW}>{filteredIngredients.filter((i) => ingSelected(i.id)).map(ingChip)}</div>
+              )}
+              <div className={REST_ROW}>{filteredIngredients.filter((i) => !ingSelected(i.id)).map(ingChip)}</div>
             </div>
           </FilterGroup>
         </>
@@ -274,14 +281,18 @@ export function FilterControls({
 
       <Separator />
 
-      <FilterGroup title="Arbeitszeit" count={state.durationMax !== null ? 1 : 0}>
+      <FilterGroup
+        title="Arbeitszeit"
+        action={state.durationMax !== null ? <ClearButton onClick={() => set({ durationMax: null })} /> : undefined}
+      >
         <DurationFilter value={state.durationMax} onChange={(v) => set({ durationMax: v })} />
       </FilterGroup>
 
       <Separator />
 
       {/* Power-user facet, kept last. Deselecting the active segment resets that axis to 'any';
-          greyed options stay clickable — relax-on-click resets the sister axis. */}
+          greyed options stay clickable — relax-on-click resets the sister axis. Buttons are
+          neutral (no access colour): selection reads via fill + ring, impossible combos greyed. */}
       <FilterGroup title="Zugriff">
         <div className="flex flex-col gap-1.5">
           <FieldLabel>Rolle</FieldLabel>
@@ -304,11 +315,11 @@ export function FilterControls({
                   <TooltipTrigger asChild>
                     <ToggleGroupItem
                       value={r}
-                      className={`flex h-auto flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${selected ? ROLE_COLOR[r].selected : ''} ${disabled ? 'opacity-40' : ''}`}
+                      className={`flex h-auto min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${selected ? SELECTED_CHIP : ''} ${disabled ? 'opacity-40' : ''}`}
                     >
                       {/* size-3.5 matches the row indicator icons (RoleCollabIndicator h-3.5 w-3.5) */}
-                      <meta.Icon className={`size-3.5 shrink-0 ${ROLE_COLOR[r].icon}`} />
-                      {meta.label}
+                      <meta.Icon className="size-3.5 shrink-0" />
+                      <span className="truncate">{meta.label}</span>
                     </ToggleGroupItem>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -340,11 +351,11 @@ export function FilterControls({
                   <TooltipTrigger asChild>
                     <ToggleGroupItem
                       value={c}
-                      className={`flex h-auto flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${selected ? COLLAB_COLOR[c].selected : ''} ${disabled ? 'opacity-40' : ''}`}
+                      className={`flex h-auto min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${selected ? SELECTED_CHIP : ''} ${disabled ? 'opacity-40' : ''}`}
                     >
                       {/* size-3.5 matches the row indicator icons (RoleCollabIndicator h-3.5 w-3.5) */}
-                      <meta.Icon className={`size-3.5 shrink-0 ${COLLAB_COLOR[c].icon}`} />
-                      {meta.label}
+                      <meta.Icon className="size-3.5 shrink-0" />
+                      <span className="truncate">{meta.label}</span>
                     </ToggleGroupItem>
                   </TooltipTrigger>
                   <TooltipContent>
