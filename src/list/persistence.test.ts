@@ -1,4 +1,4 @@
-import { loadPersisted, savePersisted } from './persistence'
+import { loadPersisted, savePersisted, loadCollapsed, saveCollapsed } from './persistence'
 import { DEFAULT_STATE } from './state'
 
 beforeEach(() => localStorage.clear())
@@ -25,5 +25,21 @@ describe('persistence', () => {
   it('discards unparseable data', () => {
     localStorage.setItem('foodly:list-state:1', '{not json')
     expect(loadPersisted(1)).toBeNull()
+  })
+})
+
+describe('collapsed-category persistence', () => {
+  it('round-trips the collapsed group keys', () => {
+    saveCollapsed(1, new Set(['cat-3', 'uncat']))
+    expect(loadCollapsed(1)?.sort()).toEqual(['cat-3', 'uncat'])
+  })
+  it('distinguishes "nothing stored" (null) from "stored empty" ([])', () => {
+    expect(loadCollapsed(1)).toBeNull()
+    saveCollapsed(1, [])
+    expect(loadCollapsed(1)).toEqual([])
+  })
+  it('namespaces by user', () => {
+    saveCollapsed(1, ['cat-1'])
+    expect(loadCollapsed(2)).toBeNull()
   })
 })

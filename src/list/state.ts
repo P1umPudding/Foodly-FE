@@ -18,6 +18,7 @@ export interface ListState {
   sortKey: SortKey
   sortDir: SortDir
   detail: DetailView
+  grouped: boolean // true = by category, false = one flat list
 }
 
 export const DEFAULT_STATE: ListState = {
@@ -31,6 +32,7 @@ export const DEFAULT_STATE: ListState = {
   sortKey: 'name',
   sortDir: 'asc',
   detail: 'detailed',
+  grouped: true,
 }
 
 export function isFilterActive(s: ListState): boolean {

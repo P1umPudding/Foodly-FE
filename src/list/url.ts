@@ -35,6 +35,7 @@ export function toSearchParams(state: ListState): URLSearchParams {
   if (state.sortKey !== DEFAULT_STATE.sortKey) p.set('sort', state.sortKey)
   if (state.sortDir !== DEFAULT_STATE.sortDir) p.set('dir', state.sortDir)
   if (state.detail !== DEFAULT_STATE.detail) p.set('view', state.detail)
+  if (state.grouped !== DEFAULT_STATE.grouped) p.set('group', state.grouped ? '1' : '0')
   return p
 }
 
@@ -52,5 +53,7 @@ export function fromSearchParams(p: URLSearchParams): ListState {
     sortKey: oneOf(SORTS, p.get('sort'), DEFAULT_STATE.sortKey),
     sortDir: oneOf(DIRS, p.get('dir'), DEFAULT_STATE.sortDir),
     detail: oneOf(DETAILS, p.get('view'), DEFAULT_STATE.detail),
+    // absent → default (true); explicit '0' → flat list.
+    grouped: p.has('group') ? p.get('group') !== '0' : DEFAULT_STATE.grouped,
   }
 }

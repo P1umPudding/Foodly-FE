@@ -27,3 +27,27 @@ export function savePersisted(userId: UserId | null, state: ListState): void {
     // storage full/blocked → silently skip; persistence is best-effort
   }
 }
+
+// Which category groups the user has collapsed (group keys, e.g. 'cat-3' / 'uncat').
+// Separate from ListState: it's a personal UI preference, not part of the
+// shareable URL. `null` = nothing stored yet (caller picks a default).
+const collapseKeyFor = (userId: UserId | null) => `foodly:list-collapsed:${userId ?? 'anon'}`
+
+export function loadCollapsed(userId: UserId | null): string[] | null {
+  try {
+    const raw = localStorage.getItem(collapseKeyFor(userId))
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed.filter((k): k is string => typeof k === 'string') : null
+  } catch {
+    return null
+  }
+}
+
+export function saveCollapsed(userId: UserId | null, keys: Iterable<string>): void {
+  try {
+    localStorage.setItem(collapseKeyFor(userId), JSON.stringify([...keys]))
+  } catch {
+    // best-effort
+  }
+}

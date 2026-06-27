@@ -18,6 +18,7 @@ describe('url serialisation', () => {
       sortKey: 'rating',
       sortDir: 'desc',
       detail: 'compact',
+      grouped: false,
     }
     expect(fromSearchParams(toSearchParams(s))).toEqual(s)
   })
