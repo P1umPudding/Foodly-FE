@@ -120,7 +120,7 @@ export function RecipeDetail() {
           )}
 
           {recipe.source && (
-            <footer className="mt-16 text-[0.95rem] text-foreground/75">
+            <footer className="mt-12 text-[0.95rem] text-foreground/75">
               Quelle:{' '}
               {isUrl(recipe.source) ? (
                 <a href={recipe.source} target="_blank" rel="noopener noreferrer" className="underline">
