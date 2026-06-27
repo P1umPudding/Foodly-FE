@@ -41,3 +41,47 @@ export function Stars({ value, size = 'sm' }: { value: number; size?: StarSize }
     </span>
   )
 }
+
+// 5%-step fill widths — finer than the quarter scale, still all literal strings so
+// Tailwind's scanner keeps them (a runtime `w-[${pct}%]` would never be generated).
+const METER_WIDTH: Record<number, string> = {
+  0: 'w-0',
+  5: 'w-[5%]',
+  10: 'w-[10%]',
+  15: 'w-[15%]',
+  20: 'w-1/5',
+  25: 'w-1/4',
+  30: 'w-[30%]',
+  35: 'w-[35%]',
+  40: 'w-2/5',
+  45: 'w-[45%]',
+  50: 'w-1/2',
+  55: 'w-[55%]',
+  60: 'w-3/5',
+  65: 'w-[65%]',
+  70: 'w-[70%]',
+  75: 'w-3/4',
+  80: 'w-4/5',
+  85: 'w-[85%]',
+  90: 'w-[90%]',
+  95: 'w-[95%]',
+  100: 'w-full',
+}
+
+function pct5(frac: number): keyof typeof METER_WIDTH {
+  return (Math.round(Math.min(1, Math.max(0, frac)) * 20) * 5) as keyof typeof METER_WIDTH
+}
+
+// A SINGLE star filled to value/max as a percentage (rounded to 5%). For the
+// compact list/detail rows that pair one star with the numeric rating.
+export function StarMeter({ value, max = 5, size = 'sm' }: { value: number; max?: number; size?: StarSize }) {
+  const cls = STAR_SIZE[size]
+  return (
+    <span className="relative inline-flex shrink-0" aria-label={`${value} von ${max}`}>
+      <Star className={`${cls} text-muted-foreground/40`} />
+      <span className={`absolute left-0 top-0 overflow-hidden ${METER_WIDTH[pct5(value / max)]}`}>
+        <Star className={`${cls} shrink-0 fill-current text-star`} />
+      </span>
+    </span>
+  )
+}

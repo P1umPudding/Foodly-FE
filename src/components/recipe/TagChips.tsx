@@ -10,10 +10,12 @@ export function TagChips({
   tags,
   hoverName = false,
   size = 'sm',
+  align = 'start',
 }: {
   tags: TagId[]
   hoverName?: boolean
   size?: 'sm' | 'lg'
+  align?: 'start' | 'end'
 }) {
   const { byId } = useTags()
   if (tags.length === 0) return null
@@ -45,7 +47,9 @@ export function TagChips({
   })
 
   const row = (
-    <div className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 ${size === 'lg' ? 'text-lg' : 'text-sm'}`}>
+    <div
+      className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 ${align === 'end' ? 'justify-end' : ''} ${size === 'lg' ? 'text-lg' : 'text-sm'}`}
+    >
       {items}
     </div>
   )

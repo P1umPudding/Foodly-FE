@@ -13,8 +13,9 @@ type AccessFilters = { activeRole: RoleFilter; activeCollab: CollabFilter }
 const NONE_COLLAPSED: ReadonlySet<string> = new Set()
 
 function Rows({ recipes, compact, access }: { recipes: Recipe[]; compact: boolean; access: AccessFilters }) {
+  // Compact rows sit close together as one list; detailed rows are spaced cards.
   return (
-    <div className="space-y-3">
+    <div className={compact ? 'space-y-0.5' : 'space-y-3'}>
       {recipes.map((r) => (
         <RecipeRow
           key={r.id}
