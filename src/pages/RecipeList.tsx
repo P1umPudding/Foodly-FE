@@ -53,9 +53,7 @@ export function RecipeList() {
   // persisted per user. Closed group keys; empty = all open. First visit (nothing
   // stored) starts with the "Ohne Kategorie" inbox folded.
   const groupingCats = groupingCategories(categories, state.categories)
-  const [collapsed, setCollapsedState] = useState<Set<string>>(
-    () => new Set(loadCollapsed(currentUserId) ?? ['uncat']),
-  )
+  const [collapsed, setCollapsedState] = useState<Set<string>>(() => new Set(loadCollapsed(currentUserId) ?? ['uncat']))
   const setCollapsed = (next: Set<string>) => {
     setCollapsedState(next)
     saveCollapsed(currentUserId, next)
@@ -116,10 +114,7 @@ export function RecipeList() {
       {/* Sticky page header: title + search + active filters stay pinned below the
           site nav. Its measured height feeds --list-sticky-top so the category
           headers and the filter rail tuck right beneath it (see effect above). */}
-      <div
-        ref={headerRef}
-        className="sticky top-[3.25rem] z-30 -mx-6 bg-background px-6 pb-3 pt-6"
-      >
+      <div ref={headerRef} className="sticky top-[3.25rem] z-30 -mx-6 bg-background px-6 pb-3 pt-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-baseline gap-3">
             <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
@@ -179,63 +174,63 @@ export function RecipeList() {
           tight before the layout would break. */}
       <div className="grid grid-cols-1 gap-6 pt-4 md:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)]">
         <div className="min-w-0">
-        {recipesReq.status === 'loading' && (
-          <div className="space-y-3">
-            {[0, 1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-[4.5rem] w-full rounded-xl" />
-            ))}
-          </div>
-        )}
+          {recipesReq.status === 'loading' && (
+            <div className="space-y-3">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-[4.5rem] w-full rounded-xl" />
+              ))}
+            </div>
+          )}
 
-        {recipesReq.status === 'error' && (
-          <Alert variant="destructive">
-            <AlertTitle>Konnte Rezepte nicht laden</AlertTitle>
-            <AlertDescription className="flex flex-col gap-2">
-              <span>{recipesReq.error?.message}</span>
-              <Button variant="outline" size="sm" onClick={() => setNonce((n) => n + 1)}>
-                Erneut versuchen
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
+          {recipesReq.status === 'error' && (
+            <Alert variant="destructive">
+              <AlertTitle>Konnte Rezepte nicht laden</AlertTitle>
+              <AlertDescription className="flex flex-col gap-2">
+                <span>{recipesReq.error?.message}</span>
+                <Button variant="outline" size="sm" onClick={() => setNonce((n) => n + 1)}>
+                  Erneut versuchen
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
 
-        {recipesReq.status === 'ready' && accessibleRecipes.length === 0 && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <UtensilsCrossed className="h-10 w-10 text-muted-foreground/40" />
-            <p className="text-muted-foreground">Noch keine Rezepte.</p>
-          </div>
-        )}
+          {recipesReq.status === 'ready' && accessibleRecipes.length === 0 && (
+            <div className="flex flex-col items-center gap-3 py-16 text-center">
+              <UtensilsCrossed className="h-10 w-10 text-muted-foreground/40" />
+              <p className="text-muted-foreground">Noch keine Rezepte.</p>
+            </div>
+          )}
 
-        {recipesReq.status === 'ready' && accessibleRecipes.length > 0 && visible.length === 0 && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <SearchX className="h-10 w-10 text-muted-foreground/40" />
-            <p className="text-muted-foreground">Keine Treffer für die aktuellen Filter.</p>
-            {/* Search ignores ingredients on purpose — point users at the Zutaten filter. */}
-            {state.search.trim() !== '' && (
-              <p className="max-w-xs text-sm text-muted-foreground/80">
-                Die Suche durchsucht Name, Tags &amp; Abschnitte – nach Zutaten filterst du über den Zutaten-Filter.
-              </p>
-            )}
-            {isFilterActive(state) && (
-              <Button variant="outline" size="sm" onClick={clear}>
-                Filter zurücksetzen
-              </Button>
-            )}
-          </div>
-        )}
+          {recipesReq.status === 'ready' && accessibleRecipes.length > 0 && visible.length === 0 && (
+            <div className="flex flex-col items-center gap-3 py-16 text-center">
+              <SearchX className="h-10 w-10 text-muted-foreground/40" />
+              <p className="text-muted-foreground">Keine Treffer für die aktuellen Filter.</p>
+              {/* Search ignores ingredients on purpose — point users at the Zutaten filter. */}
+              {state.search.trim() !== '' && (
+                <p className="max-w-xs text-sm text-muted-foreground/80">
+                  Die Suche durchsucht Name, Tags &amp; Abschnitte – nach Zutaten filterst du über den Zutaten-Filter.
+                </p>
+              )}
+              {isFilterActive(state) && (
+                <Button variant="outline" size="sm" onClick={clear}>
+                  Filter zurücksetzen
+                </Button>
+              )}
+            </div>
+          )}
 
-        {recipesReq.status === 'ready' && visible.length > 0 && (
-          <RecipeListView
-            recipes={visible}
-            categories={groupingCats}
-            detail={state.detail}
-            grouped={state.grouped}
-            activeRole={state.role}
-            activeCollab={state.collab}
-            collapsed={collapsed}
-            onCollapsedChange={setCollapsed}
-          />
-        )}
+          {recipesReq.status === 'ready' && visible.length > 0 && (
+            <RecipeListView
+              recipes={visible}
+              categories={groupingCats}
+              detail={state.detail}
+              grouped={state.grouped}
+              activeRole={state.role}
+              activeCollab={state.collab}
+              collapsed={collapsed}
+              onCollapsedChange={setCollapsed}
+            />
+          )}
         </div>
 
         {/* Desktop rail (right). Sticks below the sticky page header; scrolls internally if taller than the viewport. */}
