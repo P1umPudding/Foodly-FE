@@ -1,18 +1,15 @@
 import { Crown, Pencil, Eye, Lock, Users, Share2 } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { myRole, collaborationState, type Role, type Collaboration } from '../../api/views'
 import { useCurrentUserId } from '../../catalog/CatalogProvider'
 import { ROLE_COLOR, COLLAB_COLOR } from '../../list/access'
 import type { RoleFilter, CollabFilter } from '../../list/state'
 import type { Recipe } from '../../api/protocol'
 
-// Grey at rest; the row's `group` hover reveals the muted access colour. An icon
-// also shows its colour permanently when its value is the active filter — so a
-// matching row visibly explains why it's in the result set.
-function iconClass(colored: boolean, color: { icon: string; iconHover: string }): string {
-  return colored
-    ? `h-3.5 w-3.5 transition-colors ${color.icon}`
-    : `h-3.5 w-3.5 text-muted-foreground/70 transition-colors ${color.iconHover}`
+// Neutral grey at rest (no hover colour-reveal). An icon shows its access colour
+// permanently only when its value is the active filter — so a matching row still
+// visibly explains why it's in the result set.
+function iconClass(colored: boolean, color: { icon: string }): string {
+  return colored ? `h-3.5 w-3.5 ${color.icon}` : 'h-3.5 w-3.5 text-muted-foreground/70'
 }
 
 const ROLE = {
@@ -43,22 +40,12 @@ export function RoleCollabIndicator({
   const collab = COLLAB[collabKey]
   return (
     <span className="inline-flex items-center gap-1">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span aria-label={role.label}>
-            <role.Icon className={iconClass(activeRole === roleKey, ROLE_COLOR[roleKey])} />
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>{role.label}</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span aria-label={collab.label}>
-            <collab.Icon className={iconClass(activeCollab === collabKey, COLLAB_COLOR[collabKey])} />
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>{collab.label}</TooltipContent>
-      </Tooltip>
+      <span role="img" aria-label={role.label}>
+        <role.Icon className={iconClass(activeRole === roleKey, ROLE_COLOR[roleKey])} />
+      </span>
+      <span role="img" aria-label={collab.label}>
+        <collab.Icon className={iconClass(activeCollab === collabKey, COLLAB_COLOR[collabKey])} />
+      </span>
     </span>
   )
 }

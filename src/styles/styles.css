@@ -1,5 +1,5 @@
 /**
- * App stylesheet entry — Tailwind v4 wiring (mirrors the Homepage/Recipes setup).
+ * App stylesheet entry — Tailwind v4 wiring.
  *
  * Split: theme.css = token VALUES; this file = the wiring (@custom-variant,
  * @theme inline, compact text scale, base CSS). Preflight is ON.
@@ -97,8 +97,8 @@
   --shadow-2xl: var(--shadow-2xl);
 }
 
-/* Compact TEXT SCALE — same as the Skaile platform / Homepage: Tailwind's text
-   tokens are redefined smaller than the defaults (--text-base 12px, not 16px).
+/* Compact TEXT SCALE — Tailwind's text tokens are redefined smaller than the
+   defaults (--text-base 13px, not 16px).
    This is why the @postxl Button/Input/labels look compact via their `size`
    prop alone. Display sizes (text-2xl+) stay larger for headings. */
 @theme {
@@ -121,9 +121,17 @@
   :root {
     /* Distinctive display face for headings (loaded in index.html). */
     --font-display: 'Bricolage Grotesque', var(--font-sans);
+    /* Height of the sticky site nav — single source for everything that sticks
+       just beneath it (the list's sticky header, category headers, filter rail). */
+    --site-nav-h: 3.75rem;
   }
   html {
     -webkit-text-size-adjust: 100%;
+    /* Always reserve the vertical scrollbar's space. Without this, filtering down
+       to a short list drops the scrollbar, widening the viewport and shifting the
+       mx-auto-centred layout sideways. (No-op where scrollbars overlay, e.g. macOS
+       default.) */
+    scrollbar-gutter: stable;
   }
   body {
     margin: 0;
@@ -155,6 +163,17 @@
     -moz-appearance: textfield !important;
     appearance: textfield !important;
   }
+}
+
+/* Project preference: on focus the postxl inputs show just a purple (--ring) border —
+   no ring. They mark themselves with data-slot="input" (the NumberInput shows focus on
+   its wrapper via focus-within). We only zero the ring (--tw-ring-shadow); the
+   component's own focus-visible:border-ring (purple) then shows through, and the
+   resting shadow is left untouched. UNLAYERED on purpose — the component's focus
+   utilities live in @layer utilities, so a layered rule would lose to them. */
+input[data-slot='input']:focus-visible,
+div:has(> input[data-slot='input']):focus-within {
+  --tw-ring-shadow: 0 0 #0000;
 }
 
 /* Tailwind hardcodes `.rounded` to 0.25rem; override to follow --radius so the

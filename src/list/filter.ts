@@ -1,5 +1,9 @@
 import type { Recipe, UserId, UserCategory } from '../api/protocol'
 
+// Sentinel category id for "Ohne Kategorie" (uncategorised). Real category ids are
+// positive, so 0 can't collide. Selecting it OR-includes recipes in no category.
+export const UNCATEGORIZED_ID = 0
+
 // When the category facet is active, by-category grouping should show only the
 // selected categories; otherwise all. (Sidebar still shows all categories.)
 export function groupingCategories(categories: UserCategory[], selected: number[]): UserCategory[] {
@@ -9,8 +13,13 @@ import type { ListState } from './state'
 import { roleOf, collaborationState } from '../api/views'
 import { matchesSearch } from './search'
 
+function isUncategorised(recipe: Recipe, categories: UserCategory[]): boolean {
+  return !categories.some((c) => c.recipes.includes(recipe.id))
+}
+
 function inSelectedCategory(recipe: Recipe, selected: number[], categories: UserCategory[]): boolean {
   if (selected.length === 0) return true // facet inactive
+  if (selected.includes(UNCATEGORIZED_ID) && isUncategorised(recipe, categories)) return true
   return categories.some((c) => selected.includes(c.id) && c.recipes.includes(recipe.id))
 }
 

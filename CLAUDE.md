@@ -40,9 +40,9 @@ There's no server code and no secrets in the repo.
     the real protocol.
 - `src/hooks/` — `useSocketStatus` (live connection state), `useRequest` (run a
   request, track loading/ready/error).
-- `src/styles/theme.css` holds the design-token VALUES (shared Skaile brand,
-  kept in sync by hand with the Homepage/Recipes apps). `src/styles/styles.css`
-  holds the Tailwind v4 wiring (preflight ON).
+- `src/styles/theme.css` holds the design-token VALUES (the Skaile purple brand —
+  Foodly's own; no cross-app sync). `src/styles/styles.css` holds the Tailwind v4
+  wiring (preflight ON).
 
 ### Backend access — conventions
 
@@ -144,10 +144,10 @@ restating its name and signature. Don't do that.
     utilities (colors, sizes, spacing, widths) as CSS rules. A new CSS rule for one
     of those is almost always the wrong call; if you're writing one, stop and find
     the Tailwind way first.
-- `theme.css` (brand tokens) is a manual copy shared with the Homepage/Recipes
-  apps — keep them in sync when changing colors/radii/shadows. **If a value must
-  differ by light/dark (e.g. an accent color), that's the one legit reason to add
-  CSS here:** add the token to *both* the `:root` and `.dark` blocks, map it once
+- `theme.css` holds the brand tokens (Foodly's own — no cross-app sync). **If a
+  value must differ by light/dark (e.g. an accent color), that's the one legit
+  reason to add CSS here:** add the token to *both* the `:root` and `.dark` blocks,
+  map it once
   in `styles.css` `@theme inline` (`--color-x: var(--x)`), then use the generated
   utility (`text-x`/`bg-x`). Do this *sparingly* — only for genuinely theme-able
   values, don't tokenize one-offs. (Example: `--star`, the rating-star gold.)

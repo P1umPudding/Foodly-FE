@@ -9,12 +9,12 @@ const cat = (id: number, name: string, recipes: number[], order: number): UserCa
   ({ id, name, recipes, order, color: '' }) as unknown as UserCategory
 
 describe('deriveGroups', () => {
-  it('orders categories and appends "Ohne Kategorie" for leftovers', () => {
+  it('leads with "Ohne Kategorie" for leftovers, then ordered categories', () => {
     const recipes = [recipe(1), recipe(2), recipe(3)]
     const cats = [cat(20, 'B', [2], 2), cat(10, 'A', [1], 1)]
     const groups = deriveGroups(recipes, cats)
-    expect(groups.map((g) => g.key)).toEqual(['cat-10', 'cat-20', 'uncat'])
-    expect(groups[2].recipes.map((r) => r.id)).toEqual([3]) // recipe 3 is uncategorised
+    expect(groups.map((g) => g.key)).toEqual(['uncat', 'cat-10', 'cat-20'])
+    expect(groups[0].recipes.map((r) => r.id)).toEqual([3]) // recipe 3 is uncategorised
   })
 
   it('drops categories with no matching recipes', () => {

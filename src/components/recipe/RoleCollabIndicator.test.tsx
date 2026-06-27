@@ -40,13 +40,13 @@ describe('RoleCollabIndicator', () => {
     renderIndicator({ ...base, owner: 1 })
     expect(screen.getByLabelText(/Besitzer/i)).toBeTruthy()
     expect(screen.getByLabelText(/privat/i)).toBeTruthy()
-    // neutral grey at rest; the muted owner colour is revealed only on row hover
+    // neutral grey at rest, no hover colour-reveal
     const ownerClass = screen
       .getByLabelText(/Besitzer/i)
       .querySelector('svg')
       ?.getAttribute('class')
     expect(ownerClass).toContain('text-muted-foreground/70')
-    expect(ownerClass).toContain('group-hover:text-[#a07b3f]')
+    expect(ownerClass).not.toContain('group-hover:')
   })
 
   it('labels viewer + collaborative', () => {

@@ -62,3 +62,17 @@ it('renders a collapsible, colour-coded heading per category', () => {
   expect(heading.className).toContain('text-[#be123c]')
   expect(heading.className).toContain('dark:text-[#fb7185]')
 })
+
+it('flat list (grouped=false): no category headers, every recipe once', () => {
+  render(
+    <TooltipProvider>
+      <MemoryRouter>
+        <RecipeListView recipes={recipes} categories={cats} detail="detailed" grouped={false} />
+      </MemoryRouter>
+    </TooltipProvider>,
+  )
+  expect(screen.queryByText('Fav')).toBeNull()
+  expect(screen.queryByText('Ohne Kategorie')).toBeNull()
+  expect(screen.getAllByText('In Both').length).toBe(1) // no longer duplicated across categories
+  expect(screen.getAllByText('Loner').length).toBe(1)
+})
