@@ -11,6 +11,8 @@
 > - **A — Filtern/Suchen/Sortieren:** Facetten + UND/ODER-Verknüpfung, Sortierung,
 >   Counts, Such-Semantik, Empty-Zustand, Client-seitig → [§A](#a--filtern--suchen--sortieren--entschieden). ✅
 > - **D — Rollen-Modi:** Zwei-Achsen-Modell, gültige Zellen, Relax-Verhalten → [§D](#d--rollen-modi-filter-nach-rolle--entschieden). ✅
+> - **Rating-Sichtbarkeit** (kollaborationsabhängig: eigenes Rating vs. Durchschnitt) → [§Rating-Sichtbarkeit](#rating-sichtbarkeit-kollaborationsabhängig--entschieden). ✅
+> - **Rollen-/Collaboration-Indikator** in der Listenzeile (zwei Glyphen, Farbe verstärkt) → [§Indikator](#rollen-collaboration-indikator-listenzeile--kodierung-entschieden). ✅
 > - **State / URL / Persistenz** → [§State](#state--url--persistenz--entschieden). ✅
 > - **Zutaten-Filter-Quelle** → [§Zutaten-Quelle](#zutaten-filter-quelle--entschieden). ✅
 > - **Mock-Ausbau** (Voraussetzung, damit D/Suche/Sort sichtbar werden) → [§Mock-Ausbau](#mock-ausbau--stand--restlücke). ✅
@@ -37,6 +39,58 @@ Phase 2 = **A + C + D**. Das **Dashboard/Startseite** ist herausgelöst zu
   Tag-Filter, Volltext, Sortierung).
 - **C — Listen-Ansichten** (umschaltbar: `detailed/compact`, `by-category/flat`).
 - **D — Rollen-Modi** (Filter nach der Rolle des aktuellen Users).
+
+---
+
+## Finale UI-Umsetzung (Layout-Schliff) ✅ implementiert
+
+> Beim Layout-Schliff nach dem Phase-1-Merge konkretisiert. Schließt die in §D,
+> §A, §C und beim Indikator als „offen (visuell)" markierten Punkte ab; die
+> **Logik** der jeweiligen Sektionen bleibt unverändert — hier steht nur die
+> finale **Control-Form & Anordnung**.
+
+**Zweispaltiges Seiten-Layout** (`md:grid-cols-[18rem_1fr]`): links ein **fester
+Filter-Rail** (`sticky top-4`, kein eigenes Scroll-Container), rechts Überschrift
++ Toolbar + Liste in voller Breite.
+
+- **Filter-Rail (links), vier betitelte Gruppen** (Versal-Header + Trenner), von
+  oben nach unten nach mentalem Modell:
+  1. **Suche** — Volltext-Input ganz oben; daneben **„Zurücksetzen"** (nur sichtbar
+     wenn ein Filter/Suche aktiv ist → ersetzt den separaten Reset im Empty-Zustand
+     nicht, ergänzt ihn).
+  2. **Kategorien** — die Multi-Select-Liste (ODER), mit statischem Zähler.
+  3. **Verfeinern** — **Tags** (Toggle-Badges), **Zutaten** (durchsuchbares
+     Inline-Feld + gefilterte Badge-Liste) und **Maximale Zeit** (`≤`-Präfix +
+     Minuten-Input + Inline-Toggle `Arbeitszeit/Gesamtzeit`).
+  4. **Zugriff** — **Rolle** und **Freigabe** als **zwei segmentierte 3er-Toggles**
+     (Piktogramm über Name, je Achse single-select, erneuter Klick aufs aktive
+     Segment = zurück auf „Alle"). Ersetzt die ursprünglich skizzierte
+     **3×3-Matrix/„Grid"** aus §D-Variante (a): selbe Zwei-Achsen-Logik (Rolle ×
+     Collaboration, relaxte Schwester-Achse), aber als zwei nebeneinander gelegte
+     Segment-Reihen statt einer Zell-Matrix — übersichtlicher und ohne ausgegraute
+     Zellen. Aktiv-Tönung dezent: Rolle Primär-Hue, Freigabe semantisch
+     (Privat neutral, **Geteilt blau**, **Kollaborativ grün**) — dasselbe
+     Farbvokabular wie der Zeilen-Indikator.
+  - Strukturell: `FilterControls` orchestriert alle Gruppen über wiederverwendbare
+    `FilterGroup`/`FieldLabel`; `CategorySidebar` liefert nur noch die Body der
+    Kategorien-Gruppe (eigene Überschrift entfernt).
+
+- **Toolbar (oben rechts, neben „Rezepte"):** „Wie anzeigen" — orthogonal zu den
+  Filtern und daher **nicht** im Rail:
+  - **Sortierung** als **Dropdown** (`Select`): die acht Kombinationen aus
+    Sortierschlüssel × Richtung (Name/Arbeitszeit/Gesamtzeit/Bewertung, je auf-/
+    absteigend) als eine Liste — statt separater Button-Reihe.
+  - **Detail** (`detailed/compact`) und **Gruppierung** (`flat/by-category`) als
+    zwei **Icon-Toggle-Gruppen**.
+
+- **Live-Counts (§A „Counts an Optionen"):** **zurückgestellt.** Die in §D/§A
+  skizzierten Live-Trefferzahlen am Rollen-Grid entfielen mit dem Wechsel auf
+  segmentierte Toggles; Kategorien behalten ihren statischen Zähler. Volle faceted
+  counts bleiben wie dort vermerkt bewusst außerhalb Phase 2.
+
+- **Zeilen-Indikator:** wie in §Indikator entschieden — unten rechts in der
+  Meta-Zeile (`ml-auto`); Icons `Crown/Pencil/Eye` (Rolle) und `Lock/Share2/Users`
+  (Freigabe) mit Klartext-`title`/`aria-label`.
 
 ---
 
@@ -92,6 +146,11 @@ willkürlichen Prioritätsregeln, um Überlappungen aufzulösen.
 
 ### Darstellung & Interaktion — Variante (a)
 
+> **Umgesetzt als zwei segmentierte 3er-Toggles** (nicht als 3×3-Matrix) — siehe
+> [§Finale UI-Umsetzung](#finale-ui-umsetzung-layout-schliff--implementiert). Die
+> Zwei-Achsen-Logik unten gilt unverändert; die ausgegrauten-Zellen-/Matrix-
+> Darstellung entfiel zugunsten zweier nebeneinander gelegter Segment-Reihen.
+
 Beide Achsen als sichtbare Controls (z.B. zwei segmented controls), inklusive
 `Any`.
 
@@ -113,6 +172,82 @@ Beide Achsen als sichtbare Controls (z.B. zwei segmented controls), inklusive
 >   `Any`** (deckt „all" ab). Final beim Layout-Schliff nach Phase 1.
 > - **Achse-1-Label-Wortlaut** ebenfalls dort.
 > - Beide ändern die Logik nicht — nur die Control-Form.
+
+---
+
+## Rating-Sichtbarkeit (kollaborationsabhängig) ✅ entschieden
+
+Wer welche Bewertung sieht, hängt vom **Collaboration-Zustand** ab (Achse 2 aus
+[§D](#d--rollen-modi-filter-nach-rolle--entschieden)) — Bewertungen sind in
+nicht-kollaborativen Rezepten **privat pro Rater**:
+
+- **Private & Shared (nicht-kollaborativ):** jeder sieht **nur die eigene**
+  Bewertung — **kein** Durchschnitt, **keine** fremden Ratings.
+- **Collaborative:** jeder sieht den **Gesamtdurchschnitt** über alle
+  Bewertungen (gepoolt).
+
+**Konsequenz fürs Frontend (verfeinert Phase 1):**
+
+- Neuer reiner Helfer in `views.ts`, z.B.
+  `visibleRating(recipe, currentUserId): number | null` → bei Private/Shared das
+  **eigene** Rating, bei Collaborative der **Durchschnitt** (`averageRating`);
+  `null`, wenn nichts anzuzeigen ist (nicht selbst bewertet bzw. keine Ratings).
+  Ersetzt den pauschalen `averageRating`-Aufruf an den Anzeigestellen.
+- **Liste (`RecipeRow`):** das `★ <Zahl>` nutzt `visibleRating` (eigenes Rating
+  bzw. Durchschnitt), statt immer den Durchschnitt zu zeigen.
+- **Detail (`Rating`-Popover):**
+  - Private/Shared → nur **„Deine Bewertung"**, **kein** Breakdown (es gibt
+    nichts Fremdes zu zeigen).
+  - Collaborative → **Durchschnitt** als Kopf; der Phase-1-Breakdown nach Rolle
+    bleibt **nur hier** sinnvoll (einziger Kontext, in dem fremde Ratings
+    sichtbar sind). Ob der Breakdown auch dort gezeigt wird, ist eine kleine
+    Layout-Wahl (Default: ja).
+- **Defensiv:** liefert das Backend für nicht-kollaborative Rezepte trotzdem
+  fremde Ratings mit, **filtert** das Frontend sie für die Anzeige weg — nie mehr
+  zeigen, als die Regel erlaubt.
+
+> **Backend-/Protokoll-Implikation:** idealerweise sendet das Backend fremde
+> Ratings für nicht-kollaborative Rezepte gar nicht erst mit (Privacy an der
+> Quelle). Gehört zu den „Offene Punkte" in `../plan.md`, mit dem Backend-Team
+> zu klären.
+
+---
+
+## Rollen-/Collaboration-Indikator (Listenzeile) ✅ Kodierung entschieden
+
+Man soll **ohne Detail-View** sehen, welche **Rechte/Rolle** man an einem Rezept
+hat und ob es **Shared/Collaborative** ist. Dafür pro Zeile **zwei kleine
+Glyphen**, die genau die zwei [§D](#d--rollen-modi-filter-nach-rolle--entschieden)-Achsen
+spiegeln — gespeist aus denselben reinen Helfern wie der §D-Filter
+(`myRole(recipe, currentUserId)` / `collaborationState(recipe)` in `views.ts`,
+wiederverwendet — **kein neues Datenmodell**).
+
+**Kodierung — zwei Glyphen, Farbe verstärkt:**
+
+- **Rolle** (Icon, „darf ich bearbeiten?"): `owner` / `editor` / `viewer`.
+- **Collaboration** (Icon **+ Farbe**, „wer noch?"): **Private** (grau) /
+  **Shared** (blau) / **Collaborative** (grün).
+- Icons (lucide): owner `Crown`, editor `Pencil`, viewer `Eye`; Private `Lock`,
+  Shared `Share2` (echtes Share-Icon), Collaborative `Users` (mehrere Personen).
+
+**Regeln:**
+
+- **Farbe ist nie der alleinige Kanal** (Farbsehschwäche): die Bedeutung tragen
+  **Icon + Tooltip** (Klartext, z.B. „Bearbeiter · kollaborativ"); Farbe nur als
+  Verstärkung fürs schnelle Scannen.
+- Beide Glyphen **immer** zeigen (auch owner/Private) — konsistente
+  Zeichensprache, kein „mal da, mal weg".
+- Collaboration-Farben als eigene **Tokens** (grau/blau/grün); falls sie je
+  Theme variieren müssen, über die übliche `theme.css`→`styles.css`-Brücke
+  light/dark-fähig (siehe CLAUDE.md).
+- Konsistenz mit §D: dieselben drei Collaboration-Farben kann das §D-Control
+  wiederverwenden (ein Vokabular für Filter *und* Zeilen-Indikator).
+
+**Platzierung entschieden:** unten rechts in der Zeile — am Ende der Meta-Zeile
+(`ml-auto`), in der Ecke unter den Tags.
+
+**Offen (Layout):** Glyph-Größe; ob die **`compact`-Ansicht** (§C) die Glyphen
+verdichtet — sie darf die *Darstellung* straffen, nicht die *Kodierung* ändern.
 
 ---
 
@@ -292,9 +427,10 @@ Alle Mock-Erweiterungen müssen **typkonform zu `protocol.ts`** bleiben.
 
 ## C — Listen-Ansichten
 
-> **Visuelle Anatomie noch offen** (nach Phase 1, baut auf der dort entstehenden
-> Zeile/Liste auf): `detailed ↔ compact`, einklappbare `by-category`-Gruppen,
-> Default-Ansicht.
+> **Visuelle Anatomie umgesetzt:** die beiden Umschalter sitzen als Icon-Toggle-
+> Gruppen in der **Toolbar oben rechts** (nicht im Filter-Rail) — siehe
+> [§Finale UI-Umsetzung](#finale-ui-umsetzung-layout-schliff--implementiert).
+> Default-Ansicht: `detailed` + `flat`. Logik-Rahmen wie unten.
 
 **Logik-Rahmen steht** (entkoppelt, gilt schon jetzt):
 
