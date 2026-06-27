@@ -15,15 +15,16 @@ import {
   TooltipTrigger,
 } from '@postxl/ui-components'
 import {
-  ALargeSmall,
+  Type,
   Clock,
   Timer,
   Star,
+  ArrowUpAZ,
   ArrowDownAZ,
-  ArrowDownZA,
-  ArrowDown01,
-  ArrowDown10,
+  ArrowUpNarrowWide,
+  ArrowDownWideNarrow,
   LayoutList,
+  Menu,
   ListTree,
   List,
   type LucideIcon,
@@ -32,18 +33,17 @@ import type { ListState, SortKey, SortDir, DetailView } from '../../list/state'
 
 type Criterion = { key: SortKey; label: string; Icon: LucideIcon }
 const SORT_CRITERIA: Criterion[] = [
-  { key: 'name', label: 'Name', Icon: ALargeSmall },
+  { key: 'name', label: 'Name', Icon: Type },
   { key: 'work', label: 'Arbeitszeit', Icon: Clock },
   { key: 'overall', label: 'Gesamtzeit', Icon: Timer },
   { key: 'rating', label: 'Bewertung', Icon: Star },
 ]
 
-// Direction glyph: the arrow always points DOWN — only the letters/digits flip to
-// show the order (A–Z / Z–A for name, 0–1 / 1–0 for the numeric keys). So "more
-// of this first" consistently reads as the 1–0 / Z–A variant, never an up arrow.
+// Direction glyph: the ARROW flips up (ascending) / down (descending). For name
+// the letters ride along (A–Z), for the numeric keys the bars go narrow→wide.
 function dirIcon(sortKey: SortKey, dir: SortDir): LucideIcon {
-  if (sortKey === 'name') return dir === 'asc' ? ArrowDownAZ : ArrowDownZA
-  return dir === 'asc' ? ArrowDown01 : ArrowDown10
+  if (sortKey === 'name') return dir === 'asc' ? ArrowUpAZ : ArrowDownAZ
+  return dir === 'asc' ? ArrowUpNarrowWide : ArrowDownWideNarrow
 }
 
 // Plain-language meaning of the current direction, per criterion (toggle tooltip).
@@ -70,8 +70,16 @@ function ViewToggle<T extends string>({
   options: ViewOption<T>[]
   ariaLabel: string
 }) {
+  // A visible outline turns each pair into a clear segmented unit (otherwise the
+  // buttons are invisible at rest and the two groups blur together).
   return (
-    <ToggleGroup type="single" value={value} onValueChange={(v) => v && onChange(v as T)} aria-label={ariaLabel}>
+    <ToggleGroup
+      type="single"
+      value={value}
+      onValueChange={(v) => v && onChange(v as T)}
+      aria-label={ariaLabel}
+      className="rounded-md border border-border"
+    >
       {options.map((o) => {
         const selected = value === o.value
         return (
@@ -118,10 +126,11 @@ export function ListToolbar({ state, set }: { state: ListState; set: (patch: Par
         </Tooltip>
 
         <Select value={state.sortKey} onValueChange={(v) => set({ sortKey: v as SortKey })}>
-          <SelectTrigger aria-label="Sortierkriterium" className="w-auto gap-2 px-3">
+          {/* fixed width so the trigger doesn't resize per criterion; icon trails the label */}
+          <SelectTrigger aria-label="Sortierkriterium" className="w-auto gap-2 px-3 sm:w-40 sm:justify-between">
             <span className="flex items-center gap-1.5">
-              <criterion.Icon className="h-4 w-4" />
               <span className="hidden text-sm sm:inline">{criterion.label}</span>
+              <criterion.Icon className="h-4 w-4" />
             </span>
           </SelectTrigger>
           <SelectContent>
@@ -146,7 +155,7 @@ export function ListToolbar({ state, set }: { state: ListState; set: (patch: Par
           onChange={(v: DetailView) => set({ detail: v })}
           options={[
             { value: 'detailed', label: 'Detailliert', Icon: LayoutList },
-            { value: 'compact', label: 'Kompakt', Icon: List },
+            { value: 'compact', label: 'Kompakt', Icon: Menu },
           ]}
         />
         <ViewToggle

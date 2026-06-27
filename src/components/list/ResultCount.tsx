@@ -4,7 +4,7 @@
 export function ResultCount({ matching, total }: { matching: number; total: number }) {
   return (
     <span className="tabular-nums text-sm text-muted-foreground">
-      {matching === total ? total : `${matching} von ${total}`}
+      ({matching === total ? total : `${matching} von ${total}`})
     </span>
   )
 }

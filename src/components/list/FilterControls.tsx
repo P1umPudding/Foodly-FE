@@ -40,7 +40,7 @@ function toggle<T>(list: T[], value: T): T[] {
 
 // Reset link for a single facet — sits right-aligned next to the group heading,
 // only while that facet has a selection.
-function ClearButton({ onClick, label = 'Leeren' }: { onClick: () => void; label?: string }) {
+function ClearButton({ onClick, label = 'Zurücksetzen' }: { onClick: () => void; label?: string }) {
   return (
     <Button
       type="button"
@@ -142,7 +142,9 @@ function DurationFilter({ value, onChange }: { value: number | null; onChange: (
           prefix="≤"
           suffix="Min"
           wrapperClassName="w-28 shrink-0"
-          className="text-right"
+          // dark:bg-transparent so the input area matches the wrapper (the lib leaves
+          // dark:bg-input/30 on the input, which otherwise differs from prefix/suffix).
+          className="bg-transparent text-right dark:bg-transparent"
         />
       </div>
       {/* Ghost segmented presets — same look as the Zugriff toggles (no outline/fill
@@ -158,7 +160,7 @@ function DurationFilter({ value, onChange }: { value: number | null; onChange: (
             key={m}
             value={String(m)}
             aria-label={`≤ ${m} Minuten`}
-            className={`flex-1 text-sm ${value === m ? SELECTED_CHIP : ''}`}
+            className={`h-7 flex-1 px-1.5 text-xs ${value === m ? SELECTED_CHIP : ''}`}
           >
             ≤ {m} Min
           </ToggleGroupItem>

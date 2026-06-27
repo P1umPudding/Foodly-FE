@@ -110,70 +110,70 @@ export function RecipeList() {
   )
 
   return (
-    <div className="mx-auto max-w-6xl px-6 pb-10">
-      {/* Sticky page header: title + search + active filters stay pinned below the
-          site nav. Its measured height feeds --list-sticky-top so the category
-          headers and the filter rail tuck right beneath it (see effect above). */}
-      <div ref={headerRef} className="sticky top-[3.25rem] z-30 -mx-6 bg-background px-6 pb-3 pt-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-baseline gap-3">
-            <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
-            <ResultCount matching={visible.length} total={accessibleRecipes.length} />
+    // Two columns: the list (with its own sticky header) and the filter rail. The
+    // list holds a min width so that, once space gets tight, the RAIL shrinks
+    // (18→13.5rem) instead of only the list.
+    <div className="mx-auto grid max-w-6xl gap-6 px-6 pb-10 md:grid-cols-[minmax(28rem,1fr)_minmax(13.5rem,18rem)]">
+      <div className="min-w-0">
+        {/* Sticky page header over the scrolling list. Its measured height feeds
+            --list-sticky-top so the category headers tuck right beneath it. */}
+        <div ref={headerRef} className="sticky top-[3.25rem] z-30 bg-background pb-3 pt-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-baseline gap-4">
+              <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
+              <ResultCount matching={visible.length} total={accessibleRecipes.length} />
+            </div>
+            {/* Mobile-only filter drawer trigger */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 md:hidden">
+                  <Filter className="h-4 w-4" />
+                  Filter
+                  {activeFacetCount(state) > 0 && (
+                    <Badge variant="secondary" className="ml-0.5 h-5 min-w-5 justify-center px-1 tabular-nums">
+                      {activeFacetCount(state)}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[20rem] overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>Filter</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4">{filters}</div>
+              </SheetContent>
+            </Sheet>
           </div>
-          {/* Mobile-only filter drawer trigger */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5 md:hidden">
-                <Filter className="h-4 w-4" />
-                Filter
-                {activeFacetCount(state) > 0 && (
-                  <Badge variant="secondary" className="ml-0.5 h-5 min-w-5 justify-center px-1 tabular-nums">
-                    {activeFacetCount(state)}
-                  </Badge>
-                )}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[20rem] overflow-y-auto">
-              <SheetHeader>
-                <SheetTitle>Filter</SheetTitle>
-              </SheetHeader>
-              <div className="mt-4">{filters}</div>
-            </SheetContent>
-          </Sheet>
-        </div>
 
-        {/* Search bar with the sort/view toolbar to its right (drops below on mobile). */}
-        <div className="mt-2.5 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <SearchInput
-            value={state.search}
-            onChange={(v) => set({ search: v })}
-            placeholder="Name, Tag oder Abschnitt suchen…"
-            clearLabel="Suche leeren"
-            className="flex-1"
-          />
-          {/* Single "Ansicht" menu: sort + density. */}
-          <div className="flex justify-end sm:block">
-            <ListToolbar state={state} set={set} />
+          {/* Search bar with the sort/view toolbar to its right (drops below on mobile). */}
+          <div className="mt-2.5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <SearchInput
+              value={state.search}
+              onChange={(v) => set({ search: v })}
+              placeholder="Name, Tag oder Abschnitt suchen…"
+              clearLabel="Suche leeren"
+              className="flex-1"
+            />
+            {/* Single "Ansicht" menu: sort + density. */}
+            <div className="flex justify-end sm:block">
+              <ListToolbar state={state} set={set} />
+            </div>
+          </div>
+
+          {/* Removable chips for the active filters + reset-all. */}
+          <div className="mt-5 empty:mt-0">
+            <ActiveFilters
+              state={state}
+              set={set}
+              clear={clear}
+              categories={categories}
+              tags={tagList}
+              ingredients={usedIngredientList}
+            />
           </div>
         </div>
 
-        {/* Removable chips for the active filters + reset-all. */}
-        <div className="mt-5 empty:mt-0">
-          <ActiveFilters
-            state={state}
-            set={set}
-            clear={clear}
-            categories={categories}
-            tags={tagList}
-            ingredients={usedIngredientList}
-          />
-        </div>
-      </div>
-
-      {/* Body: list + (desktop) filter rail. Rail can shrink a little when space is
-          tight before the layout would break. */}
-      <div className="grid grid-cols-1 gap-6 pt-4 md:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)]">
-        <div className="min-w-0">
+        <div className="pt-1">
           {recipesReq.status === 'loading' && (
             <div className="space-y-3">
               {[0, 1, 2, 3].map((i) => (
@@ -232,12 +232,13 @@ export function RecipeList() {
             />
           )}
         </div>
-
-        {/* Desktop rail (right). Sticks below the sticky page header; scrolls internally if taller than the viewport. */}
-        <aside className="hidden md:sticky md:top-[var(--list-sticky-top,4.5rem)] md:flex md:max-h-[calc(100vh-var(--list-sticky-top,5.5rem)-1rem)] md:flex-col md:gap-4 md:self-start md:overflow-y-auto">
-          {filters}
-        </aside>
       </div>
+
+      {/* Desktop rail. Climbs up beside the header (top-aligned, below the site nav)
+          and only ever scrolls inside itself — never as part of the page. */}
+      <aside className="hidden md:sticky md:top-[3.25rem] md:flex md:max-h-[calc(100vh-3.25rem-1rem)] md:flex-col md:gap-4 md:self-start md:overflow-y-auto md:pt-6">
+        {filters}
+      </aside>
     </div>
   )
 }
