@@ -185,7 +185,7 @@ export function RecipeList() {
               <SearchInput
                 value={state.search}
                 onChange={(v) => set({ search: v })}
-                placeholder="Name, Tag oder Abschnitt suchen…"
+                placeholder="Suchen…"
                 clearLabel="Suche leeren"
                 className="flex-1"
               />

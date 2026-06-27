@@ -54,7 +54,9 @@ export function CategorySidebar({
 }) {
   const ordered = [...categories].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   return (
-    <div className="flex flex-col gap-2">
+    // Cap the height so a long category list scrolls within its own section (like
+    // Tags/Zutaten) instead of pushing the rest of the filters far down the rail.
+    <div className="flex max-h-72 flex-col gap-2 overflow-y-auto">
       {/* "Ohne Kategorie" sits first; only offered when such recipes exist. */}
       {uncategorizedCount > 0 && (
         <CategoryButton

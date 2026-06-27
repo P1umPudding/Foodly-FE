@@ -160,17 +160,15 @@
   }
 }
 
-/* Project preference: the postxl inputs should look identical focused and at rest.
-   They mark themselves with data-slot="input" (the NumberInput shows focus on its
-   wrapper via focus-within). On focus the component adds a ring and recolours the
-   border to --ring; we zero the ring (--tw-ring-shadow) and restore the resting
-   border (--input). The resting shadow is left untouched (we don't set box-shadow).
-   UNLAYERED on purpose — the component's focus utilities live in @layer utilities, so
-   a layered rule (even @layer base) would lose to them. */
+/* Project preference: on focus the postxl inputs show just a purple (--ring) border —
+   no ring. They mark themselves with data-slot="input" (the NumberInput shows focus on
+   its wrapper via focus-within). We only zero the ring (--tw-ring-shadow); the
+   component's own focus-visible:border-ring (purple) then shows through, and the
+   resting shadow is left untouched. UNLAYERED on purpose — the component's focus
+   utilities live in @layer utilities, so a layered rule would lose to them. */
 input[data-slot='input']:focus-visible,
 div:has(> input[data-slot='input']):focus-within {
   --tw-ring-shadow: 0 0 #0000;
-  border-color: var(--input);
 }
 
 /* Tailwind hardcodes `.rounded` to 0.25rem; override to follow --radius so the
