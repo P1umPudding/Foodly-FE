@@ -58,5 +58,7 @@ it('renders a collapsible, colour-coded heading per category', () => {
     </TooltipProvider>,
   )
   const heading = screen.getByRole('button', { name: /Fav/i }) // CollapseTrigger is a button
-  expect(heading.className).toContain('text-[#e11d48]')
+  // category text is darkened in light mode, vibrant in dark
+  expect(heading.className).toContain('text-[#be123c]')
+  expect(heading.className).toContain('dark:text-[#fb7185]')
 })

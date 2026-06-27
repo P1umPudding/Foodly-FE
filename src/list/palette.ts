@@ -25,28 +25,29 @@ const PALETTE: Record<string, ColorClasses> = {
   '#e11d48': {
     border: 'border-[#e11d48]/60',
     bgActive: 'bg-[#e11d48]/15',
-    text: 'text-[#e11d48]',
+    // text darkened in light mode for legible header contrast; vibrant on dark.
+    text: 'text-[#be123c] dark:text-[#fb7185]',
     line: 'border-[#e11d48]',
     dot: 'bg-[#e11d48]',
   },
   '#0ea5e9': {
     border: 'border-[#0ea5e9]/60',
     bgActive: 'bg-[#0ea5e9]/15',
-    text: 'text-[#0ea5e9]',
+    text: 'text-[#0369a1] dark:text-[#38bdf8]',
     line: 'border-[#0ea5e9]',
     dot: 'bg-[#0ea5e9]',
   },
   '#f59e0b': {
     border: 'border-[#f59e0b]/60',
     bgActive: 'bg-[#f59e0b]/15',
-    text: 'text-[#f59e0b]',
+    text: 'text-[#b45309] dark:text-[#fbbf24]',
     line: 'border-[#f59e0b]',
     dot: 'bg-[#f59e0b]',
   },
   '#10b981': {
     border: 'border-[#10b981]/60',
     bgActive: 'bg-[#10b981]/15',
-    text: 'text-[#10b981]',
+    text: 'text-[#047857] dark:text-[#34d399]',
     line: 'border-[#10b981]',
     dot: 'bg-[#10b981]',
   },
