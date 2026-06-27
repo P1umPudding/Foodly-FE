@@ -35,7 +35,7 @@ export function RecipeImages({
         src={recipeImageSrc(hero)}
         alt={alt}
         onClick={() => onOpen(0)}
-        className={`h-full w-auto ${mainMaxW} cursor-zoom-in rounded-xl bg-foreground/5 object-contain dark:bg-muted`}
+        className={`h-full w-auto ${mainMaxW} cursor-zoom-in rounded-xl bg-muted object-contain`}
       />
 
       {/* One extra image → a single tile at full row height (≈ 2× a stacked tile). */}
@@ -73,7 +73,7 @@ function Tile({
     <button
       type="button"
       onClick={onClick}
-      className={`relative cursor-zoom-in overflow-hidden rounded-xl bg-foreground/5 dark:bg-muted ${className}`}
+      className={`relative cursor-zoom-in overflow-hidden rounded-xl bg-muted ${className}`}
     >
       <img src={recipeImageSrc(id)} alt="" className="h-full w-full object-cover" />
       {overlay && (
