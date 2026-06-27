@@ -5,7 +5,7 @@ import { DEFAULT_STATE } from '../../list/state'
 
 const base: ListState = DEFAULT_STATE
 
-it('trigger has aria-label "Sortierung"', () => {
+it('sort trigger has aria-label "Sortierung"', () => {
   render(<ListToolbar state={base} set={() => undefined} />)
   expect(screen.getByRole('combobox', { name: 'Sortierung' })).toBeTruthy()
 })
