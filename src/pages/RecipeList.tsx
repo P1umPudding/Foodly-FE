@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Alert,
   AlertDescription,
   AlertTitle,
+  Badge,
   Button,
-  Input,
   Sheet,
   SheetContent,
   SheetHeader,
@@ -12,7 +12,7 @@ import {
   SheetTrigger,
   Skeleton,
 } from '@postxl/ui-components'
-import { X, Filter } from 'lucide-react'
+import { Filter, UtensilsCrossed, SearchX } from 'lucide-react'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
@@ -20,11 +20,16 @@ import { useListState } from '../list/useListState'
 import { filterRecipes, groupingCategories } from '../list/filter'
 import { sortRecipes } from '../list/sort'
 import { usedIngredients } from '../list/counts'
-import { isFilterActive } from '../list/state'
+import { canViewRecipe } from '../api/views'
+import { activeFacetCount, isFilterActive } from '../list/state'
+import { ActiveFilters } from '../components/list/ActiveFilters'
 import { FilterControls } from '../components/list/FilterControls'
 import { ListToolbar } from '../components/list/ListToolbar'
 import { RecipeListView } from '../components/list/RecipeListView'
 import { ResultCount } from '../components/list/ResultCount'
+import { SearchInput } from '../components/list/SearchInput'
+
+const SCROLL_KEY = 'recipeList:scrollY'
 
 export function RecipeList() {
   const [nonce, setNonce] = useState(0)
@@ -35,17 +40,42 @@ export function RecipeList() {
   const tags = useTags()
   const ingredients = useIngredients()
 
-  const allRecipes = recipesReq.data ?? []
+  // Access guard: the list only ever shows recipes the current user can see.
+  // Everything below (counts, ingredient facet, filtering) works off this set.
+  const accessibleRecipes = (recipesReq.data ?? []).filter((r) => canViewRecipe(r, currentUserId))
   const categories = categoriesReq.data ?? []
   const tagList = Object.values(tags.byId)
-  const usedIngredientList = usedIngredients(allRecipes, ingredients.byId)
-  const visible = sortRecipes(filterRecipes(allRecipes, state, currentUserId, categories), state, currentUserId)
+  const usedIngredientList = usedIngredients(accessibleRecipes, ingredients.byId)
+  const visible = sortRecipes(filterRecipes(accessibleRecipes, state, currentUserId, categories), state, currentUserId)
+
+  // Per-category collapse state (clicking a sticky group header folds that group).
+  // Closed group keys; empty = all open.
+  const groupingCats = groupingCategories(categories, state.categories)
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+
+  // Restore scroll position when returning from a recipe (within the session): track
+  // the live position, then re-apply it once the list has rendered. sessionStorage so
+  // a fresh load starts at the top.
+  useEffect(() => {
+    const onScroll = () => sessionStorage.setItem(SCROLL_KEY, String(window.scrollY))
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const scrollRestored = useRef(false)
+  useEffect(() => {
+    if (scrollRestored.current || recipesReq.status !== 'ready') return
+    scrollRestored.current = true
+    const y = Number(sessionStorage.getItem(SCROLL_KEY) ?? '')
+    if (y > 0) window.scrollTo(0, y)
+  }, [recipesReq.status])
 
   const filters = (
     <FilterControls
       state={state}
       set={set}
       categories={categories}
+      categoriesLoading={categoriesReq.status === 'loading'}
       onToggleCategory={(id) =>
         set({
           categories: state.categories.includes(id)
@@ -64,7 +94,7 @@ export function RecipeList() {
         <div className="mb-4 flex items-center justify-between gap-4">
           <div className="flex items-baseline gap-3">
             <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
-            <ResultCount matching={visible.length} total={allRecipes.length} />
+            <ResultCount matching={visible.length} total={accessibleRecipes.length} />
           </div>
           {/* Mobile-only filter drawer trigger */}
           <Sheet>
@@ -72,6 +102,11 @@ export function RecipeList() {
               <Button variant="outline" size="sm" className="gap-1.5 md:hidden">
                 <Filter className="h-4 w-4" />
                 Filter
+                {activeFacetCount(state) > 0 && (
+                  <Badge variant="secondary" className="ml-0.5 h-5 min-w-5 justify-center px-1 tabular-nums">
+                    {activeFacetCount(state)}
+                  </Badge>
+                )}
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[20rem] overflow-y-auto">
@@ -83,35 +118,37 @@ export function RecipeList() {
           </Sheet>
         </div>
 
-        {/* Search bar with the sort/view toolbar in the same row, to its right */}
-        <div className="mb-6 flex items-center gap-3">
-          <div className="relative flex-1">
-            <Input
-              placeholder="Rezepte suchen…"
-              value={state.search}
-              onChange={(e) => set({ search: e.target.value })}
-              className="w-full pr-9 focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
-            {state.search !== '' && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="Suche leeren"
-                onClick={() => set({ search: '' })}
-                className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+        {/* Search bar with the sort/view toolbar to its right (drops below on mobile). */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <SearchInput
+            value={state.search}
+            onChange={(v) => set({ search: v })}
+            placeholder="Suchen nach Name oder Tag…"
+            clearLabel="Suche leeren"
+            className="flex-1"
+          />
+          {/* Single "Ansicht" menu: sort + density. */}
+          <div className="flex justify-end sm:block">
+            <ListToolbar state={state} set={set} />
           </div>
-          <ListToolbar state={state} set={set} />
+        </div>
+
+        {/* Removable chips for the active filters + reset-all. */}
+        <div className="mb-6 empty:mb-0">
+          <ActiveFilters
+            state={state}
+            set={set}
+            clear={clear}
+            categories={categories}
+            tags={tagList}
+            ingredients={usedIngredientList}
+          />
         </div>
 
         {recipesReq.status === 'loading' && (
           <div className="space-y-3">
             {[0, 1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-16 w-full rounded-xl" />
+              <Skeleton key={i} className="h-[4.5rem] w-full rounded-xl" />
             ))}
           </div>
         )}
@@ -128,13 +165,23 @@ export function RecipeList() {
           </Alert>
         )}
 
-        {recipesReq.status === 'ready' && allRecipes.length === 0 && (
-          <p className="py-10 text-center text-muted-foreground">Noch keine Rezepte.</p>
+        {recipesReq.status === 'ready' && accessibleRecipes.length === 0 && (
+          <div className="flex flex-col items-center gap-3 py-16 text-center">
+            <UtensilsCrossed className="h-10 w-10 text-muted-foreground/40" />
+            <p className="text-muted-foreground">Noch keine Rezepte.</p>
+          </div>
         )}
 
-        {recipesReq.status === 'ready' && allRecipes.length > 0 && visible.length === 0 && (
-          <div className="flex flex-col items-center gap-3 py-10 text-center">
+        {recipesReq.status === 'ready' && accessibleRecipes.length > 0 && visible.length === 0 && (
+          <div className="flex flex-col items-center gap-3 py-16 text-center">
+            <SearchX className="h-10 w-10 text-muted-foreground/40" />
             <p className="text-muted-foreground">Keine Treffer für die aktuellen Filter.</p>
+            {/* Search ignores ingredients on purpose — point users at the Zutaten filter. */}
+            {state.search.trim() !== '' && (
+              <p className="max-w-xs text-sm text-muted-foreground/80">
+                Die Suche durchsucht Name &amp; Tags – nach Zutaten filterst du über den Zutaten-Filter.
+              </p>
+            )}
             {isFilterActive(state) && (
               <Button variant="outline" size="sm" onClick={clear}>
                 Filter zurücksetzen
@@ -146,14 +193,20 @@ export function RecipeList() {
         {recipesReq.status === 'ready' && visible.length > 0 && (
           <RecipeListView
             recipes={visible}
-            categories={groupingCategories(categories, state.categories)}
+            categories={groupingCats}
             detail={state.detail}
+            activeRole={state.role}
+            activeCollab={state.collab}
+            collapsed={collapsed}
+            onCollapsedChange={setCollapsed}
           />
         )}
       </div>
 
-      {/* Desktop rail (right). mt aligns the "Kategorien" header with the taller "Rezepte" h1. */}
-      <aside className="hidden md:sticky md:top-4 md:mt-2 md:flex md:flex-col md:gap-4 md:self-start">{filters}</aside>
+      {/* Desktop rail (right). Sticks below the sticky site header; scrolls internally if taller than the viewport. */}
+      <aside className="hidden md:sticky md:top-[4.5rem] md:flex md:max-h-[calc(100vh-5.5rem)] md:flex-col md:gap-4 md:self-start md:overflow-y-auto">
+        {filters}
+      </aside>
     </div>
   )
 }
