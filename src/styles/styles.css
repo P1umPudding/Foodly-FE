@@ -127,6 +127,11 @@
   }
   html {
     -webkit-text-size-adjust: 100%;
+    /* Always reserve the vertical scrollbar's space. Without this, filtering down
+       to a short list drops the scrollbar, widening the viewport and shifting the
+       mx-auto-centred layout sideways. (No-op where scrollbars overlay, e.g. macOS
+       default.) */
+    scrollbar-gutter: stable;
   }
   body {
     margin: 0;
