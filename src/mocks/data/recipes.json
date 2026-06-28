@@ -1746,8 +1746,8 @@
   {
     "id": 14,
     "owner": 3,
-    "viewers": [],
-    "editors": [],
+    "viewers": [1],
+    "editors": [2],
     "name": "Asiatische Gemüsepfanne mit Reis",
     "tags": ["Vegan", "Asiatisch", "Schnell"],
     "source": null,
