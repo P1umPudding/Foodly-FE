@@ -398,28 +398,24 @@ sind. **Stand auf `phase-1-rezepte-ansehen`** (PR #3, ids 1–14; User 1=Kolja,
 | owner × Collaborative | 2 (1, 8) | ✅ |
 | editor × Collaborative | 1 (11) | ✅ |
 | viewer × Shared | 3 (3, 7, 9) | ✅ |
-| **viewer × Collaborative** | **0** | ❌ **Lücke** |
+| **viewer × Collaborative** | **1 (14)** | ✅ |
 
 `workMinutes`/`overallMinutes` sind durchgängig befüllt, Ratings gestreut (inkl.
 0-Rating bei #4) — Suche/Sortierung sind damit greifbar.
 
-**Noch zu tun:**
+**Alle Punkte erledigt:**
 
-1. **Lücke `viewer × Collaborative` schließen:** ein Rezept, das **einem anderen
-   User gehört**, Kolja als **viewer** führt **und** ≥1 weiteren **editor** hat
-   (z.B. `owner: 2, editors: [3], viewers: [1]`). Damit sind alle **6** gültigen
-   Zellen belegt.
-2. **Cleanup Rezept 14** („Asiatische Gemüsepfanne"): aktuell fremd-owned,
-   **Private**, ohne Kolja-Rolle (`none`) — ein echtes Backend würde Kolja so ein
-   Rezept **nie ausliefern**. Entweder Kolja eine Rolle geben (z.B. als zweites
-   `viewer × Collaborative`-Beispiel nutzen) **oder** entfernen. Kein Rezept im
-   `listRecipes()`-Mock sollte für den aktuellen User rollenlos sein.
-3. **Zutaten-Katalog** (`ingredients.json`) prüfen/befüllen, sodass die in den
-   Rezepten referenzierten `ingredient.id` darin existieren (kanonische Namen für
-   den Zutaten-Filter).
-4. **Kategorien** (`categories.json`): genug Streuung, damit Multi-ODER und die
-   `by-category`-Gruppierung (mehrere Gruppen, Mehrfach-Zugehörigkeit, „Ohne
-   Kategorie") sichtbar werden.
+1. ✅ **Lücke `viewer × Collaborative` geschlossen:** Rezept 14 ist jetzt
+   `owner: 3, editors: [2], viewers: [1]` (fremd-owned, Kolja viewer, weiterer
+   editor) → alle **6** gültigen Zellen belegt.
+2. ✅ **Rezept 14 nicht mehr rollenlos:** dieselbe Änderung gibt Kolja die
+   `viewer`-Rolle — kein Rezept im `listRecipes()`-Mock ist für den aktuellen
+   User mehr rollenlos.
+3. ✅ **Zutaten-Katalog** (`ingredients.json`): IDs 1–52 befüllt, alle in
+   Rezepten referenzierten `ingredient.id` existieren.
+4. ✅ **Kategorien** (`categories.json`): 4 Kategorien, Mehrfach-Zugehörigkeit
+   (#8, #13) und 2 unkategorisierte Rezepte (#4, #10) — Multi-ODER und
+   `by-category`-Gruppierung sind vorführbar.
 
 Alle Mock-Erweiterungen müssen **typkonform zu `protocol.ts`** bleiben.
 
