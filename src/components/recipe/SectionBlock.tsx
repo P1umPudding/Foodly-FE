@@ -1,8 +1,20 @@
 import { TagText } from '../TagText'
 import { IngredientLine } from './IngredientLine'
-import type { Section } from '../../api/protocol'
+import type { RecipeIngredientId, Section } from '../../api/protocol'
 
-export function SectionBlock({ section }: { section: Section }) {
+export function SectionBlock({
+  section,
+  factor = 1,
+  checkable = false,
+  checkedIds,
+  onToggle,
+}: {
+  section: Section
+  factor?: number
+  checkable?: boolean
+  checkedIds?: Set<RecipeIngredientId>
+  onToggle?: (id: RecipeIngredientId) => void
+}) {
   return (
     <section className="mt-12">
       {section.name && (
@@ -22,12 +34,20 @@ export function SectionBlock({ section }: { section: Section }) {
       <div className="grid grid-cols-1 gap-y-6 text-[0.95rem] leading-snug md:grid-cols-[minmax(0,1fr)_minmax(0,1.55fr)] md:gap-x-4">
         <table className="w-full table-fixed border-collapse self-start">
           <colgroup>
+            {checkable && <col className="w-8" />}
             <col className="w-32" />
             <col />
           </colgroup>
           <tbody>
             {section.ingredients.map((line) => (
-              <IngredientLine key={line.id} line={line} />
+              <IngredientLine
+                key={line.id}
+                line={line}
+                factor={factor}
+                checkable={checkable}
+                checked={checkedIds?.has(line.id) ?? false}
+                onToggle={onToggle}
+              />
             ))}
           </tbody>
         </table>

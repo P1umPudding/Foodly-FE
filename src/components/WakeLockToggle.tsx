@@ -1,7 +1,7 @@
 import { Button, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
 import { useWakeLock } from '../hooks/useWakeLock'
 
-const ICON = 'size-4'
+const ICON = 'size-5'
 
 function MugIcon({ steam }: { steam: boolean }) {
   return (
@@ -22,28 +22,33 @@ function MugIcon({ steam }: { steam: boolean }) {
   )
 }
 
-// Provisional placement in the header — see docs/backlog.md.
+// Lives in the recipe detail control row (Koch-Modus); icon-only, label via tooltip.
 export function WakeLockToggle() {
   const { enabled, supported, toggle } = useWakeLock()
   if (!supported) return null
 
   return (
     <Tooltip>
+      {/* span wrapper: postxl Button isn't forwardRef, so the tooltip can only
+          anchor to a host element — without it the tooltip never shows. */}
       <TooltipTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={toggle}
-          aria-pressed={enabled}
-          aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
-          className={cn(
-            'rounded-full transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
-            enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
-          )}
-        >
-          <MugIcon steam={enabled} />
-        </Button>
+        <span className="inline-flex">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={toggle}
+            aria-pressed={enabled}
+            aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
+            className={cn(
+              'gap-1.5 rounded-full transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+              enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <MugIcon steam={enabled} />
+            <span className="text-lg">Wachhalten</span>
+          </Button>
+        </span>
       </TooltipTrigger>
       <TooltipContent>{enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}</TooltipContent>
     </Tooltip>

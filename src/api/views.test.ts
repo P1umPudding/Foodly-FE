@@ -1,4 +1,4 @@
-import { roleOf, myRole, collaborationState, visibleRating, canViewRecipe } from './views'
+import { roleOf, myRole, collaborationState, visibleRating, canViewRecipe, scaleAmount } from './views'
 import type { Recipe } from './protocol'
 
 const base: Recipe = {
@@ -65,6 +65,31 @@ describe('collaborationState', () => {
   it('collaborative when any editor', () => {
     expect(collaborationState(r({ viewers: [], editors: [2] }))).toBe('collaborative')
     expect(collaborationState(r({ viewers: [3], editors: [2] }))).toBe('collaborative')
+  })
+})
+
+describe('scaleAmount', () => {
+  it('scales numeric amounts and formats with a German comma', () => {
+    expect(scaleAmount('500', 2)).toBe('1000')
+    expect(scaleAmount('500', 0.5)).toBe('250')
+    expect(scaleAmount('1', 1.5)).toBe('1,5')
+  })
+  it('passes through null and non-numeric amounts unchanged', () => {
+    expect(scaleAmount(null, 2)).toBeNull()
+    expect(scaleAmount('etwas', 2)).toBe('etwas')
+    expect(scaleAmount('', 2)).toBe('')
+    expect(scaleAmount('  ', 2)).toBe('  ')
+  })
+  it('returns the input unchanged at factor 1 (identity, no reformat)', () => {
+    expect(scaleAmount('500', 1)).toBe('500')
+    expect(scaleAmount('0.5', 1)).toBe('0.5')
+  })
+  it('accepts comma or dot as the decimal separator', () => {
+    expect(scaleAmount('2.5', 2)).toBe('5')
+    expect(scaleAmount('0,5', 2)).toBe('1')
+  })
+  it('rounds to at most two decimals', () => {
+    expect(scaleAmount('1', 1 / 3)).toBe('0,33')
   })
 })
 
