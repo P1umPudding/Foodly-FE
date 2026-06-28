@@ -15,9 +15,12 @@ export function SectionBlock({ section }: { section: Section }) {
           hard ratio (minmax(0,…) so content can't distort it); the quantity column
           is a fixed width via the colgroup. The gap to the divider is the grid
           column-gap (table padding is ignored under border-collapse). leading-snug
-          keeps wrapped lines tighter than the gap between items. */}
+          keeps wrapped lines tighter than the gap between items. self-start on the
+          table stops the grid from stretching it to the (taller) steps column —
+          a stretched table distributes the extra height across its rows, spreading
+          the ingredients apart. */}
       <div className="grid grid-cols-1 gap-y-6 text-[0.95rem] leading-snug md:grid-cols-[minmax(0,1fr)_minmax(0,1.55fr)] md:gap-x-4">
-        <table className="w-full table-fixed border-collapse">
+        <table className="w-full table-fixed border-collapse self-start">
           <colgroup>
             <col className="w-32" />
             <col />
