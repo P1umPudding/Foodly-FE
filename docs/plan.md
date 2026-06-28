@@ -44,9 +44,10 @@ Resolver (`src/api/assets.ts`); das echte Backend-`hash`→URL-Schema bleibt off
 
 → Volle Spezifikation: `phases/phase-1-rezepte-ansehen.md`
 
-## Phase 2 — Organisation & Navigation  ⬅️ JETZT
+## Phase 2 — Organisation & Navigation  ✅ erledigt
 
 Struktur um die Liste herum, sobald es mehr als eine Handvoll Rezepte gibt.
+**Auf `main` gemergt (PR #5, #6).**
 
 - Kategorien (`userCategory`) als Sidebar/Filter, inkl. Farben.
 - Filtern nach Tags, Volltext-Suche über Namen/Zutaten.
@@ -62,15 +63,14 @@ Struktur um die Liste herum, sobald es mehr als eine Handvoll Rezepte gibt.
 Collaborative). 6 von 9 Kombinationen gültig, ableitbar aus `owner`/`viewers`/
 `editors`. Voll ausgearbeitet im Spec.
 
-**Listen-Ansichten (umschaltbar)** (Idee, Detail nach Phase 1):
+**Listen-Ansichten (umschaltbar):**
 - **detailed** (mit Hauptbild + mehr Meta) ↔ **compact** (kein Bild, weniger
   Details) — das Bild hilft, ein Rezept visuell wiederzuerkennen/auszuwählen.
-- **by category** (Kategorien einzeln ein-/ausklappbar) ↔ **flat list**.
+- **by category** ↔ **flat list**.
 
-→ Spec (in Arbeit, noch nicht implementierungsreif):
-`phases/phase-2-organisation-navigation.md`
+→ Volle Spezifikation: `phases/phase-2-organisation-navigation.md`
 
-## Phase 3 — Koch-Modus
+## Phase 3 — Koch-Modus  ⬅️ JETZT
 
 Die Detailansicht für das tatsächliche Kochen optimieren.
 
