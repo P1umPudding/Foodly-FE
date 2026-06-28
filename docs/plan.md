@@ -72,18 +72,23 @@ Collaborative). 6 von 9 Kombinationen gültig, ableitbar aus `owner`/`viewers`/
 
 ## Phase 3 — Koch-Modus  ⬅️ JETZT
 
-Die Detailansicht für das tatsächliche Kochen optimieren.
+Die Detailansicht fürs tatsächliche Kochen schärfen — alles in-place auf
+`/recipes/:id`, plus app-weite Timer. Reines Frontend, kein Persist.
 
-- Schritt-für-Schritt-Ansicht (ein Schritt groß, durchblättern).
-- Portionen umrechnen (`basePortionMultiplier` → Mengen skalieren).
-- „Bildschirm anlassen" (`useWakeLock` ist schon da) hier sinnvoll einbinden.
-- Zutaten abhaken (lokaler State, kein Persist nötig).
-- **Timer:** beim Kochen Timer stellen können (lokal, kein Persist nötig).
-  - Custom-Timer: Dauer frei eingeben/starten, mehrere parallel, Hinweis bei
-    Ablauf (Sound/Vibration + visuell; Wake-Lock greift hier ohnehin).
-  - *Idee (optional):* Rezepte bringen voreingestellte Timer mit — z. B. aus
-    `time`/Schritt-Daten abgeleitet, sodass ein Schritt seinen Timer direkt per
-    Tap startet. Erst klären, ob/wie diese Zeiten in den Daten stecken.
+- **Portionen umrechnen** — reiner **Faktor** (× n) auf die Zutaten-Mengen;
+  `basePortionMultiplier` bleibt bewusst ungenutzt.
+- **Zutaten abhaken** — Toggle blendet Checkboxen ein (lokaler State).
+- **„Bildschirm anlassen"** — der bestehende `useWakeLock`-Toggle zieht aus dem
+  Nav in die Detail-Steuer-Zeile.
+- **Timer (global):** manuelle Custom-Timer, mehrere parallel, Wheel-Picker für
+  die Dauer, Alarm (Ton/Vibration/visuell/Toast); überleben Navigation, nicht
+  Reload.
+
+**Bewusst draußen:** Schritt-für-Schritt-Durchlauf (flaches `string[]`, kein
+Mehrwert) und rezept-voreingestellte Timer (Schema-Frage — siehe „Daten-/
+Protokoll-Fragen").
+
+→ Volle Spezifikation: `phases/phase-3-koch-modus.md`
 
 ## Phase 4 — Rezepte bearbeiten  (braucht Backend)
 
@@ -245,3 +250,10 @@ speichern — mit der Option, die erkannten Felder vor dem Speichern zu
 - **`UserRating` ist DB-only:** wird im Frontend nie direkt geholt (nur
   `recipe.rating` kommt mit). Gehört damit nicht in den Wire-Vertrag
   (`protocol.ts`) → entfernen bzw. als backend-only behandeln.
+- **Rezept-/Schritt-Timer (Schema-Erweiterung):** Phase 3 baut nur **manuelle,
+  rezept-unabhängige** Timer. Wünschenswert wäre, dass Rezepte **voreingestellte
+  Timer mitbringen** — ein Schritt startet seinen Timer per Tap. Schritte sind
+  heute aber ein flaches `string[]` (`Section.steps`) **ohne** Zeit-/Dauer-Daten;
+  das bräuchte ein Schema mit strukturierten Schritten (z. B. `duration` pro
+  Schritt). Mit dem Backend klären, ob/wie diese Zeiten in den Daten stecken
+  sollen. (Siehe Phase 3 / `phases/phase-3-koch-modus.md`, „Bewusst nicht …".)
