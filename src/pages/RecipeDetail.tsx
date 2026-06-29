@@ -96,8 +96,9 @@ export function RecipeDetail() {
               <TagChips tags={recipe.tags} hoverName size="lg" />
             </div>
 
-            {/* Rating natural-width left, portions natural-width right, time
-                centred in the remaining space between them. */}
+            {/* Rating left, time centred, size right. Portions-mode puts the
+                editable scaler here inline; multiplier-mode shows just the size
+                descriptor and drops its stepper to the row below. */}
             <div className="mt-1 flex items-center gap-4 text-xl">
               <div className="shrink-0">{averageRating(recipe) !== null && <Rating recipe={recipe} />}</div>
               <div className="flex-1 text-center">
@@ -108,31 +109,50 @@ export function RecipeDetail() {
                   </span>
                 )}
               </div>
-              <div className="shrink-0">{recipe.amount && <TagText value={recipe.amount} size="md" />}</div>
+              <div className="shrink-0">
+                {recipe.sizeNumber !== null ? (
+                  <PortionScaler
+                    factor={factor}
+                    onChange={setFactor}
+                    sizeNumber={recipe.sizeNumber}
+                    sizeText={recipe.sizeText}
+                  />
+                ) : (
+                  recipe.sizeText && <TagText value={recipe.sizeText} size="md" />
+                )}
+              </div>
             </div>
 
-            {/* Koch-Modus control row: tools left (Abhaken, Bildschirm anlassen),
-                portion scaler right under the size. Always shown. */}
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Toggle
-                      pressed={checkable}
-                      onPressedChange={setCheckable}
-                      aria-label="Zutaten abhaken"
-                      size="sm"
-                      className="gap-1.5 rounded-full text-muted-foreground data-[state=on]:text-primary"
-                    >
-                      <ListChecks className="size-5" />
-                      <span className="text-lg">Abhaken</span>
-                    </Toggle>
-                  </TooltipTrigger>
-                  <TooltipContent>Zutaten abhaken</TooltipContent>
-                </Tooltip>
-                <WakeLockToggle />
-              </div>
-              <PortionScaler factor={factor} onChange={setFactor} />
+            {/* Koch-Modus tools: Abhaken + Bildschirm anlassen, with the
+                multiplier stepper (descriptor-sized recipes) pushed right.
+                Always shown. */}
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Toggle
+                    pressed={checkable}
+                    onPressedChange={setCheckable}
+                    aria-label="Zutaten abhaken"
+                    size="sm"
+                    className="gap-1.5 rounded-full text-muted-foreground data-[state=on]:text-primary"
+                  >
+                    <ListChecks className="size-5" />
+                    <span className="text-lg">Abhaken</span>
+                  </Toggle>
+                </TooltipTrigger>
+                <TooltipContent>Zutaten abhaken</TooltipContent>
+              </Tooltip>
+              <WakeLockToggle />
+              {recipe.sizeNumber === null && (
+                <div className="ml-auto">
+                  <PortionScaler
+                    factor={factor}
+                    onChange={setFactor}
+                    sizeNumber={recipe.sizeNumber}
+                    sizeText={recipe.sizeText}
+                  />
+                </div>
+              )}
             </div>
           </header>
 

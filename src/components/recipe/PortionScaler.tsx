@@ -1,129 +1,107 @@
-import { useEffect, useRef, useState } from 'react'
-import { Scale, X } from 'lucide-react'
-import { Button, Input, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
+import { Minus, Plus, RotateCcw } from 'lucide-react'
+import { Button, DeferredNumberInput, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
+import { TagText } from '../TagText'
 
-// The portion-scaling pill in the Koch-Modus control row. Three states driven by
-// `factor` + a local `editing` flag: rest (× 1), active (× <factor>), and an
-// inline edit field. Owns no state beyond the edit buffer — the factor lives in
-// RecipeDetail.
-export function PortionScaler({ factor, onChange }: { factor: number; onChange: (factor: number) => void }) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
-  // Escape cancels by leaving edit mode, which unmounts the focused input and
-  // fires its blur → commit. This flag makes that trailing commit a no-op so a
-  // cancelled draft is never applied.
-  const cancelled = useRef(false)
+// The portion-scaling field in the recipe meta row. Two modes off one layout so
+// it never reflows as its value changes:
+//   • portions-mode (sizeNumber set): the box is the desired portion count and
+//     factor = desired / sizeNumber.
+//   • multiplier-mode (sizeNumber null): the box is the × factor itself, shown
+//     with an "x" suffix.
+// The factor lives in RecipeDetail. DeferredNumberInput buffers the edit locally
+// and commits on blur/Enter, so the field can be cleared while typing (a plain
+// controlled NumberInput would snap the default back). Steppers are our own —
+// the app hides native number spinners globally (styles.css).
+export function PortionScaler({
+  factor,
+  onChange,
+  sizeNumber,
+  sizeText,
+}: {
+  factor: number
+  onChange: (factor: number) => void
+  sizeNumber: number | null
+  sizeText: string | null
+}) {
+  const portions = sizeNumber !== null
+  const base = sizeNumber ?? 1
+  const current = round2(portions ? factor * base : factor)
+  const isDefault = portions ? current === base : current === 1
 
-  useEffect(() => {
-    if (editing) {
-      inputRef.current?.focus()
-      inputRef.current?.select()
-    }
-  }, [editing])
-
-  const startEdit = () => {
-    cancelled.current = false
-    setDraft(formatFactor(factor))
-    setEditing(true)
-  }
-
-  // Reset rules per spec §2: empty / 0 / 1 → ×1; a valid positive number → set it;
-  // negative / NaN / otherwise invalid → ignore, keep the current factor.
-  const commit = () => {
-    setEditing(false)
-    if (cancelled.current) {
-      cancelled.current = false
-      return
-    }
-    const trimmed = draft.trim()
-    if (trimmed === '') return onChange(1)
-    const n = Number(trimmed.replace(',', '.'))
-    if (!Number.isFinite(n) || n < 0) return
-    onChange(n === 0 ? 1 : n)
-  }
-
-  if (editing) {
-    return (
-      <Input
-        ref={inputRef}
-        inputMode="decimal"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') commit()
-          else if (e.key === 'Escape') {
-            cancelled.current = true
-            setEditing(false)
-          }
-        }}
-        aria-label="Mengen-Faktor"
-        // Input ships a `md:text-sm` that would shrink the value on desktop; override
-        // at the same breakpoint so the typed factor matches the pill's size.
-        className="h-10 w-24 text-xl md:text-xl"
-      />
-    )
-  }
-
-  if (factor === 1) {
-    return (
-      <Tooltip>
-        {/* span wrapper: postxl Button isn't forwardRef, so the tooltip can only
-            anchor to a host element — without it the tooltip never shows. */}
-        <TooltipTrigger asChild>
-          <span className="inline-flex">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={startEdit}
-              className="gap-1.5 rounded-full text-muted-foreground hover:text-foreground"
-            >
-              <Scale className="size-5" />
-              <span className="text-xl tabular-nums">× 1</span>
-            </Button>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>Mengen skalieren</TooltipContent>
-      </Tooltip>
-    )
+  const reset = () => onChange(1)
+  // Map a box value back to a factor: portions divide by the base, the
+  // multiplier is the factor itself.
+  const apply = (value: number) => onChange(portions ? value / base : value)
+  const step = (delta: number) => apply(Math.max(1, round2(current + delta)))
+  // Commit (blur/Enter): empty / 0 → reset to default; negative → ignore.
+  const commit = (value: number | null) => {
+    if (value === null || value === 0) return reset()
+    if (value < 0) return
+    apply(value)
   }
 
   return (
-    <div className="group inline-flex items-center">
+    <div className="inline-flex items-center gap-1">
+      <Button
+        type="button"
+        variant="ghost"
+        size="iconSm"
+        onClick={() => step(-1)}
+        disabled={current <= 1}
+        aria-label="Weniger"
+        className="rounded-full"
+      >
+        <Minus className="size-4" />
+      </Button>
+
+      <DeferredNumberInput
+        value={current}
+        onCommit={commit}
+        min={0}
+        suffix={portions ? undefined : 'x'}
+        aria-label={portions ? 'Portionen' : 'Mengen-Faktor'}
+        wrapperClassName={cn('h-9 shrink-0', portions ? 'w-14' : 'w-16')}
+        // Input ships a `md:text-sm` that would shrink the value on desktop;
+        // override at the same breakpoint. bg-transparent so the field matches
+        // the wrapper (the lib otherwise leaves dark:bg-input/30 on the input).
+        className="bg-transparent text-center text-xl tabular-nums md:text-xl dark:bg-transparent"
+      />
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="iconSm"
+        onClick={() => step(1)}
+        aria-label="Mehr"
+        className="rounded-full"
+      >
+        <Plus className="size-4" />
+      </Button>
+
+      {/* Only portions-mode carries its label inline; in multiplier-mode the
+          size descriptor lives in the meta row above this stepper. */}
+      {portions && sizeText && (
+        <span className="ml-0.5 text-xl">
+          <TagText value={sizeText} size="md" />
+        </span>
+      )}
+
+      {/* Always rendered so it reserves its slot, but `invisible` at default so
+          it neither shows nor hit-tests (opacity-0 would still trigger the
+          tooltip on hover). */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="inline-flex">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={startEdit}
-              className="gap-1.5 rounded-full text-foreground"
-            >
-              <Scale className="size-5 text-primary" />
-              <span className="text-xl tabular-nums">× {formatFactor(factor)}</span>
-            </Button>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>Mengen skalieren</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="inline-flex">
+          <span className={cn('ml-0.5 inline-flex', isDefault && 'invisible')}>
             <Button
               type="button"
               variant="ghost"
               size="iconSm"
-              onClick={() => onChange(1)}
+              onClick={reset}
               aria-label="Skalierung zurücksetzen"
-              className={cn(
-                'ml-0.5 rounded-full text-muted-foreground hover:text-foreground',
-                'opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100',
-              )}
+              tabIndex={isDefault ? -1 : 0}
+              className="rounded-full text-muted-foreground hover:text-foreground"
             >
-              <X className="size-4" />
+              <RotateCcw className="size-4" />
             </Button>
           </span>
         </TooltipTrigger>
@@ -133,6 +111,6 @@ export function PortionScaler({ factor, onChange }: { factor: number; onChange: 
   )
 }
 
-function formatFactor(factor: number): string {
-  return String(Math.round(factor * 100) / 100).replace('.', ',')
+function round2(n: number): number {
+  return Math.round(n * 100) / 100
 }
