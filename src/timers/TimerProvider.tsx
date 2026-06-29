@@ -145,7 +145,9 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       for (const t of timersRef.current) {
         if (t.status === 'running' && t.endAt !== null && t.endAt <= now && !alarmedIds.current.has(t.id)) {
           alarmedIds.current.add(t.id)
-          startAlarm(t.id, () => stopAlarm(t.id))
+          // The 60s safety auto-stop only silences (clearAlarm) — it must not
+          // delete an unnamed timer. Only an explicit Stopp removes it.
+          startAlarm(t.id, () => clearAlarm(t.id))
           setAlarmingIds((prev) => new Set(prev).add(t.id))
           const label = t.label || 'Timer'
           const tid = toast(`Timer „${label}“ abgelaufen`, {
@@ -168,7 +170,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
     const handle = setInterval(tick, TICK_MS)
     return () => clearInterval(handle)
-  }, [hasRunning, stopAlarm])
+  }, [hasRunning, stopAlarm, clearAlarm])
 
   // Persist named timers on any meaningful change. The signature excludes running
   // timers' per-tick remainingMs (recomputed from endAt on load), so ticking
