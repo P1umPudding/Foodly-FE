@@ -102,7 +102,9 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const alarmedIds = useRef<Set<TimerId>>(new Set())
   const toastIds = useRef<Map<TimerId, string | number>>(new Map())
 
-  const stopAlarm = useCallback((id: TimerId) => {
+  // Silence an alarm: stop the sound, drop the highlight, dismiss the toast. Does
+  // NOT touch the timer row itself — callers decide whether to remove or reset it.
+  const clearAlarm = useCallback((id: TimerId) => {
     stopAlarmSound(id)
     setAlarmingIds((prev) => {
       if (!prev.has(id)) return prev
@@ -115,14 +117,21 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       toast.dismiss(tid)
       toastIds.current.delete(id)
     }
-    // Unnamed timers are throwaway: stopping their alarm removes them rather than
-    // leaving a spent expired row behind. Named ones stay (and stay persisted).
-    const t = timersRef.current.find((x) => x.id === id)
-    if (t && t.label.trim() === '') {
-      alarmedIds.current.delete(id)
-      setTimers((prev) => prev.filter((x) => x.id !== id))
-    }
   }, [])
+
+  const stopAlarm = useCallback(
+    (id: TimerId) => {
+      clearAlarm(id)
+      // Unnamed timers are throwaway: stopping their alarm removes them rather than
+      // leaving a spent expired row behind. Named ones stay (and stay persisted).
+      const t = timersRef.current.find((x) => x.id === id)
+      if (t && t.label.trim() === '') {
+        alarmedIds.current.delete(id)
+        setTimers((prev) => prev.filter((x) => x.id !== id))
+      }
+    },
+    [clearAlarm],
+  )
 
   const hasRunning = timers.some((t) => t.status === 'running')
 
@@ -203,10 +212,12 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
+  // Reset to the full duration the timer was created with and run again — never
+  // removes the row (clearAlarm, not stopAlarm, so an unnamed timer survives).
   const restart = useCallback(
     (id: TimerId) => {
       unlockAudio()
-      stopAlarm(id)
+      clearAlarm(id)
       alarmedIds.current.delete(id)
       const now = Date.now()
       setTimers((prev) =>
@@ -215,7 +226,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
         ),
       )
     },
-    [stopAlarm],
+    [clearAlarm],
   )
 
   const remove = useCallback(

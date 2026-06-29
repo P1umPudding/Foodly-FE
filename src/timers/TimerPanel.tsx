@@ -35,19 +35,26 @@ export function TimerPanel() {
     return a.remainingMs - b.remainingMs
   })
 
+  // Creation menu is stationary at the top; only the timer list below it scrolls,
+  // so a long list never pushes the form down. The list region takes the leftover
+  // height (flex-1 + min-h-0) and scrolls within it.
   const body = (
-    <div className="space-y-4">
-      {ordered.length === 0 ? (
-        <p className="text-muted-foreground">Kein Timer läuft.</p>
-      ) : (
-        <div className="space-y-2">
-          {ordered.map((t) => (
-            <TimerRow key={t.id} timer={t} />
-          ))}
-        </div>
-      )}
-      <TimerForm />
-    </div>
+    <>
+      <div className="px-4 pb-4">
+        <TimerForm />
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
+        {ordered.length === 0 ? (
+          <p className="text-muted-foreground">Kein Timer läuft.</p>
+        ) : (
+          <div className="space-y-2">
+            {ordered.map((t) => (
+              <TimerRow key={t.id} timer={t} />
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   )
 
   const trigger = <TimerToggle onClick={() => setOpen(true)} />
@@ -62,7 +69,7 @@ export function TimerPanel() {
               <DrawerTitle>Timer</DrawerTitle>
               <DrawerDescription className="sr-only">Küchen-Timer verwalten</DrawerDescription>
             </DrawerHeader>
-            <div className="overflow-y-auto px-4 pb-6">{body}</div>
+            <div className="flex max-h-[70vh] min-h-0 flex-col">{body}</div>
           </DrawerContent>
         </Drawer>
       </>
@@ -84,7 +91,7 @@ export function TimerPanel() {
             <SheetTitle>Timer</SheetTitle>
             <SheetDescription className="sr-only">Küchen-Timer verwalten</SheetDescription>
           </SheetHeader>
-          <div className="overflow-y-auto px-4 pb-6">{body}</div>
+          {body}
         </SheetContent>
       </Sheet>
     </>

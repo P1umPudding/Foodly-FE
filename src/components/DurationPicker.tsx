@@ -12,7 +12,7 @@ import { cn } from '@postxl/ui-components'
 export type Duration = { h: number; m: number; s: number }
 
 const ITEM_H = 40 // px per row; the Tailwind h-/translate values below track this
-const VISIBLE = 5 // odd, so one row sits dead-centre
+const VISIBLE = 3 // odd, so one row sits dead-centre (one context row above/below)
 const HALF = (VISIBLE - 1) / 2
 const WHEEL_COOLDOWN_MS = 60 // one step per notch; caps trackpad inertia
 const TYPE_RESET_MS = 1500 // forget a half-typed value after a pause
@@ -167,7 +167,7 @@ function WheelColumn({
       // `focus` (not focus-visible) + inset ring: the active column is clearly
       // highlighted even when entered by click, and the inset ring isn't clipped
       // by overflow-hidden the way an outer ring is.
-      className="relative h-[200px] w-14 touch-none overflow-hidden rounded-md bg-transparent outline-none select-none focus:bg-muted/40 focus:ring-2 focus:ring-inset focus:ring-primary"
+      className="relative h-[120px] w-14 touch-none overflow-hidden rounded-md bg-transparent outline-none select-none focus:bg-muted/40 focus:ring-2 focus:ring-inset focus:ring-primary"
     >
       <div ref={reelRef} className="will-change-transform">
         {Array.from({ length: VISIBLE }, (_, i) => {
@@ -233,9 +233,10 @@ export function DurationPicker({ value, onChange }: { value: Duration; onChange:
         onChange={(s) => onChange({ ...value, s })}
       />
 
-      {/* Numbers fade deep into the panel background at the top and bottom edges. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[68px] bg-gradient-to-b from-background from-35% to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[68px] bg-gradient-to-t from-background from-35% to-transparent" />
+      {/* Numbers fade into the panel background at the top and bottom edges (one
+          row tall, so the centre value stays fully solid). */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[40px] bg-gradient-to-b from-background from-20% to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[40px] bg-gradient-to-t from-background from-20% to-transparent" />
     </div>
   )
 }
