@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ThemeToggle } from './ThemeToggle'
-import { WakeLockToggle } from './WakeLockToggle'
+import { TimerPanel } from '../timers/TimerPanel'
 import { ConnectionDot } from './ConnectionDot'
 
 export function Nav() {
@@ -12,7 +12,7 @@ export function Nav() {
         </Link>
         <nav className="flex items-center gap-2 text-[0.95rem] sm:gap-3">
           <ConnectionDot />
-          <WakeLockToggle />
+          <TimerPanel />
           <ThemeToggle />
         </nav>
       </div>

@@ -4,6 +4,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   buttonVariants,
   cn,
 } from '@postxl/ui-components'
@@ -145,15 +148,22 @@ export function ThemeToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        aria-label="Theme wechseln"
-        className={cn(
-          buttonVariants({ variant: 'ghost', size: 'icon' }),
-          'rounded-full text-muted-foreground hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
-        )}
-      >
-        <ActiveIcon />
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex">
+            <DropdownMenuTrigger
+              aria-label="Theme wechseln"
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon' }),
+                'rounded-full text-muted-foreground hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+              )}
+            >
+              <ActiveIcon />
+            </DropdownMenuTrigger>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>Theme wechseln</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent
         align="end"
         sideOffset={10}

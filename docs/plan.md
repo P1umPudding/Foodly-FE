@@ -70,7 +70,7 @@ Collaborative). 6 von 9 Kombinationen gültig, ableitbar aus `owner`/`viewers`/
 
 → Volle Spezifikation: `phases/phase-2-organisation-navigation.md`
 
-## Phase 3 — Koch-Modus  ⬅️ JETZT
+## Phase 3 — Koch-Modus  ✅ erledigt
 
 Die Detailansicht fürs tatsächliche Kochen schärfen — alles in-place auf
 `/recipes/:id`, plus app-weite Timer. Reines Frontend, kein Persist.
