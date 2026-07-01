@@ -11,6 +11,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  cn,
 } from '@postxl/ui-components'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
@@ -96,22 +97,29 @@ export function RecipeDetail() {
               <TagChips tags={recipe.tags} hoverName size="lg" />
             </div>
 
-            {/* Rating left, time centred, size right. Portions-mode puts the
-                editable scaler here inline; multiplier-mode shows just the size
-                descriptor and drops its stepper to the row below. */}
-            <div className="mt-1 flex items-center gap-4 text-xl">
-              <div className="shrink-0">{averageRating(recipe) !== null && <Rating recipe={recipe} />}</div>
-              <div className="flex-1 text-center">
-                {recipe.time && (
-                  <span className="inline-flex items-center gap-2">
-                    <Clock className="h-5 w-5 shrink-0 text-foreground/75" />
-                    <TagText value={recipe.time} size="md" />
-                  </span>
-                )}
+            {/* Two rows, aligned as a grid so the size column stays put:
+                row 1 is rating + time (left) and the size display (right),
+                row 2 is the Koch-Modus tools (left) and the scaler's steppers
+                (right, centred under the size box above). Portions-mode shows
+                the editable count up top and its ± steppers below; multiplier
+                -mode shows the size descriptor up top and the whole × scaler
+                below. */}
+            <div className="mt-1 grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-3 text-xl">
+              <div className="flex items-center gap-4">
+                <div className="shrink-0">{averageRating(recipe) !== null && <Rating recipe={recipe} />}</div>
+                <div className="flex-1 text-center">
+                  {recipe.time && (
+                    <span className="inline-flex items-center gap-2">
+                      <Clock className="h-5 w-5 shrink-0 text-foreground/75" />
+                      <TagText value={recipe.time} size="md" />
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="shrink-0">
+              <div className="flex justify-center">
                 {recipe.sizeNumber !== null ? (
                   <PortionScaler
+                    part="input"
                     factor={factor}
                     onChange={setFactor}
                     sizeNumber={recipe.sizeNumber}
@@ -121,38 +129,43 @@ export function RecipeDetail() {
                   recipe.sizeText && <TagText value={recipe.sizeText} size="md" />
                 )}
               </div>
-            </div>
 
-            {/* Koch-Modus tools: Abhaken + Bildschirm anlassen, with the
-                multiplier stepper (descriptor-sized recipes) pushed right.
-                Always shown. */}
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Toggle
-                    pressed={checkable}
-                    onPressedChange={setCheckable}
-                    aria-label="Zutaten abhaken"
-                    size="sm"
-                    className="gap-1.5 rounded-full text-muted-foreground data-[state=on]:text-primary"
-                  >
-                    <ListChecks className="size-5" />
-                    <span className="text-lg">Abhaken</span>
-                  </Toggle>
-                </TooltipTrigger>
-                <TooltipContent>Zutaten abhaken</TooltipContent>
-              </Tooltip>
-              <WakeLockToggle />
-              {recipe.sizeNumber === null && (
-                <div className="ml-auto">
-                  <PortionScaler
-                    factor={factor}
-                    onChange={setFactor}
-                    sizeNumber={recipe.sizeNumber}
-                    sizeText={recipe.sizeText}
-                  />
-                </div>
-              )}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Toggle
+                      pressed={checkable}
+                      onPressedChange={setCheckable}
+                      aria-label="Zutaten abhaken"
+                      size="sm"
+                      className="gap-1.5 rounded-full text-muted-foreground data-[state=on]:text-primary"
+                    >
+                      <ListChecks className="size-5" />
+                      <span className="text-lg">Abhaken</span>
+                    </Toggle>
+                  </TooltipTrigger>
+                  <TooltipContent>Zutaten abhaken</TooltipContent>
+                </Tooltip>
+                <WakeLockToggle />
+              </div>
+              <div
+                className={cn(
+                  'flex justify-center',
+                  // Nudge up (via transform, so the row height — and Abhaken/
+                  // Wachhalten with it — stays put) and slightly right of centre
+                  // for a deliberately asymmetric look. The portions steppers go
+                  // further on both axes; the multiplier scaler only a little.
+                  recipe.sizeNumber !== null ? '-translate-y-3 translate-x-2' : '-translate-y-1.5 translate-x-1',
+                )}
+              >
+                <PortionScaler
+                  part={recipe.sizeNumber !== null ? 'steppers' : 'full'}
+                  factor={factor}
+                  onChange={setFactor}
+                  sizeNumber={recipe.sizeNumber}
+                  sizeText={recipe.sizeText}
+                />
+              </div>
             </div>
           </header>
 
