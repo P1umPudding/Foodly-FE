@@ -74,6 +74,22 @@ export function ingredientParts(line: RecipeIngredient): { quantity: string; nam
   return { quantity, name }
 }
 
+// Scale the pure number in an ingredient `amount` by `factor` (Koch-Modus
+// portion scaling). The prefix/unit live in other fields, so this only ever sees
+// the bare number string. German comma out, max 2 decimals, trailing zeros
+// trimmed; comma OR dot accepted on input. `Number('')` is 0, so empty/whitespace
+// is treated as non-numeric explicitly and passed through.
+export function scaleAmount(amount: string | null, factor: number): string | null {
+  if (amount === null) return null
+  if (factor === 1) return amount
+  const trimmed = amount.trim()
+  if (trimmed === '') return amount
+  const n = Number(trimmed.replace(',', '.'))
+  if (!Number.isFinite(n)) return amount
+  const rounded = Math.round(n * factor * 100) / 100
+  return String(rounded).replace('.', ',')
+}
+
 // No time/portion formatters here on purpose: `recipe.time` is shown as-is,
 // minutes are filter-only, and {tag} substitution is a render-time concern
 // (the phase-1 tag renderer), not a string helper.

@@ -31,8 +31,11 @@ export type Recipe = {
   time: string | null
   workMinutes: number | null
   overallMinutes: number | null
-  amount: string | null // 3 {Portionen}            28 cm {Springform}
-  basePortionMultiplier: number | null // 3                        1
+  // Recipe size. sizeNumber non-null = an editable portion count the scaler
+  // divides by (e.g. 3 Portionen); null = a fixed descriptor scaled by a plain
+  // multiplier. sizeText is the TagText-formatted label.
+  sizeNumber: number | null // 3                       null
+  sizeText: string | null //   {Portionen}             28 cm {Springform}
   notes: string[]
   mainImage: ImageId | null // Hauptbild (Hero) für Liste-Thumbnail / Detail-Kopf; null = keins
   images: ImageId[] // weitere Bilder (Galerie), ohne das Hauptbild
