@@ -176,7 +176,7 @@ export function RecipeList() {
         <div className="min-w-0">
           {/* Sticky page header over the scrolling list (solid — no blur). Its measured
             height feeds --list-sticky-top so the category headers tuck right beneath it. */}
-          <div ref={headerRef} className="sticky top-[var(--site-nav-h)] z-30 bg-background pb-3 pt-6">
+          <div ref={headerRef} className="sticky top-(--site-nav-h) z-30 bg-background pb-3 pt-6">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-baseline gap-4">
                 <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
@@ -236,7 +236,7 @@ export function RecipeList() {
             {search.status === 'loading' && (
               <div className="space-y-3">
                 {[0, 1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-[4.5rem] w-full rounded-xl" />
+                  <Skeleton key={i} className="h-18 w-full rounded-xl" />
                 ))}
               </div>
             )}
@@ -293,7 +293,7 @@ export function RecipeList() {
             <div ref={sentinelRef} aria-hidden className="h-1" />
             {search.loadingMore && (
               <div className="space-y-3 pt-3">
-                <Skeleton className="h-[4.5rem] w-full rounded-xl" />
+                <Skeleton className="h-18 w-full rounded-xl" />
               </div>
             )}
           </div>
@@ -307,8 +307,8 @@ export function RecipeList() {
           so the end of a short list can't drag it — only its own content scrolls. The
           non-scrolling spacer aligns the content with the search bar; overflow lives on
           the content (scrollbar starts at the content, not up in the spacer). */}
-      <aside className="fixed top-[var(--site-nav-h)] left-[var(--rail-left)] hidden max-h-[calc(100vh-var(--site-nav-h)-1rem)] w-[var(--rail-width)] flex-col md:flex">
-        <div className="h-[var(--list-search-offset,4.5rem)] shrink-0" />
+      <aside className="fixed top-(--site-nav-h) left-(--rail-left) hidden max-h-[calc(100vh-var(--site-nav-h)-1rem)] w-(--rail-width) flex-col md:flex">
+        <div className="h-(--list-search-offset,4.5rem) shrink-0" />
         <div className="min-h-0 flex-1 overflow-y-auto pb-4">{filters}</div>
       </aside>
     </>
