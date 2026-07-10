@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { Clock, Info, ListChecks } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Clock, Copy, Info, ListChecks } from 'lucide-react'
 import {
   Alert,
   AlertDescription,
@@ -35,6 +35,23 @@ export function RecipeDetail() {
   const recipeId = Number(id)
   const { status, data: recipe, error } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
 
+  const navigate = useNavigate()
+  const [cloning, setCloning] = useState(false)
+  const [cloneError, setCloneError] = useState<string | null>(null)
+
+  const onClone = async () => {
+    if (!recipe) return
+    setCloning(true)
+    setCloneError(null)
+    try {
+      const copy = await foodly.copyRecipe(recipe.id)
+      navigate(`/recipes/${copy.id}`)
+    } catch (e) {
+      setCloneError((e as Error).message)
+      setCloning(false)
+    }
+  }
+
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   // Koch-Modus state is recipe-local and never persisted: switching recipes
@@ -63,9 +80,20 @@ export function RecipeDetail() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
-      <Button asChild variant="ghost" size="sm" className="mb-4">
-        <Link to="/">← Zurück</Link>
-      </Button>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/">← Zurück</Link>
+        </Button>
+        {status === 'ready' && recipe && (
+          <div className="flex items-center gap-2">
+            {cloneError && <span className="text-sm text-destructive">{cloneError}</span>}
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={onClone} disabled={cloning}>
+              <Copy className="h-4 w-4" />
+              Duplizieren
+            </Button>
+          </div>
+        )}
+      </div>
 
       {status === 'loading' && (
         <div className="space-y-4">
