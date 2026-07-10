@@ -34,6 +34,7 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
     setError(null)
     setRecipes([])
     setCursor(null)
+    setLoadingMore(false)
     foodly
       .searchRecipes(query, 1)
       .then((res) => {
