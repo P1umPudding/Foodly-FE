@@ -15,10 +15,12 @@ import {
 import { Filter, UtensilsCrossed, SearchX } from 'lucide-react'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
+import { useRecipeSearch } from '../hooks/useRecipeSearch'
 import { useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
 import { useListState } from '../list/useListState'
-import { filterRecipes, groupingCategories } from '../list/filter'
-import { sortRecipes } from '../list/sort'
+import { groupingCategories } from '../list/filter'
+import { buildSearchQuery } from '../list/query'
+import { matchesSearch } from '../list/search'
 import { usedIngredients } from '../list/counts'
 import { canViewRecipe } from '../api/views'
 import { activeFacetCount, isFilterActive } from '../list/state'
@@ -33,21 +35,31 @@ import { SearchInput } from '../components/list/SearchInput'
 const SCROLL_KEY = 'recipeList:scrollY'
 
 export function RecipeList() {
-  const [nonce, setNonce] = useState(0)
-  const recipesReq = useRequest(() => foodly.listRecipes(), [nonce])
-  const categoriesReq = useRequest(() => foodly.listCategories(), [nonce])
   const { state, set, clear } = useListState()
   const currentUserId = useCurrentUserId()
   const tags = useTags()
   const ingredients = useIngredients()
 
-  // Access guard: the list only ever shows recipes the current user can see.
-  // Everything below (counts, ingredient facet, filtering) works off this set.
-  const accessibleRecipes = (recipesReq.data ?? []).filter((r) => canViewRecipe(r, currentUserId))
+  // Server-side filter/sort/pagination. Query changes (by value) reset to page 1.
+  const search = useRecipeSearch(buildSearchQuery(state))
+  const categoriesReq = useRequest(() => foodly.listCategories(), [])
+
+  // Access guard is redundant (backend enforces it) but harmless.
+  const accessibleRecipes = search.recipes.filter((r) => canViewRecipe(r, currentUserId))
   const categories = categoriesReq.data ?? []
   const tagList = Object.values(tags.byId)
+
+  // Ingredient facet: prefer ingredients actually present on loaded recipes; when
+  // those carry no ingredient data (REST previews), fall back to the full catalog
+  // so the ingredient filter stays usable.
   const usedIngredientList = usedIngredients(accessibleRecipes, ingredients.byId)
-  const visible = sortRecipes(filterRecipes(accessibleRecipes, state, currentUserId, categories), state, currentUserId)
+  const ingredientOptions =
+    usedIngredientList.length > 0
+      ? usedIngredientList
+      : Object.values(ingredients.byId).sort((a, b) => a.name.localeCompare(b.name))
+
+  // The server already applied every facet; the client only narrows by free-text.
+  const visible = accessibleRecipes.filter((r) => matchesSearch(r, state.search))
 
   // Count of accessible recipes in no category — drives the "Ohne Kategorie" filter.
   const categorizedIds = new Set(categories.flatMap((c) => c.recipes))
@@ -118,11 +130,23 @@ export function RecipeList() {
 
   const scrollRestored = useRef(false)
   useEffect(() => {
-    if (scrollRestored.current || recipesReq.status !== 'ready') return
+    if (scrollRestored.current || search.status !== 'ready') return
     scrollRestored.current = true
     const y = Number(sessionStorage.getItem(SCROLL_KEY) ?? '')
     if (y > 0) window.scrollTo(0, y)
-  }, [recipesReq.status])
+  }, [search.status])
+
+  // Load the next page when a sentinel near the list end scrolls into view.
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el || !search.hasMore) return
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) search.loadMore()
+    })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [search.hasMore, search.loadMore])
 
   const filters = (
     <FilterControls
@@ -139,7 +163,7 @@ export function RecipeList() {
       }
       uncategorizedCount={uncategorizedCount}
       tags={tagList}
-      ingredients={usedIngredientList}
+      ingredients={ingredientOptions}
     />
   )
 
@@ -203,13 +227,13 @@ export function RecipeList() {
                 clear={clear}
                 categories={categories}
                 tags={tagList}
-                ingredients={usedIngredientList}
+                ingredients={ingredientOptions}
               />
             </div>
           </div>
 
           <div className="pt-1">
-            {recipesReq.status === 'loading' && (
+            {search.status === 'loading' && (
               <div className="space-y-3">
                 {[0, 1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-[4.5rem] w-full rounded-xl" />
@@ -217,26 +241,26 @@ export function RecipeList() {
               </div>
             )}
 
-            {recipesReq.status === 'error' && (
+            {search.status === 'error' && (
               <Alert variant="destructive">
                 <AlertTitle>Konnte Rezepte nicht laden</AlertTitle>
                 <AlertDescription className="flex flex-col gap-2">
-                  <span>{recipesReq.error?.message}</span>
-                  <Button variant="outline" size="sm" onClick={() => setNonce((n) => n + 1)}>
+                  <span>{search.error?.message}</span>
+                  <Button variant="outline" size="sm" onClick={search.reload}>
                     Erneut versuchen
                   </Button>
                 </AlertDescription>
               </Alert>
             )}
 
-            {recipesReq.status === 'ready' && accessibleRecipes.length === 0 && (
+            {search.status === 'ready' && accessibleRecipes.length === 0 && (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
                 <UtensilsCrossed className="h-10 w-10 text-muted-foreground/40" />
                 <p className="text-muted-foreground">Noch keine Rezepte.</p>
               </div>
             )}
 
-            {recipesReq.status === 'ready' && accessibleRecipes.length > 0 && visible.length === 0 && (
+            {search.status === 'ready' && accessibleRecipes.length > 0 && visible.length === 0 && (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
                 <SearchX className="h-10 w-10 text-muted-foreground/40" />
                 <p className="text-muted-foreground">Keine Treffer für die aktuellen Filter.</p>
@@ -254,7 +278,7 @@ export function RecipeList() {
               </div>
             )}
 
-            {recipesReq.status === 'ready' && visible.length > 0 && (
+            {search.status === 'ready' && visible.length > 0 && (
               <RecipeListView
                 recipes={visible}
                 categories={groupingCats}
@@ -263,6 +287,14 @@ export function RecipeList() {
                 collapsed={collapsed}
                 onCollapsedChange={setCollapsed}
               />
+            )}
+
+            {/* Infinite-scroll trigger + more-pages spinner. */}
+            <div ref={sentinelRef} aria-hidden className="h-1" />
+            {search.loadingMore && (
+              <div className="space-y-3 pt-3">
+                <Skeleton className="h-[4.5rem] w-full rounded-xl" />
+              </div>
             )}
           </div>
         </div>
