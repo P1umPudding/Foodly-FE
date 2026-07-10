@@ -1,7 +1,7 @@
 # REST Backend Wiring — Design
 
 Date: 2026-07-10
-Status: Approved (design), pending implementation plan
+Status: Implemented
 
 ## Goal
 

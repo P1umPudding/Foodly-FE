@@ -20,7 +20,7 @@ export default defineConfig({
   // required `Authorization` header cross-origin. Prod must serve same-origin.
   server: {
     ...previewServer,
-    proxy: { '/api': { target: 'http://localhost:3000', changeOrigin: true } },
+    proxy: { '/api': { target: 'http://localhost:8080', changeOrigin: true } },
   },
   preview: previewServer,
   test: {
