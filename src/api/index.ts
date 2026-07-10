@@ -1,34 +1,61 @@
 import { SocketClient } from './socket'
-import type { Ingredient, Recipe, RecipeId, Tag, User, UserCategory } from './protocol'
+import { rest } from './rest'
+import { previewToRecipe } from './adapters'
+import { PAGE_SIZE } from '../list/query'
+import type {
+  Ingredient,
+  PaginatedRecipes,
+  PaginatedResponse,
+  Recipe,
+  RecipeId,
+  RecipePreview,
+  RecipeSearchQuery,
+  Tag,
+  User,
+  UserCategory,
+} from './protocol'
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? ''
-
-// VITE_MOCK=1 serves local fixtures. Statically false in prod, so the dynamic
-// import in bootstrap() (and all of src/mocks) is dropped from the build.
 const USE_MOCKS = import.meta.env.VITE_MOCK === '1'
 
 export const socket = new SocketClient(WS_URL)
 export { type SocketStatus } from './socket'
 
+// The mock responder is attached in BOTH modes: in mock mode it answers
+// everything; in REST mode it answers only me/users/categories (no backend yet).
+// The real WS connection (for future live editing) is not established here.
 export async function bootstrap(): Promise<void> {
-  if (USE_MOCKS) {
-    const { mockRequest } = await import('../mocks')
-    socket.useMocks(mockRequest)
-    return
-  }
-  socket.connect()
+  const { mockRequest } = await import('../mocks')
+  socket.useMocks(mockRequest)
 }
 
-// Message `type` strings are placeholders — align with the real backend (the
-// mock responder in src/mocks matches these strings).
+// Reads with a real backend go over REST; the still-mocked reads go through the
+// socket's mock responder. In VITE_MOCK dev, everything goes through the mock.
 export const foodly = {
   me: () => socket.request<User>('me'),
-
-  listRecipes: () => socket.request<Recipe[]>('recipes.list'),
-  getRecipe: (id: RecipeId) => socket.request<Recipe>('recipes.get', { id }),
-
-  listCategories: () => socket.request<UserCategory[]>('categories.list'),
-  listTags: () => socket.request<Tag[]>('tags.list'),
-  listIngredients: () => socket.request<Ingredient[]>('ingredients.list'),
   listUsers: () => socket.request<User[]>('users.list'),
+  listCategories: () => socket.request<UserCategory[]>('categories.list'),
+
+  searchRecipes: (query: RecipeSearchQuery, page: number): Promise<PaginatedRecipes> =>
+    USE_MOCKS
+      ? socket.request<PaginatedRecipes>('recipes.search', { query, page })
+      : rest
+          .post<PaginatedResponse<RecipePreview>>(`/recipes/search?page=${page}&limit=${PAGE_SIZE}`, query)
+          .then((res) => ({ items: res.data.map(previewToRecipe), cursor: res.cursor ? Number(res.cursor) : null })),
+
+  getRecipe: (id: RecipeId): Promise<Recipe> =>
+    USE_MOCKS ? socket.request<Recipe>('recipes.get', { id }) : rest.get<Recipe>(`/recipes/${id}`),
+
+  copyRecipe: (id: RecipeId): Promise<Recipe> =>
+    USE_MOCKS ? socket.request<Recipe>('recipes.copy', { id }) : rest.post<Recipe>(`/recipes/${id}/copy`),
+
+  listTags: (): Promise<Tag[]> =>
+    USE_MOCKS ? socket.request<Tag[]>('tags.list') : rest.get<PaginatedResponse<Tag>>('/tags').then((r) => r.data),
+
+  listIngredients: (): Promise<Ingredient[]> =>
+    USE_MOCKS
+      ? socket.request<Ingredient[]>('ingredients.list')
+      : rest.get<PaginatedResponse<Ingredient>>('/ingredients').then((r) => r.data),
 }
+
+export type { PaginatedRecipes } from './protocol'
