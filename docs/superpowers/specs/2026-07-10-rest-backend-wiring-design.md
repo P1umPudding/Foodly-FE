@@ -61,10 +61,32 @@ Alternatives rejected:
 
 ## Design
 
-### 1. Configuration & the REST client
+### 1. Configuration, dev proxy & the REST client
 
-- New env var `VITE_API_URL` (e.g. `http://localhost:3000/api/v1`). `VITE_WS_URL`
-  stays for the later editing work. Document both in `.env.example`.
+**Dev cross-origin — use a Vite proxy, not direct CORS.** The backend's CORS
+layer sends `Access-Control-Allow-Headers: *`. Per the Fetch standard the `*`
+wildcard covers every request header *except* `Authorization`, which must be
+listed explicitly — so a direct cross-origin `fetch` carrying `Authorization:
+Bearer …` (required; the middleware 401s without it) would fail preflight.
+Rather than change the backend, add a Vite dev-server proxy so browser calls are
+same-origin and CORS drops out:
+
+```ts
+// vite.config.ts
+server: {
+  proxy: { '/api': { target: 'http://localhost:3000', changeOrigin: true } },
+}
+```
+
+(The CORS layer is outermost in `lib.rs`, so OPTIONS preflight is answered before
+auth — but the `Authorization` wildcard gap is the blocker, hence the proxy.)
+Production note: this proxy is dev-only; prod must serve the app same-origin
+behind a reverse proxy, or the backend must add `Authorization` to an explicit
+`allow_headers` list.
+
+- Env var `VITE_API_URL`, defaulting to the relative `/api/v1` (works through the
+  proxy, same-origin). `VITE_WS_URL` stays for the later editing work. Document
+  both in `.env.example`.
 - `VITE_MOCK` semantics:
   - `=1` → everything mocked. Preserves today's pure-frontend dev experience.
   - unset / `0` → recipes, tags, ingredients go through REST; `me`, `users`,
@@ -74,7 +96,7 @@ Alternatives rejected:
     placeholder; the backend maps any bearer to user 1), `Content-Type:
     application/json`.
   - On non-2xx, `throw new Error(message)` — mirroring `SocketClient.request`'s
-    rejection contract so `useRequest`'s loading/error state is unchanged.
+    rejection contract so error handling is unchanged.
   - Methods: `get<T>(path)`, `post<T>(path, body)`.
 
 ### 2. API surface (`src/api/index.ts`)
@@ -90,8 +112,17 @@ Alternatives rejected:
   responder.
 
 Under `VITE_MOCK=1`, the REST-bound methods above resolve through the mock
-responder instead (so full mock dev keeps working); a mock `copyRecipe` handler
-is added for parity.
+responder instead (so full mock dev keeps working). The mock `searchRecipes`
+handler applies filtering/sorting to the mock dataset by **reusing the existing
+`filterRecipes`/`sortRecipes` logic** (`src/list/filter.ts`, `src/list/sort.ts`)
+— that code is not deleted, it moves from the page into the mock layer, so mock
+mode still filters/sorts while REST mode delegates to the backend. A mock
+`copyRecipe` handler is added for parity.
+
+Endpoint response wrapping (verified against the backend):
+- `search` → `{ data, cursor }` (unwrap `data`).
+- `tags` / `ingredients` → `{ data }` (unwrap).
+- `getRecipe` / `copyRecipe` → **raw** `Recipe` (no wrapper).
 
 ### 3. Type adapters
 
@@ -121,14 +152,28 @@ Map `ListState` (`src/list/state.ts`) → `RecipeSearchQuery`:
 
 - **Infinite scroll**: fetch page 1 whenever the search query changes; load the
   next page via `cursor` as the user scrolls; accumulate into a single list.
+  This needs a **dedicated pagination hook/state** (e.g. `useRecipeSearch`) —
+  `useRequest` is one-shot and nulls `data` on every run, so it cannot accumulate
+  pages. The hook tracks: accumulated `RecipePreview[]`, current `cursor`,
+  `loadingMore`, and resets on query change.
 - **Client-side still**: free-text `search` (over already-loaded results),
   category grouping + collapse, the `canViewRecipe` access guard (redundant since
   the backend enforces access, but harmless).
-- `filterRecipes`/`sortRecipes` reduce to just the client-side text-search pass;
-  category/tag/ingredient/duration/role/collab filtering and sorting move to the
-  server.
+- The server does category/tag/ingredient/duration/role/collab filtering and
+  sorting; the client keeps only the text-search pass.
 - Known tradeoff: because grouping and counts run over *loaded* pages, they fill
   in as the user scrolls rather than reflecting the full result set immediately.
+
+**Category facet limitation (REST mode).** Categories stay mocked, but mock
+category IDs and their `recipes: RecipeId[]` reference *mock* recipe IDs, which
+do not exist in the real DB. Consequences and handling in REST mode:
+- Grouping-by-category collapses to "uncategorized" (no membership matches). The
+  grouping UI stays but is effectively inert until a categories backend exists.
+- The category filter facet is **omitted from the `RecipeSearchQuery`** in REST
+  mode — sending a mock category ID as `filters.categories` would filter the real
+  list to empty. (In mock mode it still works as today.)
+- This is an accepted, documented limitation of keeping categories mocked; it
+  resolves when the backend adds a categories endpoint.
 
 ### 5. Clone (new, minimal UI)
 
