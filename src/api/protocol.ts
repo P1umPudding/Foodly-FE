@@ -113,3 +113,31 @@ export type Group = {
   owner: UserId
   members: UserId[]
 }
+
+// --- REST wire additions -------------------------------------------------
+
+// List projection returned by GET /recipes and POST /recipes/search. Carries no
+// sections/notes/images (see previewToRecipe, which fills them empty).
+export type RecipePreview = Omit<Recipe, 'sections' | 'notes' | 'images'>
+
+// Paginated envelope. `cursor` is the next page number as a string, or null.
+export type PaginatedResponse<T> = { data: T[]; cursor: string | null }
+
+export type RecipeAccessRight = 'owner' | 'editor' | 'viewer'
+export type RecipeShareStateWire = 'private' | 'shared' | 'collaborative'
+export type RecipeSortField = 'name' | 'worktime' | 'totaltime' | 'rating'
+export type SortOrder = 'asc' | 'desc'
+
+export type RecipeFilters = {
+  categories?: number[]
+  tags?: string[]
+  ingredients?: number[]
+  maxWorkTime?: number
+  accessRights?: RecipeAccessRight[]
+  shareStates?: RecipeShareStateWire[]
+}
+export type RecipeSort = { field: RecipeSortField; order: SortOrder }
+export type RecipeSearchQuery = { filters?: RecipeFilters; sort?: RecipeSort }
+
+// Frontend-normalized paginated recipe result (cursor parsed to a page number).
+export type PaginatedRecipes = { items: Recipe[]; cursor: number | null }
