@@ -18,7 +18,7 @@ import { useRequest } from '../hooks/useRequest'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
 import { useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
 import { useListState } from '../list/useListState'
-import { groupingCategories } from '../list/filter'
+import { groupingCategories, inSelectedCategory } from '../list/filter'
 import { buildSearchQuery } from '../list/query'
 import { matchesSearch } from '../list/search'
 import { usedIngredients } from '../list/counts'
@@ -58,8 +58,14 @@ export function RecipeList() {
       ? usedIngredientList
       : Object.values(ingredients.byId).sort((a, b) => a.name.localeCompare(b.name))
 
-  // The server already applied every facet; the client only narrows by free-text.
-  const visible = accessibleRecipes.filter((r) => matchesSearch(r, state.search))
+  // The server (or the mock) applies tag/ingredient/duration/role/collab facets and
+  // sorting. The client narrows the loaded set by category selection and free-text
+  // search. Category stays client-side (driven by the mocked category catalog):
+  // selecting one must HIDE non-matching recipes, not dump them into the grouped
+  // view's "Ohne Kategorie" bucket.
+  const visible = accessibleRecipes.filter(
+    (r) => inSelectedCategory(r, state.categories, categories) && matchesSearch(r, state.search),
+  )
 
   // Count of accessible recipes in no category — drives the "Ohne Kategorie" filter.
   const categorizedIds = new Set(categories.flatMap((c) => c.recipes))

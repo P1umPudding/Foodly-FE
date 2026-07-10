@@ -74,7 +74,7 @@ same-origin and CORS drops out:
 ```ts
 // vite.config.ts
 server: {
-  proxy: { '/api': { target: 'http://localhost:3000', changeOrigin: true } },
+  proxy: { '/api': { target: 'http://localhost:8080', changeOrigin: true } },
 }
 ```
 
@@ -157,30 +157,36 @@ Map `ListState` (`src/list/state.ts`) → `RecipeSearchQuery`:
   pages. The hook tracks: accumulated `RecipePreview[]`, current `cursor`,
   `loadingMore`, and resets on query change.
 - **Client-side still**: free-text `search` (over already-loaded results),
-  category grouping + collapse, the `canViewRecipe` access guard (redundant since
-  the backend enforces access, but harmless).
-- The server does category/tag/ingredient/duration/role/collab filtering and
-  sorting; the client keeps only the text-search pass.
+  **category filtering + grouping + collapse**, the `canViewRecipe` access guard
+  (redundant since the backend enforces access, but harmless).
+- The server does tag/ingredient/duration/role/collab filtering and sorting; the
+  client keeps the category-selection filter (`inSelectedCategory`) and the
+  free-text-search pass.
 - Known tradeoff: because grouping and counts run over *loaded* pages, they fill
   in as the user scrolls rather than reflecting the full result set immediately.
 
-**Category facet limitation (REST mode).** Categories stay mocked, but mock
-category IDs and their `recipes: RecipeId[]` reference *mock* recipe IDs, which
-do not exist in the real DB. Consequences and handling in REST mode:
-- Grouping-by-category collapses to "uncategorized" (no membership matches). The
-  grouping UI stays but is effectively inert until a categories backend exists.
-- The category filter facet is **omitted from the `RecipeSearchQuery`** in REST
-  mode — sending a mock category ID as `filters.categories` would filter the real
-  list to empty. (In mock mode it still works as today.)
-- This is an accepted, documented limitation of keeping categories mocked; it
-  resolves when the backend adds a categories endpoint.
+**Category facet (client-side, both modes).** Categories stay mocked, so the
+category selection is applied on the client — never sent to the backend:
+- The category facet is **omitted from the `RecipeSearchQuery`** (both modes) —
+  sending a mock category ID as `filters.categories` would filter the real list
+  to empty. Instead the page filters the loaded set with `inSelectedCategory`.
+- Selecting a category **hides** non-matching recipes; it must NOT dump them into
+  the grouped view's "Ohne Kategorie" bucket (that was a bug — a category
+  selection with no client-side filter left every non-matching recipe visible
+  under uncategorized).
+- In mock mode (`VITE_MOCK=1`) this works fully — category IDs and recipe IDs
+  align. In REST mode it is limited by mocked categories (selecting a category
+  yields an empty result until the backend adds a categories endpoint), but it no
+  longer misbuckets.
 
 ### 5. Clone (new, minimal UI)
 
 - Add a "Duplizieren" action (postxl `Button`) on `RecipeDetail` that calls
   `foodly.copyRecipe(id)` and navigates to `/recipes/{newId}` on success.
 - Add a mock `copyRecipe` handler in `src/mocks/` so clone also works under
-  `VITE_MOCK=1`.
+  `VITE_MOCK=1`. The mock handler **carries the clone into every category the
+  original belonged to** (adds the new recipe's id to those mock categories), so
+  a duplicated recipe keeps its categorization.
 - No other mutation UI is added (create/update/delete remain deferred to the WS
   editing phase).
 

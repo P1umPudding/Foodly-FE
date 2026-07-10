@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mockRequest } from './index'
+import { mockRequest, mockData } from './index'
 import type { PaginatedRecipes } from '../api/protocol'
 
 describe('mock recipes.search', () => {
@@ -16,5 +16,15 @@ describe('mock recipes.search', () => {
     expect(copy.id).not.toBe(first.id)
     expect(copy.name).toContain('(Kopie)')
     expect(copy.owner).toBe(1)
+  })
+
+  it('carries the original recipe categories onto the clone', async () => {
+    const category = mockData.categories.find((c) => c.recipes.length > 0)
+    if (!category) throw new Error('fixture has no non-empty category')
+    const originalId = category.recipes[0]
+
+    const copy = (await mockRequest('recipes.copy', { id: originalId })) as { id: number }
+
+    expect(category.recipes).toContain(copy.id)
   })
 })

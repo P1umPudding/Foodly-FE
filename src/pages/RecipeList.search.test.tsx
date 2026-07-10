@@ -4,7 +4,11 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './RecipeList'
 import { foodly } from '../api'
-import type { Recipe } from '../api/protocol'
+import type { Recipe, UserCategory } from '../api/protocol'
+
+function cat(id: number, recipes: number[]): UserCategory {
+  return { id, user: 1, name: `Cat ${id}`, recipes, order: id, color: '#000000', colorLight: null, colorDark: null }
+}
 
 function rec(id: number, name: string): Recipe {
   return {
@@ -63,6 +67,26 @@ describe('RecipeList (server-side search)', () => {
     // retries until the element exists (see CatalogProvider.test.tsx for the
     // same idiom).
     await waitFor(() => screen.getByText('Pancakes'))
+  })
+
+  it('hides recipes outside the selected category instead of bucketing them as uncategorised', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({
+      items: [rec(1, 'Pancakes'), rec(2, 'Waffles')],
+      cursor: null,
+    })
+    // Category 1 contains only recipe 1 — selecting it must hide recipe 2 entirely.
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [1])])
+
+    render(
+      <MemoryRouter initialEntries={['/?cat=1&group=0']}>
+        <TooltipProvider>
+          <RecipeList />
+        </TooltipProvider>
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => screen.getByText('Pancakes'))
+    expect(screen.queryByText('Waffles')).toBeNull()
   })
 
   it('loads the next page when the sentinel intersects', async () => {

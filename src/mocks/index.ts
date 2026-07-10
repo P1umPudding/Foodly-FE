@@ -66,6 +66,10 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
         viewers: [],
       }
       mockData.recipes.push(copy)
+      // Carry the clone into every category the original belonged to.
+      for (const category of mockData.categories) {
+        if (category.recipes.includes(original.id)) category.recipes.push(copy.id)
+      }
       return copy
     }
     default:
