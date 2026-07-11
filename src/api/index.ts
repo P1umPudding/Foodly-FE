@@ -1,5 +1,5 @@
 import { SocketClient } from './socket'
-import { rest } from './rest'
+import { rest, collectPages } from './rest'
 import { previewToRecipe } from './adapters'
 import { PAGE_SIZE } from '../list/query'
 import type {
@@ -31,10 +31,17 @@ export async function bootstrap(): Promise<void> {
 
 // Reads with a real backend go over REST; the still-mocked reads go through the
 // socket's mock responder. In VITE_MOCK dev, everything goes through the mock.
+//
+// `listUsers` stays mocked: the backend offers only typeahead /users/search
+// (no list-all, no /users/{id}), which can't back the bulk byId map that
+// CatalogProvider uses to resolve owner/editor names.
 export const foodly = {
-  me: () => socket.request<User>('me'),
+  me: (): Promise<User> => (USE_MOCKS ? socket.request<User>('me') : rest.get<User>('/users/me')),
   listUsers: () => socket.request<User[]>('users.list'),
-  listCategories: () => socket.request<UserCategory[]>('categories.list'),
+  listCategories: (): Promise<UserCategory[]> =>
+    USE_MOCKS
+      ? socket.request<UserCategory[]>('categories.list')
+      : collectPages((page) => rest.get<PaginatedResponse<UserCategory>>(`/categories?page=${page}&limit=100`)),
 
   searchRecipes: (query: RecipeSearchQuery, page: number): Promise<PaginatedRecipes> =>
     USE_MOCKS

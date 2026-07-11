@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { rest } from './rest'
+import { rest, collectPages } from './rest'
+import type { PaginatedResponse } from './protocol'
 
 function mockFetch(response: Partial<Response> & { jsonBody?: unknown }) {
   const res = {
@@ -39,5 +40,27 @@ describe('rest', () => {
   it('returns undefined for 204', async () => {
     mockFetch({ ok: true, status: 204, jsonBody: undefined })
     await expect(rest.get('/x')).resolves.toBeUndefined()
+  })
+})
+
+describe('collectPages', () => {
+  it('fetches a single page and stops when cursor is null', async () => {
+    const fetchPage = vi.fn(async (): Promise<PaginatedResponse<number>> => ({ data: [1, 2], cursor: null }))
+    const out = await collectPages(fetchPage)
+    expect(out).toEqual([1, 2])
+    expect(fetchPage).toHaveBeenCalledTimes(1)
+    expect(fetchPage).toHaveBeenCalledWith(1)
+  })
+
+  it('accumulates pages in order, following the cursor until it is null', async () => {
+    const pages: Record<number, PaginatedResponse<number>> = {
+      1: { data: [1, 2], cursor: '2' },
+      2: { data: [3, 4], cursor: '3' },
+      3: { data: [5], cursor: null },
+    }
+    const fetchPage = vi.fn(async (page: number) => pages[page])
+    const out = await collectPages(fetchPage)
+    expect(out).toEqual([1, 2, 3, 4, 5])
+    expect(fetchPage.mock.calls.map((c) => c[0])).toEqual([1, 2, 3])
   })
 })
