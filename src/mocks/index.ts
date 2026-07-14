@@ -1,6 +1,6 @@
 // Dev-only mock backend, lazy-loaded when VITE_MOCK=1 so it stays out of prod.
 
-import type { Ingredient, Recipe, Tag, User, UserCategory } from '../api/protocol'
+import type { CreateRecipe, Ingredient, Recipe, RecipeId, Tag, User, UserCategory } from '../api/protocol'
 import { applyQuery, PAGE_SIZE } from '../list/query'
 import type { PaginatedRecipes, RecipeSearchQuery } from '../api/protocol'
 
@@ -22,6 +22,46 @@ export const CURRENT_USER_ID = 1
 
 // Latency so loading states are actually visible in dev.
 const delay = (ms = 250) => new Promise((r) => setTimeout(r, ms))
+
+let nextId = 10_000
+
+// Mirrors the backend's expansion of a CreateRecipe into a Recipe: fresh ids
+// everywhere (the real PUT deletes and re-inserts nested rows, so ids are not
+// stable across an update) and IngredientRefs resolved from the catalog.
+function expand(input: CreateRecipe, id: RecipeId, owner: number): Recipe {
+  return {
+    id,
+    owner,
+    editors: [],
+    viewers: [],
+    rating: [],
+    name: input.name,
+    tags: input.tags,
+    source: input.source,
+    time: input.time,
+    workMinutes: input.workMinutes,
+    overallMinutes: input.overallMinutes,
+    sizeNumber: input.sizeNumber,
+    sizeText: input.sizeText,
+    notes: input.notes,
+    mainImage: input.mainImage,
+    images: input.images,
+    sections: input.sections.map((section) => ({
+      id: nextId++,
+      name: section.name,
+      steps: section.steps,
+      ingredients: section.ingredients.map((line) => ({
+        id: nextId++,
+        ingredient:
+          line.ingredient === null ? null : (mockData.ingredients.find((i) => i.id === line.ingredient) ?? null),
+        text: line.text,
+        amount: line.amount,
+        amountPrefix: line.amountPrefix,
+        unit: line.unit,
+      })),
+    })),
+  }
+}
 
 export async function mockRequest(type: string, payload?: unknown): Promise<unknown> {
   await delay()
@@ -71,6 +111,28 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
         if (category.recipes.includes(original.id)) category.recipes.push(copy.id)
       }
       return copy
+    }
+    case 'recipes.create': {
+      const { input } = payload as { input: CreateRecipe }
+      const created = expand(input, nextId++, CURRENT_USER_ID)
+      mockData.recipes.push(created)
+      return created
+    }
+    case 'recipes.update': {
+      const { input } = payload as { input: CreateRecipe }
+      const index = mockData.recipes.findIndex((r) => r.id === id)
+      if (index === -1) throw new Error(`recipe ${id} not found`)
+      const existing = mockData.recipes[index]
+      const updated = expand(input, existing.id, existing.owner)
+      updated.editors = existing.editors
+      updated.viewers = existing.viewers
+      updated.rating = existing.rating
+      mockData.recipes[index] = updated
+      return updated
+    }
+    case 'images.upload': {
+      const imageId = nextId++
+      return { id: imageId, hash: `mock-${imageId}`, name: null }
     }
     default:
       throw new Error(`[mock] no handler for message type "${type}"`)
