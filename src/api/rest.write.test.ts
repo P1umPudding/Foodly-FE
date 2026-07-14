@@ -26,8 +26,14 @@ describe('rest write verbs', () => {
   })
 
   it('del resolves undefined on 204', async () => {
-    mockFetch(204, undefined)
-    await expect(rest.del('/recipes/7')).resolves.toBeUndefined()
+    const fetchSpy = mockFetch(204, undefined)
+
+    const result = await rest.del('/recipes/7')
+
+    expect(result).toBeUndefined()
+    const [url, init] = fetchSpy.mock.calls[0]
+    expect(url).toBe('/api/v1/recipes/7')
+    expect(init?.method).toBe('DELETE')
   })
 
   it('postBinary sends the raw blob with its own content type', async () => {
