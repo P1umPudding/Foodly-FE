@@ -96,10 +96,9 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
     case 'recipes.copy': {
       const original = mockData.recipes.find((r) => r.id === id)
       if (!original) throw new Error(`recipe ${id} not found`)
-      const nextId = mockData.recipes.reduce((max, r) => Math.max(max, r.id), 0) + 1
       const copy: Recipe = {
         ...original,
-        id: nextId,
+        id: nextId++,
         name: `${original.name} (Kopie)`,
         owner: CURRENT_USER_ID,
         editors: [],

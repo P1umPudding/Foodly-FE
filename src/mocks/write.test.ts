@@ -52,4 +52,47 @@ describe('mock writes', () => {
     const second = (await mockRequest('images.upload')) as { id: number }
     expect(second.id).toBeGreaterThan(first.id)
   })
+
+  it('preserves editors/viewers/rating across a full-replace update', async () => {
+    const created = (await mockRequest('recipes.create', { input })) as Recipe
+
+    // CreateRecipe has no editors/viewers/rating fields, so an update has to
+    // carry them over from the stored recipe rather than get them from input.
+    const stored = mockData.recipes.find((r) => r.id === created.id)!
+    stored.editors = [2]
+    stored.viewers = [3]
+    stored.rating = [{ user: 4, rating: 5 }]
+
+    const updated = (await mockRequest('recipes.update', {
+      id: created.id,
+      input: { ...input, name: 'Umbenannt' },
+    })) as Recipe
+
+    expect(updated.editors).toEqual([2])
+    expect(updated.viewers).toEqual([3])
+    expect(updated.rating).toEqual([{ user: 4, rating: 5 }])
+  })
+
+  it('resolves catalog ingredients and preserves free-text lines', async () => {
+    const withIngredients: CreateRecipe = {
+      ...input,
+      sections: [
+        {
+          name: null,
+          steps: [],
+          ingredients: [
+            { ingredient: 1, text: null, amount: null, amountPrefix: null, unit: null },
+            { ingredient: null, text: 'etwas Freitext', amount: null, amountPrefix: null, unit: null },
+          ],
+        },
+      ],
+    }
+
+    const created = (await mockRequest('recipes.create', { input: withIngredients })) as Recipe
+
+    const [resolved, freeText] = created.sections[0].ingredients
+    expect(resolved.ingredient).toEqual({ id: 1, name: 'Spaghetti' })
+    expect(freeText.ingredient).toBeNull()
+    expect(freeText.text).toBe('etwas Freitext')
+  })
 })
