@@ -3,6 +3,7 @@ import { rest, collectPages } from './rest'
 import { previewToRecipe } from './adapters'
 import { PAGE_SIZE } from '../list/query'
 import type {
+  CreateRecipe,
   Ingredient,
   PaginatedRecipes,
   PaginatedResponse,
@@ -11,6 +12,7 @@ import type {
   RecipePreview,
   RecipeSearchQuery,
   Tag,
+  UploadedImage,
   User,
   UserCategory,
 } from './protocol'
@@ -63,6 +65,15 @@ export const foodly = {
     USE_MOCKS
       ? socket.request<Ingredient[]>('ingredients.list')
       : rest.get<PaginatedResponse<Ingredient>>('/ingredients').then((r) => r.data),
+
+  createRecipe: (input: CreateRecipe): Promise<Recipe> =>
+    USE_MOCKS ? socket.request<Recipe>('recipes.create', { input }) : rest.post<Recipe>('/recipes', input),
+
+  updateRecipe: (id: RecipeId, input: CreateRecipe): Promise<Recipe> =>
+    USE_MOCKS ? socket.request<Recipe>('recipes.update', { id, input }) : rest.put<Recipe>(`/recipes/${id}`, input),
+
+  uploadImage: (file: Blob): Promise<UploadedImage> =>
+    USE_MOCKS ? socket.request<UploadedImage>('images.upload') : rest.postBinary<UploadedImage>('/images', file),
 }
 
 export type { PaginatedRecipes } from './protocol'
