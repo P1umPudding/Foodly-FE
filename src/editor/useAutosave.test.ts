@@ -131,6 +131,28 @@ describe('useAutosave', () => {
     expect(save).toHaveBeenCalledWith('b')
   })
 
+  it('flushes the newest edit on unmount when a save is already in flight', async () => {
+    let resolveFirst!: () => void
+    const save = vi
+      .fn()
+      .mockReturnValueOnce(new Promise<void>((r) => (resolveFirst = r)))
+      .mockResolvedValue(undefined)
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // save('b') now in flight
+
+    rerender({ v: 'c' }) // schedules a debounce timer that never gets to fire
+    unmount() // must not drop 'c' — the in-flight save's finally() should pick it up
+
+    await act(async () => {
+      resolveFirst()
+    })
+
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenLastCalledWith('c')
+  })
+
   it('saves nothing while disabled', () => {
     const save = vi.fn().mockResolvedValue(undefined)
     const { rerender } = renderHook(({ v }) => useAutosave(v, save, { enabled: false }), {

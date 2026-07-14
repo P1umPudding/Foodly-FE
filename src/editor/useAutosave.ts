@@ -30,12 +30,20 @@ export function useAutosave<T>(
   const baseline = useRef(value) // the last value known to be persisted
   const wasEnabled = useRef(false)
   const enabledRef = useRef(enabled)
+  // Mirrors status.state for the beforeunload listener, which is registered once
+  // and so can't close over `status` directly.
+  const statusRef = useRef<SaveState>('idle')
 
   latest.current = value
   saveRef.current = save
   enabledRef.current = enabled
 
   const dirty = () => !Object.is(latest.current, baseline.current)
+
+  const updateStatus = (next: SaveStatus) => {
+    statusRef.current = next.state
+    setStatus(next)
+  }
 
   const run = useCallback(() => {
     if (inFlight.current) {
@@ -44,16 +52,16 @@ export function useAutosave<T>(
     }
     const pending = latest.current
     inFlight.current = true
-    setStatus({ state: 'saving', at: null, error: null })
+    updateStatus({ state: 'saving', at: null, error: null })
 
     saveRef
       .current(pending)
       .then(() => {
         baseline.current = pending
-        setStatus({ state: 'saved', at: Date.now(), error: null })
+        updateStatus({ state: 'saved', at: Date.now(), error: null })
       })
       .catch((error: unknown) => {
-        setStatus({ state: 'error', at: null, error: error as Error })
+        updateStatus({ state: 'error', at: null, error: error as Error })
       })
       .finally(() => {
         inFlight.current = false
@@ -77,6 +85,12 @@ export function useAutosave<T>(
     // First enabled render: adopt what's there (the freshly loaded recipe) as the
     // baseline. Without this the null -> loaded transition reads as an edit and
     // every recipe would be re-saved the instant it's opened.
+    //
+    // Contract: consumers must not enable autosave until `value` holds its loaded
+    // state — enable and the load must land in the same commit (both derived from
+    // one state value), or the load will be mis-seen as an edit and saved back.
+    // This hook can't tell "just loaded" from "just edited" on its own, so it isn't
+    // enforced here.
     if (!wasEnabled.current) {
       wasEnabled.current = true
       baseline.current = value
@@ -104,20 +118,28 @@ export function useAutosave<T>(
         clearTimeout(timer.current)
         timer.current = null
       }
-      if (enabledRef.current && !inFlight.current && dirty()) void saveRef.current(latest.current)
+      if (!enabledRef.current || !dirty()) return
+      // A save already in flight can't be joined here — its .finally() is the
+      // only place allowed to start the next one, so queue for it to pick up
+      // latest.current instead of firing a second overlapping save.
+      if (inFlight.current) queued.current = true
+      else void saveRef.current(latest.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Closing the tab mid-save loses the change; warn while one is outstanding.
+  // Registered once (not per status change) so the native listener isn't torn
+  // down and re-added on every idle -> saving -> saved/error transition; the
+  // ref-backed check below reads live state instead of a stale closure.
   useEffect(() => {
-    const pendingWork = () => timer.current !== null || inFlight.current || status.state === 'error'
+    const pendingWork = () => timer.current !== null || inFlight.current || statusRef.current === 'error'
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       if (pendingWork()) e.preventDefault()
     }
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [status.state])
+  }, [])
 
   const retry = useCallback(() => {
     if (timer.current) {
