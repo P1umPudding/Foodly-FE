@@ -141,3 +141,40 @@ export type RecipeSearchQuery = { filters?: RecipeFilters; sort?: RecipeSort }
 
 // Frontend-normalized paginated recipe result (cursor parsed to a page number).
 export type PaginatedRecipes = { items: Recipe[]; cursor: number | null }
+
+// Write payload for POST /recipes and PUT /recipes/{id}. PUT is a FULL REPLACE:
+// the backend deletes and re-inserts tags, images and sections, so nested ids are
+// not stable across updates and any id sent in a nested object is ignored.
+export type CreateRecipe = {
+  name: string
+  tags: TagId[]
+  source: string | null
+  time: string | null
+  workMinutes: number | null
+  overallMinutes: number | null
+  sizeNumber: number | null
+  sizeText: string | null
+  notes: string[]
+  mainImage: ImageId | null
+  images: ImageId[]
+  sections: CreateSection[]
+}
+
+// `ingredients` and `steps` have no serde default server-side — both keys must
+// be present, even when empty.
+export type CreateSection = {
+  name: string | null
+  ingredients: CreateRecipeIngredient[]
+  steps: string[]
+}
+
+// `ingredient` is the bare id here, unlike the expanded IngredientRef on reads.
+export type CreateRecipeIngredient = {
+  ingredient: IngredientId | null
+  text: string | null
+  amount: string | null
+  amountPrefix: string | null
+  unit: string | null
+}
+
+export type UploadedImage = { id: ImageId; hash: Hash; name: string | null }
