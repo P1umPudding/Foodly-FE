@@ -16,7 +16,9 @@ export function Nav() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button asChild size="sm" className="gap-1.5">
-                <Link to="/recipes/new">
+                {/* aria-label: below `sm` the visible label is hidden, so the icon alone
+                    would otherwise leave the link with no accessible name */}
+                <Link to="/recipes/new" aria-label="Neues Rezept">
                   <Plus className="h-4 w-4" />
                   {/* the label collapses on narrow screens so the header never wraps */}
                   <span className="hidden sm:inline">Neues Rezept</span>
