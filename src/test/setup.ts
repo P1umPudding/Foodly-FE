@@ -24,3 +24,9 @@ class IntersectionObserverStub {
 if (!('IntersectionObserver' in globalThis)) {
   globalThis.IntersectionObserver = IntersectionObserverStub as unknown as typeof IntersectionObserver
 }
+
+// jsdom also lacks scrollIntoView, which cmdk (the Command palette used by
+// IngredientPicker) calls when the highlighted item changes.
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {}
+}
