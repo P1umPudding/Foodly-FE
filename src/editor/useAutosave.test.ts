@@ -196,6 +196,27 @@ describe('useAutosave', () => {
     }
   })
 
+  // The component that could show `status` is gone by the time this rejects, so
+  // the hook must hand the error to onFlushError instead of dropping it.
+  it('reports a rejected unmount-flush save via onFlushError', async () => {
+    const onFlushError = vi.fn()
+    // Plain rejecting function, not vi.fn().mockRejectedValue — see the swallow
+    // test above for why a mock here would mask the very thing under test.
+    const save = (v: string) => Promise.reject(new Error(`offline: ${v}`))
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onFlushError }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(200)) // debounce still pending, draft is dirty
+    unmount() // fires the best-effort flush against the rejecting save
+
+    await flushMicrotasks()
+
+    expect(onFlushError).toHaveBeenCalledTimes(1)
+    expect(onFlushError).toHaveBeenCalledWith(new Error('offline: b'))
+  })
+
   it('saves nothing while disabled', () => {
     const save = vi.fn().mockResolvedValue(undefined)
     const { rerender } = renderHook(({ v }) => useAutosave(v, save, { enabled: false }), {

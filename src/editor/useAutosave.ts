@@ -16,7 +16,11 @@ const IDLE: SaveStatus = { state: 'idle', at: null, error: null }
 export function useAutosave<T>(
   value: T,
   save: (value: T) => Promise<unknown>,
-  { enabled = true, delay = 800 }: { enabled?: boolean; delay?: number } = {},
+  {
+    enabled = true,
+    delay = 800,
+    onFlushError,
+  }: { enabled?: boolean; delay?: number; onFlushError?: (error: unknown) => void } = {},
 ): { status: SaveStatus; retry: () => void } {
   const [status, setStatus] = useState<SaveStatus>(IDLE)
 
@@ -30,6 +34,10 @@ export function useAutosave<T>(
   const baseline = useRef(value) // the last value known to be persisted
   const wasEnabled = useRef(false)
   const enabledRef = useRef(enabled)
+  const onFlushErrorRef = useRef(onFlushError)
+  // Flips false in the unmount-flush cleanup so a rejection that resolves after
+  // that point knows there's no component left to carry status on.
+  const mounted = useRef(true)
   // Mirrors status.state for the beforeunload listener, which is registered once
   // and so can't close over `status` directly.
   const statusRef = useRef<SaveState>('idle')
@@ -37,6 +45,7 @@ export function useAutosave<T>(
   latest.current = value
   saveRef.current = save
   enabledRef.current = enabled
+  onFlushErrorRef.current = onFlushError
 
   const dirty = () => !Object.is(latest.current, baseline.current)
 
@@ -61,7 +70,11 @@ export function useAutosave<T>(
         updateStatus({ state: 'saved', at: Date.now(), error: null })
       })
       .catch((error: unknown) => {
-        updateStatus({ state: 'error', at: null, error: error as Error })
+        // This fires asynchronously (after the await), so if unmount happened
+        // in between, `mounted` is already false — route to the flush-error
+        // callback instead of setting status on a component that's gone.
+        if (mounted.current) updateStatus({ state: 'error', at: null, error: error as Error })
+        else onFlushErrorRef.current?.(error)
       })
       .finally(() => {
         inFlight.current = false
@@ -114,6 +127,7 @@ export function useAutosave<T>(
   // the last keystrokes, so fire it now. The PUT outlives the component.
   useEffect(() => {
     return () => {
+      mounted.current = false
       if (timer.current) {
         clearTimeout(timer.current)
         timer.current = null
@@ -123,10 +137,10 @@ export function useAutosave<T>(
       // only place allowed to start the next one, so queue for it to pick up
       // latest.current instead of firing a second overlapping save.
       if (inFlight.current) queued.current = true
-      // On unmount the component is gone, so a failed best-effort flush has no UI
-      // left to surface the error — swallow it rather than leak an unhandled
-      // rejection. The mounted/pending path (run()) still sets error status.
-      else saveRef.current(latest.current).catch(() => {})
+      // On unmount the component is gone, so there's no status UI left to show
+      // an error — still catch it (no unhandled rejection) but forward it to
+      // onFlushError so the caller can surface it another way (e.g. a toast).
+      else saveRef.current(latest.current).catch((e) => onFlushErrorRef.current?.(e))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
