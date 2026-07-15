@@ -153,6 +153,49 @@ describe('useAutosave', () => {
     expect(save).toHaveBeenLastCalledWith('c')
   })
 
+  // The best-effort unmount flush must not leak an unhandled rejection when the
+  // save fails: the component is gone, so there's no UI left to show the error.
+  // `save` is a plain function (not vi.fn) on purpose — Vitest attaches its own
+  // handlers to a mock's returned promise to record settledResults, which would
+  // mask the very leak we're testing for. We watch process-level
+  // `unhandledRejection` directly, since Vitest's own detector only trips when a
+  // leak escapes `act`, whereas this flush runs inside the unmount cleanup.
+  it('swallows a rejected best-effort save on unmount', async () => {
+    vi.useRealTimers() // let the microtask queue drain so a leak would actually fire
+    const leaked: unknown[] = []
+    const onLeak = (reason: unknown) => leaked.push(reason)
+    // `process` isn't in this project's TS `types`, so reach it through globalThis
+    // with a narrow local type instead of pulling in @types/node.
+    const proc = (
+      globalThis as unknown as {
+        process: {
+          on(event: 'unhandledRejection', listener: (reason: unknown) => void): void
+          off(event: 'unhandledRejection', listener: (reason: unknown) => void): void
+        }
+      }
+    ).process
+    proc.on('unhandledRejection', onLeak)
+    try {
+      const calls: string[] = []
+      const save = (v: string) => {
+        calls.push(v)
+        return Promise.reject(new Error('offline'))
+      }
+      const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+      rerender({ v: 'b' })
+      await new Promise((r) => setTimeout(r, 200)) // debounce still pending, draft is dirty
+      unmount() // fires the best-effort flush against the rejecting save
+
+      await new Promise((r) => setTimeout(r, 0)) // drain microtasks; a leak surfaces here
+
+      expect(calls).toEqual(['b']) // flush ran with the newest value
+      expect(leaked).toHaveLength(0) // and its rejection was swallowed, not leaked
+    } finally {
+      proc.off('unhandledRejection', onLeak)
+    }
+  })
+
   it('saves nothing while disabled', () => {
     const save = vi.fn().mockResolvedValue(undefined)
     const { rerender } = renderHook(({ v }) => useAutosave(v, save, { enabled: false }), {

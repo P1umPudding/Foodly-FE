@@ -123,7 +123,10 @@ export function useAutosave<T>(
       // only place allowed to start the next one, so queue for it to pick up
       // latest.current instead of firing a second overlapping save.
       if (inFlight.current) queued.current = true
-      else void saveRef.current(latest.current)
+      // On unmount the component is gone, so a failed best-effort flush has no UI
+      // left to surface the error — swallow it rather than leak an unhandled
+      // rejection. The mounted/pending path (run()) still sets error status.
+      else saveRef.current(latest.current).catch(() => {})
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
