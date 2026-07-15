@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Alert, AlertDescription, AlertTitle, Button, Skeleton } from '@postxl/ui-components'
+import { Alert, AlertDescription, AlertTitle, Button, Skeleton, toast } from '@postxl/ui-components'
 import { Plus } from 'lucide-react'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
@@ -46,7 +46,12 @@ export function RecipeEditor() {
       if (value === null || recipeId === null) return
       await foodly.updateRecipe(recipeId, toCreateRecipe(value))
     },
-    { enabled: draft !== null && recipeId !== null && editable },
+    {
+      enabled: draft !== null && recipeId !== null && editable,
+      // The unmount-flush save outlives the component that would have shown
+      // its status, so a failure needs a channel that doesn't need one.
+      onFlushError: () => toast.error('Änderungen konnten nicht gespeichert werden.'),
+    },
   )
 
   const [creating, setCreating] = useState(false)
