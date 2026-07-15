@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAutosave } from './useAutosave'
@@ -215,6 +216,30 @@ describe('useAutosave', () => {
 
     expect(onFlushError).toHaveBeenCalledTimes(1)
     expect(onFlushError).toHaveBeenCalledWith(new Error('offline: b'))
+  })
+
+  // StrictMode dev double-invoke runs the unmount-flush effect setup->cleanup->setup
+  // on first mount, so its cleanup would leave the mounted ref false even though the
+  // component is very much still there. A real (mounted) save failure must still land
+  // as status='error' for the UI to show retry — not get shunted to onFlushError.
+  it('routes a mounted save failure to error status under StrictMode', async () => {
+    const onFlushError = vi.fn()
+    // Plain rejecting function, not vi.fn().mockRejectedValue — a mock's returned
+    // promise gets Vitest handlers attached that mask the rejection under test.
+    const save = (v: string) => Promise.reject(new Error(`offline: ${v}`))
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save, { onFlushError }), {
+      initialProps: { v: 'a' },
+      wrapper: StrictMode,
+    })
+
+    rerender({ v: 'b' })
+    await act(async () => {
+      vi.advanceTimersByTime(800)
+    })
+    await flushMicrotasks()
+
+    expect(result.current.status.state).toBe('error')
+    expect(onFlushError).not.toHaveBeenCalled()
   })
 
   it('saves nothing while disabled', () => {

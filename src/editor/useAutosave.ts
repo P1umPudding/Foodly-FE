@@ -126,6 +126,10 @@ export function useAutosave<T>(
   // In-app navigation unmounts the editor; a pending debounce would silently drop
   // the last keystrokes, so fire it now. The PUT outlives the component.
   useEffect(() => {
+    // Re-arm on (re)mount: StrictMode dev double-invoke runs setup->cleanup->setup
+    // reusing this ref, so without this the first cleanup leaves mounted stuck
+    // false and a genuinely-mounted save failure would misroute to onFlushError.
+    mounted.current = true
     return () => {
       mounted.current = false
       if (timer.current) {
