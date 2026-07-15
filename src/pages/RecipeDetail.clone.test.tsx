@@ -16,6 +16,7 @@ vi.mock('react-router-dom', () => ({
 // (the "Abhaken" toggle) outside of the app root, so both contexts need a stand-in.
 vi.mock('../catalog/CatalogProvider', () => ({
   useTags: () => ({ byId: {}, status: 'ready' }),
+  useCurrentUserId: () => 1,
 }))
 
 function recipe(id: number): Recipe {
