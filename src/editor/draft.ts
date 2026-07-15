@@ -81,7 +81,7 @@ export function emptyDraft(): Draft {
     notes: [],
     mainImage: null,
     images: [],
-    sections: [{ key: nextKey(), name: '', ingredients: [], steps: [] }],
+    sections: [newSection()],
     time: null,
   }
 }
