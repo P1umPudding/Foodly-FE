@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Clock, Copy, Info, ListChecks } from 'lucide-react'
+import { Clock, Copy, Info, ListChecks, Pencil } from 'lucide-react'
 import {
   Alert,
   AlertDescription,
@@ -15,6 +15,8 @@ import {
 } from '@postxl/ui-components'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
+import { canEdit } from '../editor/access'
+import { useCurrentUserId } from '../catalog/CatalogProvider'
 import { averageRating } from '../api/views'
 import { TagText } from '../components/TagText'
 import { Rating } from '../components/recipe/Rating'
@@ -34,6 +36,7 @@ export function RecipeDetail() {
   const { id } = useParams()
   const recipeId = Number(id)
   const { status, data: recipe, error } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
+  const currentUserId = useCurrentUserId()
 
   const navigate = useNavigate()
   const [cloning, setCloning] = useState(false)
@@ -91,6 +94,14 @@ export function RecipeDetail() {
               <Copy className="h-4 w-4" />
               Duplizieren
             </Button>
+            {canEdit(recipe, currentUserId) && (
+              <Button asChild size="sm" className="gap-1.5">
+                <Link to={`/recipes/${recipe.id}/edit`}>
+                  <Pencil className="h-4 w-4" />
+                  Bearbeiten
+                </Link>
+              </Button>
+            )}
           </div>
         )}
       </div>
