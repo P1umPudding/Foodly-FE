@@ -56,8 +56,9 @@ There's no server code and no secrets in the repo.
 - `src/` — the React app. Routing in `src/App.tsx`, theming in
   `src/theme/ThemeProvider.tsx`.
 - `src/api/` — **the only place that talks to the backend.**
-  - `index.ts` — the typed API surface (`foodly.*`). Each method has a REST and
-    a mock branch, chosen by the build-time `VITE_MOCK`.
+  - `index.ts` — the typed API surface (`foodly.*`). Each method except
+    `listUsers` has a REST and a mock branch, chosen by the build-time
+    `VITE_MOCK`.
   - `rest.ts` — REST transport (`fetch`): base URL, static dev bearer token,
     error contract (throws `Error(message)`), `collectPages` for cursor pages.
   - `protocol.ts` — wire types, 1:1 with the backend. `adapters.ts` — shape

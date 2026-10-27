@@ -55,9 +55,10 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
   maps any bearer to user 1). On failure it throws `Error(message)` with the
   backend's `error.message`, else `HTTP <status>`. `collectPages` drains small
   cursor-paginated lists.
-- `src/api/index.ts` — the typed API surface `foodly.*`. Each method has a REST
-  and a mock branch, chosen by the build-time `VITE_MOCK`; response wrappers (`{ data }`, cursors) are unwrapped
-  here, so pages only see domain types.
+- `src/api/index.ts` — the typed API surface `foodly.*`. Each method except
+  `listUsers` has a REST and a mock branch, chosen by the build-time
+  `VITE_MOCK`; response wrappers (`{ data }`, cursors) are unwrapped here, so
+  pages only see domain types.
 - `src/api/adapters.ts` — shape fixes at the API boundary (e.g.
   `previewToRecipe` for search results). Wire types are in
   `src/api/protocol.ts`.
@@ -137,7 +138,8 @@ docs/
 `skaile.preview.json` declares the Vite dev server as the preview app. The
 Skaile preview sets `SKAILE_PREVIEW_BASE`; `vite.config.ts` then serves the app
 under that sub-path and, since no backend is reachable from the preview, runs
-on the mock data unless `VITE_API_URL` is set in the process environment.
+on the mock data unless `VITE_API_URL` or `VITE_MOCK` is set in the process
+environment.
 
 ## Deployment (static)
 
