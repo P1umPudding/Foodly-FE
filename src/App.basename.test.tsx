@@ -9,7 +9,8 @@ import type { Recipe } from './api/protocol'
 
 // The Skaile preview serves the app under a sub-path: main.tsx sets the router
 // basename to BASE_URL. This checks that links and public-asset images pick up
-// that prefix. The env -> base wiring itself is covered by the build.
+// that prefix. SKAILE_PREVIEW_BASE -> base -> BASE_URL is not covered here; it
+// was checked by hand with a preview build and the running Skaile preview.
 
 vi.mock('./catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
