@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "apps": [
+    {
+      "id": "web",
+      "label": "Foodly Frontend",
+      "description": "Vite dev server, mock data unless VITE_WS_URL is set",
+      "path": ".",
+      "role": "frontend"
+    }
+  ]
+}
