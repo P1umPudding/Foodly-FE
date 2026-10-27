@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   // Vite restarts in-process on .env/config changes and would keep a stale value.
   const env = loadEnv(mode, process.cwd(), 'VITE_')
   const inPreview = !!process.env.SKAILE_PREVIEW_BASE?.trim() // `/` counts too
-  const forceMock = inPreview && !env.VITE_API_URL && env.VITE_MOCK === undefined
+  const forceMock = inPreview && !env.VITE_API_URL && !env.VITE_MOCK
   const previewServer = inPreview ? { host: true, allowedHosts: true as const } : {}
 
   return {
