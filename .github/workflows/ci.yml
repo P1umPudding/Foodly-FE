@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  # No branch filter: stacked PRs (based on another feature branch) are checked too.
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  # One group per PR, so a newer push cancels the older run. Pushes to main get a
+  # group per commit and are never cancelled, so every main commit keeps a result.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, test, format
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test -- --passWithNoTests
+      - run: npm run format:check

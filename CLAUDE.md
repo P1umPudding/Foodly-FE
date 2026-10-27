@@ -33,6 +33,10 @@ the Dispatcher, hands issues to worker agents and relays merge requests):
   [`docs/` conventions](#docs-conventions)).
 - **No `Co-Authored-By`** or other AI trailer — the rule above applies to
   pipeline commits too.
+- **CI** (`.github/workflows/ci.yml`, check `Build, test, format`) runs
+  `npm ci`, `npm run build`, `npm test -- --passWithNoTests` and
+  `npm run format:check` on every PR. Run the same commands locally before
+  pushing; a PR is only "ready" once that check is green.
 
 ## Visual checks
 
