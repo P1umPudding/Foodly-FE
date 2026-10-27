@@ -28,7 +28,7 @@ the Dispatcher, hands issues to worker agents and relays merge requests):
   and `lead/<slug>`.
 - **`main` is never pushed directly** — no push, no force-push.
 - **Merges only after explicit approval by Kolja.** The merge decision goes
-  through the Dispatcher; agents never merge PRs or close issues themselves.
+  through the Dispatcher; agents never merge PRs themselves.
 - Specs and plans live in `docs/superpowers/` (`specs/`, `plans/`, see
   [`docs/` conventions](#docs-conventions)).
 - **No `Co-Authored-By`** or other AI trailer — the rule above applies to
@@ -65,8 +65,8 @@ There's no server code and no secrets in the repo.
     values as pure functions. `assets.ts` — image/icon URLs.
   - `socket.ts` — `SocketClient` (connect, auto-reconnect, request/response
     correlation, events), **reserved for future live editing** and never
-    connected today. The `{ id, type, payload }` envelope it assumes is unused
-    today; the mock responder short-circuits `request()`.
+    connected today. Its `{ id, type, payload }` envelope is unused today; the
+    mock responder short-circuits `request()`.
 - `src/mocks/` — mock responder + JSON data (`src/mocks/data/`), used for
   `VITE_MOCK=1` and for methods the backend doesn't offer yet.
 - `src/catalog/` — `CatalogProvider` (tags, users, ingredients, `me` as `byId`
@@ -76,8 +76,8 @@ There's no server code and no secrets in the repo.
 - `src/hooks/` — `useRequest` (run a request, track loading/ready/error),
   `useRecipeSearch` (cursor-paginated recipe search, infinite scroll),
   `useWakeLock`. `useSocketStatus` belongs to the future live editing: the nav
-  `ConnectionDot` currently always shows connected (the mock responder sets the
-  socket to open) and does **not** reflect REST/backend health.
+  `ConnectionDot` shows connected whenever the mock responder is installed
+  (it sets the socket to open) and does **not** reflect REST/backend health.
 - `src/components/` — shared UI, plus `editor/`, `list/`, `recipe/`;
   `src/pages/` — `RecipeList`, `RecipeDetail`, `RecipeEditor`, `NotFound`.
 - `src/styles/theme.css` holds the design-token VALUES (the Skaile purple brand —
@@ -104,7 +104,9 @@ In short:
   (`docs/backend-questions.md` B2). A new method gets both branches and a mock
   handler.
 - Errors: the transport throws `Error(message)`; handle it via the hooks
-  (`useRequest` / `useRecipeSearch` surface it as an error state).
+  (`useRequest` / `useRecipeSearch` surface it as an error state;
+  in `useRecipeSearch` only for the first page — a failed `loadMore` stops
+  paging).
 - `socket.ts` is reserved for future live editing — don't build features on it.
 
 ## Commands
@@ -132,7 +134,7 @@ outdated.
 | `VITE_API_URL` | `/api/v1` | REST base URL. The relative default goes through the Vite dev proxy to `http://localhost:8080`. |
 | `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST (only `listUsers` stays mocked). |
 | `VITE_WS_URL` | `''` | Reserved for future live editing. Passed to `SocketClient` but never connected. |
-| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and defaults `VITE_MOCK=1` when `VITE_API_URL` is unset. |
+| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and forces `VITE_MOCK=1` when `VITE_API_URL` isn't set in the process environment (`.env*` files don't count). |
 
 ## Formatting
 

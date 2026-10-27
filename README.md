@@ -38,7 +38,7 @@ host). The code is authoritative; some comments in `.env.example` are outdated.
 | `VITE_API_URL` | `/api/v1` | REST base URL. The relative default goes through the Vite dev proxy to `http://localhost:8080`. |
 | `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST (only `listUsers` stays mocked). |
 | `VITE_WS_URL` | `''` | Reserved for future live editing. Passed to `SocketClient` but never connected. |
-| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and defaults `VITE_MOCK=1` when `VITE_API_URL` is unset. |
+| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and forces `VITE_MOCK=1` when `VITE_API_URL` isn't set in the process environment (`.env*` files don't count). |
 
 ## Backend connection (REST)
 
@@ -85,8 +85,8 @@ the browser talks same-origin. That's needed because the backend's CORS
 
 **WebSocket.** `src/api/socket.ts` (`SocketClient`) is reserved for future live
 editing and is never connected today; the mock responder runs through it. The
-nav `ConnectionDot` therefore always shows "connected" — it doesn't reflect
-REST/backend health.
+nav `ConnectionDot` shows "connected" whenever the mock responder is
+installed — it doesn't reflect REST/backend health.
 
 **Using it in components:**
 
@@ -95,8 +95,11 @@ import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
 
-const { status, data } = useRequest(() => foodly.listTags(), [])
-const { recipes, hasMore, loadMore } = useRecipeSearch({})
+function Example() {
+  const { status, data } = useRequest(() => foodly.listTags(), [])
+  const { recipes, hasMore, loadMore } = useRecipeSearch({})
+  // …
+}
 ```
 
 ## Project structure
@@ -111,7 +114,7 @@ src/
   components/  Nav, Footer, ThemeToggle, ConnectionDot, …
                + editor/, list/, recipe/
   editor/      recipe-editor draft, autosave, access
-  hooks/       useRequest, useRecipeSearch.ts (paginated), useWakeLock,
+  hooks/       useRequest, useRecipeSearch (paginated), useWakeLock,
                useSocketStatus (future live editing)
   list/        recipe-list state: filters, sort, search, URL, persistence
   mocks/       mock responder + data/*.json
@@ -133,7 +136,7 @@ docs/
 `skaile.preview.json` declares the Vite dev server as the preview app. The
 Skaile preview sets `SKAILE_PREVIEW_BASE`; `vite.config.ts` then serves the app
 under that sub-path and, since no backend is reachable from the preview, runs
-on the mock data unless a `VITE_API_URL` is provided.
+on the mock data unless `VITE_API_URL` is set in the process environment.
 
 ## Deployment (static)
 
