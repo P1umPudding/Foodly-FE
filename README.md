@@ -154,7 +154,7 @@ failing step stops the run:
 
 The Node version comes from `.nvmrc`. If `format:check` fails, run
 `npm run format` and commit. For branch protection, the required status check
-is `Build, test, format` (shown as `CI / Build, test, format` on PRs).
+is `Build, test, format`.
 
 ## Deployment (static)
 

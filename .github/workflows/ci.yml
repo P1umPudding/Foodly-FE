@@ -12,7 +12,7 @@ permissions:
 concurrency:
   # One group per PR, so a newer push cancels the older run. Pushes to main get a
   # group per commit and are never cancelled, so every main commit keeps a result.
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 jobs:
