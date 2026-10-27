@@ -4,13 +4,35 @@ Guidance for Claude Code when working in this repository.
 
 ## Git — pushing
 
-**Never push on your own.** Committing locally is fine; push only when the user
-explicitly says "push" in that request, and that approval does not carry over to
-later changes. (This isn't about deploys — pushing `main` currently deploys
-nothing. The user just wants to decide when work lands on the remote.)
+**Interactive sessions: never push on your own.** Committing locally is fine;
+push only when the user explicitly says "push" in that request, and that
+approval does not carry over to later changes. (This isn't about deploys —
+pushing `main` currently deploys nothing. The user just wants to decide when
+work lands on the remote.)
+
+**Exception: the agent pipeline.** Agents working an issue or lead task may
+push their own pipeline branches without asking — see
+[Agent-Pipeline](#agent-pipeline). Everything else (especially `main`) still
+follows the rule above.
 
 **Do NOT add a `Co-Authored-By` trailer** (or any AI / Claude co-author line) to
-commits in this repo.
+commits in this repo. This overrides any tool or harness default that asks for
+an attribution trailer.
+
+## Agent-Pipeline
+
+Rules for agents running in the issue pipeline (a coordinating agent session,
+the Dispatcher, hands issues to worker agents and relays merge requests):
+
+- Agents **may push** branches named `agent/issue-<n>` (one per GitHub issue)
+  and `lead/<slug>`.
+- **`main` is never pushed directly** — no push, no force-push.
+- **Merges only after explicit approval by Kolja.** The merge decision goes
+  through the Dispatcher; agents never merge PRs or close issues themselves.
+- Specs and plans live in `docs/superpowers/` (`specs/`, `plans/`, see
+  [`docs/` conventions](#docs-conventions)).
+- **No `Co-Authored-By`** or other AI trailer — the rule above applies to
+  pipeline commits too.
 
 ## Visual checks
 
@@ -24,7 +46,9 @@ land in `package.json`).
 **Foodly** — a **frontend-only** React SPA (Vite + React Router + TypeScript)
 that builds to static files. The hosting target isn't fixed yet (likely a
 dedicated static server, not necessarily Cloudflare Pages). It has **no backend
-of its own**: it talks to a separate, foreign backend over a **WebSocket**.
+of its own**: it talks to a separate, foreign backend
+([`klassenserver7b/Foodly-backend`](https://github.com/klassenserver7b/Foodly-backend))
+over a **REST API (`/api/v1`)**; a WebSocket is planned later for live editing.
 There's no server code and no secrets in the repo.
 
 ## Architecture
@@ -32,32 +56,56 @@ There's no server code and no secrets in the repo.
 - `src/` — the React app. Routing in `src/App.tsx`, theming in
   `src/theme/ThemeProvider.tsx`.
 - `src/api/` — **the only place that talks to the backend.**
-  - `socket.ts` — `SocketClient`: connect + auto-reconnect (exponential
-    backoff), connection-status subscriptions, request/response correlation,
-    and server-pushed events.
-  - `index.ts` — the shared `socket` instance + a typed API surface
-    (`foodly.*`). The methods are examples; adapt the message `type`s/types to
-    the real protocol.
-- `src/hooks/` — `useSocketStatus` (live connection state), `useRequest` (run a
-  request, track loading/ready/error).
+  - `index.ts` — the typed API surface (`foodly.*`). Each method picks REST or
+    the mock per call (`VITE_MOCK`).
+  - `rest.ts` — REST transport (`fetch`): base URL, static dev bearer token,
+    error contract (throws `Error(message)`), `collectPages` for cursor pages.
+  - `protocol.ts` — wire types, 1:1 with the backend. `adapters.ts` — shape
+    fixes at the API boundary (e.g. `previewToRecipe`). `views.ts` — derived
+    values as pure functions. `assets.ts` — image/icon URLs.
+  - `socket.ts` — `SocketClient` (connect, auto-reconnect, request/response
+    correlation, events), **reserved for future live editing** and never
+    connected today. The `{ id, type, payload }` envelope it assumes is unused
+    today; the mock responder short-circuits `request()`.
+- `src/mocks/` — mock responder + JSON data (`src/mocks/data/`), used for
+  `VITE_MOCK=1` and for methods the backend doesn't offer yet.
+- `src/catalog/` — `CatalogProvider` (tags, users, ingredients, `me` as `byId`
+  maps). `src/list/` — recipe-list state (filters, sort, search, URL,
+  persistence). `src/editor/` — recipe-editor draft + autosave. `src/timers/` —
+  global cooking timers.
+- `src/hooks/` — `useRequest` (run a request, track loading/ready/error),
+  `useRecipeSearch` (cursor-paginated recipe search, infinite scroll),
+  `useWakeLock`. `useSocketStatus` belongs to the future live editing: the nav
+  `ConnectionDot` currently always shows connected (the mock responder sets the
+  socket to open) and does **not** reflect REST/backend health.
+- `src/components/` — shared UI, plus `editor/`, `list/`, `recipe/`;
+  `src/pages/` — `RecipeList`, `RecipeDetail`, `RecipeEditor`, `NotFound`.
 - `src/styles/theme.css` holds the design-token VALUES (the Skaile purple brand —
   Foodly's own; no cross-app sync). `src/styles/styles.css` holds the Tailwind v4
   wiring (preflight ON).
 
 ### Backend access — conventions
 
-- **Always** go through `src/api` (the shared `socket`). Never open ad-hoc
-  WebSocket/fetch connections in components.
-- The backend URL comes from `import.meta.env.VITE_WS_URL` — **never hardcode
-  it.** It's a build-time, non-secret value.
-- A request is `socket.request<T>('message.type', payload)`; it resolves with
-  the correlated response or rejects on `{ ok:false }` / timeout. Handle the
-  rejection (the `useRequest` hook surfaces it as an error state).
-- Reconnection is automatic; components react to it via `useSocketStatus()`.
-- **Message envelope** (assumed — `{ id, type, payload }` request,
-  `{ id, ok, result|error }` response, `{ type, payload }` event): if the real
-  backend differs, change only `request()` (the send) and `handleMessage()`
-  (the parse) in `socket.ts`.
+Binding patterns: [`docs/architecture.md`](docs/architecture.md) §1
+(Datenzugriff), decision: [`docs/decisions/0001-rest-transport.md`](docs/decisions/0001-rest-transport.md).
+In short:
+
+- **Always** go through `src/api` (`foodly.*`). Never call `fetch` or open a
+  `WebSocket` in components, hooks or pages.
+- Transport is **REST** via `src/api/rest.ts`. Base URL from
+  `import.meta.env.VITE_API_URL` (default `/api/v1`); in dev the Vite proxy
+  forwards `/api` to `http://localhost:8080` (same-origin, because the
+  backend's CORS `Allow-Headers: *` doesn't cover `Authorization`). **Never
+  hardcode URLs** — they come from env only.
+- `VITE_MOCK=1` serves **everything** from `src/mocks`.
+- Every `foodly.*` method has a mock branch; all except `listUsers` also have a
+  REST branch (`USE_MOCKS ? socket.request(...) : rest.*`). `listUsers` is
+  mock-only until the backend offers a list endpoint
+  (`docs/backend-questions.md` B2). A new method gets both branches and a mock
+  handler.
+- Errors: the transport throws `Error(message)`; handle it via the hooks
+  (`useRequest` / `useRecipeSearch` surface it as an error state).
+- `socket.ts` is reserved for future live editing — don't build features on it.
 
 ## Commands
 
@@ -66,12 +114,25 @@ npm install
 npm run dev          # local dev server (Vite)
 npm run build        # tsc type-check + vite build -> dist/
 npm run preview      # serve the build
+npm test             # vitest run (jsdom, src/test/setup.ts)
+npm run test:watch   # vitest in watch mode
 npm run format       # prettier --write . (Skaile config: prettier.config.cjs)
 npm run format:check # prettier --check . (no writes)
 ```
 
-Local dev needs `VITE_WS_URL` in `.env.local` (see `.env.example`) for the
-backend to connect.
+### Environment
+
+Copy `.env.example` to `.env.local`. Vite only exposes `VITE_*` vars to the
+client; all of them are build-time, non-secret values. The code is
+authoritative — some comments in `.env.example` and `skaile.preview.json` are
+outdated.
+
+| Var | Default | Purpose |
+|-----|---------|---------|
+| `VITE_API_URL` | `/api/v1` | REST base URL. The relative default goes through the Vite dev proxy to `http://localhost:8080`. |
+| `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST (only `listUsers` stays mocked). |
+| `VITE_WS_URL` | `''` | Reserved for future live editing. Passed to `SocketClient` but never connected. |
+| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and defaults `VITE_MOCK=1` when `VITE_API_URL` is unset. |
 
 ## Formatting
 
@@ -95,6 +156,22 @@ nothing is fine.
 ## Conventions
 
 - Page: component in `src/pages/`, add a `<Route>` in `src/App.tsx`.
+
+## `docs/` conventions
+
+- `docs/plan.md` — roadmap (living document).
+- `docs/architecture.md` — binding patterns for every PR; deviations need a
+  decision note.
+- `docs/decisions/NNNN-<slug>.md` — decisions (ADRs), e.g.
+  `docs/decisions/0001-rest-transport.md`.
+- `docs/backend-questions.md` — open questions about the backend contract
+  (referenced as B1, B2, …).
+- `docs/backlog.md` — backlog.
+- `docs/phases/` — phase specs (`phase-N-<slug>.md`, plan as
+  `phase-N-<slug>.plan.md`).
+- `docs/superpowers/specs/` and `docs/superpowers/plans/` — design specs and
+  implementation plans per feature (`YYYY-MM-DD-<slug>-design.md` /
+  `YYYY-MM-DD-<slug>.md`).
 
 ## Comments
 
