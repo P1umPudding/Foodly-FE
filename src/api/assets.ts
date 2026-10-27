@@ -4,20 +4,23 @@
 
 import type { ImageId } from './protocol'
 
+// Public assets live under Vite's base (a sub-path in the Skaile preview).
+const publicUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`
+
 export function tagImageSrc(hash: string): string {
-  return `/tags/${hash}.svg`
+  return publicUrl(`tags/${hash}.svg`)
 }
 
 // Dev-only: map mock ImageIds → public asset URLs. Any raster/vector format
 // works (the browser <img> doesn't care) — id 1 is a real .png, id 2 a .png.
 // In production this whole function is just the backend's image URL.
 const DEV_RECIPE_IMAGE: Record<number, string> = {
-  1: '/recipes/1.png',
-  2: '/recipes/cake.png', // transparent PNG — test fixture for the image backdrop (Schokokuchen)
+  1: publicUrl('recipes/1.png'),
+  2: publicUrl('recipes/cake.png'), // transparent PNG — test fixture for the image backdrop (Schokokuchen)
 }
 
 export function recipeImageSrc(id: ImageId): string {
-  return DEV_RECIPE_IMAGE[id] ?? `/recipes/${id}.svg`
+  return DEV_RECIPE_IMAGE[id] ?? publicUrl(`recipes/${id}.svg`)
 }
 
 // Dev-only image display names (the real `Image.name` comes from the backend).
@@ -33,5 +36,5 @@ export function imageName(id: ImageId): string {
 }
 
 export function userImageSrc(hash: string): string {
-  return `/users/${hash}.svg`
+  return publicUrl(`users/${hash}.svg`)
 }

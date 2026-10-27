@@ -11,7 +11,7 @@ const root = ReactDOM.createRoot(document.getElementById('root')!)
 function render() {
   root.render(
     <React.StrictMode>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <ThemeProvider>
           <App />
         </ThemeProvider>
