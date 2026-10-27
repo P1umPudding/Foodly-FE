@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -68,7 +68,7 @@ describe('routing under a sub-path basename', () => {
   it('deep-links to the detail page with prefixed image and back link', async () => {
     const { container } = renderAt('/foo/recipes/1')
 
-    await waitFor(() => screen.getByRole('heading', { name: 'Pancakes' }))
+    await screen.findByRole('heading', { name: 'Pancakes' })
     const imgSrcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
     expect(imgSrcs).toContain('/foo/recipes/3.svg')
     expect(screen.getByRole('link', { name: '← Zurück' }).getAttribute('href')).toBe('/foo/')
@@ -79,7 +79,7 @@ describe('routing under a sub-path basename', () => {
   it('links list rows to the prefixed detail URL', async () => {
     renderAt('/foo/?group=0')
 
-    await waitFor(() => screen.getByText('Pancakes'))
+    await screen.findByText('Pancakes')
     const hrefs = screen.getAllByRole('link').map((a) => a.getAttribute('href'))
     expect(hrefs).toContain('/foo/recipes/1')
   })
