@@ -56,8 +56,8 @@ There's no server code and no secrets in the repo.
 - `src/` — the React app. Routing in `src/App.tsx`, theming in
   `src/theme/ThemeProvider.tsx`.
 - `src/api/` — **the only place that talks to the backend.**
-  - `index.ts` — the typed API surface (`foodly.*`). Each method picks REST or
-    the mock per call (`VITE_MOCK`).
+  - `index.ts` — the typed API surface (`foodly.*`). Each method has a REST and
+    a mock branch, chosen by the build-time `VITE_MOCK`.
   - `rest.ts` — REST transport (`fetch`): base URL, static dev bearer token,
     error contract (throws `Error(message)`), `collectPages` for cursor pages.
   - `protocol.ts` — wire types, 1:1 with the backend. `adapters.ts` — shape
@@ -134,7 +134,7 @@ outdated.
 | `VITE_API_URL` | `/api/v1` | REST base URL. The relative default goes through the Vite dev proxy to `http://localhost:8080`. |
 | `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST (only `listUsers` stays mocked). |
 | `VITE_WS_URL` | `''` | Reserved for future live editing. Passed to `SocketClient` but never connected. |
-| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and forces `VITE_MOCK=1` when `VITE_API_URL` isn't set in the process environment (`.env*` files don't count). |
+| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and sets `VITE_MOCK=1` when neither `VITE_API_URL` nor `VITE_MOCK` is set in the process environment (`.env*` files don't count and are overridden). |
 
 ## Formatting
 

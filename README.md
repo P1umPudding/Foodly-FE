@@ -31,14 +31,15 @@ apply / check Prettier.
 Vite only exposes vars prefixed with `VITE_` to the client. They're
 **build-time** values (baked into the bundle), so they're not secrets —
 configure them per environment (`.env.local` locally, a build variable in your
-host). The code is authoritative; some comments in `.env.example` are outdated.
+host). The code is authoritative; some comments in `.env.example` and
+`skaile.preview.json` are outdated.
 
 | Var | Default | Purpose |
 |-----|---------|---------|
 | `VITE_API_URL` | `/api/v1` | REST base URL. The relative default goes through the Vite dev proxy to `http://localhost:8080`. |
 | `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST (only `listUsers` stays mocked). |
 | `VITE_WS_URL` | `''` | Reserved for future live editing. Passed to `SocketClient` but never connected. |
-| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and forces `VITE_MOCK=1` when `VITE_API_URL` isn't set in the process environment (`.env*` files don't count). |
+| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and sets `VITE_MOCK=1` when neither `VITE_API_URL` nor `VITE_MOCK` is set in the process environment (`.env*` files don't count and are overridden). |
 
 ## Backend connection (REST)
 
@@ -54,8 +55,8 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
   maps any bearer to user 1). On failure it throws `Error(message)` with the
   backend's `error.message`, else `HTTP <status>`. `collectPages` drains small
   cursor-paginated lists.
-- `src/api/index.ts` — the typed API surface `foodly.*`. Each method picks REST
-  or the mock per call; response wrappers (`{ data }`, cursors) are unwrapped
+- `src/api/index.ts` — the typed API surface `foodly.*`. Each method has a REST
+  and a mock branch, chosen by the build-time `VITE_MOCK`; response wrappers (`{ data }`, cursors) are unwrapped
   here, so pages only see domain types.
 - `src/api/adapters.ts` — shape fixes at the API boundary (e.g.
   `previewToRecipe` for search results). Wire types are in
