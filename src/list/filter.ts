@@ -17,7 +17,7 @@ function isUncategorised(recipe: Recipe, categories: UserCategory[]): boolean {
   return !categories.some((c) => c.recipes.includes(recipe.id))
 }
 
-function inSelectedCategory(recipe: Recipe, selected: number[], categories: UserCategory[]): boolean {
+export function inSelectedCategory(recipe: Recipe, selected: number[], categories: UserCategory[]): boolean {
   if (selected.length === 0) return true // facet inactive
   if (selected.includes(UNCATEGORIZED_ID) && isUncategorised(recipe, categories)) return true
   return categories.some((c) => selected.includes(c.id) && c.recipes.includes(recipe.id))
