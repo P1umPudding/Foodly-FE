@@ -79,9 +79,11 @@ werden hier nicht wiederholt.
   (`RecipeEditorRoute` in `src/App.tsx`).
 - Kein Data Router (`createBrowserRouter`) → kein `useBlocker`; Verlassen-Schutz via
   `beforeunload` + Flush bei Unmount. Migration nur mit Decision-Note.
-- Geplante Struktur (Phase 5, `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`):
-  `/` Dashboard, `/recipes` Liste, `/categories/:id`, `/groups`, `/groups/:id`,
-  `AppShell` mit `NAV_DESTINATIONS` (Rail ≥ `md`, Bottom-Tabs darunter).
+- Geplante Struktur (Phase 5 rev. 2, `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`):
+  `/` Dashboard, `/recipes` Liste (`/` mit Listen-Params → Redirect auf `/recipes?…`),
+  Kategorien nur als Filter `/recipes?cat=<id>` (keine eigene Route), `AppShell` mit
+  `NAV_DESTINATIONS` (Home · Recipes · +Create; Tabs im Header ≥ `md`, Bottom-Tabs
+  darunter). Groups-Routen erst nach B12 + Backend #13.
 
 ## 6. UI & Styling
 

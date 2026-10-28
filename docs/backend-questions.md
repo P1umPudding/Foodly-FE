@@ -16,13 +16,13 @@ Kolja) · `später` (nicht blockierend).
 
 | #   | Thema                                   | Status      | Blockiert FE?           | Backend-Issue |
 | --- | --------------------------------------- | ----------- | ----------------------- | ------------- |
-| B1  | Bild-URL: `ImageId` → Datei             | offen       | ja (Bilder, Phase 4)    | Entwurf, s. u. |
-| B2  | User-Lookup für Namen (owner/editors)   | offen       | ja (REST-only-Betrieb)  | Entwurf       |
-| B3  | Ratings-Endpoints fehlen im Code        | offen       | ja (Phase 4 Rating)     | Entwurf       |
-| B4  | Sharing-Endpoints fehlen im Code        | offen       | ja (Phase 4 Teilen)     | Entwurf       |
-| B5  | Groups-Endpoints fehlen im Code         | offen       | ja (Phase 5 M2)         | Entwurf       |
-| B6  | „added-at" pro viewer/editor + Feed     | offen       | ja (Phase 5 M2)         | Entwurf       |
-| B7  | Echte Auth + CORS `Authorization`       | offen       | ja (Prod, Multi-User)   | Entwurf       |
+| B1  | Bild-URL: `ImageId` → Datei             | offen       | ja (Bilder, Phase 4)    | [#9](https://github.com/klassenserver7b/Foodly-backend/issues/9) |
+| B2  | User-Lookup für Namen (owner/editors)   | offen       | ja (REST-only-Betrieb)  | [#10](https://github.com/klassenserver7b/Foodly-backend/issues/10) |
+| B3  | Ratings-Endpoints fehlen im Code        | offen       | ja (Phase 4 Rating)     | [#11](https://github.com/klassenserver7b/Foodly-backend/issues/11) |
+| B4  | Sharing-Endpoints fehlen im Code        | offen       | ja (Phase 4 Teilen)     | [#12](https://github.com/klassenserver7b/Foodly-backend/issues/12) |
+| B5  | Groups-Endpoints fehlen im Code         | offen       | ja (Phase 5 M2)         | [#13](https://github.com/klassenserver7b/Foodly-backend/issues/13) |
+| B6  | „added-at" pro viewer/editor + Feed     | offen       | ja (Phase 5 M2)         | [#14](https://github.com/klassenserver7b/Foodly-backend/issues/14) |
+| B7  | Echte Auth + CORS `Authorization`       | offen       | ja (Prod, Multi-User)   | [#15](https://github.com/klassenserver7b/Foodly-backend/issues/15) |
 | B8  | Tags anlegen (Katalog read-only)        | Entscheidung | nein                   | –             |
 | B9  | `tagId = name`                          | später      | nein                    | –             |
 | B10 | Schritt-Timer (`Step.duration`)         | später      | nein                    | –             |
@@ -30,16 +30,15 @@ Kolja) · `später` (nicht blockierend).
 | B12 | Gruppen ↔ Rezepte-Modell                | Entscheidung | nein                   | –             |
 | B13 | Verwaiste Bilder                        | später      | nein                    | –             |
 | B14 | Doku-Drift (Status-Codes, Pagination)   | später      | nein                    | –             |
+| B15 | Sortierung nach `created_at`/`updated_at` | offen     | nein (Workaround FE)    | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
 | G1  | `createdAt` / `updatedAt` an Recipe     | FE-Arbeit   | –                       | –             |
 | G2  | `UserRating` DB-only                    | gelöst      | –                       | –             |
 | G3  | Tag-Icons (`GET /tags/{id}/icon`)       | FE-Arbeit   | –                       | –             |
 | G4  | Kategorien-Liste                        | gelöst      | –                       | –             |
 | G5  | Sortfeld-Namen                          | gelöst      | –                       | –             |
 
-Backend-Issues sind noch **nicht angelegt** (dem Lead fehlt aktuell ein GitHub-Zugang
-für das Backend-Repo). Die Entwürfe unten sind copy-paste-fertig; nach dem Anlegen
-hier die Issue-Nummer eintragen. Duplikat-Check 2026-10-27: Das Backend-Repo hat
-keine offenen Issues (nur PRs #1–#8).
+Backend-Issues B1–B7 am 2026-10-27 angelegt (#9–#15, englisch, Text wie die
+Abschnitte unten). Duplikat-Check vorher: keine Issues im Repo, nur PRs #1–#8.
 
 ---
 
@@ -160,6 +159,11 @@ Backend-Umbau der Zugriffsabfrage.
 
 ## Später / nicht blockierend
 
+- **B15 Sortierung nach Timestamps:** `POST /recipes/search` sortiert nur nach
+  name/worktime/totaltime/rating, alles andere fällt auf `id ASC` zurück. Phase-5-Kachel
+  „Your recent creations" sortiert bis dahin clientseitig hinter einem Helper
+  (`recentCreations`). Vorschlag: `created_at` / `updated_at` als Sortfelder, plus
+  `id` als Tie-Breaker. → [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16)
 - **B9 `tagId = name`:** Umbenennen bricht Referenzen. Erst relevant, wenn Tags
   editierbar werden (dann stabile `id` + `label`). Backend dokumentiert das schon.
 - **B10 Schritt-Timer:** Doku `03_Data_Models` beschreibt `Step { id, text }`, API
@@ -190,16 +194,18 @@ Backend-Umbau der Zugriffsabfrage.
 
 ---
 
-## Issue-Entwürfe für das Backend-Repo
+## Backend-Issues
 
-Ton: Vorschläge, kein Fordern — es ist ein fremdes Repo. Je Issue: Problem,
-API-Vorschlag, was es im Frontend entsperrt. Texte = Abschnitte B1–B7 oben, mit
-Titel:
+Angelegt 2026-10-27 in `klassenserver7b/Foodly-backend`:
 
-- B1 `Recipe images: expose hash/name for mainImage and images (ImageId has no serve route)`
-- B2 `Bulk user lookup: GET /users?ids=… for resolving owner/editor/viewer names`
-- B3 `Implement ratings endpoints (PUT/DELETE /recipes/{id}/ratings/me) and populate rating[]`
-- B4 `Implement recipe sharing endpoints (PUT /recipes/{id}/editors|viewers)`
-- B5 `Implement groups endpoints (GET/POST /groups, PUT/DELETE /groups/{id})`
-- B6 `Track when a user was added to a recipe (added_at + myAccessSince)`
-- B7 `Real auth (/auth/login|register|refresh) and CORS allow-list for Authorization`
+- B1 → [#9](https://github.com/klassenserver7b/Foodly-backend/issues/9)
+- B2 → [#10](https://github.com/klassenserver7b/Foodly-backend/issues/10)
+- B3 → [#11](https://github.com/klassenserver7b/Foodly-backend/issues/11)
+- B4 → [#12](https://github.com/klassenserver7b/Foodly-backend/issues/12)
+- B5 → [#13](https://github.com/klassenserver7b/Foodly-backend/issues/13)
+- B6 → [#14](https://github.com/klassenserver7b/Foodly-backend/issues/14)
+- B7 → [#15](https://github.com/klassenserver7b/Foodly-backend/issues/15)
+
+Angelegt 2026-10-28:
+
+- B15 → [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16)
