@@ -108,10 +108,11 @@ als UI-Prototyp mit lokalem State sinnvoll.
 
 ## Phase 5 — Dashboard / Startseite  (braucht Backend)
 
-Überblicks-Startseite mit Kacheln. Aus Phase 2 herausgelöst, weil **blockiert
-auf Timestamps** (`createdAt` + „wann wurde ich hinzugefügt") — fehlen aktuell im
-Protokoll (siehe Offene Punkte / Types). Liegt hier bei den anderen
-backend-abhängigen Phasen.
+Überblicks-Startseite mit Kacheln. Spec: `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`
+(rev. 2, 2026-10-28). `createdAt`/`updatedAt` liefert das Backend inzwischen (G1);
+umsetzbar sind App-Shell, Dashboard (Kategorien, eigene kürzlich erstellte, „Jump back in"),
+Routing `/` → Dashboard, `/recipes` → Liste. **Blockiert:** Gruppen (B12 + Backend #13),
+„kürzlich hinzugefügt" (Backend #14).
 
 - Rezepte, zu denen man **kürzlich hinzugefügt** wurde (als viewer/editor),
 - **eigene kürzlich erstellte** Rezepte,

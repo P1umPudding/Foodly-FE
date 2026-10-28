@@ -30,6 +30,7 @@ Kolja) · `später` (nicht blockierend).
 | B12 | Gruppen ↔ Rezepte-Modell                | Entscheidung | nein                   | –             |
 | B13 | Verwaiste Bilder                        | später      | nein                    | –             |
 | B14 | Doku-Drift (Status-Codes, Pagination)   | später      | nein                    | –             |
+| B15 | Sortierung nach `created_at`/`updated_at` | offen     | nein (Workaround FE)    | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
 | G1  | `createdAt` / `updatedAt` an Recipe     | FE-Arbeit   | –                       | –             |
 | G2  | `UserRating` DB-only                    | gelöst      | –                       | –             |
 | G3  | Tag-Icons (`GET /tags/{id}/icon`)       | FE-Arbeit   | –                       | –             |
@@ -158,6 +159,11 @@ Backend-Umbau der Zugriffsabfrage.
 
 ## Später / nicht blockierend
 
+- **B15 Sortierung nach Timestamps:** `POST /recipes/search` sortiert nur nach
+  name/worktime/totaltime/rating, alles andere fällt auf `id ASC` zurück. Phase-5-Kachel
+  „Your recent creations" sortiert bis dahin clientseitig hinter einem Helper
+  (`recentCreations`). Vorschlag: `created_at` / `updated_at` als Sortfelder, plus
+  `id` als Tie-Breaker. → [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16)
 - **B9 `tagId = name`:** Umbenennen bricht Referenzen. Erst relevant, wenn Tags
   editierbar werden (dann stabile `id` + `label`). Backend dokumentiert das schon.
 - **B10 Schritt-Timer:** Doku `03_Data_Models` beschreibt `Step { id, text }`, API
@@ -199,3 +205,7 @@ Angelegt 2026-10-27 in `klassenserver7b/Foodly-backend`:
 - B5 → [#13](https://github.com/klassenserver7b/Foodly-backend/issues/13)
 - B6 → [#14](https://github.com/klassenserver7b/Foodly-backend/issues/14)
 - B7 → [#15](https://github.com/klassenserver7b/Foodly-backend/issues/15)
+
+Angelegt 2026-10-28:
+
+- B15 → [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16)
