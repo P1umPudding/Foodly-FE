@@ -15,8 +15,8 @@ werden hier nicht wiederholt.
     `VITE_API_URL` (Default `/api/v1`, in Dev über den Vite-Proxy → `:8080`,
     `vite.config.ts`). Nie hardcoden.
   - **Mocks** (`src/mocks/index.ts`) über den `SocketClient`-Mock-Responder. Mit
-    `VITE_MOCK=1` (Skaile-Preview setzt das, solange weder `VITE_API_URL` noch
-    `VITE_MOCK` gesetzt ist, Env oder `.env*`) läuft **alles** über Mocks;
+    `VITE_MOCK=1` (die Skaile-Preview setzt das automatisch, außer `VITE_API_URL`
+    oder `VITE_MOCK` sind in Env oder `.env*` gesetzt) läuft **alles** über Mocks;
     ohne nur die Methoden, für die das Backend noch nichts hat (aktuell
     `listUsers`, siehe `docs/backend-questions.md` B2).
   - **WebSocket** (`src/api/socket.ts`) ist für späteres Live-Editing reserviert und

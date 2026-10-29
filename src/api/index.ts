@@ -31,7 +31,7 @@ export async function bootstrap(): Promise<void> {
   socket.useMocks(mockRequest)
 }
 
-// Reads and writes go over REST; with VITE_MOCK=1 (dev, Skaile preview default)
+// Reads and writes go over REST; with VITE_MOCK=1 (opt-in; Skaile preview default)
 // everything goes through the socket's mock responder instead.
 //
 // `listUsers` stays mocked: the backend offers only typeahead /users/search
