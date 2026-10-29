@@ -31,6 +31,7 @@ Kolja) · `später` (nicht blockierend).
 | B13 | Verwaiste Bilder                        | später      | nein                    | –             |
 | B14 | Doku-Drift (Status-Codes, Pagination)   | später      | nein                    | –             |
 | B15 | Sortierung nach `created_at`/`updated_at` | offen     | nein (Workaround FE)    | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
+| B16 | Trefferzahlen/Facetten in der Suche      | offen       | nein (FE ohne Zahlen)   | [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17) |
 | G1  | `createdAt` / `updatedAt` an Recipe     | FE-Arbeit   | –                       | –             |
 | G2  | `UserRating` DB-only                    | gelöst      | –                       | –             |
 | G3  | Tag-Icons (`GET /tags/{id}/icon`)       | FE-Arbeit   | –                       | –             |
@@ -159,6 +160,12 @@ Backend-Umbau der Zugriffsabfrage.
 
 ## Später / nicht blockierend
 
+- **B16 Trefferzahlen:** Die Suche ist paginiert, deshalb kann das FE Zahlen pro
+  Tag/Zutat/Kategorie und „N Rezepte anzeigen“ nicht korrekt zählen. Runde 1 der
+  Filterleiste zeigt keine Zahlen. Vorschlag: opt-in `facets` im Request,
+  `total` + `facets` in der Antwort; `total` allein wäre der erste Schritt. Im Issue
+  außerdem gefragt: Ist `categories` im Filter UND (Doku) oder ODER (FE heute)?
+  → [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17)
 - **B15 Sortierung nach Timestamps:** `POST /recipes/search` sortiert nur nach
   name/worktime/totaltime/rating, alles andere fällt auf `id ASC` zurück. Phase-5-Kachel
   „Your recent creations" sortiert bis dahin clientseitig hinter einem Helper
@@ -209,3 +216,7 @@ Angelegt 2026-10-27 in `klassenserver7b/Foodly-backend`:
 Angelegt 2026-10-28:
 
 - B15 → [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16)
+
+Angelegt 2026-10-29:
+
+- B16 → [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17)

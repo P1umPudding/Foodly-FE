@@ -92,6 +92,11 @@ Verbindlich nach `CLAUDE.md`: nur `@postxl/ui-components` für Controls, postxl
 Light/Dark-Werte. Wiederverwendetes Styling = React-Komponente. Komponenten nach
 Feature in `src/components/<feature>/`.
 
+Kategorie-Farben (ADR [0002](decisions/0002-category-colors.md)): eine gespeicherte
+Farbe, Rollen `dot/soft/ink/line/solid` pro Theme aus `src/lib/categoryColor.ts`.
+Einzige Inline-Ausnahme: der eine Helper setzt `--cat-*`-Custom-Properties am
+Element, Komponenten nutzen nur Utilities wie `bg-(--cat-dot)`.
+
 ## 7. Tests
 
 - Vitest + Testing Library, jsdom (`vite.config.ts`, Stubs in `src/test/setup.ts`).
