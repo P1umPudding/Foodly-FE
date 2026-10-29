@@ -1,4 +1,4 @@
-/* Screen-level layouts for the mockups. Direction-specific tweaks are scoped with [data-dir='c']. */
+/* Screen-level layouts for the mockups. */
 
 /* ---------- category atoms ---------- */
 .cat-mark {
@@ -23,7 +23,7 @@
 .cat-mark.xl {
   width: 56px;
   height: 56px;
-  border-radius: calc(var(--r-card) + 2px);
+  border-radius: var(--r-lg);
   background: var(--surface);
 }
 .cat-mark.xl .emoji {
@@ -60,7 +60,7 @@
   vertical-align: middle;
   margin-left: 6px;
   padding: 1px 7px;
-  border-radius: 99px;
+  border-radius: var(--r-sm);
   border: 1px dashed var(--border-strong);
   color: var(--fg-subtle);
   font-size: 11px;
@@ -71,10 +71,6 @@
 /* ---------- shell bits ---------- */
 .side-new {
   margin: 0 2px 14px;
-}
-[data-dir='c'] .side-new {
-  height: 44px;
-  font-size: 15px;
 }
 .nav-item .cat-dot {
   margin: 0 3px 0 4px;
@@ -127,7 +123,7 @@
   padding: 4px;
 }
 .pad-rows > .row {
-  border-radius: calc(var(--r-card) - 4px);
+  border-radius: var(--r-sm);
 }
 .narrow {
   max-width: 640px;
@@ -265,7 +261,7 @@
   opacity: 0.8;
 }
 
-/* ---------- List (A) ---------- */
+/* ---------- List ---------- */
 .list-content {
   margin-top: 8px;
 }
@@ -284,17 +280,21 @@
 .lgroup-h .cat-dot {
   margin-left: 2px;
 }
+/* The coloured rail runs along the whole group, so in a long list you always see which category you are in. */
 .lgroup-body {
   margin-left: 7px;
-  padding-left: 10px;
-  border-left: 1px solid var(--divider);
+  padding-left: 12px;
+  border-left: 2px solid var(--c-dot, var(--border));
+}
+.lgroup.nocat .lgroup-body {
+  border-left-color: var(--border);
 }
 .lgroup.collapsed .lg-name {
   color: var(--fg-muted);
   font-weight: 500;
 }
 
-/* ---------- Grid cards (C) ---------- */
+/* ---------- Tiles (list view "Kacheln", Start) ---------- */
 .cgrid {
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   --grid-gap: 28px 20px;
@@ -356,7 +356,7 @@
   align-items: center;
   gap: 16px;
   padding: 20px;
-  border-radius: calc(var(--r-card) + 6px);
+  border-radius: var(--r-lg);
   background: var(--c-soft);
 }
 .cat-head .page-title {
@@ -440,34 +440,6 @@
 .dA-img {
   aspect-ratio: 4/3;
 }
-.dC-img {
-  aspect-ratio: 21/9;
-  border-radius: 20px;
-}
-.dC-info {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 32px;
-  margin-top: 24px;
-  align-items: start;
-}
-[data-dir='c'] .d-title {
-  font-size: 40px;
-  letter-spacing: -0.03em;
-}
-.dC-box {
-  padding: 16px;
-  border-radius: 20px;
-  background: var(--surface-2);
-}
-.dC-box .d-actions {
-  margin: 0;
-  flex-direction: column;
-  align-items: stretch;
-}
-.dC-box .portions {
-  justify-content: space-between;
-}
 .rsec {
   margin-top: 40px;
 }
@@ -501,7 +473,7 @@
 }
 .ings li.hl {
   background: var(--hover);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
 }
 .steps {
   list-style: none;
@@ -806,7 +778,7 @@
   margin-left: 6px;
   font-size: 11px;
   padding: 1px 6px;
-  border-radius: 99px;
+  border-radius: var(--r-sm);
   background: var(--fg);
   color: var(--bg);
 }
@@ -863,7 +835,7 @@
 .pm-today {
   font-size: 11px;
   padding: 1px 6px;
-  border-radius: 99px;
+  border-radius: var(--r-sm);
   background: var(--fg);
   color: var(--bg);
   margin-left: 4px;
@@ -1063,8 +1035,7 @@ a.row.set:hover {
   .dA,
   .rsec-grid,
   .editor,
-  .shop,
-  .dC-info {
+  .shop {
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
   }
@@ -1090,25 +1061,6 @@ a.row.set:hover {
   }
   .today-grid {
     grid-template-columns: 1fr;
-  }
-  [data-dir='c'] .page:has(.dC) {
-    padding-top: 0;
-  }
-  .dC-img {
-    margin: 0 -16px;
-    border-radius: 0;
-    aspect-ratio: 4/3;
-  }
-  [data-dir='c'] .d-title {
-    font-size: 30px;
-  }
-  .dC-box {
-    background: transparent;
-    padding: 0;
-  }
-  .dC-box .d-actions {
-    flex-direction: row;
-    align-items: center;
   }
   .cat-head {
     padding: 16px;

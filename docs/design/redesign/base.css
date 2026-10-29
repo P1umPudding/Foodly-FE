@@ -1,5 +1,5 @@
 /* Foodly redesign mockups: shared structure + the category colour pipeline.
-   Direction files (dir-a/b/c.css) only set tokens and a few layout switches. */
+   dir-a.css holds the tokens of the final direction "Ruhig". */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap');
 
@@ -140,7 +140,7 @@ svg.i {
   place-items: center;
   width: 26px;
   height: 26px;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background: var(--fg);
   color: var(--bg);
   font-size: 14px;
@@ -298,20 +298,20 @@ svg.i {
   font-size: 11px;
   padding: 1px 6px;
   border: 1px solid var(--border);
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   color: var(--fg-subtle);
 }
 .seg {
   display: inline-flex;
-  padding: 3px;
+  padding: 2px;
   gap: 2px;
-  border-radius: calc(var(--r-ctl) + 3px);
+  border-radius: var(--r-lg);
   background: var(--seg-bg);
 }
 .seg button {
   border: 0;
   background: transparent;
-  height: 30px;
+  height: 32px;
   padding: 0 12px;
   border-radius: var(--r-ctl);
   color: var(--fg-muted);
@@ -416,7 +416,7 @@ svg.i {
 .check {
   width: 20px;
   height: 20px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   border: 1.5px solid var(--border-strong);
   display: inline-grid;
   place-items: center;
@@ -564,7 +564,7 @@ svg.i {
   align-items: center;
   gap: 14px;
   padding: 10px 12px;
-  border-radius: var(--r-card);
+  border-radius: var(--r-ctl);
 }
 .row:hover {
   background: var(--hover);
@@ -581,8 +581,18 @@ svg.i {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.divided > * + * {
+.divided > * {
+  position: relative;
+}
+/* Divider as its own hairline: a border-top on a rounded row bends up at both ends. */
+.divided > * + *::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
   border-top: 1px solid var(--divider);
+  pointer-events: none;
 }
 .grid {
   display: grid;
@@ -646,7 +656,7 @@ svg.i {
 .skel {
   background: linear-gradient(90deg, var(--skel) 25%, var(--surface-2) 50%, var(--skel) 75%);
   background-size: 200% 100%;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   animation: shimmer 1.4s infinite linear;
 }
 @keyframes shimmer {

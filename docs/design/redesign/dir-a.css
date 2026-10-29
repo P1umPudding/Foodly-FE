@@ -1,4 +1,4 @@
-/* Direction A "Ruhig": calm, tool-like. Greyscale chrome, hairline borders, no shadows.
+/* Foodly "Ruhig" (final direction): calm, tool-like. Greyscale chrome, hairline borders, no shadows.
    Category colour appears only as small signals: dots, chips, a 2px rail. */
 [data-dir='a'] {
   --bg: oklch(0.985 0 0);
@@ -26,12 +26,18 @@
   --star: oklch(0.78 0.15 75);
   --topbar-border: oklch(0.93 0 0);
 
-  --r-card: 10px;
-  --r-ctl: 7px;
-  --r-btn: 7px;
-  --r-chip: 5px;
-  --r-pill: 7px;
-  --r-photo: 8px;
+  /* Three radii, nothing else: sm 4 (chips, tags, checkboxes), md 6 (every control: inputs, textareas, buttons,
+     rows, nav items), lg 8 (cards, photos, sheets). Nested shapes follow outer = inner + padding (seg: 6 + 2 = 8).
+     Round (50%) only for avatars, dots, step numbers and switches. */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-card: var(--r-lg);
+  --r-ctl: var(--r-md);
+  --r-btn: var(--r-md);
+  --r-chip: var(--r-sm);
+  --r-pill: var(--r-md);
+  --r-photo: var(--r-lg);
 
   --fs-body: 14px;
   --fs-body-m: 15px;
