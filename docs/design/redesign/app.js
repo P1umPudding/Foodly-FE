@@ -528,6 +528,7 @@
     const body = `
       <div class="editor">
         <div class="ed-main">
+          <div class="only-m">${images}</div>
           <div class="card ed-basics">
             ${field('Titel', `<div class="input big-input"><input value="${esc(r.name)}"></div>`)}
             <div class="ed-row">
@@ -547,9 +548,8 @@
           <p class="fhint">Abschnitte nur, wenn das Rezept Teile hat (z. B. Soße und Pasta). Ein Abschnitt ohne Namen ist der Normalfall.</p>
         </div>
         <aside class="ed-side">
-          <div class="col-h">Bilder</div>
-          ${images}
-          <div class="col-h" style="margin-top:22px">Notizen</div>
+          <div class="hide-m"><div class="col-h">Bilder</div>${images}</div>
+          <div class="col-h ed-notes-h">Notizen</div>
           ${r.notes.map((n) => `<div class="ed-note"><div class="input area"><textarea rows="2">${esc(n)}</textarea></div><button class="btn ghost sm icon">${icon('ellipsis-vertical')}</button></div>`).join('')}
           <button class="btn ghost sm add">${icon('plus')}Notiz</button>
           <div class="col-h" style="margin-top:22px">Quelle</div>
