@@ -9,7 +9,8 @@ Die Rahmen laden ihren Inhalt per `srcdoc`, weil die Plattform das Einbetten ihr
 `app.html` geht auch einzeln, z. B. `app.html?theme=dark&view=tiles#/list`.
 
 Fotos: frei lizenziert (Wikimedia Commons), Nachweise in `img/CREDITS.md`. Nur für die Mockups.
-Die Übersichtsbilder in `screens/` sind Stand Runde 1.
+Übersichtsbilder in `screens/`: `desktop-hell`, `handy-hell`, `dunkel`, `dunkel-handy`, `ohne-fotos`,
+`ohne-fotos-handy` (heutiger Stand ohne Bilder, B1), `weitere` (Einkauf, Profil, Timer).
 
 ---
 
