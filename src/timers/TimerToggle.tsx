@@ -23,7 +23,7 @@ export function TimerToggle({ onClick }: { onClick: () => void }) {
             onClick={onClick}
             aria-label="Timer"
             className={cn(
-              'gap-1.5 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+              'gap-1.5 rounded-md focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
               alarming ? 'text-destructive hover:text-destructive' : 'text-muted-foreground hover:text-foreground',
             )}
           >

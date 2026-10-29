@@ -155,7 +155,7 @@ export function ThemeToggle() {
               aria-label="Theme wechseln"
               className={cn(
                 buttonVariants({ variant: 'ghost', size: 'icon' }),
-                'rounded-full text-muted-foreground hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+                'rounded-md text-muted-foreground hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
               )}
             >
               <ActiveIcon />
@@ -167,7 +167,7 @@ export function ThemeToggle() {
       <DropdownMenuContent
         align="end"
         sideOffset={10}
-        className="min-w-44 rounded-2xl border-border/80 bg-popover p-1.5 shadow-lg"
+        className="min-w-44 rounded-lg border-border/80 bg-popover p-1.5 shadow-lg"
       >
         {OPTIONS.map(({ mode, label, icon: Icon }) => {
           const active = colorMode === mode
@@ -176,7 +176,7 @@ export function ThemeToggle() {
               key={mode}
               onClick={(e) => select(e, mode)}
               className={cn(
-                'flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors',
+                'flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                 active ? 'text-foreground' : 'text-muted-foreground',
               )}
             >
