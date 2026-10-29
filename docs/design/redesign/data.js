@@ -4,13 +4,13 @@ window.ME = 1
 // Categories are personal collections (a recipe may be in several). Colours are user-chosen: the last three are
 // deliberately awkward picks (dark navy, pale yellow, pure black) to stress-test the colour pipeline.
 window.CATEGORIES = [
-  { id: 1, name: 'Favoriten', emoji: '❤️', color: '#e11d48', recipes: [1, 6, 8, 13] },
-  { id: 2, name: 'Schnelle Küche', emoji: '⚡', color: '#0ea5e9', recipes: [3, 5, 8, 12, 14] },
-  { id: 3, name: 'Backen & Süßes', emoji: '🍰', color: '#f59e0b', recipes: [2, 9, 13] },
-  { id: 4, name: 'Meal Prep', emoji: '📦', color: '#10b981', recipes: [4, 7, 11] },
-  { id: 5, name: 'Sonntagsessen', emoji: '🍷', color: '#1e3a8a', recipes: [11, 1, 13] },
-  { id: 6, name: 'Sommer', emoji: '☀️', color: '#fde047', recipes: [5, 8, 10] },
-  { id: 7, name: 'Klassiker', emoji: null, color: '#000000', recipes: [1, 11, 7] },
+  { id: 1, name: 'Favoriten', icon: '❤️', color: '#e11d48', recipes: [1, 6, 8, 13] },
+  { id: 2, name: 'Schnelle Küche', icon: '⚡', color: '#0ea5e9', recipes: [3, 5, 8, 12, 14] },
+  { id: 3, name: 'Backen & Süßes', icon: '🍰', color: '#f59e0b', recipes: [2, 9, 13] },
+  { id: 4, name: 'Meal Prep', icon: null, color: '#10b981', recipes: [4, 7, 11] },
+  { id: 5, name: 'Sonntagsessen', icon: '🍷', color: '#1e3a8a', recipes: [11, 1, 13] },
+  { id: 6, name: 'Sommer', icon: '☀️', color: '#fde047', recipes: [5, 8] },
+  { id: 7, name: 'Klassiker', icon: null, color: '#000000', recipes: [1, 11, 7] },
 ]
 window.TAG_ICONS = { Vegan: 'leaf', Vegetarisch: 'leaf', Schnell: 'zap' }
 window.GROUPS = [
