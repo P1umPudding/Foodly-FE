@@ -1,23 +1,19 @@
-# Foodly Redesign – Entwürfe (Stand 29.10.2026)
+# Foodly Redesign „Ruhig“ (Stand 29.10.2026, Runde 2)
 
-Zwei fertig durchdachte Entwürfe für das komplette UI. Beide teilen dieselben Grundregeln (Abschnitt 1) und unterscheiden
-sich in Haltung, Dichte und Bildanteil (Abschnitte 2 und 3).
+Das finale Design ist **„Ruhig“**. Aus „Bildstark“ sind zwei Dinge übernommen: die **Kacheln** als dritte Ansicht der
+Rezeptliste und die **Startseite** mit großen Bildkarten. Runde 2 setzt Koljas Feedback vom 29.10. um (Abschnitt 3).
 
-**Ansehen:** `index.html` im Browser öffnen. Umschalter für Entwurf, Hell/Dunkel, mit/ohne Fotos, Desktop/Handy und Screen.
-Jeder Screen ist klickbar (Navigation, Rezept, Kochen, …). Statische Übersichten liegen in `screens/`:
-
-| Datei | Inhalt |
-|---|---|
-| `screens/ruhig-light.png`, `ruhig-dark.png` | Ruhig: Start, Rezepte, Detail (Desktop) + Start, Rezepte, Kategorie, Detail, Kochen (Handy) |
-| `screens/ruhig-ohne-fotos.png` | Ruhig im heutigen Zustand (Bilder backend-blockiert) |
-| `screens/ruhig-weitere-screens.png` | Kategorie, Rezept ohne Kategorie, Planer, Einkauf, Gruppen, Profil, Kategorien, Zustände |
-| `screens/bildstark-*.png` | dasselbe für Bildstark |
+**Ansehen:** `index.html` im Browser öffnen. Umschalter für Hell/Dunkel, mit/ohne Fotos, Desktop/Handy, Listen-Ansicht
+und Screen. Alles ist klickbar: Ansicht, Sortierung, Filter, Gruppen einklappen, Seitenleiste, Timer.
+Die Rahmen laden ihren Inhalt per `srcdoc`, weil die Plattform das Einbetten ihrer Seiten per Header verbietet (Firefox).
+`app.html` geht auch einzeln, z. B. `app.html?theme=dark&view=tiles#/list`.
 
 Fotos: frei lizenziert (Wikimedia Commons), Nachweise in `img/CREDITS.md`. Nur für die Mockups.
+Die Übersichtsbilder in `screens/` sind Stand Runde 1.
 
 ---
 
-## 1. Gemeinsame Grundregeln (gelten für beide Entwürfe)
+## 1. Grundregeln
 
 ### 1.1 Farbe kommt nur aus Kategorien
 - Die Oberfläche ist **neutral** (Graustufen). Es gibt **keine Akzentfarbe**.
@@ -73,17 +69,20 @@ Kategorie im Farbton zu nahe kommt (unter etwa 20°). Schwarz, Weiß und Grau er
   Eigene Icons sind nicht nötig.
 
 ### 1.5 Fotos
-- Mit Foto: Liste mit 48-px-Vorschaubild, Detail mit Bild (Ruhig: 4:3 neben dem Text, Bildstark: 21:9 Hero).
+- Mit Foto: Liste mit 48-px-Vorschaubild, Detail mit 4:3-Bild neben dem Text.
 - Ohne Fotos (heute, B1): **keine Platzhalter-Wand.** Die Vorschaubild-Spalte entfällt komplett, solange es keine Fotos gibt.
   Ein einzelnes Rezept ohne Foto zwischen Rezepten mit Foto bekommt einen neutralen grauen Platzhalter mit Besteck-Symbol.
   Im Detail ohne Foto füllt der Text-Kopf die Breite, ohne leeren Hero.
-- Bildstark-Raster ohne Foto: ruhige **Typo-Kachel** (Rezeptname groß in Grau). Kein Kategorie-Farbton, kein Fake-Bild.
+- Kachel ohne Foto: ruhige **Typo-Kachel** (Rezeptname groß in Grau). Kein Kategorie-Farbton, kein Fake-Bild.
 
 ### 1.6 Struktur und Navigation
-- **Desktop (ab 761 px):** linke Seitenleiste mit „Neues Rezept“ (primär), Start, Rezepte, Planer, Einkauf, Gruppen,
-  dann „Kategorien“ (Punkt, Name, Anzahl), unten Profil. Oben eine schmale Kopfzeile mit Titel/Breadcrumb und Seitenaktionen.
-- **Handy:** Tab-Leiste unten (5 Ziele, Icon + Label), Kopfzeile mit Titel und Aktionen; „+“ (neues Rezept) als runde
-  Primär-Schaltfläche oben rechts auf Start und Rezepte.
+- **Desktop/Tablet (ab 761 px):** linke Seitenleiste mit „Neues Rezept“ (primär), Start, Rezepte, Planer, Einkauf, Gruppen,
+  dann „Kategorien“ (Punkt, Name, Anzahl), unten Profil. Sie lässt sich oben rechts auf eine 64-px-Icon-Leiste
+  **einklappen** (Tooltips statt Labels; Einstellung wird gemerkt). Oben eine schmale Kopfzeile mit Titel/Breadcrumb,
+  Seitenaktionen und dem **Timer-Knopf**.
+- **Handy:** keine Seitenleiste, stattdessen Tab-Leiste unten (5 Ziele, Icon + Label). Kopfzeile mit Titel, Aktionen und
+  Timer-Knopf; „+“ (neues Rezept) oben rechts auf Start und Rezepte. **Zur Kategorie-Seite** kommt man über die
+  Kategorie-Kacheln auf Start, die Kategorie-Leiste oben in „Rezepte“ und „Öffnen ›“ an jeder Gruppe der Liste.
 - Planer, Einkauf, Gruppen sind laut Plan noch nicht dran: Sie sind als **Konzept** markiert und nur skizziert.
 - **Koch-Modus:** Vollbild ohne Navigation. Oben Schließen, Titel und Schritt x von y, darunter ein Fortschrittsbalken.
   Der Schritt steht groß (Desktop 34 px, Handy 26 px). Darunter „Dafür“-Zutaten, laufende Timer und „Danach“ als Vorschau.
@@ -99,21 +98,27 @@ Bewertung mit Komma („4,5“).
 
 ---
 
-## 2. Entwurf „Ruhig“ (Empfehlung)
+## 2. Gestaltung „Ruhig“
 
 Werkzeughaft, ruhig, dicht. Orientiert an Linear und Things. Die Liste steht im Mittelpunkt, Farbe gibt es nur als Signal.
 
-- **Flächen:** Hintergrund fast weiß bzw. neutrales Dunkelgrau (kein reines Schwarz), Karten mit Haarlinie, keine Schatten.
-- **Form:** Radius 10 (Karten), 7 (Bedienelemente), 5 (Chips). Ruhige Ecken, nichts Pill-förmiges.
+- **Flächen:** Hintergrund fast weiß bzw. neutrales Dunkelgrau (kein reines Schwarz), Karten mit Haarlinie, keine Schatten
+  (nur Sheets und Popover haben einen weichen Schatten).
+- **Radien, genau drei:** 4 px (Chips, Tags, Checkboxen, Badges), 6 px (**jedes** Bedienelement: Inputs, Textareas,
+  Buttons, Zeilen, Navigation), 8 px (Karten, Fotos, Sheets). Verschachtelt gilt außen = innen + Abstand
+  (Segment-Schalter: 6 + 2 = 8). Rund nur Avatare, Punkte, Schrittnummern, Schalter. Zutaten- und Schritt-Felder haben
+  damit denselben Radius.
+- **Trennlinien** in Karten sind eigene Haarlinien mit 12 px Einzug, nie `border-top` auf einer abgerundeten Zeile
+  (das war der Fehler im Profil: die Linie bog sich an den Enden hoch).
 - **Schrift:** Inter. 14 px Text (Handy 15), Seitentitel 26 px / 650, Abschnittstitel 15 px / 600, Zutaten/Schritte 15 px.
-- **Rezeptliste:** Zeilen (Bild 48, Name, Zeit, Bewertung, ggf. „von Mara“, 2 Tags, Farbpunkte), gruppiert nach Kategorie,
-  einklappbar. Raster als zweite Ansicht.
-- **Start:** Kategorie-Kacheln (getönt) oben, dann „Heute geplant“, „Zuletzt bearbeitet“ (Zeilen), rechts „Geteilt mit dir“, Einkauf.
-- **Detail:** Bild links, Infos rechts (Desktop), Abschnitte mit Zutaten (2/5) und Schritten (3/5).
-- Warum Empfehlung: funktioniert heute ohne Fotos am besten, lässt sich fast vollständig über die bestehenden
-  `@postxl/ui-components`-Tokens umsetzen, und dichte Zeilen sind auf dem Handy leichter zu bedienen als Kacheln. Deckt sich mit dem Lead-Feedback.
+- **Start:** Kategorie-Kacheln (getönt), „Heute geplant“ als große Bildkarten mit Titel auf dem Foto (Desktop, 16:9);
+  auf dem Handy so groß wie die Karten von „Zuletzt bearbeitet“ (2 Spalten, 4:3). „Zuletzt bearbeitet“ als Kacheln,
+  rechts „Geteilt mit dir“ und Einkauf.
+- **Detail:** Bild links, Infos rechts (Desktop), Abschnitte mit Zutaten (2/5) und Schritten (3/5). Portionen-Rezept:
+  Stepper über die Anzahl. Rezept mit fester Größe (z. B. „26 cm Springform“, `sizeNumber = null`): Stepper über den
+  Faktor ×¼ … ×2.
 
-### Tokens „Ruhig“ (Namen wie in `src/styles/theme.css`)
+### Tokens (Namen wie in `src/styles/theme.css`)
 
 | Token | Hell | Dunkel |
 |---|---|---|
@@ -129,37 +134,82 @@ Werkzeughaft, ruhig, dicht. Orientiert an Linear und Things. Die Liste steht im 
 | `--ring` | `oklch(0.2 0 0 / 0.35)` | `oklch(0.95 0 0 / 0.35)` |
 | `--sidebar` | `oklch(0.975 0 0)` | `oklch(0.155 0 0)` |
 | `--star` | `oklch(0.78 0.15 75)` | `oklch(0.82 0.14 80)` |
-| `--radius` | `0.4375rem` (7 px) | |
+| `--radius` | `0.375rem` (6 px); Tailwind `rounded-sm` 4, `rounded-md` 6, `rounded-lg` 8 | |
 | `--font-sans` | `Inter, system-ui, …` | |
 
 Text-Skala: Basis 14 px statt heute 13 px (Lesbarkeit beim Kochen); Handy 15 px.
 
 ---
 
-## 3. Entwurf „Bildstark“
+## 3. Runde 2: was sich geändert hat
 
-Ein Feed wie bei X oder Reddit. Fotos sind das Hauptelement, Titel fett, alles rund. Gedacht für die Zeit, wenn die
-meisten Rezepte Fotos haben.
+### 3.1 Rezeptliste: alle Funktionen von heute, plus Kacheln
 
-- **Flächen:** reines Weiß bzw. **reines Schwarz** im Dunkelmodus (wie X „Lights out“). Trennung über Abstand statt über Rahmen.
-- **Form:** Pill-Buttons und Pill-Eingaben, Bilder Radius 16 bis 20.
-- **Schrift:** Inter. 15 px Text, Seitentitel 28 px / 800, Rezepttitel in Karten 17 px / 700, Detail-Titel 40 px.
-- **Rezeptliste:** Raster 4:3-Bilder (Desktop 3–4 Spalten, Handy 2), darunter Farbpunkte + erste Kategorie neutral
-  („Favoriten +2“), Titel, Zeit/Bewertung. Liste als zweite Ansicht.
-- **Start:** Kategorie-Kacheln, „Heute geplant“ als große Bildkarten mit Titel auf dem Foto, „Zuletzt bearbeitet“ als Raster.
-- **Detail:** 21:9-Hero über die ganze Breite (Handy: randlos 4:3), darunter Titel groß, rechts ein Kasten mit Portionen und „Kochen“.
-- Risiko: Heute gibt es keine Fotos. Dann besteht das Raster aus Typo-Kacheln. Das sieht ordentlich aus, aber die
-  Stärke des Entwurfs kommt erst mit Fotos. Außerdem braucht er mehr eigene Komponenten.
+Funktional 1:1 wie `ListState` heute (`src/list/state.ts`), nur neu angeordnet:
 
-### Tokens „Bildstark“ (Abweichungen zu Ruhig)
+| Heute | Neu |
+|---|---|
+| Suche | Zeile 1, volle Breite. `/` fokussiert. |
+| Sortierung: Name, Arbeitszeit, Gesamtzeit, Bewertung + Richtung | Zeile 2 rechts: Richtungs-Knopf (Icon wie heute) + Menü mit den 4 Kriterien und „A → Z / Z → A“ bzw. „Kürzeste/Längste“, „Beste/Schlechteste zuerst“. |
+| Dichte: Detailliert / Kompakt | Segment mit **drei** Ansichten: Detailliert (**Standard**), Kompakt, Kacheln (neu, aus Bildstark). |
+| Gliederung: Nach Kategorie / Einfache Liste | Segment daneben, unverändert. |
+| Filter-Spalte rechts (Desktop), Sheet mit Badge (Handy) | gleich; auf dem Desktop über „Filter“ ein-/ausblendbar. |
+| Kategorien (ODER, inkl. „Ohne Kategorie“ mit Anzahl) | Checkbox-Zeilen mit Farbpunkt und Anzahl. |
+| Tags (UND, mit Suche) | Suche + Chips, ausgewählte zuerst. |
+| Zutaten (UND, mit Suche) | Suche + Chips, scrollbar. |
+| Arbeitszeit ≤ (Slider, Zahl, 15/30/60) | gleich. |
+| Zugriff: Rolle, Freigabe | zwei Segmente, erneutes Antippen hebt auf. |
+| Aktive Filter als Chips + „Alle zurücksetzen“ | gleich, unter der Suche. |
+| Treffer „x von y“ | links in Zeile 2. |
+| Gruppen einklappbar, „Ohne Kategorie“ zuerst und eingeklappt | gleich; Kopf klebt beim Scrollen. |
+| Rolle/Freigabe-Icons in der Zeile | nur wenn sie etwas sagen (bearbeiten/ansehen, geteilt/kollaborativ); eigenes privates Rezept ohne Icon. |
 
-| Token | Hell | Dunkel |
-|---|---|---|
-| `--background`, `--card` | `#fff` | `#000` |
-| `--muted`, `--secondary` | `oklch(0.97 0 0)` | `oklch(0.2 0 0)` |
-| `--input` (Fläche) | `oklch(0.96 0 0)` | `oklch(0.2 0 0)` |
-| `--border` | `oklch(0.9 0 0)` | `oklch(0.3 0 0)` |
-| `--radius` | `999px` für Buttons/Inputs, 16 px Karten | |
+- **Farbige Linie entlang der Gruppe:** Ja, Kolja hat recht. In langen Listen sagt die 2-px-Linie in Kategoriefarbe,
+  wo man ist. Die Gruppe „Ohne Kategorie“ hat eine graue Linie. Innerhalb einer Gruppe zeigt die Zeile nur die
+  *anderen* Kategorien als Punkte, die eigene ist ja schon die Linie.
+- Die Kategorie-Seite nutzt dieselbe Leiste ohne Filter und Gliederung.
+
+### 3.2 Timer ohne Koch-Modus
+
+- **Timer-Knopf** in jeder Kopfzeile (auch im Koch-Modus), zeigt den nächsten ablaufenden Timer („18:42“).
+  Öffnet auf dem Desktop ein Popover, auf dem Handy ein Sheet: laufende Timer (Pause/Weiter, Neustart, Entfernen,
+  Fortschritt) und „Neuer Timer“ mit Name (optional), 5/10/15/30 min oder eigener Dauer. Entspricht dem heutigen
+  `TimerPanel`, nur sichtbarer.
+- **Zeitangaben in Schritten** („30 Minuten“, „ca. 2 Stunden“, „5–6 Minuten“) werden zu antippbaren Timer-Chips, im
+  Detail wie im Koch-Modus. Der Timer heißt dann „Rezept · Schritt“.
+
+### 3.3 Editor: alle Felder, weniger Felder auf einmal
+
+Alle Felder aus `Draft` sind drin: Titel, Arbeitszeit, Gesamtzeit, Größe (Portionen **oder** Freitext), Tags, Abschnitte
+(Name optional), Zutaten (Präfix, Menge, Einheit, Zutat aus Katalog oder Freitext, Zusatz), Schritte, Notizen (mehrere),
+Bilder (Hauptbild + Galerie), Quelle. Vereinfacht wird so:
+
+- **Präfix steckt im Mengenfeld:** „ca. 800“ wird zu Präfix „ca.“ + Menge „800“ (alles vor der ersten Zahl). „1–2“ und
+  „½“ bleiben Menge. Kein eigenes Präfix-Feld mehr.
+- **Zusatz steckt im Zutatenfeld:** „Salz, nach Geschmack“ wird zu Zutat „Salz“ + Zusatz „nach Geschmack“.
+  (Der Draft verwirft heute den Zusatz, sobald eine Katalog-Zutat gewählt ist, das muss sich dafür ändern.)
+- **Größe als Umschalter** Portionen/Freitext mit einem Satz Erklärung: Portionen → beim Kochen Anzahl wählen;
+  Freitext (z. B. „26 cm {Springform}“) → beim Kochen mit Faktor skalieren (der Multiplikator).
+- **Einheit** als Combobox mit Vorschlägen (g, kg, ml, EL, TL, Prise, Stück) und freiem Text.
+- **Mehrere einfügen:** Zutatenliste einfügen, Foodly zerlegt sie in Zeilen (gleiche Regeln wie oben).
+- Zeilen-Aktionen (hoch, runter, entfernen) hinter `⋮`, Ziehen am Griff auf dem Desktop.
+- **Handy:** Zutaten stehen als lesbare Zeilen („ca. 800 g Tomaten“). Antippen öffnet ein Sheet mit Menge, Einheit,
+  Zutat, Zusatz und den Aktionen. Bilder stehen oben, Notizen und Quelle unten.
+- Kategorien und Teilen sind **nicht** im Editor: Kategorien sind persönlich (Detail, „+“-Chip), Teilen hat einen
+  eigenen Dialog.
+- Schritte und Zutaten nutzen denselben Input-Radius (6 px).
+
+### 3.4 Einkauf (Konzept)
+
+- Listen wechseln: Desktop über die Spalte „Listen“ (dort „+“ für eine neue Liste; der doppelte Knopf „Neue Liste“
+  oben ist weg). Handy: Der Titel ist der Umschalter („Wocheneinkauf ▾“), das Sheet hat „Neue Liste“.
+- Die Rezepte oben heißen jetzt „Erstellt aus 6 Rezepten · aus dem Wochenplan“: Aus ihren Zutaten ist die Liste
+  entstanden. Jeder Artikel zeigt darunter, wofür er ist („für Spaghetti Bolognese, Rindergulasch“). „+ Rezept“ fügt
+  die Zutaten eines weiteren Rezepts hinzu.
+
+### 3.5 Profil
+
+Trennlinien-Fehler behoben (siehe Radien/Trennlinien oben). Gilt auch für alle anderen Karten-Listen.
 
 ---
 
@@ -174,7 +224,8 @@ Die Reihenfolge entscheidet Kolja.
 
 ## 5. Offen / zu entscheiden
 
-- **Welcher Entwurf?** Empfehlung: Ruhig. Bildstark-Elemente (Raster-Ansicht, Hero bei Foto) lassen sich später in Ruhig übernehmen.
 - **Eine Farbe pro Kategorie:** Der Nutzer wählt nur eine Farbe, Hell/Dunkel berechnet Foodly. `colorLight`/`colorDark`
   bleiben als Override. Empfehlung: ja.
+- **Reihenfolge der Umsetzung** (Abschnitt 4).
 - **B11:** Kategorie-Symbol als Tag-Referenz (Backend).
+- Editor: Zusatz bei Katalog-Zutat erhalten (Draft-Änderung, siehe 3.3).

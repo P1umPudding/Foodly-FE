@@ -2038,3 +2038,13 @@ a.row.set:hover {
     --grid-gap: 20px 12px;
   }
 }
+.list-layout .cgrid {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  --grid-gap: 24px 16px;
+}
+@media (max-width: 760px) {
+  .list-layout .cgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --grid-gap: 20px 12px;
+  }
+}
