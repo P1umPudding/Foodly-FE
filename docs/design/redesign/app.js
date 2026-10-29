@@ -115,7 +115,8 @@
   const dots = (r, except) => {
     const cs = catsOf(r).filter((c) => c.id !== except)
     if (!cs.length) return ''
-    return `<span class="cat-dots">${cs.slice(0, 3).map(dot).join('')}${cs.length > 3 ? `<span class="more">+${cs.length - 3}</span>` : ''}</span>`
+    // Desktop: hovering the dots names the categories (postxl Tooltip in the app), like the access icons next to them.
+    return `<span class="cat-dots" data-tip="${except ? 'Auch in: ' : ''}${esc(cs.map((c) => c.name).join(', '))}">${cs.slice(0, 3).map(dot).join('')}${cs.length > 3 ? `<span class="more">+${cs.length - 3}</span>` : ''}</span>`
   }
   const catLine = (r) => {
     const cs = catsOf(r)
