@@ -254,7 +254,7 @@ Trennlinien-Fehler behoben (siehe Radien/Trennlinien oben). Gilt auch für alle 
 
 ## 4. Umsetzung (Vorschlag)
 
-1. **Token-PR:** neue Werte in `theme.css`, Text-Skala 13 → 14 px, Inter, Radien, Kategorie-Farb-Util (TS) mit Tests,
+1. **Token-PR:** neue Werte in `theme.css`, Text-Skala 13 → 14 px, Inter, Radien, Spezifikation des Kategorie-Farb-Utils,
    `docs/design.md`. Zuerst und allein, weil die Text-Skala alle Screens und Layout-Tests betrifft.
 2. **App-Shell und Navigation:** Seitenleiste (Desktop), Tab-Leiste (Handy).
 3. **Rezeptliste** (inkl. `'tiles'`, Filterleiste) → **Start/Dashboard** (Phase 5; nur der baubare Teil: Kategorie-Kacheln,
