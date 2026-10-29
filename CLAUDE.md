@@ -109,6 +109,9 @@ In short:
   mock-only until the backend offers a list endpoint
   (`docs/backend-questions.md` B2). A new method gets both branches and a mock
   handler.
+- Missing backend endpoint in REST mode (Alpha): stub it inside `src/api`
+  (localStorage, `src/api/stubs.ts`, "Demo" hint in the UI) — see
+  [`docs/decisions/0003-backend-gap-stubs.md`](docs/decisions/0003-backend-gap-stubs.md).
 - Errors: the transport throws `Error(message)`; handle it via the hooks
   (`useRequest` / `useRecipeSearch` surface it as an error state;
   in `useRecipeSearch` only for the first page — a failed `loadMore` stops
