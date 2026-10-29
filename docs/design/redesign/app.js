@@ -183,8 +183,8 @@
     const side = `
       <aside class="sidenav">
         <div class="brand"><span class="brand-mark">${icon('chef-hat')}</span><span class="side-l">Foodly</span>
-          <button class="btn ghost sm icon side-toggle" data-act="side" aria-label="Seitenleiste ${C ? 'öffnen' : 'schließen'}">${icon(C ? 'panel-left-open' : 'panel-left-close')}</button></div>
-        <a class="btn primary side-new" href="${route('editor')}">${icon('plus')}<span class="side-l">Neues Rezept</span></a>
+          <button class="btn ghost sm icon side-toggle" data-act="side" aria-label="Seitenleiste ${C ? 'öffnen' : 'schließen'}" ${C ? 'data-tip="Seitenleiste öffnen"' : ''}>${icon(C ? 'panel-left-open' : 'panel-left-close')}</button></div>
+        <a class="btn primary side-new" href="${route('editor')}" ${C ? 'data-tip="Neues Rezept"' : ''}>${icon('plus')}<span class="side-l">Neues Rezept</span></a>
         ${NAV.map(([k, i, l]) => `<a class="nav-item ${active === k && !activeCat ? 'active' : ''}" href="${route(k)}" ${C ? `data-tip="${l}"` : ''}>${icon(i)}<span class="side-l">${l}</span></a>`).join('')}
         <div class="nav-label"><span class="side-l">Kategorien</span><a href="${route('categories')}" class="subtle side-l">${icon('settings')}</a></div>
         ${CATEGORIES.map(
@@ -192,7 +192,7 @@
             `<a class="nav-item cat-item ${activeCat === c.id ? 'active' : ''}" href="${route('category')}" ${C ? `data-tip="${esc(c.name)}"` : ''}>${dot(c)}<span class="ellipsis side-l">${esc(c.name)}</span><span class="count num side-l">${c.recipes.length}</span></a>`,
         ).join('')}
         <div class="nav-spacer"></div>
-        <a class="nav-item ${active === 'profile' ? 'active' : ''}" href="${route('profile')}"><span class="avatar xs">K</span><span class="side-l">Kolja</span></a>
+        <a class="nav-item ${active === 'profile' ? 'active' : ''}" href="${route('profile')}" ${C ? 'data-tip="Profil & Einstellungen"' : ''}><span class="avatar xs">K</span><span class="side-l">Kolja</span></a>
       </aside>`
     const tab = `<nav class="tabbar">${NAV.map(([k, i, l]) => `<a class="${active === k ? 'active' : ''}" href="${route(k)}">${icon(i)}${l}</a>`).join('')}</nav>`
     const top = `

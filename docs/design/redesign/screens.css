@@ -1127,7 +1127,7 @@ a.row.set:hover {
     white-space: nowrap;
     pointer-events: none;
   }
-  .side-c .nav-item[data-tip]:hover::after {
+  .side-c .sidenav [data-tip]:hover::after {
     left: calc(100% + 8px);
     top: 50%;
     translate: 0 -50%;
@@ -1153,10 +1153,20 @@ a.row.set:hover {
 .side-c .nav-label > .side-l {
   display: none;
 }
+/* Collapsed: the toggle takes the logo's place in the same row height, so nothing below moves. */
 .side-c .brand {
-  flex-direction: column;
-  gap: 10px;
-  padding: 4px 0 14px;
+  justify-content: center;
+  padding: 2px 0 16px;
+}
+.brand {
+  min-height: 52px;
+}
+.side-c .brand .brand-mark {
+  display: none;
+}
+/* Tooltips must escape the scroll container. */
+.side-c .sidenav {
+  overflow: visible;
 }
 .side-c .brand .side-toggle {
   margin: 0;
@@ -2566,4 +2576,7 @@ button.photo.zoom {
   .gallery button.photo.g4 {
     display: none;
   }
+}
+.side-c .sidenav {
+  z-index: 20;
 }
