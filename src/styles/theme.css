@@ -1,119 +1,149 @@
-/* Brand design tokens (the Skaile purple theme) — Foodly's own. (The schema was
-   originally copied from another Skaile app, but there's no ongoing sync; edit
-   freely.) Var NAMES follow the shadcn-style schema so the Tailwind wiring in
-   styles.css stays generic. Re-theme by editing the VALUES below. */
+/* Foodly design tokens — direction "Ruhig" (calm, tool-like). Rules and the
+   reasoning behind them: docs/design.md. Var NAMES follow the shadcn-style
+   schema so the Tailwind wiring in styles.css and @postxl/ui-components stay
+   generic. Edit VALUES here, not in components.
+
+   No accent colour: the chrome is greyscale, `--primary` is the text colour.
+   Colour only ever comes from categories (see the --cat-* block). */
 
 :root {
   color-scheme: light;
 
+  /* Three radii, nothing else: 4px (chips, tags, checkboxes, badges),
+     6px (every control: inputs, buttons, rows, nav items), 8px (cards, photos,
+     sheets, popovers). Tailwind: rounded-sm / rounded-md / rounded-lg. */
   --radius: 0.375rem;
 
-  /* fonts (system stack) */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* fonts: Inter (loaded in index.html), system stack as fallback */
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
   --font-serif: ui-serif, Georgia, 'Times New Roman', serif;
   --font-weight-semibold: 600;
 
-  /* surfaces */
-  --background: hsl(210 40% 98%);
-  --foreground: hsl(222 47% 11%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(222 47% 11%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(222 47% 11%);
+  /* surfaces: near-white page, white cards with hairline borders */
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.2 0 0);
+  --card: #fff;
+  --card-foreground: oklch(0.2 0 0);
+  --popover: #fff;
+  --popover-foreground: oklch(0.2 0 0);
 
-  /* brand / actions (Skaile purple) */
-  --primary: hsl(267 100% 50%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(210 40% 96%);
-  --secondary-foreground: hsl(215 16% 47%);
+  /* actions: primary = ink on paper, no brand colour */
+  --primary: oklch(0.2 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.965 0 0);
+  --secondary-foreground: oklch(0.2 0 0);
 
-  /* muted / accent */
-  --muted: hsl(210 40% 96%);
-  --muted-foreground: hsl(215 16% 47%);
-  --accent: hsl(210 40% 96%);
-  --accent-foreground: hsl(222 47% 11%);
+  /* muted / accent (accent = hover fill) */
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.47 0 0);
+  --subtle-foreground: oklch(0.62 0 0); /* meta text, counts, placeholders */
+  --accent: oklch(0.955 0 0);
+  --accent-foreground: oklch(0.2 0 0);
 
-  /* status */
+  /* status (the only non-category colours, used sparingly) */
   --destructive: hsl(0 72.2% 50.6%);
   --success: hsl(161.4 93.5% 30.4%);
   --warning: hsl(32.1 94.6% 43.7%);
-  --star: hsl(38 92% 50%); /* rating stars (gold); adapts with theme */
+  --star: oklch(0.78 0.15 75); /* rating stars */
 
   /* lines / focus */
-  --border: hsl(214 32% 91%);
-  --input: hsl(214 32% 91%);
-  --ring: hsl(267 100% 50%);
+  --border: oklch(0.91 0 0);
+  --border-strong: oklch(0.8 0 0); /* hover border, checkbox outline */
+  --input: oklch(0.91 0 0);
+  --ring: oklch(0.2 0 0 / 0.35);
 
   /* sidebar (PostXL Sidebar/nav) */
-  --sidebar: hsl(0 0% 100%);
-  --sidebar-foreground: hsl(222 47% 11%);
-  --sidebar-primary: hsl(267 100% 50%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(267 100% 97%);
-  --sidebar-accent-foreground: hsl(267 100% 50%);
-  --sidebar-border: hsl(214 32% 91%);
-  --sidebar-ring: hsl(267 100% 50%);
+  --sidebar: oklch(0.975 0 0);
+  --sidebar-foreground: oklch(0.2 0 0);
+  --sidebar-primary: oklch(0.2 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.93 0 0); /* active nav item */
+  --sidebar-accent-foreground: oklch(0.2 0 0);
+  --sidebar-border: oklch(0.92 0 0);
+  --sidebar-ring: oklch(0.2 0 0 / 0.35);
 
-  /* chart palette */
-  --chart-1: hsl(267 100% 50%);
-  --chart-2: hsl(267 100% 63%);
-  --chart-3: hsl(271 91% 65%);
-  --chart-4: hsl(37.7 92.1% 50.2%);
-  --chart-5: hsl(161.4 93.5% 30.4%);
+  /* category colour roles. Defaults = the neutral "no category" look; a
+     category element overrides them inline with the values computed by the
+     category colour util (spec: docs/design.md, "Category colour"). */
+  --cat-dot: oklch(0.62 0 0);
+  --cat-soft: oklch(0.955 0 0);
+  --cat-ink: oklch(0.46 0 0);
+  --cat-line: oklch(0.84 0 0);
 
-  /* shadows */
-  --shadow-2xs: 0 1px 2px 0px hsl(222 47% 11% / 0.03);
-  --shadow-xs: 0 1px 2px 0px hsl(222 47% 11% / 0.05);
-  --shadow-sm: 0 1px 2px 0px hsl(222 47% 11% / 0.05);
-  --shadow: 0 4px 6px 0px hsl(222 47% 11% / 0.07);
-  --shadow-md: 0 4px 6px 0px hsl(222 47% 11% / 0.07);
-  --shadow-lg: 0 10px 15px 0px hsl(222 47% 11% / 0.1);
-  --shadow-xl: 0 20px 25px -5px hsl(222 47% 11% / 0.1);
-  --shadow-2xl: 0 25px 50px -12px hsl(222 47% 11% / 0.25);
+  /* chart palette (neutral until there is a real chart) */
+  --chart-1: oklch(0.2 0 0);
+  --chart-2: oklch(0.47 0 0);
+  --chart-3: oklch(0.62 0 0);
+  --chart-4: oklch(0.8 0 0);
+  --chart-5: oklch(0.91 0 0);
+
+  /* shadows: flat chrome. Only floating layers (popover, sheet, dialog, FAB)
+     get a soft shadow — those use shadow-md and up. */
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow: 0 0 #0000;
+  --shadow-md: 0 4px 12px 0px oklch(0 0 0 / 0.08);
+  --shadow-lg: 0 8px 24px 0px oklch(0 0 0 / 0.1);
+  --shadow-xl: 0 16px 32px -4px oklch(0 0 0 / 0.12);
+  --shadow-2xl: 0 24px 48px -12px oklch(0 0 0 / 0.2);
 }
 
 .dark {
   color-scheme: dark;
 
-  --background: #13151a;
-  --foreground: #f4f4f5;
-  --card: #1a1c22;
-  --card-foreground: #f4f4f5;
-  --popover: #1a1c22;
-  --popover-foreground: #f4f4f5;
+  /* neutral dark grey, never pure black */
+  --background: oklch(0.17 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.95 0 0);
 
-  --primary: #7300ff;
-  --primary-foreground: #ffffff;
-  --secondary: #23262d;
-  --secondary-foreground: #f4f4f5;
+  --primary: oklch(0.95 0 0);
+  --primary-foreground: oklch(0.17 0 0);
+  --secondary: oklch(0.235 0 0);
+  --secondary-foreground: oklch(0.95 0 0);
 
-  --muted: #1a1c22;
-  --muted-foreground: #a1a1aa;
-  --accent: #2a2d36;
-  --accent-foreground: #f4f4f5;
+  --muted: oklch(0.235 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --subtle-foreground: oklch(0.56 0 0);
+  --accent: oklch(0.235 0 0);
+  --accent-foreground: oklch(0.95 0 0);
 
   --destructive: hsl(0 84.2% 60.2%);
   --success: hsl(160.1 84.1% 39.4%);
   --warning: hsl(37.7 92.1% 50.2%);
-  --star: hsl(43 96% 56%); /* slightly brighter gold for dark backgrounds */
+  --star: oklch(0.82 0.14 80);
 
-  --border: #2e303a;
-  --input: #2e303a;
-  --ring: #7300ff;
+  --border: oklch(0.29 0 0);
+  --border-strong: oklch(0.4 0 0);
+  --input: oklch(0.29 0 0);
+  --ring: oklch(0.95 0 0 / 0.35);
 
-  --sidebar: #13151a;
-  --sidebar-foreground: #f4f4f5;
-  --sidebar-primary: #7300ff;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1b1a3f;
-  --sidebar-accent-foreground: #9b40ff;
-  --sidebar-border: #2e303a;
-  --sidebar-ring: #7300ff;
+  --sidebar: oklch(0.155 0 0);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.95 0 0);
+  --sidebar-primary-foreground: oklch(0.17 0 0);
+  --sidebar-accent: oklch(0.26 0 0);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.25 0 0);
+  --sidebar-ring: oklch(0.95 0 0 / 0.35);
 
-  --chart-1: #7300ff;
-  --chart-2: #9b40ff;
-  --chart-3: #bc52ee;
-  --chart-4: #f59e0b;
-  --chart-5: #10b981;
+  --cat-dot: oklch(0.7 0 0);
+  --cat-soft: oklch(0.27 0 0);
+  --cat-ink: oklch(0.86 0 0);
+  --cat-line: oklch(0.42 0 0);
+
+  --chart-1: oklch(0.95 0 0);
+  --chart-2: oklch(0.72 0 0);
+  --chart-3: oklch(0.56 0 0);
+  --chart-4: oklch(0.4 0 0);
+  --chart-5: oklch(0.29 0 0);
+
+  --shadow-md: 0 4px 12px 0px oklch(0 0 0 / 0.4);
+  --shadow-lg: 0 8px 24px 0px oklch(0 0 0 / 0.45);
+  --shadow-xl: 0 16px 32px -4px oklch(0 0 0 / 0.5);
+  --shadow-2xl: 0 24px 48px -12px oklch(0 0 0 / 0.6);
 }

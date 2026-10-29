@@ -85,8 +85,9 @@ There's no server code and no secrets in the repo.
   (it sets the socket to open) and does **not** reflect REST/backend health.
 - `src/components/` — shared UI, plus `editor/`, `list/`, `recipe/`;
   `src/pages/` — `RecipeList`, `RecipeDetail`, `RecipeEditor`, `NotFound`.
-- `src/styles/theme.css` holds the design-token VALUES (the Skaile purple brand —
-  Foodly's own; no cross-app sync). `src/styles/styles.css` holds the Tailwind v4
+- `src/styles/theme.css` holds the design-token VALUES (direction "Ruhig":
+  greyscale chrome, colour only from categories — rules in
+  [`docs/design.md`](docs/design.md)). `src/styles/styles.css` holds the Tailwind v4
   wiring (preflight ON).
 
 ### Backend access — conventions
@@ -226,7 +227,7 @@ restating its name and signature. Don't do that.
     utilities (colors, sizes, spacing, widths) as CSS rules. A new CSS rule for one
     of those is almost always the wrong call; if you're writing one, stop and find
     the Tailwind way first.
-- `theme.css` holds the brand tokens (Foodly's own — no cross-app sync). **If a
+- `theme.css` holds the design tokens; **look, layout, wording and states follow [`docs/design.md`](docs/design.md)**. **If a
   value must differ by light/dark (e.g. an accent color), that's the one legit
   reason to add CSS here:** add the token to *both* the `:root` and `.dark` blocks,
   map it once

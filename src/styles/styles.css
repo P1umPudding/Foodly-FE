@@ -53,6 +53,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
@@ -60,6 +61,7 @@
   --color-warning: var(--warning);
   --color-star: var(--star);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
@@ -72,20 +74,28 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  --color-cat-dot: var(--cat-dot);
+  --color-cat-soft: var(--cat-soft);
+  --color-cat-ink: var(--cat-ink);
+  --color-cat-line: var(--cat-line);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  --radius-xs: calc(var(--radius) * 0.25);
-  --radius-sm: calc(var(--radius) * 0.5);
+  /* Exactly three radii (docs/design.md): sm 4px, md 6px (= --radius), lg 8px.
+     The larger steps are capped at lg so a component's rounded-xl/2xl doesn't
+     introduce a fourth radius; xs is lifted to sm for the same reason. */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.25rem;
   --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) * 1.5);
-  --radius-xl: calc(var(--radius) * 2);
-  --radius-2xl: calc(var(--radius) * 2.5);
-  --radius-3xl: calc(var(--radius) * 3.5);
-  --radius-4xl: calc(var(--radius) * 5);
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.5rem;
+  --radius-3xl: 0.5rem;
+  --radius-4xl: 0.5rem;
 
   --shadow-2xs: var(--shadow-2xs);
   --shadow-xs: var(--shadow-xs);
@@ -98,29 +108,31 @@
 }
 
 /* Compact TEXT SCALE — Tailwind's text tokens are redefined smaller than the
-   defaults (--text-base 13px, not 16px).
+   defaults (--text-base 14px, not 16px).
    This is why the @postxl Button/Input/labels look compact via their `size`
-   prop alone. Display sizes (text-2xl+) stay larger for headings. */
+   prop alone. Roles (docs/design.md): xs meta/badges, sm secondary text,
+   base body, lg section titles + ingredients/steps, 2xl page titles. */
 @theme {
-  --text-xs: 11px;
-  --text-xs--line-height: 15px;
-  --text-sm: 12px;
-  --text-sm--line-height: 17px;
-  --text-base: 13px;
-  --text-base--line-height: 19px;
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 18px;
+  --text-base: 14px;
+  --text-base--line-height: 20px;
   --text-lg: 15px;
   --text-lg--line-height: 22px;
   --text-xl: 18px;
   --text-xl--line-height: 26px;
-  --text-2xl: 24px;
+  --text-2xl: 26px;
   --text-2xl--line-height: 32px;
 }
 
 /* Themed document defaults. Preflight already reset margins. */
 @layer base {
   :root {
-    /* Distinctive display face for headings (loaded in index.html). */
-    --font-display: 'Bricolage Grotesque', var(--font-sans);
+    /* Headings use the body face; weight and tracking set them apart
+       (see .font-display). Kept as its own token so it stays swappable. */
+    --font-display: var(--font-sans);
     /* Height of the sticky site nav — single source for everything that sticks
        just beneath it (the list's sticky header, category headers, filter rail). */
     --site-nav-h: 3.75rem;
@@ -138,7 +150,8 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
-    line-height: 1.6;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
     -webkit-font-smoothing: antialiased;
   }
   @media (prefers-reduced-motion: no-preference) {
@@ -165,10 +178,10 @@
   }
 }
 
-/* Project preference: on focus the postxl inputs show just a purple (--ring) border —
+/* Project preference: on focus the postxl inputs show just a --ring border —
    no ring. They mark themselves with data-slot="input" (the NumberInput shows focus on
    its wrapper via focus-within). We only zero the ring (--tw-ring-shadow); the
-   component's own focus-visible:border-ring (purple) then shows through, and the
+   component's own focus-visible:border-ring then shows through, and the
    resting shadow is left untouched. UNLAYERED on purpose — the component's focus
    utilities live in @layer utilities, so a layered rule would lose to them. */
 input[data-slot='input']:focus-visible,
@@ -184,8 +197,8 @@ div:has(> input[data-slot='input']):focus-within {
   }
   .font-display {
     font-family: var(--font-display);
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    font-weight: 650;
+    letter-spacing: -0.015em;
   }
 }
 
