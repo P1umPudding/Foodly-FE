@@ -58,7 +58,7 @@ export function PortionScaler({
       onClick={stepDown}
       disabled={!canDecrement}
       aria-label="Weniger"
-      className="rounded-full text-muted-foreground hover:text-foreground"
+      className="rounded-md text-muted-foreground hover:text-foreground"
     >
       <Minus className="size-4" />
     </Button>
@@ -71,7 +71,7 @@ export function PortionScaler({
       size="iconSm"
       onClick={stepUp}
       aria-label="Mehr"
-      className="rounded-full text-muted-foreground hover:text-foreground"
+      className="rounded-md text-muted-foreground hover:text-foreground"
     >
       <Plus className="size-4" />
     </Button>

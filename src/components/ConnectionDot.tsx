@@ -22,7 +22,7 @@ export function ConnectionDot() {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground">
           <span className={`h-2 w-2 rounded-full ${DOT[status]}`} />
           <span className="hidden sm:inline">{LABEL[status]}</span>
         </span>

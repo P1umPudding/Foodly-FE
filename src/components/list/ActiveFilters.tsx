@@ -80,7 +80,7 @@ export function ActiveFilters({
             size="icon"
             aria-label={`${chip.label} entfernen`}
             onClick={chip.remove}
-            className="-mr-0.5 h-4 w-4 rounded-full hover:bg-foreground/10"
+            className="-mr-0.5 h-4 w-4 rounded-sm hover:bg-foreground/10"
           >
             <X className="h-3 w-3" />
           </Button>
