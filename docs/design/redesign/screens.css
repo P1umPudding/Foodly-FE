@@ -2504,3 +2504,45 @@ button.photo.zoom {
     height: 44px;
   }
 }
+
+/* ---------- Phone: floating "Neues Rezept" ---------- */
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(var(--tabbar-h) + 16px);
+  z-index: 11;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--fg);
+  color: var(--bg);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.22);
+}
+.fab svg.i {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
+}
+.m-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.m-brand .brand-mark {
+  width: 24px;
+  height: 24px;
+}
+.m-brand svg.i {
+  width: 14px;
+  height: 14px;
+}
+@media (max-width: 760px) {
+  .app:has(~ .fab) .page {
+    padding-bottom: 88px;
+  }
+}

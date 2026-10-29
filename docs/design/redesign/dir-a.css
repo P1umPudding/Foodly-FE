@@ -28,7 +28,7 @@
 
   /* Three radii, nothing else: sm 4 (chips, tags, checkboxes), md 6 (every control: inputs, textareas, buttons,
      rows, nav items), lg 8 (cards, photos, sheets). Nested shapes follow outer = inner + padding (seg: 6 + 2 = 8).
-     Round (50%) only for avatars, dots, step numbers and switches. */
+     Round (50%) only for avatars, dots, step numbers, switches and the phone's floating "+". */
   --r-sm: 4px;
   --r-md: 6px;
   --r-lg: 8px;

@@ -212,7 +212,10 @@
       <div class="sheet-h"><h2>${title}</h2><button class="btn ghost sm icon" data-act="close">${icon('x')}</button></div>
       <div class="sheet-b">${body}</div>${foot ? `<div class="sheet-f">${foot}</div>` : ''}
     </div>`
-  const newBtnM = `<a class="btn primary icon only-m" href="${route('editor')}">${icon('plus')}</a>`
+  // Phone: "Neues Rezept" is a floating button bottom right above the tab bar (like X/Twitter's compose button):
+  // reachable with the thumb, and the top bar stays for title, timer and page actions.
+  const fab = `<a class="fab only-m" href="${route('editor')}" aria-label="Neues Rezept">${icon('plus')}</a>`
+  const newBtnM = ''
 
   /* ---------------- List: toolbar, filters ---------------- */
   const seg = (name, cur, opts) =>
@@ -386,7 +389,7 @@
           <a class="card shop-mini" href="${route('shopping')}"><div class="grow"><div class="t">${SHOPPING.name}</div><div class="subtle num" style="font-size:12px">${SHOPPING.range} · 9 von 12 offen</div></div>${icon('chevron-right', 'subtle')}</a>
         </aside>
       </div>`
-    return shell('home', { title: 'Start', mobileTitle: '', actions: newBtnM, body })
+    return shell('home', { title: 'Start', mobileTitle: `<span class="m-brand"><span class="brand-mark">${icon('chef-hat')}</span>Foodly</span>`, body, sheets: fab })
   }
 
   const listBody = () => {
@@ -424,7 +427,7 @@
   S.list = () => {
     const { body, count } = listBody()
     const sheets = UI.sheet === 'view' ? viewSheet() : ''
-    return shell("list", { title: "Rezepte", actions: newBtnM, body, wide: true, sheets })
+    return shell('list', { title: 'Rezepte', body, wide: true, sheets: sheets + fab })
   }
   S.listf = () => {
     if (!S.listf.done) presetFilters(), (S.listf.done = true)
@@ -443,7 +446,7 @@
       <div style="margin-top:16px">${toolbar({ filters: false, count: `${rs.length} Rezepte` })}</div>
       <div style="margin-top:12px">${items(rs, { except: c.id })}</div>`
     const sheets = UI.sheet === 'view' ? viewSheet() : ''
-    return shell('list', { title: `<span class="subtle">Kategorien /</span> ${esc(c.name)}`, mobileTitle: '', back: 'list', actions: `<button class="btn ghost icon">${icon('more-horizontal')}</button>`, body, activeCat: c.id, wide: UI.view === 'tiles', sheets })
+    return shell('list', { title: `<span class="subtle">Kategorien /</span> ${esc(c.name)}`, mobileTitle: '', back: 'list', actions: `<button class="btn ghost icon">${icon('more-horizontal')}</button>`, body, activeCat: c.id, wide: UI.view === 'tiles', sheets: sheets + fab })
   }
 
   // "30 Minuten", "ca. 2 Stunden", "5–6 Minuten" inside a step become tap-to-start timers (no cook mode needed).

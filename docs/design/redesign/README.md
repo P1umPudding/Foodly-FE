@@ -81,7 +81,9 @@ Kategorie im Farbton zu nahe kommt (unter etwa 20°). Schwarz, Weiß und Grau er
   **einklappen** (Tooltips statt Labels; Einstellung wird gemerkt). Oben eine schmale Kopfzeile mit Titel/Breadcrumb,
   Seitenaktionen und dem **Timer-Knopf**.
 - **Handy:** keine Seitenleiste, stattdessen Tab-Leiste unten (5 Ziele, Icon + Label). Kopfzeile mit Titel, Aktionen und
-  Timer-Knopf; „+“ (neues Rezept) oben rechts auf Start und Rezepte. **Zur Kategorie-Seite** kommt man über die
+  Timer-Knopf (auf Start: Foodly-Logo als Titel). **Neues Rezept** ist ein runder schwebender „+“-Knopf unten rechts
+  über der Tab-Leiste, auf Start, Rezepte und Kategorie (wie der Schreiben-Knopf bei X): mit dem Daumen erreichbar,
+  und die Kopfzeile bleibt ruhig. **Zur Kategorie-Seite** kommt man über die
   Kategorie-Kacheln auf Start und „Öffnen ›“ an jeder Gruppe der Liste.
 - Planer, Einkauf, Gruppen sind laut Plan noch nicht dran: Sie sind als **Konzept** markiert und nur skizziert.
 - **Koch-Modus:** Vollbild ohne Navigation. Oben Schließen, Titel und Schritt x von y, darunter ein Fortschrittsbalken.
@@ -106,7 +108,7 @@ Werkzeughaft, ruhig, dicht. Orientiert an Linear und Things. Die Liste steht im 
   (nur Sheets und Popover haben einen weichen Schatten).
 - **Radien, genau drei:** 4 px (Chips, Tags, Checkboxen, Badges), 6 px (**jedes** Bedienelement: Inputs, Textareas,
   Buttons, Zeilen, Navigation), 8 px (Karten, Fotos, Sheets). Verschachtelt gilt außen = innen + Abstand
-  (Segment-Schalter: 6 + 2 = 8). Rund nur Avatare, Punkte, Schrittnummern, Schalter. Zutaten- und Schritt-Felder haben
+  (Segment-Schalter: 6 + 2 = 8). Rund nur Avatare, Punkte, Schrittnummern, Schalter und der schwebende „+“-Knopf auf dem Handy. Zutaten- und Schritt-Felder haben
   damit denselben Radius.
 - **Trennlinien** in Karten sind eigene Haarlinien mit 12 px Einzug, nie `border-top` auf einer abgerundeten Zeile
   (das war der Fehler im Profil: die Linie bog sich an den Enden hoch).
