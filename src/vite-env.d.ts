@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  /** REST base URL (default `/api/v1`); when set, the Skaile preview doesn't default to mocks. */
+  /** REST base URL (default `/api/v1`). */
   readonly VITE_API_URL?: string
   /** `'1'` answers every request from the in-browser mocks; any other value uses REST. */
   readonly VITE_MOCK?: string

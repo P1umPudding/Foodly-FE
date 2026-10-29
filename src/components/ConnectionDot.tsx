@@ -13,9 +13,9 @@ const DOT: Record<string, string> = {
 }
 
 /**
- * Socket state indicator, meant for the future live editing. It's open once the
- * mock responder is installed (normally right at boot), so it says nothing about
- * REST/backend health.
+ * Socket state indicator, meant for the future live editing. The socket is open once
+ * the mock responder is installed (normally right at boot), so the dot says nothing
+ * about REST/backend health.
  */
 export function ConnectionDot() {
   const status = useSocketStatus()

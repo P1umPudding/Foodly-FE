@@ -4,7 +4,7 @@ Kurz und konkret. Gilt für jede PR; Abweichungen nur mit Decision-Note
 (`docs/decisions/`). Stil-, Kommentar- und Git-Regeln stehen in `CLAUDE.md` und
 werden hier nicht wiederholt.
 
-> Stand: `main` (REST-Anbindung #12, Rezept-Editor #13).
+> Stand: `main` (REST-Anbindung #12, Rezept-Editor #13, Skaile-Preview #21).
 
 ## 1. Datenzugriff nur über `src/api`
 
@@ -16,7 +16,7 @@ werden hier nicht wiederholt.
     `vite.config.ts`). Nie hardcoden.
   - **Mocks** (`src/mocks/index.ts`) über den `SocketClient`-Mock-Responder. Mit
     `VITE_MOCK=1` (Skaile-Preview setzt das, solange weder `VITE_API_URL` noch
-    `VITE_MOCK` gesetzt ist) läuft **alles** über Mocks;
+    `VITE_MOCK` gesetzt ist, Env oder `.env*`) läuft **alles** über Mocks;
     ohne nur die Methoden, für die das Backend noch nichts hat (aktuell
     `listUsers`, siehe `docs/backend-questions.md` B2).
   - **WebSocket** (`src/api/socket.ts`) ist für späteres Live-Editing reserviert und
