@@ -211,7 +211,9 @@ restating its name and signature. Don't do that.
   (`@theme { --text-* }`) drives sizing via tokens, so the component `size`
   props already render at the right proportions.
 - **Tailwind first — for essentially everything. No inline styles (`style={{…}}`),
-  and CSS is the rare exception, not a peer option.** Tailwind covers almost every
+  and CSS is the rare exception, not a peer option.** (Sole inline exception: the one
+  category-colour helper sets `--cat-*` custom properties, see
+  `docs/decisions/0002-category-colors.md`.) Tailwind covers almost every
   case, *including one-off custom values* via arbitrary-value utilities:
   `w-[37.35px]`, `text-[13px]`, `gap-[3px]`, `bg-[#f59e0b]`, `grid-cols-[1fr_1.5fr]`,
   `translate-x-[2px]`, … — any property, any value. So **a custom number is never a
