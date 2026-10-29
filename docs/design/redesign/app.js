@@ -181,6 +181,9 @@
   const LABEL = { home: 'Start', list: 'Rezepte', listf: 'Rezepte', category: 'Favoriten', planner: 'Planer', shopping: 'Einkauf', groups: 'Gruppen', profile: 'Profil', categories: 'Kategorien', detail: 'Spaghetti Bolognese', detail2: 'Caesar Salad' }
   const crumb = (fallback) => `<span class="subtle">${LABEL[HIST[HIST.length - 1]] ?? fallback} /</span> `
   const tip = (t, inner, cls = '') => `<span class="tip ${cls}" data-tip="${t}">${inner}</span>`
+  // Phone: the profile sits behind the avatar at the far right of the top bar on every main page (like X/Reddit),
+  // so the tab bar stays for content destinations. Desktop has it at the bottom of the side nav.
+  const meBtn = `<a class="me-btn only-m" href="${route('profile')}" aria-label="Profil & Einstellungen"><span class="avatar">K</span></a>`
   function shell(active, { title = '', actions = '', body = '', wide = false, mobileTitle, back, activeCat, sheets = '' } = {}) {
     const C = UI.side
     const side = `
@@ -202,7 +205,7 @@
       <header class="topbar">
         ${back ? `<button class="btn ghost icon" data-act="back:${back}" aria-label="Zurück">${icon('chevron-left')}</button>` : ''}
         <h1 class="ellipsis"><span class="hide-m">${title}</span><span class="only-m">${mobileTitle ?? title}</span></h1>
-        <div class="grow"></div>${actions}${timerBtn()}
+        <div class="grow"></div>${actions}${timerBtn()}${!back && active !== 'profile' ? meBtn : ''}
       </header>`
     const timer = UI.sheet === 'timer' ? sheet('Timer', timerPanel(), 'pop') : ''
     return `<div class="app ${C ? 'side-c' : ''}">${side}<main class="main">${top}<div class="page ${wide ? 'wide' : ''}">${body}</div></main>${tab}</div>${timer}${sheets}`

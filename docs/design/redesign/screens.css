@@ -2580,3 +2580,16 @@ button.photo.zoom {
 .side-c .sidenav {
   z-index: 20;
 }
+
+/* Phone: avatar = profile entry, right end of the top bar (40px touch target) */
+.me-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-right: -6px;
+  border-radius: 50%;
+}
+.me-btn:active .avatar {
+  outline: 2px solid var(--border-strong, var(--border));
+}
