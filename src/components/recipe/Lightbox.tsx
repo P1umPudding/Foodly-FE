@@ -90,7 +90,7 @@ export function Lightbox({
   const id = images[index]
   const stop = (e: React.MouseEvent) => e.stopPropagation()
   const ctrl =
-    'flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white/60'
+    'flex h-14 w-14 items-center justify-center rounded-md bg-white/10 text-white hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white/60'
   // Upscale small images too: force the limiting side to the box max, the other
   // follows the aspect ratio (so the element == the visible image, no letterbox).
   const imgFit = fit === 'w' ? 'w-[50vw] h-auto' : 'h-[64vh] w-auto'
