@@ -2598,18 +2598,29 @@ button.photo.zoom {
   outline: 2px solid var(--border-strong, var(--border));
 }
 
-/* Category dots in list rows: hover target a bit larger than the 8px dots (tooltip names the categories) */
-.cat-dots[data-tip] {
-  padding: 4px;
-  margin: -4px;
+/* Category dots: each dot has its own tooltip; the hit area is padded beyond the 8px dot */
+.cat-dots {
+  gap: 0;
+}
+.dot-hit {
+  padding: 3px;
+  margin: -3px 0;
   border-radius: var(--r-sm);
   cursor: default;
 }
 @media (hover: hover) {
-  /* the dots sit at the row's right edge: open the tooltip leftwards (postxl Tooltip does this by collision) */
-  .cat-dots[data-tip]:hover::after {
+  /* row dots sit at the right edge: open their tooltips leftwards (postxl Tooltip does this by collision) */
+  .cat-dots .tip:hover::after {
     left: auto;
     right: 0;
     translate: 0 0;
   }
+}
+
+.cat-line {
+  gap: 0;
+}
+.cat-line > .more {
+  margin-left: 4px;
+  flex: none;
 }

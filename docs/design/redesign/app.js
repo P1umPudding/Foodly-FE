@@ -112,16 +112,20 @@
   const chip = (c) =>
     `<span class="cat-chip cat" ${cv(c)}>${c.icon ? `<span class="emoji">${c.icon}</span>` : ''}${esc(c.name)}</span>`
   const dot = (c) => `<span class="cat cat-dot" ${cv(c)}></span>`
+  // Desktop: every dot names its category on hover (postxl Tooltip in the app), like the access icons; "+N" names
+  // the rest. Phone has no hover: the categories are listed in the detail.
+  const dotTip = (c) => `<span class="tip dot-hit" data-tip="${esc(c.name)}">${dot(c)}</span>`
+  const moreTip = (rest, label) =>
+    `<span class="tip more" data-tip="${esc(rest.map((c) => c.name).join(', '))}">${label}</span>`
   const dots = (r, except) => {
     const cs = catsOf(r).filter((c) => c.id !== except)
     if (!cs.length) return ''
-    // Desktop: hovering the dots names the categories (postxl Tooltip in the app), like the access icons next to them.
-    return `<span class="cat-dots" data-tip="${except ? 'Auch in: ' : ''}${esc(cs.map((c) => c.name).join(', '))}">${cs.slice(0, 3).map(dot).join('')}${cs.length > 3 ? `<span class="more">+${cs.length - 3}</span>` : ''}</span>`
+    return `<span class="cat-dots">${cs.slice(0, 3).map(dotTip).join('')}${cs.length > 3 ? moreTip(cs.slice(3), `+${cs.length - 3}`) : ''}</span>`
   }
   const catLine = (r) => {
     const cs = catsOf(r)
     if (!cs.length) return ''
-    return `<div class="cat-line">${cs.slice(0, 3).map(dot).join('')}<span class="ellipsis">${esc(cs[0].name)}${cs.length > 1 ? ` <span class="subtle">+${cs.length - 1}</span>` : ''}</span></div>`
+    return `<div class="cat-line">${cs.slice(0, 3).map(dotTip).join('')}<span class="ellipsis">${esc(cs[0].name)}</span>${cs.length > 1 ? moreTip(cs.slice(1), `<span class="subtle">+${cs.length - 1}</span>`) : ''}</div>`
   }
 
   /* ---------------- recipe atoms ---------------- */
