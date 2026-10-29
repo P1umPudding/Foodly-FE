@@ -81,12 +81,17 @@ Kategorie im Farbton zu nahe kommt (unter etwa 20°). Schwarz, Weiß und Grau er
   dann „Kategorien“ (Punkt, Name, Anzahl), unten Profil. Sie lässt sich oben rechts auf eine 64-px-Icon-Leiste
   **einklappen** (Tooltips statt Labels; Einstellung wird gemerkt). Oben eine schmale Kopfzeile mit Titel/Breadcrumb,
   Seitenaktionen und dem **Timer-Knopf**.
-- **Handy:** keine Seitenleiste, stattdessen Tab-Leiste unten (5 Ziele, Icon + Label). Kopfzeile mit Titel, Aktionen und
-  Timer-Knopf (auf Start: Foodly-Logo als Titel). **Neues Rezept** ist ein runder schwebender „+“-Knopf unten rechts
+- **Handy:** keine Seitenleiste, stattdessen Tab-Leiste unten (Icon + Label). Kopfzeile mit Titel, Aktionen,
+  Timer-Knopf und ganz rechts dem **Avatar = Profil & Einstellungen** (auf allen Hauptseiten, 40-px-Tippfläche, wie bei
+  X/Reddit; auf Unterseiten mit Zurück-Pfeil nicht). Auf Start: Foodly-Logo als Titel. **Neues Rezept** ist ein runder schwebender „+“-Knopf unten rechts
   über der Tab-Leiste, auf Start, Rezepte und Kategorie (wie der Schreiben-Knopf bei X): mit dem Daumen erreichbar,
   und die Kopfzeile bleibt ruhig. **Zur Kategorie-Seite** kommt man über die
   Kategorie-Kacheln auf Start und „Öffnen ›“ an jeder Gruppe der Liste.
 - Planer, Einkauf, Gruppen sind laut Plan noch nicht dran: Sie sind als **Konzept** markiert und nur skizziert.
+- **Shell zeigt nur echte Ziele** (Kolja, 29.10., mit Lead abgestimmt; passt zur Phase-5-Spec Home · Recipes · +Create):
+  heute Start (`/`) und Rezepte (`/recipes`), „+“ als FAB (Handy) bzw. „Neues Rezept“ (Seitenleiste), Profil per Avatar
+  (Handy) bzw. unten in der Seitenleiste. Planer, Einkauf, Gruppen kommen in Tab-Leiste und Seitenleiste dazu, wenn ihre
+  Phase kommt. Die 5 Ziele im Mockup sind das Zielbild.
 - **Koch-Modus:** Vollbild ohne Navigation. Oben Schließen, Titel und Schritt x von y, darunter ein Fortschrittsbalken.
   Der Schritt steht groß (Desktop 34 px, Handy 26 px). Darunter „Dafür“-Zutaten, laufende Timer und „Danach“ als Vorschau.
   Unten Zurück, Punkte und Weiter. Auf dem Desktop stehen die Zutaten links mit Markierung, auf dem Handy hinter dem Knopf „Zutaten“.
@@ -252,18 +257,19 @@ Trennlinien-Fehler behoben (siehe Radien/Trennlinien oben). Gilt auch für alle 
 1. **Token-PR:** neue Werte in `theme.css`, Text-Skala 13 → 14 px, Inter, Radien, Kategorie-Farb-Util (TS) mit Tests,
    `docs/design.md`. Zuerst und allein, weil die Text-Skala alle Screens und Layout-Tests betrifft.
 2. **App-Shell und Navigation:** Seitenleiste (Desktop), Tab-Leiste (Handy).
-3. **Rezeptliste** (inkl. `'tiles'`, Filterleiste), **Detail**, **Timer-Knopf + Chips**, **Koch-Modus**,
-   **Editor-Fix Zusatz/Präfix**, dann **Start/Dashboard** (Phase 5). Der Lead schneidet daraus Issues, sobald Kolja
-   die Reihenfolge freigibt.
+3. **Rezeptliste** (inkl. `'tiles'`, Filterleiste) → **Start/Dashboard** (Phase 5; nur der baubare Teil: Kategorie-Kacheln,
+   zuletzt bearbeitet/erstellt, ohne die Blöcke aus B4–B6) → **Detail** → **Koch-Modus**.
+   **Timer-Knopf + Chips** und **Editor-Fix Zusatz/Präfix** laufen parallel, sobald Token und Shell stehen.
 4. Editor mit Phase 4; Planer, Einkauf und Gruppen erst, wenn sie im Plan und im Backend sind.
 
-Die Reihenfolge entscheidet Kolja.
+**Freigegeben von Kolja am 29.10.** Der Lead schneidet daraus die Issues. Das Farb-Util (TS, `src/lib`) baut ein Issue Worker nach dieser Spezifikation.
 
 ## 5. Offen / zu entscheiden
 
-- **Eine Farbe pro Kategorie:** Der Nutzer wählt nur eine Farbe, Hell/Dunkel berechnet Foodly. `colorLight`/`colorDark`
-  bleiben als Override. Empfehlung: ja.
-- **Reihenfolge der Umsetzung** (Abschnitt 4).
+- ~~Eine Farbe pro Kategorie~~ **entschieden (Kolja, 29.10.):** Der Nutzer wählt nur eine Farbe, Hell/Dunkel berechnet
+  Foodly. `colorLight`/`colorDark` bleiben optionaler Override ohne eigene Eingabe im UI.
+- ~~Reihenfolge der Umsetzung~~ **entschieden**, siehe Abschnitt 4.
+- ~~Profil auf dem Handy~~ **entschieden:** Avatar oben rechts (Abschnitt 1.6).
 - **B11:** Kategorie-Symbol als Tag-Referenz (Backend, später; bis dahin Anfangsbuchstabe).
 - **Backend-Abhängigkeiten** (Lead-Review): B1 Bilder (#9) offen, deshalb ist die Ohne-Foto-Variante das
   Hauptdesign, nicht der Sonderfall. Kategorien: laut 02_API_Design dokumentiert sind
