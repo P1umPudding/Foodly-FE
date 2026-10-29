@@ -20,9 +20,8 @@ function render() {
   )
 }
 
-// Prepare the backend before mounting: open the real connection, or install the
-// mock responder when VITE_MOCK=1. The mock path is async (a dynamic import that
-// keeps mocks out of the prod bundle), so rendering first lets the app's first
+// Install the mock responder before mounting (always — REST mode still mocks
+// listUsers). It's a dynamic import, so rendering first lets the first mocked
 // requests race ahead of the responder and reject with "socket not connected".
 // Waiting for bootstrap to settle avoids that.
 bootstrap().finally(render)

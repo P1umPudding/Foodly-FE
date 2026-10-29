@@ -1,12 +1,12 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  /** WebSocket endpoint of the backend (e.g. wss://api.example/ws). */
-  readonly VITE_WS_URL: string
-  /** REST backend base URL; when set, the Skaile preview doesn't force mock mode. */
+  /** REST base URL (default `/api/v1`). */
   readonly VITE_API_URL?: string
-  /** `'1'` answers every request from the in-browser mocks. */
+  /** `'1'` answers every request from the in-browser mocks; any other value uses REST. */
   readonly VITE_MOCK?: string
+  /** WebSocket endpoint, reserved for future live editing; not connected yet. */
+  readonly VITE_WS_URL?: string
 }
 
 interface ImportMeta {

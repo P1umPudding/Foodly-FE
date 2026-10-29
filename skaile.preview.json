@@ -4,7 +4,7 @@
     {
       "id": "web",
       "label": "Foodly Frontend",
-      "description": "Vite dev server, mock data unless VITE_API_URL is set",
+      "description": "Vite dev server, mock data unless VITE_API_URL or VITE_MOCK is set",
       "path": ".",
       "role": "frontend"
     }

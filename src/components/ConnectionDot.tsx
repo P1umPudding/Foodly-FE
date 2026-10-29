@@ -12,7 +12,11 @@ const DOT: Record<string, string> = {
   closed: 'bg-destructive',
 }
 
-/** Small live indicator of the backend WebSocket connection. */
+/**
+ * Socket state indicator, meant for the future live editing. The socket is open once
+ * the mock responder is installed (normally right at boot), so the dot says nothing
+ * about REST/backend health.
+ */
 export function ConnectionDot() {
   const status = useSocketStatus()
   return (
