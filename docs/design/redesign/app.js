@@ -268,7 +268,7 @@
           <p class="note">${icon('info')}<span>${esc(r.notes[0])}</span></p>
         </div>`
     }
-    const body = `${head}${sections}<div class="section-h"><h2>Fotos</h2><span class="subtle" style="font-size:13px">9</span></div>${gallery}<p class="muted" style="font-size:13px;margin-top:28px">Quelle: ${esc(r.source)}</p>`
+    const body = `<div class="ctx cat" style="--c:${c.color}">${head}${sections}<div class="section-h"><h2>Fotos</h2><span class="subtle" style="font-size:13px">9</span></div>${gallery}<p class="muted" style="font-size:13px;margin-top:28px">Quelle: ${esc(r.source)}</p></div>`
     return shell('list', { title: `<span class="subtle">Rezepte /</span> ${esc(r.name)}`, mobileTitle: '', back: 'list', actions, body })
   }
 
@@ -277,7 +277,7 @@
     const s = r.sections[0]
     const step = 2
     const html = `
-      <div class="cook">
+      <div class="cook ctx cat" style="--c:${primaryCat(r).color}">
         <header class="cook-top">
           <a class="btn ghost icon" href="${route('detail')}">${icon('x')}</a>
           <div class="grow"><div class="cook-title ellipsis">${esc(r.name)}</div><div class="subtle num" style="font-size:12px">${esc(s.name)} · Schritt ${step + 1} von ${s.steps.length + 2}</div></div>

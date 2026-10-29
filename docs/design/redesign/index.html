@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Foodly Redesign – Entwürfe</title>
+    <style>
+      :root {
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        font-size: 13px;
+        color: #222;
+        background: #e9e9e9;
+      }
+      body {
+        margin: 0;
+      }
+      .bar {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: center;
+        padding: 10px 16px;
+        background: #fff;
+        border-bottom: 1px solid #ddd;
+      }
+      .bar b {
+        font-size: 14px;
+        margin-right: 8px;
+      }
+      .grp {
+        display: inline-flex;
+        background: #eee;
+        border-radius: 8px;
+        padding: 3px;
+        gap: 2px;
+      }
+      .grp button {
+        border: 0;
+        background: transparent;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font: inherit;
+        cursor: pointer;
+        color: #555;
+      }
+      .grp button.on {
+        background: #fff;
+        color: #111;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+      }
+      .stage {
+        display: flex;
+        gap: 24px;
+        padding: 24px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .frame {
+        flex: none;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .frame span {
+        color: #666;
+        font-weight: 600;
+      }
+      iframe {
+        border: 0;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 24px rgb(0 0 0 / 0.12);
+      }
+      .phone iframe {
+        border-radius: 28px;
+      }
+      .about {
+        max-width: 860px;
+        padding: 0 24px 40px;
+        line-height: 1.55;
+        color: #444;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bar">
+      <b>Foodly Redesign</b>
+      <div class="grp" id="dir">
+        <button data-v="a">A Ruhig</button><button data-v="b">B Getönt</button><button data-v="c">C Bildstark</button
+        ><button data-v="all">Alle drei</button>
+      </div>
+      <div class="grp" id="theme"><button data-v="light">Hell</button><button data-v="dark">Dunkel</button></div>
+      <div class="grp" id="dev">
+        <button data-v="both">Desktop + Handy</button><button data-v="desk">Desktop</button><button data-v="phone">Handy</button>
+      </div>
+      <div class="grp" id="screen">
+        <button data-v="home">Start</button><button data-v="list">Rezepte</button><button data-v="detail">Detail</button
+        ><button data-v="cook">Kochen</button><button data-v="editor">Editor</button><button data-v="planner">Planer</button
+        ><button data-v="shopping">Einkauf</button><button data-v="groups">Gruppen</button><button data-v="profile">Profil</button
+        ><button data-v="categories">Kategorien</button><button data-v="states">Zustände</button>
+      </div>
+    </div>
+    <div class="stage" id="stage"></div>
+    <script>
+      const st = Object.assign({ dir: 'a', theme: 'light', dev: 'both', screen: 'home' }, Object.fromEntries(new URLSearchParams(location.hash.slice(1))))
+      const names = { a: 'A Ruhig', b: 'B Getönt', c: 'C Bildstark' }
+      function draw() {
+        for (const k of ['dir', 'theme', 'dev', 'screen'])
+          document.querySelectorAll(`#${k} button`).forEach((b) => b.classList.toggle('on', b.dataset.v === st[k]))
+        location.hash = new URLSearchParams(st).toString()
+        const dirs = st.dir === 'all' ? ['a', 'b', 'c'] : [st.dir]
+        const devs = st.dev === 'both' ? ['desk', 'phone'] : [st.dev]
+        const many = dirs.length > 1
+        const dims = { desk: many ? [1280, 820, 0.5] : [1280, 820, 1], phone: [390, 844, many ? 0.75 : 1] }
+        document.getElementById('stage').innerHTML = dirs
+          .flatMap((d) =>
+            devs.map((v) => {
+              const [w, h, s] = dims[v]
+              const src = `app.html?dir=${d}&theme=${st.theme}#/${st.screen}`
+              return `<div class="frame ${v}" style="width:${w * s}px;height:${h * s + 24}px"><span>${names[d]} · ${v === 'desk' ? 'Desktop' : 'Handy'}</span><div style="width:${w * s}px;height:${h * s}px;overflow:hidden;border-radius:${v === 'phone' ? 28 : 10}px"><iframe src="${src}" style="width:${w}px;height:${h}px;transform:scale(${s});transform-origin:0 0"></iframe></div></div>`
+            }),
+          )
+          .join('')
+      }
+      for (const k of ['dir', 'theme', 'dev', 'screen'])
+        document.getElementById(k).addEventListener('click', (e) => {
+          if (e.target.dataset.v) {
+            st[k] = e.target.dataset.v
+            draw()
+          }
+        })
+      draw()
+    </script>
+  </body>
+</html>

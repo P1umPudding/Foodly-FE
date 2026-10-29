@@ -1029,3 +1029,42 @@ a.row.set:hover {
     background: var(--c-soft);
   }
 }
+@media (max-width: 760px) {
+  .dA,
+  .dB,
+  .rsec-grid,
+  .editor,
+  .shop {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ed-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .narrow .row > .cat-chip {
+    display: none;
+  }
+}
+/* Context accent: inside a recipe, its primary category colour is the local accent (Apple-Reminders pattern). */
+.ctx .steps .sn,
+.ctx .ed-step .sn {
+  background: var(--c-soft);
+  color: var(--c-ink);
+}
+.ctx .cook-progress span,
+.ctx .cook-dots span.on {
+  background: var(--c-dot);
+}
+.ctx .cook-step-n {
+  color: var(--c-ink);
+}
+.ctx .rsec-h::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-dot);
+  margin-right: 10px;
+  vertical-align: middle;
+}
