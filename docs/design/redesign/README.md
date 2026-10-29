@@ -117,7 +117,8 @@ Werkzeughaft, ruhig, dicht. Orientiert an Linear und Things. Die Liste steht im 
   auf dem Handy so groß wie die Karten von „Zuletzt bearbeitet“ (2 Spalten, 4:3). „Zuletzt bearbeitet“ als Kacheln,
   rechts „Geteilt mit dir“ und Einkauf.
 - **Detail:** Bild links, Infos rechts (Desktop), Abschnitte mit Zutaten (2/5) und Schritten (3/5). Notizen stehen
-  ohne Kasten als einfache Liste unter den Infos. Hauptbild und Galerie öffnen per Klick eine **Lightbox**
+  ohne Kasten als einfache Liste unter den Infos. Die Galerie zeigt nur **eine Reihe** (Desktop 4, Handy 3), die letzte Kachel trägt „+N“ und öffnet die Lightbox ab dort.
+  Hauptbild und Galerie öffnen per Klick eine **Lightbox**
   (dunkel, Bild eingepasst, „2 / 4“, Pfeile links/rechts, Vorschaubilder unten, Esc/Pfeiltasten; Handy: wischen,
   keine Pfeil-Knöpfe). Entspricht dem heutigen `Lightbox.tsx`. Portionen-Rezept:
   Stepper über die Anzahl. Rezept mit fester Größe (z. B. „26 cm Springform“, `sizeNumber = null`): Stepper über den

@@ -454,7 +454,7 @@
     esc(t).replace(/(ca\. )?(\d+(?:[–-]\d+)?)\s(Minuten|Stunden)/g, (m, ca, n, u) => `<button class="t-chip" data-act="sheet:timer">${icon('timer')}${ca ?? ''}${n} ${u === 'Minuten' ? 'Min.' : 'Std.'}</button>`)
 
   // Main image first, then the gallery (recipe.mainImage + recipe.images).
-  const photosOf = (r) => [r.img, ...['tomatensuppe', 'ofengemuese', 'kuerbissuppe', 'gulasch'].filter((g) => g !== r.img)]
+  const photosOf = (r) => [r.img, ...['tomatensuppe', 'ofengemuese', 'kuerbissuppe', 'gulasch', 'curry', 'caesar', 'bauernsalat', 'pfannkuchen'].filter((g) => g !== r.img)]
   const lightbox = (pics) => {
     const i = Math.min(UI.lb, pics.length - 1)
     return `<div class="lb" role="dialog" aria-label="Fotos">
@@ -489,7 +489,14 @@
       .join('')
     const pics = photosOf(r)
     const gallery = hasImg(r)
-      ? `<div class="section-h"><h2>Fotos</h2><span class="subtle num" style="font-size:13px">${pics.length}</span></div><div class="gallery">${pics.map((g, i) => `<button class="photo zoom" data-act="lb:${i}" aria-label="Foto ${i + 1} groß ansehen"><img src="img/${g}.jpg" alt=""></button>`).join('')}</div>`
+      ? `<div class="section-h"><h2>Fotos</h2><span class="subtle num" style="font-size:13px">${pics.length}</span></div><div class="gallery">${pics
+          .slice(0, 4)
+          .map((g, i) => {
+            // One row only: the last visible tile carries "+N" for the rest and opens the lightbox there.
+            const more = i === 3 && pics.length > 4 ? pics.length - 3 : 0
+            return `<button class="photo zoom ${more ? 'more' : ''} ${i === 3 ? 'g4' : ''}" data-act="lb:${i}" aria-label="${more ? `Alle ${pics.length} Fotos ansehen` : `Foto ${i + 1} groß ansehen`}"><img src="img/${g}.jpg" alt="">${more ? `<span class="more-n num">+${more}</span>` : ''}${i === 2 && pics.length > 3 ? `<span class="more-n num only-m">+${pics.length - 2}</span>` : ''}</button>`
+          })
+          .join('')}</div>`
       : ''
     return `${head}${sections}${gallery}${r.source ? `<p class="muted" style="font-size:13px;margin-top:28px">Quelle: ${esc(r.source)}</p>` : ''}${UI.lb !== null && hasImg(r) ? lightbox(pics) : ''}`
   }

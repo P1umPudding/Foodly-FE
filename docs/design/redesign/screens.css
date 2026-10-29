@@ -2546,3 +2546,24 @@ button.photo.zoom {
     padding-bottom: 88px;
   }
 }
+
+/* Gallery: one row (desktop 4, phone 3), the last tile shows "+N" for the rest */
+.gallery .more-n {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.5);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+}
+@media (max-width: 760px) {
+  .gallery {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  /* 3rd tile takes over the "+N" on the phone */
+  .gallery button.photo.g4 {
+    display: none;
+  }
+}
