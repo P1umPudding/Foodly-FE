@@ -313,7 +313,7 @@
   const toolbar = ({ filters = true, count = '' } = {}) => `
     <div class="toolbar">
       <label class="input search">${icon('search')}<input id="q" placeholder="Rezept oder Zutat suchen" value="${esc(F.q)}">${F.q ? `<button class="x-btn" data-act="q-clear" aria-label="Suche leeren">${icon('x')}</button>` : '<span class="kbd hide-m">/</span>'}</label>
-      <button class="btn icon only-m" data-act="sheet:view" aria-label="Sortierung und Ansicht">${icon(dirIcon())}</button>
+      <button class="btn icon only-m" data-act="sheet:view" aria-label="Sortieren und Ansicht">${icon('sliders-horizontal')}</button>
       <div class="lb-right hide-m">${sortBtn()}<span class="vsep"></span>${viewSeg()}${filters ? groupSeg() : ''}</div>
     </div>
     ${filters ? `<div class="list-bar"><div class="fbar">${FACETS.map(facetBtn).join('')}</div></div>` : ''}
