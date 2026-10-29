@@ -45,7 +45,7 @@
     const side = `
       <aside class="sidenav">
         <div class="brand"><span class="brand-mark">${icon('chef-hat')}</span>Foodly</div>
-        <a class="nav-item" href="${route('editor')}" style="margin-bottom:6px">${icon('plus')}Neues Rezept</a>
+        <a class="btn primary side-new" href="${route('editor')}">${icon('plus')}Neues Rezept</a>
         ${NAV.map(([k, i, l]) => `<a class="nav-item ${active === k ? 'active' : ''}" href="${route(k)}">${icon(i)}${l}</a>`).join('')}
         <div class="nav-label">Kategorien <a href="${route('categories')}" class="subtle">${icon('settings')}</a></div>
         ${CATEGORIES.map(
@@ -112,7 +112,7 @@
     const planCard = (r, slot) =>
       DIR === 'c'
         ? `<a class="today-c" href="${route('detail')}">${photo(r, 'tc-img')}<div class="tc-over"><div class="tc-slot">${slot}</div><div class="tc-t">${esc(r.name)}</div><div class="tc-m">${mins(r.total)}</div></div></a>`
-        : `<a class="today-row card ${DIR === 'b' && primaryCat(r) ? catAttr(primaryCat(r)) : ''}" href="${route('detail')}">${photo(r, 'thumb', { emojiSize: '20px' })}<div class="grow"><div class="subtle" style="font-size:12px;font-weight:600">${slot}</div><div class="t ellipsis">${esc(r.name)}</div></div><span class="muted num" style="font-size:13px">${mins(r.total)}</span>${icon('chevron-right', 'subtle')}</a>`
+        : `<a class="today-row card" href="${route('detail')}">${photo(r, 'thumb', { emojiSize: '20px' })}<div class="grow"><div class="subtle" style="font-size:12px;font-weight:600">${slot}</div><div class="t ellipsis">${esc(r.name)}</div></div><span class="muted num" style="font-size:13px">${mins(r.total)}</span>${icon('chevron-right', 'subtle')}</a>`
     const catTiles = CATEGORIES.map(
       (c) =>
         `<a class="cat-tile cat" style="--c:${c.color}" href="${route('list')}">${DIR === 'a' ? `<span class="cat-dot"></span>` : c.emoji ? `<span class="emoji">${c.emoji}</span>` : `<span class="cat-dot"></span>`}<span class="ct-name ellipsis">${esc(c.name)}</span><span class="ct-count num">${c.recipes.length}</span></a>`,
@@ -136,8 +136,10 @@
           ${recentHtml}
         </section>
         <aside class="home-side">
-          <div class="section-h"><h2>Kategorien</h2><a href="${route('categories')}">Verwalten</a></div>
-          <div class="cat-tiles">${catTiles}</div>
+          <div class="${DIR === 'a' ? 'only-m' : ''}"><div class="section-h"><h2>Kategorien</h2><a href="${route('categories')}">Verwalten</a></div>
+          <div class="cat-tiles">${catTiles}</div></div>
+          <div class="section-h"><h2>Einkauf</h2><a href="${route('shopping')}">Öffnen</a></div>
+          <a class="card shop-mini" href="${route('shopping')}"><div class="grow"><div class="t">${SHOPPING.name}</div><div class="subtle num" style="font-size:12px">${SHOPPING.range} · 9 von 12 offen</div></div>${icon('chevron-right', 'subtle')}</a>
           <div class="section-h"><h2>Geteilt mit dir</h2></div>
           <div class="rows ${DIR === 'a' ? 'card divided pad-rows' : ''}">${shared
             .slice(0, 3)
@@ -151,7 +153,7 @@
     return shell('home', {
       title: 'Start',
       mobileTitle: '',
-      actions: `<a class="btn ghost icon" href="${route('list')}">${icon('search')}</a><a class="btn primary hide-m" href="${route('editor')}">${icon('plus')}Neues Rezept</a><a class="btn primary icon only-m" href="${route('editor')}">${icon('plus')}</a>`,
+      actions: `<a class="btn ghost icon" href="${route('list')}">${icon('search')}</a><a class="btn primary icon only-m" href="${route('editor')}">${icon('plus')}</a>`,
       body,
     })
   }
@@ -191,7 +193,7 @@
     return shell('list', {
       title: `Rezepte <span class="subtle num" style="font-weight:500">${RECIPES.length}</span>`,
       mobileTitle: 'Rezepte',
-      actions: `<a class="btn primary hide-m" href="${route('editor')}">${icon('plus')}Neues Rezept</a><a class="btn primary icon only-m" href="${route('editor')}">${icon('plus')}</a>`,
+      actions: `<a class="btn primary icon only-m" href="${route('editor')}">${icon('plus')}</a>`,
       body: filters + `<div class="list-content">${content}</div>`,
       wide: DIR === 'c',
     })
@@ -255,13 +257,15 @@
         <div class="dC">
           <div class="photo dC-img"><img src="img/${r.img}.jpg" alt=""></div>
           <div class="dC-info">
-            <div class="cmeta-top">${cats.map(dotLabel).join('<span class="subtle">·</span>')}</div>
-            <h2 class="page-title" style="margin:8px 0 10px">${esc(r.name)}</h2>
-            ${metaLine}
-            <div class="chips" style="margin-top:12px">${tags}</div>
-            <p class="note">${icon('info')}<span>${esc(r.notes[0])}</span></p>
-            <div class="dA-actions">${sizeCtl}<a class="btn primary" href="${route('cook')}">${icon('chef-hat')}Kochen</a></div>
+            <div class="dC-text">
+              <div class="cmeta-top">${cats.map(dotLabel).join('<span class="subtle">·</span>')}</div>
+              <h2 class="page-title dC-title">${esc(r.name)}</h2>
+              ${metaLine}
+              <div class="chips" style="margin-top:12px">${tags}</div>
+            </div>
+            <div class="dC-box">${sizeCtl}<a class="btn primary lg" href="${route('cook')}">${icon('chef-hat')}Kochen</a></div>
           </div>
+          <p class="note">${icon('info')}<span>${esc(r.notes[0])}</span></p>
         </div>`
     }
     const body = `${head}${sections}<div class="section-h"><h2>Fotos</h2><span class="subtle" style="font-size:13px">9</span></div>${gallery}<p class="muted" style="font-size:13px;margin-top:28px">Quelle: ${esc(r.source)}</p>`
