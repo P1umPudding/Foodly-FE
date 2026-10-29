@@ -273,8 +273,8 @@
       const rest = all.filter((v) => !sel.includes(v)).sort((a, b) => countBy((r) => has(r, b)) - countBy((r) => has(r, a)))
       const rows = [...sel, ...rest].slice(0, k === 'tag' ? 40 : 9)
       return `<label class="input sm search fp-search">${icon('search')}<input placeholder="${k === 'tag' ? 'Tag' : 'Zutat'} suchen"></label>
-        <div class="ck-list scroll">${rows.map((v) => checkRow(sel.includes(v), `${k === 'tag' ? 'ftag' : 'fing'}:${v}`, esc(v), countBy((r) => has(r, v)), k === 'tag' && TAG_ICONS[v] ? icon(TAG_ICONS[v], 'subtle') : '')).join('')}</div>
-        ${k === 'ing' ? `<p class="fhint fp-hint">Die häufigsten zuerst, alle anderen über die Suche. Mehrere = Rezept enthält alle.</p>` : `<p class="fhint fp-hint">Mehrere = Rezept hat alle.</p>`}`
+        <div class="ck-list scroll">${rows.map((v) => checkRow(sel.includes(v), `${k === 'tag' ? 'ftag' : 'fing'}:${v}`, esc(v), '', k === 'tag' && TAG_ICONS[v] ? icon(TAG_ICONS[v], 'subtle') : '')).join('')}</div>
+        ${k === 'ing' ? `<p class="fhint fp-hint">Alle weiteren über die Suche. Mehrere = Rezept enthält alle.</p>` : `<p class="fhint fp-hint">Mehrere = Rezept hat alle.</p>`}`
     }
     if (k === 'time') {
       // One value, three ways to set it: slider, field, quick picks. The quick picks only fill in slider + field.
@@ -311,7 +311,7 @@
          <div class="popover fpop" role="dialog">
            <div class="fp-h only-m"><h2>${f.label}</h2><button class="btn ghost sm icon" data-act="close">${icon('x')}</button></div>
            ${facetBody(f.key)}
-           <div class="fp-f">${n ? `<button class="link-btn" data-act="clr:${f.clr}">Zurücksetzen</button>` : '<span></span>'}<button class="btn sm primary only-m" data-act="close">${visibleAll().length} Rezepte anzeigen</button></div>
+           <div class="fp-f">${n ? `<button class="link-btn" data-act="clr:${f.clr}">Zurücksetzen</button>` : '<span></span>'}<button class="btn sm primary only-m" data-act="close">Anzeigen</button></div>
          </div>`
       : ''
     return `<div class="fb-wrap"><span class="fbtn ${n ? 'on' : ''} ${open ? 'open' : ''}"><button class="fb-main" data-act="sheet:f-${f.key}">${n ? '' : icon(f.icon, 'subtle')}<span class="fb-l">${f.label}</span>${n ? `<span class="fb-v">${esc(f.value())}</span>` : icon('chevron-down', 'subtle')}</button>${n ? `<button class="fb-x" data-act="clr:${f.clr}" aria-label="${f.label} zurücksetzen">${icon('x')}</button>` : ''}</span>${pop}</div>`

@@ -34,7 +34,7 @@ einer oder mehreren Kategorien liegen, und jeder Nutzer sieht es anders. Daraus 
 | Rezept-Detail | **Kategorie-Chips** (getönt, mit Symbol) + gestrichelter „+“-Chip zum Hinzufügen/Entfernen. 0 Kategorien: „+ Zu Kategorie hinzufügen“. |
 | Eine Kategorie im Fokus | **Getönte Fläche** erlaubt: Kachel auf der Startseite, Kopf der Kategorie-Ansicht. Nur dort. |
 | Navigation | Punkt + Name + Anzahl in der Seitenleiste. |
-| Gruppierte Liste | Gruppenkopf mit Punkt; ein Rezept in mehreren Kategorien erscheint in jeder Gruppe; „Ohne Kategorie“ zuletzt. |
+| Gruppierte Liste | Gruppenkopf mit Punkt; ein Rezept in mehreren Kategorien erscheint in jeder Gruppe; „Ohne Kategorie“ **zuerst und eingeklappt** (Eingangskorb, wie heute in `grouping.ts`). In der flachen Liste (`grouped = false`) gibt es keine Kategorie-Linie, nur die Punkte. |
 
 Nie: ein Rezept-Kopf, eine Karte oder ein Label in „der“ Kategoriefarbe eines Rezepts.
 
@@ -154,7 +154,7 @@ Text-Skala: Basis 14 px statt heute 13 px (Lesbarkeit beim Kochen); Handy 15 px.
 
 ### 3.1 Rezeptliste: alle Funktionen von heute, Filter neu gedacht
 
-Funktional 1:1 wie `ListState` heute (`src/list/state.ts`), die Bedienung ist neu:
+Funktional wie `ListState` heute (`src/list/state.ts`); einzige Erweiterung: `detail` bekommt `'tiles'` (plus `url.ts`/`persistence.ts`, alte Werte fallen auf `'detailed'` zurück). Die Bedienung ist neu:
 
 - **Zeile 1:** Suche (auf dem Desktop steht der Cursor beim Öffnen schon drin, ohne Scroll-Sprung; auf dem Handy nicht, sonst klappt die Tastatur auf), daneben Sortierung und Ansicht. **Sortieren** ist ein Knopf
   (Richtungs-Icon + Kriterium, z. B. „↑ Name ▾“). Das Menü enthält die vier Kriterien und die Richtung
@@ -166,8 +166,11 @@ Funktional 1:1 wie `ListState` heute (`src/list/state.ts`), die Bedienung ist ne
 - **Popover je Filter** (Handy: Sheet mit „x Rezepte anzeigen“):
   - Kategorie: Checkbox-Liste mit Farbpunkt und Anzahl, „Ohne Kategorie“ zuerst; mehrere = ODER. Der Filter filtert nur,
     er navigiert nicht.
-  - Tags, Zutaten: Suche + Checkbox-Liste mit Trefferzahl, ausgewählte oben, dann die häufigsten; mehrere = UND.
-    Bei Zutaten nur die häufigsten, den Rest über die Suche, statt einer Chip-Wand.
+  - Tags, Zutaten: Suche + Checkbox-Liste, ausgewählte oben; mehrere = UND. Bei Zutaten nur ein Ausschnitt, der Rest
+    über die Suche, statt einer Chip-Wand. **Keine Trefferzahlen** bei Tags/Zutaten und im Handy-Sheet nur „Anzeigen“:
+    Die Liste ist serverseitig gefiltert und lädt seitenweise (`useRecipeSearch`, 100 pro Seite), Zahlen wären ab
+    100 Rezepten falsch. Sie kommen erst mit Facetten-Zahlen vom Backend. Kategorie-Zahlen sind ok
+    (`UserCategory.recipes` ist vollständig).
   - Arbeitszeit: **ein** Wert, drei Wege ihn zu setzen: Regler (0–180, 5er-Schritte), Feld „≤ … min“ und die
     Schnellwahl 15 / 30 / 60. Die Schnellwahl ist keine eigene Auswahl, sie trägt nur in Regler und Feld ein und ist
     hervorgehoben, solange der Wert passt. Regler und Feld folgen einander sofort. „Zurücksetzen“ bzw. ✕ = keine Grenze.
@@ -191,8 +194,11 @@ Funktional 1:1 wie `ListState` heute (`src/list/state.ts`), die Bedienung ist ne
   Öffnet auf dem Desktop ein Popover, auf dem Handy ein Sheet: laufende Timer (Pause/Weiter, Neustart, Entfernen,
   Fortschritt) und „Neuer Timer“ mit Name (optional), 5/10/15/30 min oder eigener Dauer. Entspricht dem heutigen
   `TimerPanel`, nur sichtbarer.
-- **Zeitangaben in Schritten** („30 Minuten“, „ca. 2 Stunden“, „5–6 Minuten“) werden zu antippbaren Timer-Chips, im
-  Detail wie im Koch-Modus. Der Timer heißt dann „Rezept · Schritt“.
+- **Zeitangaben in Schritten** werden zu antippbaren Timer-Chips, im Detail wie im Koch-Modus; der Timer heißt
+  „Rezept · Schritt“ (`useTimers().add({ label, durationMs })`). Erkennung als reine, getestete Funktion
+  `src/timers/parseDurations.ts`: Minuten/min/Min., Stunden/Std./h, Sekunden; „ca.“/„etwa“; Bereiche „5–6 Minuten“
+  (Timer auf den oberen Wert); Kombinationen „1 Stunde 30 Minuten“, „1½ Stunden“; Zahlwörter („eine Stunde“).
+  Kein Chip bei „180 °C“, „2 cm“, „3 Eier“. Sobald B10 (`Step.duration`) da ist, geht dieser Wert vor.
 
 ### 3.3 Editor: alle Felder, weniger Felder auf einmal
 
@@ -200,10 +206,13 @@ Alle Felder aus `Draft` sind drin: Titel, Arbeitszeit, Gesamtzeit, Größe (Port
 (Name optional), Zutaten (Präfix, Menge, Einheit, Zutat aus Katalog oder Freitext, Zusatz), Schritte, Notizen (mehrere),
 Bilder (Hauptbild + Galerie), Quelle. Vereinfacht wird so:
 
-- **Präfix steckt im Mengenfeld:** „ca. 800“ wird zu Präfix „ca.“ + Menge „800“ (alles vor der ersten Zahl). „1–2“ und
-  „½“ bleiben Menge. Kein eigenes Präfix-Feld mehr.
-- **Zusatz steckt im Zutatenfeld:** „Salz, nach Geschmack“ wird zu Zutat „Salz“ + Zusatz „nach Geschmack“.
-  (Der Draft verwirft heute den Zusatz, sobald eine Katalog-Zutat gewählt ist, das muss sich dafür ändern.)
+- **Präfix steckt im Mengenfeld:** „ca. 800“ wird zu Präfix „ca.“ + Menge „800“. Regel (reine Funktion mit Tests,
+  auch für „Mehrere einfügen“): Präfix ist, was vor der ersten Zahl steht; Zahl schließt Brüche (½ ¼ ¾) und Bereiche
+  (1–2, 1-2) ein. Ohne Zahl („etwas“) landet alles in `amount`, es gibt dann kein Präfix.
+- **Zusatz:** `text` ist schon das Zusatz-Feld hinter einer Katalog-Zutat. Heute verwirft `IngredientRow.tsx`
+  (`onPick → text: ''`) den Zusatz, und der IngredientPicker zeigt ihn nicht an: kleiner Fix im Editor-PR, kein Backend.
+  Bei Freitext-Zutaten (`ingredient = null`) wird nichts zerlegt, alles bleibt in `text`. (Wie der Zusatz auf dem
+  Desktop eingegeben wird – Komma-Regel oder eigene Spalte – ist noch offen, siehe 5.)
 - **Größe als Umschalter** Portionen/Freitext mit einem Satz Erklärung: Portionen → beim Kochen Anzahl wählen;
   Freitext (z. B. „26 cm {Springform}“) → beim Kochen mit Faktor skalieren (der Multiplikator).
 - **Einheit** als Combobox mit Vorschlägen (g, kg, ml, EL, TL, Prise, Stück) und freiem Text.
@@ -231,9 +240,12 @@ Trennlinien-Fehler behoben (siehe Radien/Trennlinien oben). Gilt auch für alle 
 
 ## 4. Umsetzung (Vorschlag)
 
-1. **Token-PR:** neue Werte in `theme.css`, Text-Skala, Inter, Kategorie-Farb-Util (TS) mit Tests, `docs/design.md`.
+1. **Token-PR:** neue Werte in `theme.css`, Text-Skala 13 → 14 px, Inter, Radien, Kategorie-Farb-Util (TS) mit Tests,
+   `docs/design.md`. Zuerst und allein, weil die Text-Skala alle Screens und Layout-Tests betrifft.
 2. **App-Shell und Navigation:** Seitenleiste (Desktop), Tab-Leiste (Handy).
-3. **Rezeptliste**, dann **Detail**, dann **Koch-Modus**, dann **Start/Dashboard** (Phase 5).
+3. **Rezeptliste** (inkl. `'tiles'`, Filterleiste), **Detail**, **Timer-Knopf + Chips**, **Koch-Modus**,
+   **Editor-Fix Zusatz/Präfix**, dann **Start/Dashboard** (Phase 5). Der Lead schneidet daraus Issues, sobald Kolja
+   die Reihenfolge freigibt.
 4. Editor mit Phase 4; Planer, Einkauf und Gruppen erst, wenn sie im Plan und im Backend sind.
 
 Die Reihenfolge entscheidet Kolja.
@@ -243,5 +255,10 @@ Die Reihenfolge entscheidet Kolja.
 - **Eine Farbe pro Kategorie:** Der Nutzer wählt nur eine Farbe, Hell/Dunkel berechnet Foodly. `colorLight`/`colorDark`
   bleiben als Override. Empfehlung: ja.
 - **Reihenfolge der Umsetzung** (Abschnitt 4).
-- **B11:** Kategorie-Symbol als Tag-Referenz (Backend).
+- **B11:** Kategorie-Symbol als Tag-Referenz (Backend, später; bis dahin Anfangsbuchstabe).
+- **Backend-Abhängigkeiten** (Lead-Review): B1 Bilder (#9) offen, deshalb ist die Ohne-Foto-Variante das
+  Hauptdesign, nicht der Sonderfall. Schreib-Endpoints für `/categories` (zuweisen, anlegen, Farbe, Reihenfolge) prüft
+  der Lead; fehlen sie, blockiert das nur diese Teile. „Heute geplant“, Einkauf, Gruppen, „Geteilt mit dir“ hängen an
+  B4/B5/B6 – Start muss auch ohne diese Blöcke vollständig wirken. Facetten-Zahlen wären eine neue Backend-Frage.
+- **Desktop-Zutatenzeile:** Vorschlag an Kolja: was man tippt, steht da (kein Grau), Zusatz als eigene schmale Spalte.
 - Editor: Zusatz bei Katalog-Zutat erhalten (Draft-Änderung, siehe 3.3).
