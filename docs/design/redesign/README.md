@@ -120,7 +120,9 @@ Werkzeughaft, ruhig, dicht. Orientiert an Linear und Things. Die Liste steht im 
   ohne Kasten als einfache Liste unter den Infos. Die Galerie zeigt nur **eine Reihe** (Desktop 4, Handy 3), die letzte Kachel trägt „+N“ und öffnet die Lightbox ab dort.
   Hauptbild und Galerie öffnen per Klick eine **Lightbox**
   (dunkel, Bild eingepasst, „2 / 4“, Pfeile links/rechts, Vorschaubilder unten, Esc/Pfeiltasten; Handy: wischen,
-  keine Pfeil-Knöpfe). Entspricht dem heutigen `Lightbox.tsx`. Portionen-Rezept:
+  keine Pfeil-Knöpfe). Entspricht dem heutigen `Lightbox.tsx`.
+  Kopfzeile: Teilen, Kopie erstellen, „Bearbeiten“ (Desktop). Handy nur Icons: Teilen + Stift; wer nur ansehen darf,
+  bekommt statt des Stifts „Kopie erstellen“. Kein „…“-Menü, solange es nur eine Aktion verstecken würde. Portionen-Rezept:
   Stepper über die Anzahl. Rezept mit fester Größe (z. B. „26 cm Springform“, `sizeNumber = null`): Stepper über den
   Faktor ×¼ … ×2.
 

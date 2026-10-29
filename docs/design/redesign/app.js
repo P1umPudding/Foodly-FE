@@ -500,9 +500,14 @@
       : ''
     return `${head}${sections}${gallery}${r.source ? `<p class="muted" style="font-size:13px;margin-top:28px">Quelle: ${esc(r.source)}</p>` : ''}${UI.lb !== null && hasImg(r) ? lightbox(pics) : ''}`
   }
-  const detailActions = `<button class="btn ghost icon">${icon('share-2')}</button><button class="btn ghost icon hide-m">${icon('copy')}</button><a class="btn hide-m" href="${route('editor')}">${icon('pencil')}Bearbeiten</a><a class="btn ghost icon only-m" href="${route('editor')}">${icon('more-horizontal')}</a>`
-  S.detail = () => shell('list', { title: `<span class="subtle">Rezepte /</span> ${esc(R[1].name)}`, mobileTitle: '', back: 'list', actions: detailActions, body: detailBody(R[1]) })
-  S.detail2 = () => shell('list', { title: `<span class="subtle">Rezepte /</span> ${esc(R[10].name)}`, mobileTitle: '', back: 'list', actions: detailActions, body: detailBody(R[10]) })
+  // Phone: icons only. Edit right → pencil; view-only → copy ("Kopie erstellen" is how a viewer gets an editable version).
+  const detailActionsFor = (r) => {
+    const canEdit = roleOf(r) !== 'viewer'
+    const editM = canEdit ? `<a class="btn ghost icon only-m" href="${route('editor')}" aria-label="Bearbeiten">${icon('pencil')}</a>` : `<button class="btn ghost icon only-m" aria-label="Kopie erstellen">${icon('copy')}</button>`
+    return `${tip('Teilen', `<button class="btn ghost icon" aria-label="Teilen">${icon('share-2')}</button>`)}${tip('Kopie erstellen', `<button class="btn ghost icon hide-m" aria-label="Kopie erstellen">${icon('copy')}</button>`)}${canEdit ? `<a class="btn hide-m" href="${route('editor')}">${icon('pencil')}Bearbeiten</a>` : ''}${editM}`
+  }
+  S.detail = () => shell('list', { title: `<span class="subtle">Rezepte /</span> ${esc(R[1].name)}`, mobileTitle: '', back: 'list', actions: detailActionsFor(R[1]), body: detailBody(R[1]) })
+  S.detail2 = () => shell('list', { title: `<span class="subtle">Rezepte /</span> ${esc(R[10].name)}`, mobileTitle: '', back: 'list', actions: detailActionsFor(R[10]), body: detailBody(R[10]) })
   S.timer = () => {
     UI.sheet = 'timer'
     return S.detail()
