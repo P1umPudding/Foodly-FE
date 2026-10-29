@@ -82,7 +82,7 @@ Kategorie im Farbton zu nahe kommt (unter etwa 20°). Schwarz, Weiß und Grau er
   Seitenaktionen und dem **Timer-Knopf**.
 - **Handy:** keine Seitenleiste, stattdessen Tab-Leiste unten (5 Ziele, Icon + Label). Kopfzeile mit Titel, Aktionen und
   Timer-Knopf; „+“ (neues Rezept) oben rechts auf Start und Rezepte. **Zur Kategorie-Seite** kommt man über die
-  Kategorie-Kacheln auf Start, „Öffnen ›“ an jeder Gruppe der Liste und `›` im Kategorie-Filter.
+  Kategorie-Kacheln auf Start und „Öffnen ›“ an jeder Gruppe der Liste.
 - Planer, Einkauf, Gruppen sind laut Plan noch nicht dran: Sie sind als **Konzept** markiert und nur skizziert.
 - **Koch-Modus:** Vollbild ohne Navigation. Oben Schließen, Titel und Schritt x von y, darunter ein Fortschrittsbalken.
   Der Schritt steht groß (Desktop 34 px, Handy 26 px). Darunter „Dafür“-Zutaten, laufende Timer und „Danach“ als Vorschau.
@@ -155,8 +155,8 @@ Funktional 1:1 wie `ListState` heute (`src/list/state.ts`), die Bedienung ist ne
   `Zugriff`. Ein aktiver Filter zeigt seinen Wert im Knopf („Tags: Vegetarisch +1“) und hat ein eigenes ✕. Eine
   zusätzliche Chip-Zeile gibt es nicht mehr. Die Liste bekommt die volle Breite.
 - **Popover je Filter** (Handy: Sheet mit „x Rezepte anzeigen“):
-  - Kategorie: Checkbox-Liste mit Farbpunkt und Anzahl, „Ohne Kategorie“ zuerst; mehrere = ODER. `›` öffnet die
-    Kategorie-Seite.
+  - Kategorie: Checkbox-Liste mit Farbpunkt und Anzahl, „Ohne Kategorie“ zuerst; mehrere = ODER. Der Filter filtert nur,
+    er navigiert nicht.
   - Tags, Zutaten: Suche + Checkbox-Liste mit Trefferzahl, ausgewählte oben, dann die häufigsten; mehrere = UND.
     Bei Zutaten nur die häufigsten, den Rest über die Suche, statt einer Chip-Wand.
   - Arbeitszeit: **ein** Wert, drei Wege ihn zu setzen: Regler (0–180, 5er-Schritte), Feld „≤ … min“ und die

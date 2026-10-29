@@ -259,9 +259,8 @@
   const countBy = (pred) => RECIPES.filter(pred).length
   const facetBody = (k) => {
     if (k === 'cat') {
-      const open = (c) => `<a class="ck-open" href="${route('category')}" aria-label="${esc(c.name)} öffnen">${icon('chevron-right')}</a>`
-      return `<div class="ck-list">${checkRow(F.cats.includes(UNCAT), `fcat:${UNCAT}`, 'Ohne Kategorie', countBy((r) => !catsOf(r).length), '<span class="cat-dot none"></span>')}${CATEGORIES.map((c) => checkRow(F.cats.includes(c.id), `fcat:${c.id}`, esc(c.name), c.recipes.length, dot(c), open(c))).join('')}</div>
-        <p class="fhint fp-hint">Mehrere = Rezepte aus einer davon. ${icon('chevron-right')} öffnet die Kategorie.</p>`
+      return `<div class="ck-list">${checkRow(F.cats.includes(UNCAT), `fcat:${UNCAT}`, 'Ohne Kategorie', countBy((r) => !catsOf(r).length), '<span class="cat-dot none"></span>')}${CATEGORIES.map((c) => checkRow(F.cats.includes(c.id), `fcat:${c.id}`, esc(c.name), c.recipes.length, dot(c))).join('')}</div>
+        <p class="fhint fp-hint">Mehrere = Rezepte aus einer davon.</p>`
     }
     if (k === 'tag' || k === 'ing') {
       const all = k === 'tag' ? ALL_TAGS : ALL_INGS
