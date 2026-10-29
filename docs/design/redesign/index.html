@@ -89,15 +89,15 @@
     <div class="bar">
       <b>Foodly Redesign</b>
       <div class="grp" id="dir">
-        <button data-v="a">A Ruhig</button><button data-v="b">B Getönt</button><button data-v="c">C Bildstark</button
-        ><button data-v="all">Alle drei</button>
+        <button data-v="a">Ruhig</button><button data-v="c">Bildstark</button><button data-v="all">Beide</button>
       </div>
       <div class="grp" id="theme"><button data-v="light">Hell</button><button data-v="dark">Dunkel</button></div>
+      <div class="grp" id="img"><button data-v="1">Mit Fotos</button><button data-v="0">Ohne Fotos (heute)</button></div>
       <div class="grp" id="dev">
         <button data-v="both">Desktop + Handy</button><button data-v="desk">Desktop</button><button data-v="phone">Handy</button>
       </div>
       <div class="grp" id="screen">
-        <button data-v="home">Start</button><button data-v="list">Rezepte</button><button data-v="detail">Detail</button
+        <button data-v="home">Start</button><button data-v="list">Rezepte</button><button data-v="category">Kategorie</button><button data-v="detail">Detail</button><button data-v="detail2">Detail ohne Kat.</button
         ><button data-v="cook">Kochen</button><button data-v="editor">Editor</button><button data-v="planner">Planer</button
         ><button data-v="shopping">Einkauf</button><button data-v="groups">Gruppen</button><button data-v="profile">Profil</button
         ><button data-v="categories">Kategorien</button><button data-v="states">Zustände</button>
@@ -105,13 +105,13 @@
     </div>
     <div class="stage" id="stage"></div>
     <script>
-      const st = Object.assign({ dir: 'a', theme: 'light', dev: 'both', screen: 'home' }, Object.fromEntries(new URLSearchParams(location.hash.slice(1))))
-      const names = { a: 'A Ruhig', b: 'B Getönt', c: 'C Bildstark' }
+      const st = Object.assign({ dir: 'a', theme: 'light', img: '1', dev: 'both', screen: 'home' }, Object.fromEntries(new URLSearchParams(location.hash.slice(1))))
+      const names = { a: 'Ruhig', c: 'Bildstark' }
       function draw() {
-        for (const k of ['dir', 'theme', 'dev', 'screen'])
+        for (const k of ['dir', 'theme', 'img', 'dev', 'screen'])
           document.querySelectorAll(`#${k} button`).forEach((b) => b.classList.toggle('on', b.dataset.v === st[k]))
         location.hash = new URLSearchParams(st).toString()
-        const dirs = st.dir === 'all' ? ['a', 'b', 'c'] : [st.dir]
+        const dirs = st.dir === 'all' ? ['a', 'c'] : [st.dir]
         const devs = st.dev === 'both' ? ['desk', 'phone'] : [st.dev]
         const many = dirs.length > 1
         const dims = { desk: many ? [1280, 820, 0.5] : [1280, 820, 1], phone: [390, 844, many ? 0.75 : 1] }
@@ -119,13 +119,13 @@
           .flatMap((d) =>
             devs.map((v) => {
               const [w, h, s] = dims[v]
-              const src = `app.html?dir=${d}&theme=${st.theme}#/${st.screen}`
+              const src = `app.html?dir=${d}&theme=${st.theme}&img=${st.img}#/${st.screen}`
               return `<div class="frame ${v}" style="width:${w * s}px;height:${h * s + 24}px"><span>${names[d]} · ${v === 'desk' ? 'Desktop' : 'Handy'}</span><div style="width:${w * s}px;height:${h * s}px;overflow:hidden;border-radius:${v === 'phone' ? 28 : 10}px"><iframe src="${src}" style="width:${w}px;height:${h}px;transform:scale(${s});transform-origin:0 0"></iframe></div></div>`
             }),
           )
           .join('')
       }
-      for (const k of ['dir', 'theme', 'dev', 'screen'])
+      for (const k of ['dir', 'theme', 'img', 'dev', 'screen'])
         document.getElementById(k).addEventListener('click', (e) => {
           if (e.target.dataset.v) {
             st[k] = e.target.dataset.v
