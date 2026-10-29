@@ -23,16 +23,16 @@ const USE_MOCKS = import.meta.env.VITE_MOCK === '1'
 export const socket = new SocketClient(WS_URL)
 export { type SocketStatus } from './socket'
 
-// The mock responder is attached in BOTH modes: in mock mode it answers
-// everything; in REST mode it answers only me/users/categories (no backend yet).
-// The real WS connection (for future live editing) is not established here.
+// The mock responder is attached in BOTH modes: with VITE_MOCK=1 every request
+// goes to it; in REST mode only listUsers does (see below). No WebSocket is
+// opened — that's for the future live editing.
 export async function bootstrap(): Promise<void> {
   const { mockRequest } = await import('../mocks')
   socket.useMocks(mockRequest)
 }
 
-// Reads with a real backend go over REST; the still-mocked reads go through the
-// socket's mock responder. In VITE_MOCK dev, everything goes through the mock.
+// Reads and writes go over REST; with VITE_MOCK=1 (dev, Skaile preview default)
+// everything goes through the socket's mock responder instead.
 //
 // `listUsers` stays mocked: the backend offers only typeahead /users/search
 // (no list-all, no /users/{id}), which can't back the bulk byId map that

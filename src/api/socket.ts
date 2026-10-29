@@ -1,4 +1,5 @@
-// Minimal WebSocket client for the (foreign) backend.
+// Minimal WebSocket client for the (foreign) backend, reserved for future live
+// editing — never connected yet; today only its mock responder path is used.
 //
 // Handles: connect + auto-reconnect (exponential backoff), connection-status
 // subscriptions, request/response correlation (send a typed message, await its
@@ -33,8 +34,8 @@ export class SocketClient {
 
   constructor(private readonly url: string) {}
 
-  // Dev-only: answer requests from a local responder (src/mocks) — no real
-  // WebSocket; status goes straight to 'open'.
+  // Answer requests from a local responder (src/mocks) — no real WebSocket;
+  // status goes straight to 'open'. Used in both modes (REST still mocks listUsers).
   useMocks(responder: (type: string, payload?: unknown) => Promise<unknown>): void {
     this.mockResponder = responder
     this.setStatus('open')
