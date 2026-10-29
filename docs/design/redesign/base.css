@@ -540,8 +540,8 @@ svg.i {
 .photo.fallback {
   display: grid;
   place-items: center;
-  background: var(--c-soft, var(--photo-bg));
-  color: var(--c-ink, var(--fg-subtle));
+  background: var(--photo-bg);
+  color: var(--fg-subtle);
 }
 .photo.fallback .emoji {
   font-size: var(--fallback-emoji, 28px);

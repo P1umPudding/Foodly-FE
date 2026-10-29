@@ -46,7 +46,10 @@
   const tagHtml = (t) => `<span class="tag">${TAG_ICONS[t] ? icon(TAG_ICONS[t]) : ''}${esc(t)}</span>`
   const sharedMeta = (r) => (r.owner !== ME ? `<span>${icon('users')}${owner(r).name}</span>` : '')
 
+  // Rule: the thumbnail column exists only while photos exist at all (IMG). Today, with no photos, rows are text-only
+  // instead of a column of identical placeholders; a single photo-less recipe among photos gets a neutral placeholder.
   function thumb(r, cls = 'thumb') {
+    if (!IMG) return ''
     if (hasImg(r)) return `<div class="photo ${cls}"><img src="img/${r.img}.jpg" alt="" loading="lazy"></div>`
     return `<div class="photo fallback ${cls}">${icon('utensils-crossed')}</div>`
   }
