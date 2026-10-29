@@ -6,7 +6,7 @@
 
 Kategorien sind persönliche Sammlungen (`UserCategory`, 0 bis n pro Rezept). Das
 Redesign „Ruhig“ (`docs/design/redesign/README.md` §1.3) braucht pro Kategorie
-fünf Farbrollen (`dot`, `soft`, `ink`, `line`, `solid`), lesbar in Hell und Dunkel,
+vier Farbrollen (`dot`, `soft`, `ink`, `line`), lesbar in Hell und Dunkel,
 für jede beliebige Nutzerfarbe. Heute bildet `src/list/palette.ts` nur bekannte
 Hex-Werte auf feste Tailwind-Klassen ab. Unbekannte Farben werden neutral. Das
 Backend hat `color` sowie optional `colorLight`/`colorDark`.
@@ -21,16 +21,19 @@ Backend hat `color` sowie optional `colorLight`/`colorDark`.
   README §1.3. Die Ausgabe ist ein sRGB-Hex-Wert, auf den sRGB-Farbraum begrenzt.
   Keine CSS Relative Color Syntax, weil ältere WebViews (Capacitor, Phase 7) sie
   nicht sicher können.
-- **Overrides:** Ist `colorLight` bzw. `colorDark` gesetzt, ersetzt der Wert
-  unverändert die Rolle `dot` im jeweiligen Theme. Die übrigen Rollen kommen weiter
-  aus dem Farbton von `color`. Im UI gibt es dafür vorerst keine eigene Eingabe.
+- **Overrides:** Ist `colorLight` bzw. `colorDark` gesetzt, ist der Wert die
+  Eingabe für das jeweilige Theme statt `color` und wird genauso normalisiert. So
+  bleiben die Kontraste garantiert. Im UI gibt es dafür vorerst keine eigene Eingabe.
+  (Präzisiert am 2026-10-29 mit dem Designer, `docs/design.md` §2.4.)
 - **Brücke ins CSS:** Ein Element, das eine Kategorie darstellt, setzt die
   berechneten Werte als CSS-Variablen (`--cat-<rolle>-l`, `--cat-<rolle>-d`). Das
   läuft über **einen** Helper bzw. eine Komponente und ist die einzige erlaubte
   Ausnahme von der Regel „keine Inline-Styles“: nur Custom Properties, keine
   Eigenschaften. `styles.css` wählt einmal generisch pro Theme
-  (`--cat-dot: var(--cat-dot-l)`, unter `.dark`: `var(--cat-dot-d)`). Komponenten
-  nutzen nur Tailwind-Utilities wie `bg-(--cat-dot)` oder `text-(--cat-ink)`.
+  (`[data-cat] { --cat-dot: var(--cat-dot-l) }`, unter `.dark`: `var(--cat-dot-d)`).
+  Ohne Kategorie gelten die neutralen Defaults `--cat-*` aus `theme.css`. Komponenten
+  nutzen nur die Utilities `bg-cat-dot`, `bg-cat-soft`, `text-cat-ink` und
+  `border-cat-line`.
 - `src/list/palette.ts` wird durch das Util ersetzt.
 - Grau, Schwarz und Weiß (sehr niedrige Sättigung) ergeben eine neutrale graue
   Kategorie. Das Util liefert außerdem die Farbvorschläge (12 Farbtöne) und einen
@@ -38,8 +41,8 @@ Backend hat `color` sowie optional `colorLight`/`colorDark`.
 
 ## Konsequenzen
 
-- Jede Nutzerfarbe wird lesbar. Die Kontraste testet die Unit-Suite gegen die
-  Testfarben aus README §1.3.
+- Jede Nutzerfarbe wird lesbar. Die Unit-Suite prüft die 14 Testfarben aus README
+  §1.3 gegen WCAG: `ink` auf `soft` ≥ 4,5:1, `dot` gegen den Hintergrund ≥ 3:1.
 - Navy und Hellblau sehen sich ähnlich, weil die Helligkeit angeglichen wird. Das
   fangen die Farbvorschläge und die Warnung beim Anlegen ab.
 - `CLAUDE.md` und `docs/architecture.md` nennen die Inline-Ausnahme für `--cat-*`.
