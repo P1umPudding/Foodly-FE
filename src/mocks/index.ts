@@ -1,4 +1,5 @@
-// Dev-only mock backend, lazy-loaded when VITE_MOCK=1 so it stays out of prod.
+// In-browser mock backend. bootstrap() lazy-loads it (own chunk) on every boot:
+// with VITE_MOCK=1 every request is routed here, in REST mode only listUsers.
 
 import type { CreateRecipe, Ingredient, Recipe, RecipeId, Tag, User, UserCategory } from '../api/protocol'
 import { applyQuery, PAGE_SIZE } from '../list/query'

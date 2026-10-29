@@ -130,16 +130,14 @@ npm run format:check # prettier --check . (no writes)
 ### Environment
 
 Copy `.env.example` to `.env.local`. Vite only exposes `VITE_*` vars to the
-client; all of them are build-time, non-secret values. The code is
-authoritative — some comments in `.env.example` and `skaile.preview.json` are
-outdated.
+client; all of them are build-time, non-secret values.
 
 | Var | Default | Purpose |
 |-----|---------|---------|
 | `VITE_API_URL` | `/api/v1` | REST base URL. The relative default goes through the Vite dev proxy to `http://localhost:8080`. |
 | `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST (only `listUsers` stays mocked). |
 | `VITE_WS_URL` | `''` | Reserved for future live editing. Passed to `SocketClient` but never connected. |
-| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and sets `VITE_MOCK=1` when neither `VITE_API_URL` nor `VITE_MOCK` is set in the process environment (`.env*` files don't count and are overridden). |
+| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and makes mock data the default (injects `VITE_MOCK=1` via `define`) unless `VITE_API_URL` or `VITE_MOCK` is set, in the process environment or a `.env*` file. |
 
 ## Formatting
 
