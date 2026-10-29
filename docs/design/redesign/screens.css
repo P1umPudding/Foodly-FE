@@ -2383,3 +2383,124 @@ a.row.set:hover {
 .dur-pop .fp-hint {
   margin: 8px 0 0;
 }
+
+/* ---------- Notes (no box) ---------- */
+.notes {
+  margin: 16px 0 0;
+  padding: 0 0 0 18px;
+  color: var(--fg-muted);
+  font-size: 14px;
+}
+.notes li + li {
+  margin-top: 4px;
+}
+.notes li::marker {
+  color: var(--fg-subtle);
+}
+
+/* ---------- Photo lightbox (today's Lightbox.tsx, restyled) ---------- */
+button.photo.zoom {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  cursor: zoom-in;
+}
+.lb {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: oklch(0.12 0 0);
+  color: #fff;
+}
+.lb-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 12px 0 20px;
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.75);
+}
+.lb-stage {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0 72px;
+}
+.lb-stage img {
+  max-width: 100%;
+  max-height: calc(100vh - 56px - 84px);
+  object-fit: contain;
+  border-radius: var(--r-md);
+}
+.lb-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+  cursor: pointer;
+}
+.lb-btn:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+.lb-nav {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+}
+.lb-nav.prev {
+  left: 16px;
+}
+.lb-nav.next {
+  right: 16px;
+}
+.lb-thumbs {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+}
+.lb-th {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: none;
+  opacity: 0.55;
+  cursor: pointer;
+}
+.lb-th.on {
+  border-color: #fff;
+  opacity: 1;
+}
+.lb-th img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+@media (max-width: 760px) {
+  .lb-stage {
+    padding: 0;
+  }
+  .lb-stage img {
+    border-radius: 0;
+  }
+  .lb-nav {
+    display: none;
+  }
+  .lb-th {
+    width: 44px;
+    height: 44px;
+  }
+}

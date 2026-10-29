@@ -40,7 +40,8 @@
     sortDir: 'asc',
     sheet: qs.get('sheet') || null, // f-<facet> | view | timer | lists | ing | sort
     side: qs.get('side') === '0', // sidebar collapsed
-    collapsed: new Set(['uncat']), // "Ohne Kategorie" starts folded, as today
+    collapsed: new Set(['uncat']),
+    lb: qs.get('lb') !== null ? Number(qs.get('lb')) : null, // lightbox photo index // "Ohne Kategorie" starts folded, as today
   }
   const F = { cats: [], tags: [], ings: [], dur: null, role: 'any', collab: 'any', q: '' }
   const presetFilters = () => Object.assign(F, { cats: [], tags: ['Vegetarisch'], ings: [], dur: 30, role: 'any', collab: 'any', q: '' })
@@ -449,6 +450,20 @@
   const withTimers = (t) =>
     esc(t).replace(/(ca\. )?(\d+(?:[–-]\d+)?)\s(Minuten|Stunden)/g, (m, ca, n, u) => `<button class="t-chip" data-act="sheet:timer">${icon('timer')}${ca ?? ''}${n} ${u === 'Minuten' ? 'Min.' : 'Std.'}</button>`)
 
+  // Main image first, then the gallery (recipe.mainImage + recipe.images).
+  const photosOf = (r) => [r.img, ...['tomatensuppe', 'ofengemuese', 'kuerbissuppe', 'gulasch'].filter((g) => g !== r.img)]
+  const lightbox = (pics) => {
+    const i = Math.min(UI.lb, pics.length - 1)
+    return `<div class="lb" role="dialog" aria-label="Fotos">
+      <div class="lb-top"><span class="num">${i + 1} / ${pics.length}</span><button class="lb-btn" data-act="lb-close" aria-label="Schließen">${icon('x')}</button></div>
+      <div class="lb-stage">
+        <button class="lb-btn lb-nav prev" data-act="lb:${(i - 1 + pics.length) % pics.length}" aria-label="Vorheriges Foto">${icon('chevron-left')}</button>
+        <img src="img/${pics[i]}.jpg" alt="">
+        <button class="lb-btn lb-nav next" data-act="lb:${(i + 1) % pics.length}" aria-label="Nächstes Foto">${icon('chevron-right')}</button>
+      </div>
+      <div class="lb-thumbs">${pics.map((g, k) => `<button class="lb-th ${k === i ? 'on' : ''}" data-act="lb:${k}"><img src="img/${g}.jpg" alt=""></button>`).join('')}</div>
+    </div>`
+  }
   function detailBody(r) {
     const cats = catsOf(r)
     const tags = r.tags.map(tagHtml).join('')
@@ -458,20 +473,22 @@
       : `<div class="portions"><button class="btn sm icon">${icon('minus')}</button><span class="num"><b>× 1</b> <span class="muted">${esc(r.sizeText)}</span></span><button class="btn sm icon">${icon('plus')}</button></div>`
     const catCtl = `<div class="chips cat-ctl">${cats.map(chip).join('')}<button class="add-cat">${icon('plus')}${cats.length ? '' : 'Zu Kategorie hinzufügen'}</button></div>`
     const meta = `<div class="meta big-meta">${stars(r)}<span>${icon('clock')}<span class="num">${esc(r.time ?? mins(r.total))}</span></span>${r.editors.length || r.owner !== ME ? `<span>${icon('users')}${r.owner !== ME ? 'von ' + owner(r).name : 'mit Mara'}</span>` : ''}</div>`
-    const note = r.notes.map((n) => `<p class="note">${icon('info')}<span>${esc(n)}</span></p>`).join('')
+    // Notes: plain lines under the meta, no box. Several notes stay separate lines.
+    const note = r.notes.length ? `<ul class="notes">${r.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''
     const actions = `<div class="d-actions">${sizeCtl}<a class="btn primary" href="${route('cook')}">${icon('chef-hat')}Kochen</a></div>`
     const info = `${catCtl}<h2 class="page-title d-title">${esc(r.name)}</h2>${meta}<div class="chips" style="margin-top:12px">${tags}</div>`
-    const head = hasImg(r) ? `<div class="dA"><div class="photo dA-img"><img src="img/${r.img}.jpg" alt=""></div><div>${info}${note}${actions}</div></div>` : `<div class="d-noimg">${info}${note}${actions}</div>`
+    const head = hasImg(r) ? `<div class="dA"><button class="photo dA-img zoom" data-act="lb:0" aria-label="Foto groß ansehen"><img src="img/${r.img}.jpg" alt=""></button><div>${info}${note}${actions}</div></div>` : `<div class="d-noimg">${info}${note}${actions}</div>`
     const ings = (s) =>
       `<ul class="ings">${s.ingredients.map((g) => `<li><span class="amt num">${[g.prefix, g.amount, g.unit].filter(Boolean).join(' ')}</span><span class="ing">${esc(g.name ?? '')}${g.text ? ` <span class="muted">${esc(g.text)}</span>` : ''}</span></li>`).join('')}</ul>`
     const steps = (s) => `<ol class="steps">${s.steps.map((t, i) => `<li><span class="sn num">${i + 1}</span><span>${withTimers(t)}</span></li>`).join('')}</ol>`
     const sections = r.sections
       .map((s) => `<section class="rsec">${s.name && r.sections.length > 1 ? `<h3 class="rsec-h">${esc(s.name)}</h3>` : ''}<div class="rsec-grid"><div><div class="col-h">Zutaten</div>${ings(s)}</div><div><div class="col-h">Zubereitung</div>${steps(s)}</div></div></section>`)
       .join('')
+    const pics = photosOf(r)
     const gallery = hasImg(r)
-      ? `<div class="section-h"><h2>Fotos</h2><span class="subtle" style="font-size:13px">9</span></div><div class="gallery">${['bolognese', 'tomatensuppe', 'ofengemuese', 'kuerbissuppe'].map((g) => `<div class="photo"><img src="img/${g}.jpg" alt=""></div>`).join('')}</div>`
+      ? `<div class="section-h"><h2>Fotos</h2><span class="subtle num" style="font-size:13px">${pics.length}</span></div><div class="gallery">${pics.map((g, i) => `<button class="photo zoom" data-act="lb:${i}" aria-label="Foto ${i + 1} groß ansehen"><img src="img/${g}.jpg" alt=""></button>`).join('')}</div>`
       : ''
-    return `${head}${sections}${gallery}${r.source ? `<p class="muted" style="font-size:13px;margin-top:28px">Quelle: ${esc(r.source)}</p>` : ''}`
+    return `${head}${sections}${gallery}${r.source ? `<p class="muted" style="font-size:13px;margin-top:28px">Quelle: ${esc(r.source)}</p>` : ''}${UI.lb !== null && hasImg(r) ? lightbox(pics) : ''}`
   }
   const detailActions = `<button class="btn ghost icon">${icon('share-2')}</button><button class="btn ghost icon hide-m">${icon('copy')}</button><a class="btn hide-m" href="${route('editor')}">${icon('pencil')}Bearbeiten</a><a class="btn ghost icon only-m" href="${route('editor')}">${icon('more-horizontal')}</a>`
   S.detail = () => shell('list', { title: `<span class="subtle">Rezepte /</span> ${esc(R[1].name)}`, mobileTitle: '', back: 'list', actions: detailActions, body: detailBody(R[1]) })
@@ -779,6 +796,7 @@
   function go(to) {
     screen = to
     UI.sheet = null
+    UI.lb = null
     if (!EMBED) history.replaceState(null, '', '#/' + to)
     render(false)
     autofocus()
@@ -792,6 +810,8 @@
     else if (k === 'menu') UI.sheet = UI.sheet === v ? null : v
     else if (k === 'sheet') UI.sheet = UI.sheet === v ? null : v
     else if (k === 'close') UI.sheet = null
+    else if (k === 'lb') UI.lb = Number(v)
+    else if (k === 'lb-close') UI.lb = null
     else if (k === 'side') UI.side = !UI.side
     else if (k === 'fold') UI.collapsed.has(v) ? UI.collapsed.delete(v) : UI.collapsed.add(v)
     else if (k === 'fcat') toggleIn(F.cats, Number(v))
@@ -853,6 +873,13 @@
       F.q = e.target.value
       render(true)
     }
+  })
+  document.addEventListener('keydown', (e) => {
+    if (UI.lb === null) return
+    const n = document.querySelectorAll('.lb-th').length
+    if (e.key === 'Escape') act('lb-close')
+    else if (e.key === 'ArrowRight') act(`lb:${(UI.lb + 1) % n}`)
+    else if (e.key === 'ArrowLeft') act(`lb:${(UI.lb - 1 + n) % n}`)
   })
   window.addEventListener('hashchange', () => {
     if (!EMBED) (screen = location.hash.replace('#/', '') || 'home'), (UI.sheet = null), render(false)
