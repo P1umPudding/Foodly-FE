@@ -217,8 +217,8 @@
     `<div class="seg">${opts.map(([v, i, l]) => tip(l, `<button class="${cur === v ? 'on' : ''}" data-act="${name}:${v}" aria-label="${l}">${icon(i)}</button>`)).join('')}</div>`
   const viewSeg = () =>
     seg('view', UI.view, [
-      ['detailed', 'layout-list', 'Detailliert'],
       ['compact', 'menu', 'Kompakt'],
+      ['detailed', 'layout-list', 'Detailliert'],
       ['tiles', 'layout-grid', 'Kacheln'],
     ])
   const groupSeg = () =>
@@ -312,7 +312,7 @@
   // Row 3: result count + reset. Phone: the filter bar scrolls sideways, every facet opens a bottom sheet.
   const toolbar = ({ filters = true, count = '' } = {}) => `
     <div class="toolbar">
-      <label class="input search">${icon('search')}<input id="q" placeholder="Rezept oder Zutat suchen" value="${esc(F.q)}">${F.q ? `<button class="x-btn" data-act="q-clear" aria-label="Suche leeren">${icon('x')}</button>` : '<span class="kbd hide-m">/</span>'}</label>
+      <label class="input search">${icon('search')}<input id="q" placeholder="Rezept oder Zutat suchen" value="${esc(F.q)}">${F.q ? `<button class="x-btn" data-act="q-clear" aria-label="Suche leeren">${icon('x')}</button>` : ''}</label>
       <button class="btn icon only-m" data-act="sheet:view" aria-label="Sortieren und Ansicht">${icon('sliders-horizontal')}</button>
       <div class="lb-right hide-m">${sortBtn()}<span class="vsep"></span>${viewSeg()}${filters ? groupSeg() : ''}</div>
     </div>
@@ -325,8 +325,8 @@
       `<div class="col-h">Sortieren nach</div>${sortMenu()}
        <div class="col-h" style="margin-top:20px">Ansicht</div>
        <div class="seg full">${[
-         ['detailed', 'layout-list', 'Detailliert'],
          ['compact', 'menu', 'Kompakt'],
+         ['detailed', 'layout-list', 'Detailliert'],
          ['tiles', 'layout-grid', 'Kacheln'],
        ]
          .map(([v, i, l]) => `<button class="${UI.view === v ? 'on' : ''}" data-act="view:${v}">${icon(i)}${l}</button>`)
@@ -766,11 +766,17 @@
       q.setSelectionRange(focusQ, focusQ)
     }
   }
+  // Desktop: the cursor already sits in the search when the list opens (no on-screen keyboard to get in the way).
+  const autofocus = () => {
+    const q = document.getElementById('q')
+    if (q && matchMedia('(min-width: 761px) and (pointer: fine)').matches) q.focus({ preventScroll: true })
+  }
   function go(to) {
     screen = to
     UI.sheet = null
     if (!EMBED) history.replaceState(null, '', '#/' + to)
     render(false)
+    autofocus()
   }
   function act(a) {
     const [k, v] = [a.slice(0, a.indexOf(':') < 0 ? a.length : a.indexOf(':')), a.includes(':') ? a.slice(a.indexOf(':') + 1) : '']
@@ -824,4 +830,5 @@
     if (!EMBED) (screen = location.hash.replace('#/', '') || 'home'), (UI.sheet = null), render(false)
   })
   render(false)
+  autofocus()
 })()

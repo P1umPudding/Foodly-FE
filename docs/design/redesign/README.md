@@ -147,10 +147,10 @@ Text-Skala: Basis 14 px statt heute 13 px (Lesbarkeit beim Kochen); Handy 15 px.
 
 Funktional 1:1 wie `ListState` heute (`src/list/state.ts`), die Bedienung ist neu:
 
-- **Zeile 1:** Suche (`/` fokussiert), daneben Sortierung und Ansicht. **Sortieren** ist ein Knopf
+- **Zeile 1:** Suche (auf dem Desktop steht der Cursor beim Öffnen schon drin, ohne Scroll-Sprung; auf dem Handy nicht, sonst klappt die Tastatur auf), daneben Sortierung und Ansicht. **Sortieren** ist ein Knopf
   (Richtungs-Icon + Kriterium, z. B. „↑ Name ▾“). Das Menü enthält die vier Kriterien und die Richtung
   („A → Z / Z → A“, „Kürzeste/Längste zuerst“, „Beste/Schlechteste zuerst“). Einen extra Richtungsknopf gibt es nicht.
-  Daneben die Ansicht (Detailliert **Standard**, Kompakt, Kacheln) und die Gliederung (Nach Kategorie / Einfache Liste).
+  Daneben die Ansicht, geordnet von dicht zu luftig: Kompakt, Detailliert (**Standard**), Kacheln, und die Gliederung (Nach Kategorie / Einfache Liste).
 - **Zeile 2: Filterleiste** statt Filter-Spalte. Ein Knopf je Filter: `Kategorie`, `Tags`, `Zutaten`, `Arbeitszeit`,
   `Zugriff`. Ein aktiver Filter zeigt seinen Wert im Knopf („Tags: Vegetarisch +1“) und hat ein eigenes ✕. Eine
   zusätzliche Chip-Zeile gibt es nicht mehr. Die Liste bekommt die volle Breite.
