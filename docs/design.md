@@ -102,12 +102,14 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 - Spezifikation des Utils (Entscheidung: `docs/decisions/0002-category-colors.md`): Eingabe beliebige Hex-Farbe,
   Ausgabe `{ light, dark }` je mit den vier Rollen als sRGB-Hex. Ungültige Eingabe sowie Schwarz/Weiß/Grau
   (Chroma < 0,02) → neutrale Werte (die Defaults in `theme.css`). Ein Backend-Override `colorLight`/`colorDark`
-  ersetzt im jeweiligen Theme **nur `dot`** und wird unverändert übernommen; `soft`/`ink`/`line` werden immer
-  berechnet. Eine eigene Eingabe für Overrides gibt es im UI nicht. Tests: 14 Testfarben inkl. Navy, Blassgelb, Neongrün;
+  ist für das jeweilige Theme die Eingabe statt der Grundfarbe und wird genauso normalisiert (ADR 0002), damit auch
+  ein Override lesbar bleibt. Eine eigene Eingabe für Overrides gibt es im UI nicht. Tests: 14 Testfarben inkl. Navy, Blassgelb, Neongrün;
   Kontrast `ink` auf `soft` ≥ 4,5:1, `dot` gegen `background` ≥ 3:1.
-- Angewendet wird das Ergebnis als CSS-Variablen auf dem Kategorie-Element (`--cat-dot`, `--cat-soft`, `--cat-ink`,
-  `--cat-line`), die Utilities `bg-cat-soft` usw. greifen sie auf. Das ist die **einzige erlaubte Inline-Style-Ausnahme**
-  (nur diese vier Variablen). Keine CSS Relative Color Syntax (ältere WebViews).
+- Angewendet wird das Ergebnis als CSS-Variablen auf dem Kategorie-Element: Dort stehen beide Varianten als
+  `--cat-<rolle>-l` / `--cat-<rolle>-d` (z. B. `--cat-soft-l`, `--cat-soft-d`), und eine generische Regel in
+  `styles.css` (`[data-cat]`, `.dark [data-cat]`) wählt daraus `--cat-<rolle>`. So braucht ein Theme-Wechsel kein
+  Re-Render. Die Utilities `bg-cat-soft` usw. greifen `--cat-<rolle>` auf. Das ist die **einzige erlaubte
+  Inline-Style-Ausnahme** (nur diese acht Variablen). Keine CSS Relative Color Syntax (ältere WebViews).
 - Ohne Kategorie gelten die neutralen Defaults aus `theme.css` – das ist ein normaler, kein Fehlerzustand.
 - Farbwahl: 12 im Farbton verteilte Vorschläge, eigene Farbe möglich, Hinweis bei < 20° Abstand zu einer vorhandenen.
 
