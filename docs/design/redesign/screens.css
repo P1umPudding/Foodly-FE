@@ -2252,7 +2252,7 @@ a.row.set:hover {
   padding-top: 6px;
   border-top: 1px solid var(--divider);
 }
-.fp-f:has(> span:only-child) {
+.fp-f:not(:has(.link-btn)) {
   display: none;
 }
 .fp-h {
@@ -2314,4 +2314,18 @@ a.row.set:hover {
     flex: 1;
     margin-left: 8px;
   }
+}
+
+.ck-list > .ck {
+  flex: none;
+}
+.toolbar .lb-right .btn.sm,
+.toolbar .lb-right .seg {
+  height: 38px;
+}
+.toolbar .lb-right .btn.sm {
+  font-size: 14px;
+}
+.toolbar .lb-right .seg button {
+  height: 34px;
 }

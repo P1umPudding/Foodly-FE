@@ -308,17 +308,15 @@
     return `<div class="fb-wrap"><span class="fbtn ${n ? 'on' : ''} ${open ? 'open' : ''}"><button class="fb-main" data-act="sheet:f-${f.key}">${n ? '' : icon(f.icon, 'subtle')}<span class="fb-l">${f.label}</span>${n ? `<span class="fb-v">${esc(f.value())}</span>` : icon('chevron-down', 'subtle')}</button>${n ? `<button class="fb-x" data-act="clr:${f.clr}" aria-label="${f.label} zurücksetzen">${icon('x')}</button>` : ''}</span>${pop}</div>`
   }
 
-  // Row 1: search (+ sort/view button on the phone). Row 2: filter bar left, sort and views right (desktop).
+  // Row 1: search, sort, views (phone: one sort/view button). Row 2: the filter bar.
   // Row 3: result count + reset. Phone: the filter bar scrolls sideways, every facet opens a bottom sheet.
   const toolbar = ({ filters = true, count = '' } = {}) => `
     <div class="toolbar">
       <label class="input search">${icon('search')}<input id="q" placeholder="Rezept oder Zutat suchen" value="${esc(F.q)}">${F.q ? `<button class="x-btn" data-act="q-clear" aria-label="Suche leeren">${icon('x')}</button>` : '<span class="kbd hide-m">/</span>'}</label>
       <button class="btn icon only-m" data-act="sheet:view" aria-label="Sortierung und Ansicht">${icon(dirIcon())}</button>
-    </div>
-    <div class="list-bar">
-      ${filters ? `<div class="fbar">${FACETS.map(facetBtn).join('')}</div>` : '<span class="grow"></span>'}
       <div class="lb-right hide-m">${sortBtn()}<span class="vsep"></span>${viewSeg()}${filters ? groupSeg() : ''}</div>
     </div>
+    ${filters ? `<div class="list-bar"><div class="fbar">${FACETS.map(facetBtn).join('')}</div></div>` : ''}
     <div class="list-meta"><span class="num">${count}</span>${filters && facetCount() ? `<button class="link-btn" data-act="clr:all">Alle Filter zurücksetzen</button>` : ''}</div>`
 
   const viewSheet = () =>

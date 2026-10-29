@@ -1,10 +1,10 @@
 # Foodly Redesign „Ruhig“ (Stand 29.10.2026, Runde 2)
 
 Das finale Design ist **„Ruhig“**. Aus „Bildstark“ sind zwei Dinge übernommen: die **Kacheln** als dritte Ansicht der
-Rezeptliste und die **Startseite** mit großen Bildkarten. Runde 2 setzt Koljas Feedback vom 29.10. um (Abschnitt 3).
+Rezeptliste und die **Startseite** mit großen Bildkarten. Runde 2 setzt Koljas Feedback vom 29.10. um (Abschnitt 3), inklusive der neuen Filterleiste.
 
 **Ansehen:** `index.html` im Browser öffnen. Umschalter für Hell/Dunkel, mit/ohne Fotos, Desktop/Handy, Listen-Ansicht
-und Screen. Alles ist klickbar: Ansicht, Sortierung, Filter, Gruppen einklappen, Seitenleiste, Timer.
+und Screen. Alles ist klickbar: Ansicht, Sortierung, Filter (filtern wirklich), Gruppen einklappen, Seitenleiste, Timer.
 Die Rahmen laden ihren Inhalt per `srcdoc`, weil die Plattform das Einbetten ihrer Seiten per Header verbietet (Firefox).
 `app.html` geht auch einzeln, z. B. `app.html?theme=dark&view=tiles#/list`.
 
@@ -82,7 +82,7 @@ Kategorie im Farbton zu nahe kommt (unter etwa 20°). Schwarz, Weiß und Grau er
   Seitenaktionen und dem **Timer-Knopf**.
 - **Handy:** keine Seitenleiste, stattdessen Tab-Leiste unten (5 Ziele, Icon + Label). Kopfzeile mit Titel, Aktionen und
   Timer-Knopf; „+“ (neues Rezept) oben rechts auf Start und Rezepte. **Zur Kategorie-Seite** kommt man über die
-  Kategorie-Kacheln auf Start, die Kategorie-Leiste oben in „Rezepte“ und „Öffnen ›“ an jeder Gruppe der Liste.
+  Kategorie-Kacheln auf Start, „Öffnen ›“ an jeder Gruppe der Liste und `›` im Kategorie-Filter.
 - Planer, Einkauf, Gruppen sind laut Plan noch nicht dran: Sie sind als **Konzept** markiert und nur skizziert.
 - **Koch-Modus:** Vollbild ohne Navigation. Oben Schließen, Titel und Schritt x von y, darunter ein Fortschrittsbalken.
   Der Schritt steht groß (Desktop 34 px, Handy 26 px). Darunter „Dafür“-Zutaten, laufende Timer und „Danach“ als Vorschau.
@@ -143,26 +143,32 @@ Text-Skala: Basis 14 px statt heute 13 px (Lesbarkeit beim Kochen); Handy 15 px.
 
 ## 3. Runde 2: was sich geändert hat
 
-### 3.1 Rezeptliste: alle Funktionen von heute, plus Kacheln
+### 3.1 Rezeptliste: alle Funktionen von heute, Filter neu gedacht
 
-Funktional 1:1 wie `ListState` heute (`src/list/state.ts`), nur neu angeordnet:
+Funktional 1:1 wie `ListState` heute (`src/list/state.ts`), die Bedienung ist neu:
 
-| Heute | Neu |
-|---|---|
-| Suche | Zeile 1, volle Breite. `/` fokussiert. |
-| Sortierung: Name, Arbeitszeit, Gesamtzeit, Bewertung + Richtung | Zeile 2 rechts: Richtungs-Knopf (Icon wie heute) + Menü mit den 4 Kriterien und „A → Z / Z → A“ bzw. „Kürzeste/Längste“, „Beste/Schlechteste zuerst“. |
-| Dichte: Detailliert / Kompakt | Segment mit **drei** Ansichten: Detailliert (**Standard**), Kompakt, Kacheln (neu, aus Bildstark). |
-| Gliederung: Nach Kategorie / Einfache Liste | Segment daneben, unverändert. |
-| Filter-Spalte rechts (Desktop), Sheet mit Badge (Handy) | gleich; auf dem Desktop über „Filter“ ein-/ausblendbar. |
-| Kategorien (ODER, inkl. „Ohne Kategorie“ mit Anzahl) | Checkbox-Zeilen mit Farbpunkt und Anzahl. |
-| Tags (UND, mit Suche) | Suche + Chips, ausgewählte zuerst. |
-| Zutaten (UND, mit Suche) | Suche + Chips, scrollbar. |
-| Arbeitszeit ≤ (Slider, Zahl, 15/30/60) | gleich. |
-| Zugriff: Rolle, Freigabe | zwei Segmente, erneutes Antippen hebt auf. |
-| Aktive Filter als Chips + „Alle zurücksetzen“ | gleich, unter der Suche. |
-| Treffer „x von y“ | links in Zeile 2. |
-| Gruppen einklappbar, „Ohne Kategorie“ zuerst und eingeklappt | gleich; Kopf klebt beim Scrollen. |
-| Rolle/Freigabe-Icons in der Zeile | nur wenn sie etwas sagen (bearbeiten/ansehen, geteilt/kollaborativ); eigenes privates Rezept ohne Icon. |
+- **Zeile 1:** Suche (`/` fokussiert), daneben Sortierung und Ansicht. **Sortieren** ist ein Knopf
+  (Richtungs-Icon + Kriterium, z. B. „↑ Name ▾“). Das Menü enthält die vier Kriterien und die Richtung
+  („A → Z / Z → A“, „Kürzeste/Längste zuerst“, „Beste/Schlechteste zuerst“). Einen extra Richtungsknopf gibt es nicht.
+  Daneben die Ansicht (Detailliert **Standard**, Kompakt, Kacheln) und die Gliederung (Nach Kategorie / Einfache Liste).
+- **Zeile 2: Filterleiste** statt Filter-Spalte. Ein Knopf je Filter: `Kategorie`, `Tags`, `Zutaten`, `Arbeitszeit`,
+  `Zugriff`. Ein aktiver Filter zeigt seinen Wert im Knopf („Tags: Vegetarisch +1“) und hat ein eigenes ✕. Eine
+  zusätzliche Chip-Zeile gibt es nicht mehr. Die Liste bekommt die volle Breite.
+- **Popover je Filter** (Handy: Sheet mit „x Rezepte anzeigen“):
+  - Kategorie: Checkbox-Liste mit Farbpunkt und Anzahl, „Ohne Kategorie“ zuerst; mehrere = ODER. `›` öffnet die
+    Kategorie-Seite.
+  - Tags, Zutaten: Suche + Checkbox-Liste mit Trefferzahl, ausgewählte oben, dann die häufigsten; mehrere = UND.
+    Bei Zutaten nur die häufigsten, den Rest über die Suche, statt einer Chip-Wand.
+  - Arbeitszeit: Beliebig, ≤ 15, ≤ 30, ≤ 60 oder „Höchstens … min“. Kein Regler mehr (heute: Regler, Zahl und Presets
+    für einen Wert).
+  - Zugriff: „Meine Rolle“ (Alle, Besitzer, Bearbeiter, Betrachter) und „Freigabe“ (Alle, Privat, Geteilt,
+    Kollaborativ) als Optionsliste. Die heutige Logik für unmögliche Kombinationen bleibt.
+- **Zeile 3:** „5 von 14 Rezepten“ und „Alle Filter zurücksetzen“.
+- **Handy:** Suche + ein Knopf für Sortieren & Ansicht (Sheet); die Filterleiste scrollt seitlich.
+- Gruppen einklappbar, „Ohne Kategorie“ zuerst und eingeklappt, Kopf klebt beim Scrollen (wie heute).
+- Rolle/Freigabe-Icons in der Zeile nur, wenn sie etwas sagen (bearbeiten/ansehen, geteilt/kollaborativ).
+  Ein eigenes privates Rezept bekommt kein Icon.
+- Komponenten: postxl `Popover` + `Command` (Suche/Liste) bzw. `Sheet` auf dem Handy, `Checkbox`, `RadioGroup`.
 
 - **Farbige Linie entlang der Gruppe:** Ja, Kolja hat recht. In langen Listen sagt die 2-px-Linie in Kategoriefarbe,
   wo man ist. Die Gruppe „Ohne Kategorie“ hat eine graue Linie. Innerhalb einer Gruppe zeigt die Zeile nur die
