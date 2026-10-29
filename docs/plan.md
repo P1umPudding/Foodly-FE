@@ -106,6 +106,22 @@ als UI-Prototyp mit lokalem State sinnvoll.
 
 → Erst sinnvoll, wenn der Login-/Backend-Workflow steht.
 
+## Redesign „Ruhig“  (läuft, vor bzw. mit Phase 5)
+
+Neues neutrales Design für die ganze App. Spec: `docs/design/redesign/README.md`
+(PR #25), Kategorie-Farben: ADR [0002](decisions/0002-category-colors.md).
+Freigegeben von Kolja am 2026-10-29. Reihenfolge:
+
+1. Token-PR (Tokens, Inter, Text-Skala, Radien, `docs/design.md`), baut der Designer.
+2. Kategorie-Farb-Util **#26**, parallel zu 1.
+3. App-Shell **#27** (Start + Rezepte; Start ausgeblendet bis zum Dashboard).
+4. Rezeptliste (Filterleiste, Kacheln), Breakdown offen.
+5. Start/Dashboard = Phase 5 (ohne B4–B6-Blöcke), Breakdown offen.
+6. Detail, dann Koch-Modus.
+
+Parallel nach Token und Shell: Timer-Knopf + Zeit-Chips **#29**, Editor-Zusatz-Spalte
+**#28**. Trefferzahlen im Filter erst mit Backend #17 (B16).
+
 ## Phase 5 — Dashboard / Startseite  (braucht Backend)
 
 Überblicks-Startseite mit Kacheln. Spec: `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`
