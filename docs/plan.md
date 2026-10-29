@@ -1,16 +1,49 @@
 # Foodly Frontend — Bau-Plan
 
-Lebendes Dokument. Reihenfolge der Phasen ist bewusst so gewählt, dass alles
-**ohne Backend** (mit Mock-Daten aus `src/mocks`) baubar und sichtbar ist.
-Persistenz-abhängige Features kommen ans Ende.
+Lebendes Dokument. Die Phasen 0–3 sind mit Mock-Daten aus `src/mocks` entstanden.
+Seit dem REST-Wiring läuft die App gegen das echte Backend (`web-api`); was dort
+fehlt, wird gestubbt (ADR [0003](decisions/0003-backend-gap-stubs.md)).
 
 ## Leitplanken
 
-- **Kein Backend / keine Persistenz** bis auf Weiteres. Lesen ist echt (Mocks),
-  Schreiben würde nur im Browser-State leben → Schreib-Features nach hinten.
-- Alle Daten über `src/api` (`foodly.*`), nie direkt am Socket.
-- UI ausschließlich mit `@postxl/ui-components` + Tailwind-Tokens.
-- Kein Login/Auth jetzt — „aktueller User" ist gemockt (`CURRENT_USER_ID = 1`).
+- Alle Daten über `src/api` (`foodly.*`), nie direkt `fetch`/Socket
+  (`docs/architecture.md` §1).
+- REST für alles, was das Backend kann; `VITE_MOCK=1` für reine Mock-Daten.
+  Fehlt ein Endpoint: Stub in `src/api`, in der UI mit Hinweis „Demo“ (ADR 0003).
+- UI ausschließlich mit `@postxl/ui-components` + Tailwind-Tokens, Look nach
+  `docs/design.md`.
+- Kein Login: REST nutzt den statischen Dev-Token, Mocks `CURRENT_USER_ID = 1`.
+  Echte Auth kommt mit Backend #15 (B7).
+
+## Meilenstein Alpha  (Ziel, Stand 2026-10-29)
+
+Bedienbare App gegen das echte Backend, ohne echte Nutzer (Daniel, 2026-10-29).
+Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
+
+**Echt gegen das Backend:**
+- Redesign „Ruhig“ komplett (Abschnitt unten): Shell, Liste, Detail, Koch-Modus, Timer.
+- Phase 4 ohne Teilen: Rezept anlegen, bearbeiten, kopieren (✅ vorhanden),
+  **löschen**, Kategorien verwalten (anlegen, umbenennen, sortieren, Rezepte zuordnen),
+  Bild-Upload, Tag-Icons über `GET /tags/{id}/icon` (G3).
+- Phase 5 ohne Gruppen und „kürzlich hinzugefügt“: Kategorien, eigene zuletzt
+  erstellte, „Jump back in“.
+- Phase 6 Mobile komplett.
+
+**Gestubbt (ADR 0003), später auf REST umstellen:**
+| Funktion | Stub | Backend |
+|---|---|---|
+| Rezeptbilder anzeigen | neutraler Platzhalter | #9 (B1) |
+| Namen von Owner/Editoren | Mock-Liste wie heute | #10 (B2) |
+| Rating abgeben | localStorage | #11 (B3) |
+| Teilen (Editoren/Viewer) | localStorage | #12 (B4) |
+| Gruppen-Kachel | localStorage | #13 (B5, Entscheidung B12) |
+| „Kürzlich hinzugefügt“ | ausgeblendet bis #14 | #14 (B6) |
+
+**Nach der Alpha:** Login (#15), Phase 7 (native App), Phase 8 (Offline), Phase 9.
+
+**Reihenfolge:** Redesign wie unten → parallel ab Shell: Stub-Basis + Rating,
+Löschen, Bild-Platzhalter, Tag-Icons → Kategorien verwalten → Phase 5 → Teilen →
+Phase 6. Breakdown je Block über den Lead.
 
 Details je Phase in `phases/`.
 
@@ -90,10 +123,11 @@ Protokoll-Fragen").
 
 → Volle Spezifikation: `phases/phase-3-koch-modus.md`
 
-## Phase 4 — Rezepte bearbeiten  (braucht Backend)
+## Phase 4 — Rezepte bearbeiten  (teilweise erledigt)
 
-Anlegen/Editieren von Rezepten. **Blockiert auf Persistenz** — ohne Backend nur
-als UI-Prototyp mit lokalem State sinnvoll.
+Anlegen, Editieren (mit Autosave) und Kopieren laufen gegen das Backend.
+Offen für die Alpha: Löschen, Kategorien verwalten, Rating (Stub), Teilen (Stub),
+Tag-Picker. Siehe „Meilenstein Alpha“.
 
 - Formular für Rezept (Sections, Zutaten, Schritte).
 - Rezept duplizieren (Kopie, bei der man selbst owner wird).
@@ -103,8 +137,6 @@ als UI-Prototyp mit lokalem State sinnvoll.
   Bild, dann die ohne), durchsuchbar. Auswahl fügt `{tagId}` an der Cursorstelle
   ein. **Toggle „Name statt Icon"** fügt stattdessen `{!tagId}` ein — der Toggle
   setzt sich beim Schließen/Neuöffnen wieder auf „Icon" zurück.
-
-→ Erst sinnvoll, wenn der Login-/Backend-Workflow steht.
 
 ## Redesign „Ruhig“  (läuft, vor bzw. mit Phase 5)
 
