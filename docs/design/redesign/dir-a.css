@@ -1,0 +1,72 @@
+/* Foodly "Ruhig" (final direction): calm, tool-like. Greyscale chrome, hairline borders, no shadows.
+   Category colour appears only as small signals: dots, chips, a 2px rail. */
+[data-dir='a'] {
+  --bg: oklch(0.985 0 0);
+  --surface: #fff;
+  --surface-2: oklch(0.965 0 0);
+  --fg: oklch(0.2 0 0);
+  --fg-muted: oklch(0.47 0 0);
+  --fg-subtle: oklch(0.62 0 0);
+  --border: oklch(0.91 0 0);
+  --border-strong: oklch(0.8 0 0);
+  --divider: oklch(0.93 0 0);
+  --card-border: oklch(0.92 0 0);
+  --card-shadow: none;
+  --hover: oklch(0.955 0 0);
+  --active: oklch(0.93 0 0);
+  --nav-bg: oklch(0.975 0 0);
+  --nav-border: oklch(0.92 0 0);
+  --input-bg: #fff;
+  --seg-bg: oklch(0.94 0 0);
+  --seg-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  --tag-bg: oklch(0.95 0 0);
+  --photo-bg: oklch(0.94 0 0);
+  --avatar-bg: oklch(0.92 0 0);
+  --skel: oklch(0.94 0 0);
+  --star: oklch(0.78 0.15 75);
+  --topbar-border: oklch(0.93 0 0);
+
+  /* Three radii, nothing else: sm 4 (chips, tags, checkboxes), md 6 (every control: inputs, textareas, buttons,
+     rows, nav items), lg 8 (cards, photos, sheets). Nested shapes follow outer = inner + padding (seg: 6 + 2 = 8).
+     Round (50%) only for avatars, dots, step numbers, switches and the phone's floating "+". */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-card: var(--r-lg);
+  --r-ctl: var(--r-md);
+  --r-btn: var(--r-md);
+  --r-chip: var(--r-sm);
+  --r-pill: var(--r-md);
+  --r-photo: var(--r-lg);
+
+  --fs-body: 14px;
+  --fs-body-m: 15px;
+  --fs-h1: 26px;
+  --fw-h1: 650;
+  --fs-h2: 15px;
+}
+[data-dir='a'].dark {
+  --bg: oklch(0.17 0 0);
+  --surface: oklch(0.205 0 0);
+  --surface-2: oklch(0.235 0 0);
+  --fg: oklch(0.95 0 0);
+  --fg-muted: oklch(0.72 0 0);
+  --fg-subtle: oklch(0.56 0 0);
+  --border: oklch(0.29 0 0);
+  --border-strong: oklch(0.4 0 0);
+  --divider: oklch(0.255 0 0);
+  --card-border: oklch(0.265 0 0);
+  --hover: oklch(0.235 0 0);
+  --active: oklch(0.26 0 0);
+  --nav-bg: oklch(0.155 0 0);
+  --nav-border: oklch(0.25 0 0);
+  --input-bg: oklch(0.2 0 0);
+  --seg-bg: oklch(0.25 0 0);
+  --seg-shadow: none;
+  --tag-bg: oklch(0.25 0 0);
+  --photo-bg: oklch(0.24 0 0);
+  --avatar-bg: oklch(0.3 0 0);
+  --skel: oklch(0.24 0 0);
+  --star: oklch(0.82 0.14 80);
+  --topbar-border: oklch(0.25 0 0);
+}
