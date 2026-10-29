@@ -44,7 +44,7 @@ export function TimerForm() {
               variant={active ? 'default' : 'outline'}
               size="xs"
               onClick={() => setDuration({ h: 0, m: min, s: 0 })}
-              className={cn('rounded-full', active && 'pointer-events-none')}
+              className={cn('rounded-md', active && 'pointer-events-none')}
             >
               {min} min
             </Button>

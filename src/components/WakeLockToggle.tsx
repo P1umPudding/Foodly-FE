@@ -41,7 +41,7 @@ export function WakeLockToggle() {
             aria-pressed={enabled}
             aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
             className={cn(
-              'gap-1.5 rounded-full transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+              'gap-1.5 rounded-md transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
               enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
             )}
           >

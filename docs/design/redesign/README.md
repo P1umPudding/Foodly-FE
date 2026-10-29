@@ -193,6 +193,12 @@ Funktional wie `ListState` heute (`src/list/state.ts`); einzige Erweiterung: `de
   *anderen* Kategorien als Punkte, die eigene ist ja schon die Linie.
 - Die Kategorie-Seite nutzt dieselbe Leiste ohne Filter und Gliederung.
 
+- **Kategorie-Punkte** (Kolja, 29.10.): Auf dem Desktop hat **jeder Punkt einen eigenen Tooltip** mit dem
+  Kategorienamen, „+N“ nennt die übrigen Kategorien. Gilt überall, wo Punkte stehen: Zeilen (Kompakt/Detailliert),
+  Kacheln, Start, Planer. Wie bei den Zugriffs-Icons daneben. Trefferfläche pro Punkt etwas größer als die 8 px
+  (Innenabstand), Tooltips am rechten Zeilenrand öffnen nach links. Auf dem Handy kein Tooltip: Die Kategorien stehen
+  im Detail.
+
 ### 3.2 Timer ohne Koch-Modus
 
 - **Timer-Knopf** in jeder Kopfzeile (auch im Koch-Modus), zeigt den nächsten ablaufenden Timer („18:42“).

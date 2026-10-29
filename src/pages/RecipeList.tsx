@@ -242,7 +242,7 @@ export function RecipeList() {
             {search.status === 'loading' && (
               <div className="space-y-3">
                 {[0, 1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-18 w-full rounded-xl" />
+                  <Skeleton key={i} className="h-18 w-full rounded-lg" />
                 ))}
               </div>
             )}
@@ -299,7 +299,7 @@ export function RecipeList() {
             <div ref={sentinelRef} aria-hidden className="h-1" />
             {search.loadingMore && (
               <div className="space-y-3 pt-3">
-                <Skeleton className="h-18 w-full rounded-xl" />
+                <Skeleton className="h-18 w-full rounded-lg" />
               </div>
             )}
           </div>
