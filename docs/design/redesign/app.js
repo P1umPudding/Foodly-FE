@@ -232,18 +232,23 @@
     <div class="menu-list">${SORTS.map((s) => `<button class="mi ${UI.sortKey === s.key ? 'on' : ''}" data-act="sort:${s.key}">${icon(s.icon)}<span class="grow">${s.label}</span>${UI.sortKey === s.key ? icon('check') : ''}</button>`).join('')}</div>
     <div class="menu-sep"></div>
     <div class="seg full"><button class="${UI.sortDir === 'asc' ? 'on' : ''}" data-act="dir:asc">${dirLabel(UI.sortKey, 'asc')}</button><button class="${UI.sortDir === 'desc' ? 'on' : ''}" data-act="dir:desc">${dirLabel(UI.sortKey, 'desc')}</button></div>`
-  const toolbar = ({ filters = true } = {}) => `
+  // Row 1: search + filter (always visible). Row 2 (desktop): count left, sort and view controls right.
+  // Phone: sort + view sit behind one button that opens a sheet.
+  const toolbar = ({ filters = true, count = '' } = {}) => `
     <div class="toolbar">
       <label class="input search">${icon('search')}<input id="q" placeholder="Rezept oder Zutat suchen" value="${esc(F.q)}">${F.q ? `<button class="x-btn" data-act="q-clear" aria-label="Suche leeren">${icon('x')}</button>` : '<span class="kbd hide-m">/</span>'}</label>
-      <div class="hide-m sort-wrap">
-        ${tip(dirLabel(), `<button class="btn icon" data-act="dir:${UI.sortDir === 'asc' ? 'desc' : 'asc'}" aria-label="Sortierrichtung">${icon(dirIcon())}</button>`)}
-        <button class="btn" data-act="menu:sort">${sortObj().label}${icon('chevron-down', 'subtle')}</button>
-        ${UI.sheet === 'sort' ? `<div class="overlay clear" data-act="close"></div><div class="popover">${sortMenu()}</div>` : ''}
-      </div>
-      <div class="hide-m tb-views">${viewSeg()}${filters ? groupSeg() : ''}</div>
       ${filters ? `<button class="btn hide-m ${UI.rail ? 'pressed' : ''}" data-act="rail">${icon('sliders-horizontal')}Filter${badge(facetCount())}</button>` : ''}
       ${filters ? `<button class="btn only-m" data-act="sheet:filter" aria-label="Filter">${icon('sliders-horizontal')}${badge(facetCount())}</button>` : ''}
       <button class="btn icon only-m" data-act="sheet:view" aria-label="Sortierung und Ansicht">${icon('arrow-up-down')}</button>
+    </div>
+    <div class="list-bar hide-m">
+      <span class="list-count">${count}</span>
+      <div class="sort-wrap">
+        ${tip(dirLabel(), `<button class="btn sm icon" data-act="dir:${UI.sortDir === 'asc' ? 'desc' : 'asc'}" aria-label="Sortierrichtung">${icon(dirIcon())}</button>`)}
+        <button class="btn sm" data-act="menu:sort">${sortObj().label}${icon('chevron-down', 'subtle')}</button>
+        ${UI.sheet === 'sort' ? `<div class="overlay clear" data-act="close"></div><div class="popover">${sortMenu()}</div>` : ''}
+      </div>
+      <span class="vsep"></span>${viewSeg()}${filters ? groupSeg() : ''}
     </div>`
 
   const fgroup = (title, count, onClear, body) =>
@@ -395,14 +400,14 @@
     const total = RECIPES.length
     const count = `<span class="subtle num">${vis.length === total ? total : `${vis.length} von ${total}`}</span>`
     const catPills = `<div class="scroll-x only-m cat-pills">${CATEGORIES.map((c) => `<a class="filter-chip" href="${route('category')}">${dot(c)}${esc(c.name)}</a>`).join('')}</div>`
-    const main = `${catPills}${toolbar()}${activeChips()}<div class="list-count hide-m">${count} Rezepte · ${sortObj().label}, ${dirLabel()}</div><div class="list-content">${content}</div>`
+    const main = `${catPills}${toolbar({ count: `${vis.length === total ? total : `${vis.length} von ${total}`} Rezepte` })}${activeChips()}<div class="list-content">${content}</div>`
     const rail = UI.rail ? `<aside class="frail hide-m"><div class="frail-in">${filterPanel()}</div></aside>` : ''
     return { body: `<div class="list-layout ${UI.rail ? 'with-rail' : ''}"><div class="list-main">${main}</div>${rail}</div>`, count }
   }
   S.list = () => {
     const { body, count } = listBody()
     const sheets = UI.sheet === 'filter' ? filterSheet() : UI.sheet === 'view' ? viewSheet() : ''
-    return shell('list', { title: `Rezepte ${count}`, mobileTitle: 'Rezepte', actions: newBtnM, body, wide: true, sheets })
+    return shell("list", { title: "Rezepte", actions: newBtnM, body, wide: true, sheets })
   }
   S.listf = () => {
     if (!S.listf.done) presetFilters(), (S.listf.done = true)
@@ -418,7 +423,7 @@
         <div class="grow"><h2 class="page-title">${esc(c.name)}</h2><div class="ch-sub num">${rs.length} Rezepte · nur für dich sichtbar</div></div>
         <button class="btn sm hide-m">${icon('pencil')}Bearbeiten</button>
       </div>
-      <div style="margin-top:16px">${toolbar({ filters: false })}</div>
+      <div style="margin-top:16px">${toolbar({ filters: false, count: `${rs.length} Rezepte` })}</div>
       <div style="margin-top:12px">${items(rs, { except: c.id })}</div>`
     const sheets = UI.sheet === 'view' ? viewSheet() : ''
     return shell('list', { title: `<span class="subtle">Kategorien /</span> ${esc(c.name)}`, mobileTitle: '', back: 'list', actions: `<button class="btn ghost icon">${icon('more-horizontal')}</button>`, body, activeCat: c.id, wide: UI.view === 'tiles', sheets })
@@ -806,7 +811,7 @@
     }
   })
   window.addEventListener('hashchange', () => {
-    if (!EMBED) (screen = location.hash.replace('#/', '') || 'home'), render(false)
+    if (!EMBED) (screen = location.hash.replace('#/', '') || 'home'), (UI.sheet = null), render(false)
   })
   render(false)
 })()

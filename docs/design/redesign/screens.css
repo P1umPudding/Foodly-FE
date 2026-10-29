@@ -1454,7 +1454,7 @@ a.row.set:hover {
   margin-right: -4px;
 }
 .input .suf {
-  margin-left: -6px;
+  margin-left: -8px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1993,5 +1993,48 @@ a.row.set:hover {
 @media (max-width: 760px) {
   .ed-notes-h {
     margin-top: 4px;
+  }
+}
+
+.list-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+.list-bar .list-count {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.list-bar .seg button {
+  height: 26px;
+  padding: 0 9px;
+}
+.list-bar .seg {
+  border-radius: var(--r-md);
+}
+.list-bar .seg button {
+  border-radius: var(--r-sm);
+}
+.list-bar .vsep {
+  align-self: stretch;
+  margin: 4px 4px;
+}
+.sidenav > :not(.nav-spacer) {
+  flex: none;
+}
+.home-grid .cgrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  --grid-gap: 24px 16px;
+}
+.home-grid .ct {
+  font-size: 15px;
+}
+@media (max-width: 760px) {
+  .home-grid .cgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --grid-gap: 20px 12px;
   }
 }
