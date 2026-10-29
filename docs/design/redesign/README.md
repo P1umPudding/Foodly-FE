@@ -266,7 +266,9 @@ Die Reihenfolge entscheidet Kolja.
 - **Reihenfolge der Umsetzung** (Abschnitt 4).
 - **B11:** Kategorie-Symbol als Tag-Referenz (Backend, später; bis dahin Anfangsbuchstabe).
 - **Backend-Abhängigkeiten** (Lead-Review): B1 Bilder (#9) offen, deshalb ist die Ohne-Foto-Variante das
-  Hauptdesign, nicht der Sonderfall. Schreib-Endpoints für `/categories` (zuweisen, anlegen, Farbe, Reihenfolge) prüft
-  der Lead; fehlen sie, blockiert das nur diese Teile. „Heute geplant“, Einkauf, Gruppen, „Geteilt mit dir“ hängen an
+  Hauptdesign, nicht der Sonderfall. Kategorien: laut 02_API_Design dokumentiert sind
+  `POST/PUT/DELETE /categories`, `PUT /categories/:id/recipes` und `PUT /categories/order` (deckt „+“-Chip, Anlegen
+  mit Farbe und Reihenfolge ab); ob sie schon im Backend-Code sind, prüft der Lead bei der Issue-Planung. Die Such-API
+  kennt einen `categories`-Filter, der Kategorie-Filter kann später auf den Server wandern (Design unverändert). „Heute geplant“, Einkauf, Gruppen, „Geteilt mit dir“ hängen an
   B4/B5/B6 – Start muss auch ohne diese Blöcke vollständig wirken. Facetten-Zahlen wären eine neue Backend-Frage.
-- Editor: Zusatz bei Katalog-Zutat erhalten (Draft-Änderung, siehe 3.3).
+- Editor: Zusatz bei Katalog-Zutat erhalten (Fix in `IngredientRow`/IngredientPicker, nicht im Draft; siehe 3.3).
