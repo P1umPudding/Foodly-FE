@@ -177,6 +177,9 @@
     ['groups', 'users', 'Gruppen'],
   ]
   const concept = `<span class="concept">Konzept</span>`
+  // Breadcrumb shows where you came from (Einkauf / Spaghetti …), falling back to the logical parent.
+  const LABEL = { home: 'Start', list: 'Rezepte', listf: 'Rezepte', category: 'Favoriten', planner: 'Planer', shopping: 'Einkauf', groups: 'Gruppen', profile: 'Profil', categories: 'Kategorien', detail: 'Spaghetti Bolognese', detail2: 'Caesar Salad' }
+  const crumb = (fallback) => `<span class="subtle">${LABEL[HIST[HIST.length - 1]] ?? fallback} /</span> `
   const tip = (t, inner, cls = '') => `<span class="tip ${cls}" data-tip="${t}">${inner}</span>`
   function shell(active, { title = '', actions = '', body = '', wide = false, mobileTitle, back, activeCat, sheets = '' } = {}) {
     const C = UI.side
@@ -197,7 +200,7 @@
     const tab = `<nav class="tabbar">${NAV.map(([k, i, l]) => `<a class="${active === k ? 'active' : ''}" href="${route(k)}">${icon(i)}${l}</a>`).join('')}</nav>`
     const top = `
       <header class="topbar">
-        ${back ? `<a class="btn ghost icon" href="${route(back)}">${icon('chevron-left')}</a>` : ''}
+        ${back ? `<button class="btn ghost icon" data-act="back:${back}" aria-label="Zurück">${icon('chevron-left')}</button>` : ''}
         <h1 class="ellipsis"><span class="hide-m">${title}</span><span class="only-m">${mobileTitle ?? title}</span></h1>
         <div class="grow"></div>${actions}${timerBtn()}
       </header>`
@@ -446,7 +449,7 @@
       <div style="margin-top:16px">${toolbar({ filters: false, count: `${rs.length} Rezepte` })}</div>
       <div style="margin-top:12px">${items(rs, { except: c.id })}</div>`
     const sheets = UI.sheet === 'view' ? viewSheet() : ''
-    return shell('list', { title: `<span class="subtle">Kategorien /</span> ${esc(c.name)}`, mobileTitle: '', back: 'list', actions: `<button class="btn ghost icon">${icon('more-horizontal')}</button>`, body, activeCat: c.id, wide: UI.view === 'tiles', sheets: sheets + fab })
+    return shell('list', { title: `${crumb('Rezepte')}${esc(c.name)}`, mobileTitle: '', back: 'list', actions: `<button class="btn ghost icon">${icon('more-horizontal')}</button>`, body, activeCat: c.id, wide: UI.view === 'tiles', sheets: sheets + fab })
   }
 
   // "30 Minuten", "ca. 2 Stunden", "5–6 Minuten" inside a step become tap-to-start timers (no cook mode needed).
@@ -506,8 +509,8 @@
     const editM = canEdit ? `<a class="btn ghost icon only-m" href="${route('editor')}" aria-label="Bearbeiten">${icon('pencil')}</a>` : `<button class="btn ghost icon only-m" aria-label="Kopie erstellen">${icon('copy')}</button>`
     return `${tip('Teilen', `<button class="btn ghost icon" aria-label="Teilen">${icon('share-2')}</button>`)}${tip('Kopie erstellen', `<button class="btn ghost icon hide-m" aria-label="Kopie erstellen">${icon('copy')}</button>`)}${canEdit ? `<a class="btn hide-m" href="${route('editor')}">${icon('pencil')}Bearbeiten</a>` : ''}${editM}`
   }
-  S.detail = () => shell('list', { title: `<span class="subtle">Rezepte /</span> ${esc(R[1].name)}`, mobileTitle: '', back: 'list', actions: detailActionsFor(R[1]), body: detailBody(R[1]) })
-  S.detail2 = () => shell('list', { title: `<span class="subtle">Rezepte /</span> ${esc(R[10].name)}`, mobileTitle: '', back: 'list', actions: detailActionsFor(R[10]), body: detailBody(R[10]) })
+  S.detail = () => shell('list', { title: `${crumb('Rezepte')}${esc(R[1].name)}`, mobileTitle: '', back: 'list', actions: detailActionsFor(R[1]), body: detailBody(R[1]) })
+  S.detail2 = () => shell('list', { title: `${crumb('Rezepte')}${esc(R[10].name)}`, mobileTitle: '', back: 'list', actions: detailActionsFor(R[10]), body: detailBody(R[10]) })
   S.timer = () => {
     UI.sheet = 'timer'
     return S.detail()
@@ -520,7 +523,7 @@
     return `
       <div class="cook">
         <header class="cook-top">
-          <a class="btn ghost icon" href="${route('detail')}">${icon('x')}</a>
+          <button class="btn ghost icon" data-act="back:detail" aria-label="Koch-Modus beenden">${icon('x')}</button>
           <div class="grow"><div class="cook-title ellipsis">${esc(r.name)}</div><div class="subtle num" style="font-size:12px">${esc(s.name)} · Schritt ${step + 1} von 7</div></div>
           <button class="btn sm only-m">${icon('list-checks')}Zutaten</button>
           ${timerBtn()}
@@ -551,21 +554,21 @@
   S.editor = () => {
     const r = R[1]
     const field = (label, inner, hint = '') => `<div class="field"><span class="flabel">${label}</span>${inner}${hint ? `<span class="fhint">${hint}</span>` : ''}</div>`
-    const amtView = (g) => `${g.prefix ? `<span class="pre">${esc(g.prefix)}</span>` : ''}<input value="${esc(g.amount ?? '')}" placeholder="Menge">`
-    const nameView = (g) => `<input value="${esc(g.name ?? '')}" placeholder="Zutat">${g.text ? `<span class="suf">, ${esc(g.text)}</span>` : ''}`
+    // What you type is what you see: "ca. 800" stays one plain value; prefix/amount are split on save.
+    const amtView = (g) => `<input value="${esc([g.prefix, g.amount].filter(Boolean).join(' '))}" placeholder="Menge">`
+    const nameView = (g) => `<input value="${esc(g.name ?? '')}" placeholder="Zutat">${icon('search', 'subtle')}`
     const ingLine = (g) => `${[g.prefix, g.amount, g.unit].filter(Boolean).join(' ')}`
     const ingRowD = (g, hl) =>
-      `<div class="ed-ing ${hl ? 'hl' : ''}">${icon('grip-vertical', 'subtle drag')}<div class="input sm amt-in num">${amtView(g)}</div><div class="input sm unit-in"><input value="${esc(g.unit ?? '')}" placeholder="Einheit">${icon('chevron-down', 'subtle')}</div><div class="input sm name-in">${nameView(g)}</div><button class="btn ghost sm icon">${icon('ellipsis-vertical')}</button></div>`
+      `<div class="ed-ing ${hl ? 'hl' : ''}">${icon('grip-vertical', 'subtle drag')}<div class="input sm amt-in num">${amtView(g)}</div><div class="input sm unit-in"><input value="${esc(g.unit ?? '')}" placeholder="Einheit">${icon('chevron-down', 'subtle')}</div><div class="input sm name-in">${nameView(g)}</div><div class="input sm suf-in"><input value="${esc(g.text ?? '')}" aria-label="Zusatz"></div><button class="btn ghost sm icon">${icon('ellipsis-vertical')}</button></div>`
     const ingRowM = (g, i) =>
       `<button class="ed-ing-m" data-act="sheet:ing"><span class="amt num">${esc(ingLine(g))}</span><span class="ing grow">${esc(g.name ?? '')}${g.text ? ` <span class="muted">${esc(g.text)}</span>` : ''}</span>${icon('chevron-right', 'subtle')}</button>`
     const sec = (s, si) => `
       <section class="ed-sec card">
         <div class="ed-sec-h">${icon('grip-vertical', 'subtle hide-m')}<input class="ed-sec-name" value="${esc(s.name ?? '')}" placeholder="Abschnitt ohne Namen"><button class="btn ghost sm icon">${icon('more-horizontal')}</button></div>
-        <div class="ed-ing-head hide-m"><span></span><span>Menge</span><span>Einheit</span><span>Zutat</span><span></span></div>
+        <div class="ed-ing-head hide-m"><span></span><span>Menge</span><span>Einheit</span><span>Zutat</span><span>Zusatz</span><span></span></div>
         <div class="hide-m">${s.ingredients.map((g, i) => ingRowD(g, si === 0 && i === 3)).join('')}</div>
         <div class="only-m ed-ing-list">${s.ingredients.map(ingRowM).join('')}</div>
         <div class="ed-adds"><button class="btn ghost sm add">${icon('plus')}Zutat</button><button class="btn ghost sm add">${icon('clipboard-paste')}Mehrere einfügen</button></div>
-        ${si === 0 ? `<p class="fhint ed-hint hide-m">Tipp: „ca. 800“ in Menge setzt „ca.“ als Präfix. Alles nach einem Komma bei der Zutat wird Zusatz, z. B. „Salz, nach Geschmack“.</p>` : ''}
         <div class="col-h" style="margin-top:18px">Zubereitung</div>
         ${s.steps
           .map((t, i) => `<div class="ed-step"><span class="sn num">${i + 1}</span><div class="input area"><textarea rows="2">${esc(t)}</textarea></div><button class="btn ghost sm icon">${icon('ellipsis-vertical')}</button></div>`)
@@ -616,7 +619,7 @@
         ? sheet(
             'Zutat bearbeiten',
             `<div class="ing-sheet">
-              ${field('Menge', `<div class="input num"><span class="pre">ca.</span><input value="${g.amount}"></div>`, '„ca.“, „etwa“ … vor der Zahl wird Präfix. Auch „1–2“ oder „½“ gehen.')}
+              ${field('Menge', `<div class="input num"><input value="ca. ${g.amount}"></div>`, 'Auch „ca. 800“, „1–2“ oder „½“.')}
               ${field('Einheit', `<div class="input"><input value="${g.unit}">${icon('chevron-down', 'subtle')}</div><div class="chips" style="margin-top:6px">${['g', 'kg', 'ml', 'EL', 'TL', 'Prise', 'Stück'].map((u) => `<span class="fchip ${u === 'g' ? 'on' : ''}">${u}</span>`).join('')}</div>`)}
               ${field('Zutat', `<div class="input"><input value="${g.name}">${icon('search', 'subtle')}</div>`, 'Aus dem Zutaten-Katalog, sonst Freitext.')}
               ${field('Zusatz', `<div class="input"><input placeholder="z. B. gehackt, nach Geschmack"></div>`)}
@@ -629,7 +632,7 @@
     return shell('list', {
       title: 'Rezept bearbeiten',
       back: 'detail',
-      actions: `<span class="saved">${icon('circle-check')}<span class="hide-m">Gespeichert</span></span><a class="btn primary" href="${route('detail')}">Fertig</a>`,
+      actions: `<span class="saved">${icon('circle-check')}<span class="hide-m">Gespeichert</span></span><button class="btn primary" data-act="back:detail">Fertig</button>`,
       body,
       sheets: ingSheet,
     })
@@ -789,6 +792,8 @@
   }
 
   /* ---------------- Routing + interaction ---------------- */
+  const HIST = []
+  const ROOTS = ['home', 'list', 'planner', 'shopping', 'groups', 'profile']
   let screen = (location.hash.replace('#/', '') || qs.get('screen') || 'home').split('?')[0]
   const root = document.getElementById('root')
   function render(keepScroll) {
@@ -808,7 +813,11 @@
     const q = document.getElementById('q')
     if (q && matchMedia('(min-width: 761px) and (pointer: fine)').matches) q.focus({ preventScroll: true })
   }
-  function go(to) {
+  // Back = real back: an in-app history stack. Top-level destinations (tab bar / sidebar) start a fresh stack, so
+  // Einkauf → Rezept → Zurück lands on Einkauf again. Opened directly (no history): the logical parent (`back:<parent>`).
+  function go(to, { push = true } = {}) {
+    if (ROOTS.includes(to)) HIST.length = 0
+    else if (push && to !== screen) HIST.push(screen)
     screen = to
     UI.sheet = null
     UI.lb = null
@@ -827,6 +836,7 @@
     else if (k === 'close') UI.sheet = null
     else if (k === 'lb') UI.lb = Number(v)
     else if (k === 'lb-close') UI.lb = null
+    else if (k === 'back') return go(HIST.length ? HIST.pop() : v, { push: false })
     else if (k === 'side') UI.side = !UI.side
     else if (k === 'fold') UI.collapsed.has(v) ? UI.collapsed.delete(v) : UI.collapsed.add(v)
     else if (k === 'fcat') toggleIn(F.cats, Number(v))

@@ -1776,7 +1776,7 @@ a.row.set:hover {
 }
 .ed-ing-head {
   display: grid;
-  grid-template-columns: 18px 110px 96px minmax(0, 1fr) 30px;
+  grid-template-columns: 18px 96px 90px minmax(0, 1fr) minmax(0, 0.7fr) 30px;
   gap: 6px;
   margin-bottom: 4px;
   font-size: 12px;
@@ -1784,7 +1784,7 @@ a.row.set:hover {
   font-weight: 500;
 }
 .ed-ing {
-  grid-template-columns: 18px 110px 96px minmax(0, 1fr) 30px;
+  grid-template-columns: 18px 96px 90px minmax(0, 1fr) minmax(0, 0.7fr) 30px;
   grid-template-areas: none;
 }
 .ed-ing > * {

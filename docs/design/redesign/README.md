@@ -206,13 +206,14 @@ Alle Felder aus `Draft` sind drin: Titel, Arbeitszeit, Gesamtzeit, Größe (Port
 (Name optional), Zutaten (Präfix, Menge, Einheit, Zutat aus Katalog oder Freitext, Zusatz), Schritte, Notizen (mehrere),
 Bilder (Hauptbild + Galerie), Quelle. Vereinfacht wird so:
 
-- **Präfix steckt im Mengenfeld:** „ca. 800“ wird zu Präfix „ca.“ + Menge „800“. Regel (reine Funktion mit Tests,
+- **Was man tippt, steht da.** Keine grauen Sonder-Darstellungen im Feld.
+- **Präfix steckt im Mengenfeld:** „ca. 800“ bleibt im Feld so stehen und wird beim Speichern zu Präfix „ca.“ + Menge „800“. Regel (reine Funktion mit Tests,
   auch für „Mehrere einfügen“): Präfix ist, was vor der ersten Zahl steht; Zahl schließt Brüche (½ ¼ ¾) und Bereiche
   (1–2, 1-2) ein. Ohne Zahl („etwas“) landet alles in `amount`, es gibt dann kein Präfix.
 - **Zusatz:** `text` ist schon das Zusatz-Feld hinter einer Katalog-Zutat. Heute verwirft `IngredientRow.tsx`
   (`onPick → text: ''`) den Zusatz, und der IngredientPicker zeigt ihn nicht an: kleiner Fix im Editor-PR, kein Backend.
-  Bei Freitext-Zutaten (`ingredient = null`) wird nichts zerlegt, alles bleibt in `text`. (Wie der Zusatz auf dem
-  Desktop eingegeben wird – Komma-Regel oder eigene Spalte – ist noch offen, siehe 5.)
+  Bei Freitext-Zutaten (`ingredient = null`) wird nichts zerlegt, alles bleibt in `text`. Der Zusatz hat eine **eigene
+  schmale Spalte** (Desktop: Menge · Einheit · Zutat · Zusatz; Handy: eigenes Feld im Sheet), keine Komma-Regel.
 - **Größe als Umschalter** Portionen/Freitext mit einem Satz Erklärung: Portionen → beim Kochen Anzahl wählen;
   Freitext (z. B. „26 cm {Springform}“) → beim Kochen mit Faktor skalieren (der Multiplikator).
 - **Einheit** als Combobox mit Vorschlägen (g, kg, ml, EL, TL, Prise, Stück) und freiem Text.
@@ -224,7 +225,15 @@ Bilder (Hauptbild + Galerie), Quelle. Vereinfacht wird so:
   eigenen Dialog.
 - Schritte und Zutaten nutzen denselben Input-Radius (6 px).
 
-### 3.4 Einkauf (Konzept)
+### 3.4 Zurück heißt zurück
+
+- Jeder Zurück-Pfeil, das ✕ im Koch-Modus und „Fertig“ im Editor gehen dahin, **woher man kam** (Einkauf → Rezept →
+  Zurück = Einkauf). Umsetzung: `navigate(-1)`, solange es einen Verlauf innerhalb der App gibt.
+- Ohne Verlauf (Link direkt geöffnet) geht es zur logischen Elternseite (Rezept → Rezepte, Kategorien → Profil).
+- Ziele der Tab-Leiste bzw. Seitenleiste beginnen einen neuen Verlauf.
+- Der Breadcrumb im Kopf zeigt die Herkunft: „Einkauf / Spaghetti Bolognese“.
+
+### 3.5 Einkauf (Konzept)
 
 - Listen wechseln: Desktop über die Spalte „Listen“ (dort „+“ für eine neue Liste; der doppelte Knopf „Neue Liste“
   oben ist weg). Handy: Der Titel ist der Umschalter („Wocheneinkauf ▾“), das Sheet hat „Neue Liste“.
@@ -232,7 +241,7 @@ Bilder (Hauptbild + Galerie), Quelle. Vereinfacht wird so:
   entstanden. Jeder Artikel zeigt darunter, wofür er ist („für Spaghetti Bolognese, Rindergulasch“). „+ Rezept“ fügt
   die Zutaten eines weiteren Rezepts hinzu.
 
-### 3.5 Profil
+### 3.6 Profil
 
 Trennlinien-Fehler behoben (siehe Radien/Trennlinien oben). Gilt auch für alle anderen Karten-Listen.
 
@@ -260,5 +269,4 @@ Die Reihenfolge entscheidet Kolja.
   Hauptdesign, nicht der Sonderfall. Schreib-Endpoints für `/categories` (zuweisen, anlegen, Farbe, Reihenfolge) prüft
   der Lead; fehlen sie, blockiert das nur diese Teile. „Heute geplant“, Einkauf, Gruppen, „Geteilt mit dir“ hängen an
   B4/B5/B6 – Start muss auch ohne diese Blöcke vollständig wirken. Facetten-Zahlen wären eine neue Backend-Frage.
-- **Desktop-Zutatenzeile:** Vorschlag an Kolja: was man tippt, steht da (kein Grau), Zusatz als eigene schmale Spalte.
 - Editor: Zusatz bei Katalog-Zutat erhalten (Draft-Änderung, siehe 3.3).
