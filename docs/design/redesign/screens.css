@@ -2361,12 +2361,16 @@ a.row.set:hover {
 .range::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(var(--fg-muted), var(--fg-muted)) 0 / var(--p) 100% no-repeat, var(--divider);
+  background:
+    linear-gradient(var(--fg-muted), var(--fg-muted)) 0 / var(--p) 100% no-repeat,
+    var(--divider);
 }
 .range::-moz-range-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(var(--fg-muted), var(--fg-muted)) 0 / var(--p) 100% no-repeat, var(--divider);
+  background:
+    linear-gradient(var(--fg-muted), var(--fg-muted)) 0 / var(--p) 100% no-repeat,
+    var(--divider);
 }
 .range::-webkit-slider-thumb {
   appearance: none;
@@ -2592,4 +2596,20 @@ button.photo.zoom {
 }
 .me-btn:active .avatar {
   outline: 2px solid var(--border-strong, var(--border));
+}
+
+/* Category dots in list rows: hover target a bit larger than the 8px dots (tooltip names the categories) */
+.cat-dots[data-tip] {
+  padding: 4px;
+  margin: -4px;
+  border-radius: var(--r-sm);
+  cursor: default;
+}
+@media (hover: hover) {
+  /* the dots sit at the row's right edge: open the tooltip leftwards (postxl Tooltip does this by collision) */
+  .cat-dots[data-tip]:hover::after {
+    left: auto;
+    right: 0;
+    translate: 0 0;
+  }
 }

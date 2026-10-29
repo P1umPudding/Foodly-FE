@@ -193,6 +193,11 @@ Funktional wie `ListState` heute (`src/list/state.ts`); einzige Erweiterung: `de
   *anderen* Kategorien als Punkte, die eigene ist ja schon die Linie.
 - Die Kategorie-Seite nutzt dieselbe Leiste ohne Filter und Gliederung.
 
+- **Kategorie-Punkte in Zeilen** (Kolja, 29.10.): Auf dem Desktop nennt ein Tooltip beim Hovern die Kategorien
+  („Backen & Süßes, Sonntagsessen“; in der gruppierten Ansicht „Auch in: …“, weil die eigene Gruppe nicht als Punkt
+  erscheint). Genauso wie die Zugriffs-Icons daneben. Ein Tooltip für die ganze Punkt-Gruppe, Trefferfläche etwas
+  größer als die 8-px-Punkte. Auf dem Handy kein Tooltip: Die Kategorien stehen im Detail.
+
 ### 3.2 Timer ohne Koch-Modus
 
 - **Timer-Knopf** in jeder Kopfzeile (auch im Koch-Modus), zeigt den nächsten ablaufenden Timer („18:42“).
@@ -270,6 +275,9 @@ Trennlinien-Fehler behoben (siehe Radien/Trennlinien oben). Gilt auch für alle 
   Foodly. `colorLight`/`colorDark` bleiben optionaler Override ohne eigene Eingabe im UI.
 - ~~Reihenfolge der Umsetzung~~ **entschieden**, siehe Abschnitt 4.
 - ~~Profil auf dem Handy~~ **entschieden:** Avatar oben rechts (Abschnitt 1.6).
+  Erste Ausbaustufe (R3): Avatar öffnet ein `DropdownMenu` (Name, Theme, Wake-Lock) statt einer eigenen Profilseite.
+  Die Profilseite im Mockup kommt, sobald es mehr Einstellungen gibt (z. B. Kategorien verwalten).
+- Farb-Overrides: siehe ADR `docs/decisions/0002-category-colors.md` (Override ersetzt nur `dot`, Util liefert Hex).
 - **B11:** Kategorie-Symbol als Tag-Referenz (Backend, später; bis dahin Anfangsbuchstabe).
 - **Backend-Abhängigkeiten** (Lead-Review): B1 Bilder (#9) offen, deshalb ist die Ohne-Foto-Variante das
   Hauptdesign, nicht der Sonderfall. Kategorien: laut 02_API_Design dokumentiert sind

@@ -13,22 +13,29 @@
   // Icons are inlined (not <use href="#…">): a fragment reference inside a srcdoc frame resolves against the
   // parent URL in some browsers and then renders nothing.
   const ICON = {}
-  window.ICONS.replace(/<symbol id="i-([a-z0-9-]+)" viewBox="0 0 24 24">(.*?)<\/symbol>/gs, (_, n, inner) => (ICON[n] = inner))
+  window.ICONS.replace(
+    /<symbol id="i-([a-z0-9-]+)" viewBox="0 0 24 24">(.*?)<\/symbol>/gs,
+    (_, n, inner) => (ICON[n] = inner),
+  )
   const icon = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24">${ICON[n] ?? ''}</svg>`
 
   const R = Object.fromEntries(RECIPES.map((r) => [r.id, r]))
-  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+  const esc = (s) =>
+    String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
   const route = (p) => `#/${p}`
   const hasImg = (r) => IMG && r.img
   const catsOf = (r) => CATEGORIES.filter((c) => c.recipes.includes(r.id))
   const cv = (c) => `style="--c:${c.color}"`
-  const mins = (m) => (m == null ? '' : m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}` : `${m} min`)
+  const mins = (m) =>
+    m == null ? '' : m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}` : `${m} min`
   const fmtRating = (x) => x.toFixed(1).replace('.', ',')
   const owner = (r) => USERS[r.owner]
   const roleOf = (r) => (r.owner === ME ? 'owner' : r.editors.includes(ME) ? 'editor' : 'viewer')
   const collabOf = (r) => (r.editors.length ? 'collaborative' : r.viewers.length ? 'shared' : 'private')
   const ALL_TAGS = [...new Set(RECIPES.flatMap((r) => r.tags))].sort()
-  const ALL_INGS = [...new Set(RECIPES.flatMap((r) => r.sections.flatMap((s) => s.ingredients.map((i) => i.name))))].sort()
+  const ALL_INGS = [
+    ...new Set(RECIPES.flatMap((r) => r.sections.flatMap((s) => s.ingredients.map((i) => i.name)))),
+  ].sort()
   const UNCAT = 0
   const DUR_MAX = 180 // slider end; like today, the far right is 180 min, "no limit" is the reset
 
@@ -44,12 +51,16 @@
     lb: qs.get('lb') !== null ? Number(qs.get('lb')) : null, // lightbox photo index // "Ohne Kategorie" starts folded, as today
   }
   const F = { cats: [], tags: [], ings: [], dur: null, role: 'any', collab: 'any', q: '' }
-  const presetFilters = () => Object.assign(F, { cats: [], tags: ['Vegetarisch'], ings: [], dur: 30, role: 'any', collab: 'any', q: '' })
-  const clearFilters = () => Object.assign(F, { cats: [], tags: [], ings: [], dur: null, role: 'any', collab: 'any', q: '' })
-  const facetCount = () => F.cats.length + F.tags.length + F.ings.length + (F.dur !== null) + (F.role !== 'any') + (F.collab !== 'any')
+  const presetFilters = () =>
+    Object.assign(F, { cats: [], tags: ['Vegetarisch'], ings: [], dur: 30, role: 'any', collab: 'any', q: '' })
+  const clearFilters = () =>
+    Object.assign(F, { cats: [], tags: [], ings: [], dur: null, role: 'any', collab: 'any', q: '' })
+  const facetCount = () =>
+    F.cats.length + F.tags.length + F.ings.length + (F.dur !== null) + (F.role !== 'any') + (F.collab !== 'any')
   const toggleIn = (arr, v) => (arr.includes(v) ? arr.splice(arr.indexOf(v), 1) : arr.push(v))
 
-  const inCats = (r) => !F.cats.length || (F.cats.includes(UNCAT) && !catsOf(r).length) || catsOf(r).some((c) => F.cats.includes(c.id))
+  const inCats = (r) =>
+    !F.cats.length || (F.cats.includes(UNCAT) && !catsOf(r).length) || catsOf(r).some((c) => F.cats.includes(c.id))
   const matches = (r) =>
     inCats(r) &&
     F.tags.every((t) => r.tags.includes(t)) &&
@@ -57,7 +68,10 @@
     (F.dur === null || (r.work != null && r.work <= F.dur)) &&
     (F.role === 'any' || roleOf(r) === F.role) &&
     (F.collab === 'any' || collabOf(r) === F.collab) &&
-    (!F.q.trim() || (r.name + ' ' + r.sections.flatMap((s) => s.ingredients.map((i) => i.name)).join(' ')).toLowerCase().includes(F.q.trim().toLowerCase()))
+    (!F.q.trim() ||
+      (r.name + ' ' + r.sections.flatMap((s) => s.ingredients.map((i) => i.name)).join(' '))
+        .toLowerCase()
+        .includes(F.q.trim().toLowerCase()))
   const SORTS = [
     { key: 'name', label: 'Name', icon: 'type', v: (r) => r.name.toLowerCase() },
     { key: 'work', label: 'Arbeitszeit', icon: 'clock', v: (r) => r.work },
@@ -71,18 +85,38 @@
     return [...rs].sort((a, b) => (v(a) == null ? 1 : v(b) == null ? -1 : v(a) < v(b) ? -d : v(a) > v(b) ? d : 0))
   }
   const dirLabel = (k = UI.sortKey, d = UI.sortDir) =>
-    k === 'name' ? (d === 'asc' ? 'A → Z' : 'Z → A') : k === 'rating' ? (d === 'asc' ? 'Schlechteste zuerst' : 'Beste zuerst') : d === 'asc' ? 'Kürzeste zuerst' : 'Längste zuerst'
-  const dirIcon = () => (UI.sortKey === 'name' ? (UI.sortDir === 'asc' ? 'arrow-up-a-z' : 'arrow-down-z-a') : UI.sortDir === 'asc' ? 'arrow-up-narrow-wide' : 'arrow-down-wide-narrow')
+    k === 'name'
+      ? d === 'asc'
+        ? 'A → Z'
+        : 'Z → A'
+      : k === 'rating'
+        ? d === 'asc'
+          ? 'Schlechteste zuerst'
+          : 'Beste zuerst'
+        : d === 'asc'
+          ? 'Kürzeste zuerst'
+          : 'Längste zuerst'
+  const dirIcon = () =>
+    UI.sortKey === 'name'
+      ? UI.sortDir === 'asc'
+        ? 'arrow-up-a-z'
+        : 'arrow-down-z-a'
+      : UI.sortDir === 'asc'
+        ? 'arrow-up-narrow-wide'
+        : 'arrow-down-wide-narrow'
 
   /* ---------------- category atoms ---------------- */
-  const catGlyph = (c) => (c.icon ? `<span class="emoji">${c.icon}</span>` : `<span class="cat-initial">${esc(c.name[0])}</span>`)
+  const catGlyph = (c) =>
+    c.icon ? `<span class="emoji">${c.icon}</span>` : `<span class="cat-initial">${esc(c.name[0])}</span>`
   const catMark = (c, cls = '') => `<span class="cat-mark cat ${cls}" ${cv(c)}>${catGlyph(c)}</span>`
-  const chip = (c) => `<span class="cat-chip cat" ${cv(c)}>${c.icon ? `<span class="emoji">${c.icon}</span>` : ''}${esc(c.name)}</span>`
+  const chip = (c) =>
+    `<span class="cat-chip cat" ${cv(c)}>${c.icon ? `<span class="emoji">${c.icon}</span>` : ''}${esc(c.name)}</span>`
   const dot = (c) => `<span class="cat cat-dot" ${cv(c)}></span>`
   const dots = (r, except) => {
     const cs = catsOf(r).filter((c) => c.id !== except)
     if (!cs.length) return ''
-    return `<span class="cat-dots">${cs.slice(0, 3).map(dot).join('')}${cs.length > 3 ? `<span class="more">+${cs.length - 3}</span>` : ''}</span>`
+    // Desktop: hovering the dots names the categories (postxl Tooltip in the app), like the access icons next to them.
+    return `<span class="cat-dots" data-tip="${except ? 'Auch in: ' : ''}${esc(cs.map((c) => c.name).join(', '))}">${cs.slice(0, 3).map(dot).join('')}${cs.length > 3 ? `<span class="more">+${cs.length - 3}</span>` : ''}</span>`
   }
   const catLine = (r) => {
     const cs = catsOf(r)
@@ -100,7 +134,9 @@
   const COLLAB_I = { shared: ['share-2', 'Geteilt (nur lesen)'], collaborative: ['users', 'Kollaborativ'] }
   const access = (r) => {
     const a = [ROLE_I[roleOf(r)], COLLAB_I[collabOf(r)]].filter(Boolean)
-    return a.length ? `<span class="access">${a.map(([i, t]) => `<span class="tip" data-tip="${t}">${icon(i)}</span>`).join('')}</span>` : ''
+    return a.length
+      ? `<span class="access">${a.map(([i, t]) => `<span class="tip" data-tip="${t}">${icon(i)}</span>`).join('')}</span>`
+      : ''
   }
 
   function thumb(r, cls = 'thumb') {
@@ -178,13 +214,28 @@
   ]
   const concept = `<span class="concept">Konzept</span>`
   // Breadcrumb shows where you came from (Einkauf / Spaghetti …), falling back to the logical parent.
-  const LABEL = { home: 'Start', list: 'Rezepte', listf: 'Rezepte', category: 'Favoriten', planner: 'Planer', shopping: 'Einkauf', groups: 'Gruppen', profile: 'Profil', categories: 'Kategorien', detail: 'Spaghetti Bolognese', detail2: 'Caesar Salad' }
+  const LABEL = {
+    home: 'Start',
+    list: 'Rezepte',
+    listf: 'Rezepte',
+    category: 'Favoriten',
+    planner: 'Planer',
+    shopping: 'Einkauf',
+    groups: 'Gruppen',
+    profile: 'Profil',
+    categories: 'Kategorien',
+    detail: 'Spaghetti Bolognese',
+    detail2: 'Caesar Salad',
+  }
   const crumb = (fallback) => `<span class="subtle">${LABEL[HIST[HIST.length - 1]] ?? fallback} /</span> `
   const tip = (t, inner, cls = '') => `<span class="tip ${cls}" data-tip="${t}">${inner}</span>`
   // Phone: the profile sits behind the avatar at the far right of the top bar on every main page (like X/Reddit),
   // so the tab bar stays for content destinations. Desktop has it at the bottom of the side nav.
   const meBtn = `<a class="me-btn only-m" href="${route('profile')}" aria-label="Profil & Einstellungen"><span class="avatar">K</span></a>`
-  function shell(active, { title = '', actions = '', body = '', wide = false, mobileTitle, back, activeCat, sheets = '' } = {}) {
+  function shell(
+    active,
+    { title = '', actions = '', body = '', wide = false, mobileTitle, back, activeCat, sheets = '' } = {},
+  ) {
     const C = UI.side
     const side = `
       <aside class="sidenav">
@@ -256,11 +307,46 @@
   const listSummary = (arr, label) => (arr.length === 1 ? label(arr[0]) : `${label(arr[0])} +${arr.length - 1}`)
   const catName = (id) => (id === UNCAT ? 'Ohne Kategorie' : CATEGORIES.find((c) => c.id === id).name)
   const FACETS = [
-    { key: 'cat', label: 'Kategorie', icon: 'folder', n: () => F.cats.length, value: () => listSummary(F.cats, catName), clr: 'cats' },
-    { key: 'tag', label: 'Tags', icon: 'tag', n: () => F.tags.length, value: () => listSummary(F.tags, (t) => t), clr: 'tags' },
-    { key: 'ing', label: 'Zutaten', icon: 'list-checks', n: () => F.ings.length, value: () => listSummary(F.ings, (t) => t), clr: 'ings' },
-    { key: 'time', label: 'Arbeitszeit', icon: 'clock', n: () => +(F.dur !== null), value: () => `≤ ${F.dur} min`, clr: 'dur' },
-    { key: 'access', label: 'Zugriff', icon: 'users', n: () => (F.role !== 'any') + (F.collab !== 'any'), value: () => [ROLE_L[F.role], COLLAB_L[F.collab]].filter(Boolean).join(' · '), clr: 'access' },
+    {
+      key: 'cat',
+      label: 'Kategorie',
+      icon: 'folder',
+      n: () => F.cats.length,
+      value: () => listSummary(F.cats, catName),
+      clr: 'cats',
+    },
+    {
+      key: 'tag',
+      label: 'Tags',
+      icon: 'tag',
+      n: () => F.tags.length,
+      value: () => listSummary(F.tags, (t) => t),
+      clr: 'tags',
+    },
+    {
+      key: 'ing',
+      label: 'Zutaten',
+      icon: 'list-checks',
+      n: () => F.ings.length,
+      value: () => listSummary(F.ings, (t) => t),
+      clr: 'ings',
+    },
+    {
+      key: 'time',
+      label: 'Arbeitszeit',
+      icon: 'clock',
+      n: () => +(F.dur !== null),
+      value: () => `≤ ${F.dur} min`,
+      clr: 'dur',
+    },
+    {
+      key: 'access',
+      label: 'Zugriff',
+      icon: 'users',
+      n: () => (F.role !== 'any') + (F.collab !== 'any'),
+      value: () => [ROLE_L[F.role], COLLAB_L[F.collab]].filter(Boolean).join(' · '),
+      clr: 'access',
+    },
   ]
   const checkRow = (on, act, label, n, lead = '', after = '') =>
     `<div class="ck-row"><button class="ck ${on ? 'on' : ''}" data-act="${act}"><span class="check ${on ? 'on' : ''}">${on ? icon('check') : ''}</span>${lead}<span class="grow ellipsis">${label}</span><span class="subtle num">${n}</span></button>${after}</div>`
@@ -269,14 +355,23 @@
   const countBy = (pred) => RECIPES.filter(pred).length
   const facetBody = (k) => {
     if (k === 'cat') {
-      return `<div class="ck-list">${checkRow(F.cats.includes(UNCAT), `fcat:${UNCAT}`, 'Ohne Kategorie', countBy((r) => !catsOf(r).length), '<span class="cat-dot none"></span>')}${CATEGORIES.map((c) => checkRow(F.cats.includes(c.id), `fcat:${c.id}`, esc(c.name), c.recipes.length, dot(c))).join('')}</div>
+      return `<div class="ck-list">${checkRow(
+        F.cats.includes(UNCAT),
+        `fcat:${UNCAT}`,
+        'Ohne Kategorie',
+        countBy((r) => !catsOf(r).length),
+        '<span class="cat-dot none"></span>',
+      )}${CATEGORIES.map((c) => checkRow(F.cats.includes(c.id), `fcat:${c.id}`, esc(c.name), c.recipes.length, dot(c))).join('')}</div>
         <p class="fhint fp-hint">Mehrere = Rezepte aus einer davon.</p>`
     }
     if (k === 'tag' || k === 'ing') {
       const all = k === 'tag' ? ALL_TAGS : ALL_INGS
       const sel = k === 'tag' ? F.tags : F.ings
-      const has = (r, v) => (k === 'tag' ? r.tags.includes(v) : r.sections.some((s) => s.ingredients.some((i) => i.name === v)))
-      const rest = all.filter((v) => !sel.includes(v)).sort((a, b) => countBy((r) => has(r, b)) - countBy((r) => has(r, a)))
+      const has = (r, v) =>
+        k === 'tag' ? r.tags.includes(v) : r.sections.some((s) => s.ingredients.some((i) => i.name === v))
+      const rest = all
+        .filter((v) => !sel.includes(v))
+        .sort((a, b) => countBy((r) => has(r, b)) - countBy((r) => has(r, a)))
       const rows = [...sel, ...rest].slice(0, k === 'tag' ? 40 : 9)
       return `<label class="input sm search fp-search">${icon('search')}<input placeholder="${k === 'tag' ? 'Tag' : 'Zutat'} suchen"></label>
         <div class="ck-list scroll">${rows.map((v) => checkRow(sel.includes(v), `${k === 'tag' ? 'ftag' : 'fing'}:${v}`, esc(v), '', k === 'tag' && TAG_ICONS[v] ? icon(TAG_ICONS[v], 'subtle') : '')).join('')}</div>
@@ -344,7 +439,9 @@
          ['detailed', 'layout-list', 'Detailliert'],
          ['tiles', 'layout-grid', 'Kacheln'],
        ]
-         .map(([v, i, l]) => `<button class="${UI.view === v ? 'on' : ''}" data-act="view:${v}">${icon(i)}${l}</button>`)
+         .map(
+           ([v, i, l]) => `<button class="${UI.view === v ? 'on' : ''}" data-act="view:${v}">${icon(i)}${l}</button>`,
+         )
          .join('')}</div>
        <div class="col-h" style="margin-top:20px">Gliederung</div>
        <div class="seg full"><button class="${UI.grouped ? 'on' : ''}" data-act="group:cat">${icon('list-tree')}Nach Kategorie</button><button class="${UI.grouped ? '' : 'on'}" data-act="group:flat">${icon('list')}Einfache Liste</button></div>`,
@@ -367,7 +464,8 @@
     const todaySmall = ([r, slot]) =>
       `<a class="ccard" href="${route('detail')}">${media(r)}<div class="cbody"><div class="slot">${slot}</div><div class="ct">${esc(r.name)}</div><div class="meta">${timeMeta(r)}</div></div></a>`
     const tiles = CATEGORIES.map(
-      (c) => `<a class="cat-tile cat" ${cv(c)} href="${route('category')}">${catMark(c)}<span class="ct-name ellipsis">${esc(c.name)}</span><span class="ct-count num">${c.recipes.length}</span></a>`,
+      (c) =>
+        `<a class="cat-tile cat" ${cv(c)} href="${route('category')}">${catMark(c)}<span class="ct-name ellipsis">${esc(c.name)}</span><span class="ct-count num">${c.recipes.length}</span></a>`,
     ).join('')
     const body = `
       <div class="home-head">
@@ -389,13 +487,21 @@
         <aside>
           <div class="section-h"><h2>Geteilt mit dir</h2></div>
           <div class="card rows divided pad-rows">${shared
-            .map((r) => `<a class="row" href="${route('detail')}">${thumb(r, 'thumb sm')}<div class="grow"><div class="t ellipsis">${esc(r.name)}</div><div class="meta"><span>von ${owner(r).name}</span></div></div></a>`)
+            .map(
+              (r) =>
+                `<a class="row" href="${route('detail')}">${thumb(r, 'thumb sm')}<div class="grow"><div class="t ellipsis">${esc(r.name)}</div><div class="meta"><span>von ${owner(r).name}</span></div></div></a>`,
+            )
             .join('')}</div>
           <div class="section-h"><h2>Einkauf ${concept}</h2></div>
           <a class="card shop-mini" href="${route('shopping')}"><div class="grow"><div class="t">${SHOPPING.name}</div><div class="subtle num" style="font-size:12px">${SHOPPING.range} · 9 von 12 offen</div></div>${icon('chevron-right', 'subtle')}</a>
         </aside>
       </div>`
-    return shell('home', { title: 'Start', mobileTitle: `<span class="m-brand"><span class="brand-mark">${icon('chef-hat')}</span>Foodly</span>`, body, sheets: fab })
+    return shell('home', {
+      title: 'Start',
+      mobileTitle: `<span class="m-brand"><span class="brand-mark">${icon('chef-hat')}</span>Foodly</span>`,
+      body,
+      sheets: fab,
+    })
   }
 
   const listBody = () => {
@@ -410,7 +516,8 @@
       // only selected categories are shown while the category filter is active.
       const groups = []
       const none = vis.filter((r) => !catsOf(r).length)
-      if (none.length && (!F.cats.length || F.cats.includes(UNCAT))) groups.push({ key: 'uncat', name: 'Ohne Kategorie', rs: none })
+      if (none.length && (!F.cats.length || F.cats.includes(UNCAT)))
+        groups.push({ key: 'uncat', name: 'Ohne Kategorie', rs: none })
       CATEGORIES.filter((c) => !F.cats.length || F.cats.includes(c.id)).forEach((c) => {
         const rs = vis.filter((r) => c.recipes.includes(r.id))
         if (rs.length) groups.push({ key: 'c' + c.id, c, name: c.name, rs })
@@ -436,13 +543,15 @@
     return shell('list', { title: 'Rezepte', body, wide: true, sheets: sheets + fab })
   }
   S.listf = () => {
-    if (!S.listf.done) presetFilters(), (S.listf.done = true)
+    if (!S.listf.done) (presetFilters(), (S.listf.done = true))
     return S.list()
   }
 
   S.category = () => {
     const c = CATEGORIES[0]
-    const rs = sorted(c.recipes.map((id) => R[id]).filter((r) => !F.q.trim() || r.name.toLowerCase().includes(F.q.toLowerCase())))
+    const rs = sorted(
+      c.recipes.map((id) => R[id]).filter((r) => !F.q.trim() || r.name.toLowerCase().includes(F.q.toLowerCase())),
+    )
     const body = `
       <div class="cat-head cat" ${cv(c)}>
         ${catMark(c, 'xl')}
@@ -452,15 +561,40 @@
       <div style="margin-top:16px">${toolbar({ filters: false, count: `${rs.length} Rezepte` })}</div>
       <div style="margin-top:12px">${items(rs, { except: c.id })}</div>`
     const sheets = UI.sheet === 'view' ? viewSheet() : ''
-    return shell('list', { title: `${crumb('Rezepte')}${esc(c.name)}`, mobileTitle: '', back: 'list', actions: `<button class="btn ghost icon">${icon('more-horizontal')}</button>`, body, activeCat: c.id, wide: UI.view === 'tiles', sheets: sheets + fab })
+    return shell('list', {
+      title: `${crumb('Rezepte')}${esc(c.name)}`,
+      mobileTitle: '',
+      back: 'list',
+      actions: `<button class="btn ghost icon">${icon('more-horizontal')}</button>`,
+      body,
+      activeCat: c.id,
+      wide: UI.view === 'tiles',
+      sheets: sheets + fab,
+    })
   }
 
   // "30 Minuten", "ca. 2 Stunden", "5–6 Minuten" inside a step become tap-to-start timers (no cook mode needed).
   const withTimers = (t) =>
-    esc(t).replace(/(ca\. )?(\d+(?:[–-]\d+)?)\s(Minuten|Stunden)/g, (m, ca, n, u) => `<button class="t-chip" data-act="sheet:timer">${icon('timer')}${ca ?? ''}${n} ${u === 'Minuten' ? 'Min.' : 'Std.'}</button>`)
+    esc(t).replace(
+      /(ca\. )?(\d+(?:[–-]\d+)?)\s(Minuten|Stunden)/g,
+      (m, ca, n, u) =>
+        `<button class="t-chip" data-act="sheet:timer">${icon('timer')}${ca ?? ''}${n} ${u === 'Minuten' ? 'Min.' : 'Std.'}</button>`,
+    )
 
   // Main image first, then the gallery (recipe.mainImage + recipe.images).
-  const photosOf = (r) => [r.img, ...['tomatensuppe', 'ofengemuese', 'kuerbissuppe', 'gulasch', 'curry', 'caesar', 'bauernsalat', 'pfannkuchen'].filter((g) => g !== r.img)]
+  const photosOf = (r) => [
+    r.img,
+    ...[
+      'tomatensuppe',
+      'ofengemuese',
+      'kuerbissuppe',
+      'gulasch',
+      'curry',
+      'caesar',
+      'bauernsalat',
+      'pfannkuchen',
+    ].filter((g) => g !== r.img),
+  ]
   const lightbox = (pics) => {
     const i = Math.min(UI.lb, pics.length - 1)
     return `<div class="lb" role="dialog" aria-label="Fotos">
@@ -486,12 +620,18 @@
     const note = r.notes.length ? `<ul class="notes">${r.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''
     const actions = `<div class="d-actions">${sizeCtl}<a class="btn primary" href="${route('cook')}">${icon('chef-hat')}Kochen</a></div>`
     const info = `${catCtl}<h2 class="page-title d-title">${esc(r.name)}</h2>${meta}<div class="chips" style="margin-top:12px">${tags}</div>`
-    const head = hasImg(r) ? `<div class="dA"><button class="photo dA-img zoom" data-act="lb:0" aria-label="Foto groß ansehen"><img src="img/${r.img}.jpg" alt=""></button><div>${info}${note}${actions}</div></div>` : `<div class="d-noimg">${info}${note}${actions}</div>`
+    const head = hasImg(r)
+      ? `<div class="dA"><button class="photo dA-img zoom" data-act="lb:0" aria-label="Foto groß ansehen"><img src="img/${r.img}.jpg" alt=""></button><div>${info}${note}${actions}</div></div>`
+      : `<div class="d-noimg">${info}${note}${actions}</div>`
     const ings = (s) =>
       `<ul class="ings">${s.ingredients.map((g) => `<li><span class="amt num">${[g.prefix, g.amount, g.unit].filter(Boolean).join(' ')}</span><span class="ing">${esc(g.name ?? '')}${g.text ? ` <span class="muted">${esc(g.text)}</span>` : ''}</span></li>`).join('')}</ul>`
-    const steps = (s) => `<ol class="steps">${s.steps.map((t, i) => `<li><span class="sn num">${i + 1}</span><span>${withTimers(t)}</span></li>`).join('')}</ol>`
+    const steps = (s) =>
+      `<ol class="steps">${s.steps.map((t, i) => `<li><span class="sn num">${i + 1}</span><span>${withTimers(t)}</span></li>`).join('')}</ol>`
     const sections = r.sections
-      .map((s) => `<section class="rsec">${s.name && r.sections.length > 1 ? `<h3 class="rsec-h">${esc(s.name)}</h3>` : ''}<div class="rsec-grid"><div><div class="col-h">Zutaten</div>${ings(s)}</div><div><div class="col-h">Zubereitung</div>${steps(s)}</div></div></section>`)
+      .map(
+        (s) =>
+          `<section class="rsec">${s.name && r.sections.length > 1 ? `<h3 class="rsec-h">${esc(s.name)}</h3>` : ''}<div class="rsec-grid"><div><div class="col-h">Zutaten</div>${ings(s)}</div><div><div class="col-h">Zubereitung</div>${steps(s)}</div></div></section>`,
+      )
       .join('')
     const pics = photosOf(r)
     const gallery = hasImg(r)
@@ -509,11 +649,27 @@
   // Phone: icons only. Edit right → pencil; view-only → copy ("Kopie erstellen" is how a viewer gets an editable version).
   const detailActionsFor = (r) => {
     const canEdit = roleOf(r) !== 'viewer'
-    const editM = canEdit ? `<a class="btn ghost icon only-m" href="${route('editor')}" aria-label="Bearbeiten">${icon('pencil')}</a>` : `<button class="btn ghost icon only-m" aria-label="Kopie erstellen">${icon('copy')}</button>`
+    const editM = canEdit
+      ? `<a class="btn ghost icon only-m" href="${route('editor')}" aria-label="Bearbeiten">${icon('pencil')}</a>`
+      : `<button class="btn ghost icon only-m" aria-label="Kopie erstellen">${icon('copy')}</button>`
     return `${tip('Teilen', `<button class="btn ghost icon" aria-label="Teilen">${icon('share-2')}</button>`)}${tip('Kopie erstellen', `<button class="btn ghost icon hide-m" aria-label="Kopie erstellen">${icon('copy')}</button>`)}${canEdit ? `<a class="btn hide-m" href="${route('editor')}">${icon('pencil')}Bearbeiten</a>` : ''}${editM}`
   }
-  S.detail = () => shell('list', { title: `${crumb('Rezepte')}${esc(R[1].name)}`, mobileTitle: '', back: 'list', actions: detailActionsFor(R[1]), body: detailBody(R[1]) })
-  S.detail2 = () => shell('list', { title: `${crumb('Rezepte')}${esc(R[10].name)}`, mobileTitle: '', back: 'list', actions: detailActionsFor(R[10]), body: detailBody(R[10]) })
+  S.detail = () =>
+    shell('list', {
+      title: `${crumb('Rezepte')}${esc(R[1].name)}`,
+      mobileTitle: '',
+      back: 'list',
+      actions: detailActionsFor(R[1]),
+      body: detailBody(R[1]),
+    })
+  S.detail2 = () =>
+    shell('list', {
+      title: `${crumb('Rezepte')}${esc(R[10].name)}`,
+      mobileTitle: '',
+      back: 'list',
+      actions: detailActionsFor(R[10]),
+      body: detailBody(R[10]),
+    })
   S.timer = () => {
     UI.sheet = 'timer'
     return S.detail()
@@ -556,7 +712,8 @@
   /* ---------------- Editor: every field the model has, nothing more ---------------- */
   S.editor = () => {
     const r = R[1]
-    const field = (label, inner, hint = '') => `<div class="field"><span class="flabel">${label}</span>${inner}${hint ? `<span class="fhint">${hint}</span>` : ''}</div>`
+    const field = (label, inner, hint = '') =>
+      `<div class="field"><span class="flabel">${label}</span>${inner}${hint ? `<span class="fhint">${hint}</span>` : ''}</div>`
     // What you type is what you see: "ca. 800" stays one plain value; prefix/amount are split on save.
     const amtView = (g) => `<input value="${esc([g.prefix, g.amount].filter(Boolean).join(' '))}" placeholder="Menge">`
     const nameView = (g) => `<input value="${esc(g.name ?? '')}" placeholder="Zutat">${icon('search', 'subtle')}`
@@ -574,7 +731,10 @@
         <div class="ed-adds"><button class="btn ghost sm add">${icon('plus')}Zutat</button><button class="btn ghost sm add">${icon('clipboard-paste')}Mehrere einfügen</button></div>
         <div class="col-h" style="margin-top:18px">Zubereitung</div>
         ${s.steps
-          .map((t, i) => `<div class="ed-step"><span class="sn num">${i + 1}</span><div class="input area"><textarea rows="2">${esc(t)}</textarea></div><button class="btn ghost sm icon">${icon('ellipsis-vertical')}</button></div>`)
+          .map(
+            (t, i) =>
+              `<div class="ed-step"><span class="sn num">${i + 1}</span><div class="input area"><textarea rows="2">${esc(t)}</textarea></div><button class="btn ghost sm icon">${icon('ellipsis-vertical')}</button></div>`,
+          )
           .join('')}
         <button class="btn ghost sm add">${icon('plus')}Schritt</button>
         ${si === 0 ? `<p class="fhint ed-hint">Zeitangaben wie „30 Minuten“ werden im Rezept zu Timern, die man antippen kann.</p>` : ''}
@@ -657,7 +817,10 @@
       <div class="plan-m only-m">
         ${PLAN.days
           .map(
-            (d, i) => `<div class="pm-day ${i === PLAN.today ? 'today' : ''}"><div class="pm-h">${d}${i === PLAN.today ? ' <span class="pm-today">Heute</span>' : ''}</div>
+            (
+              d,
+              i,
+            ) => `<div class="pm-day ${i === PLAN.today ? 'today' : ''}"><div class="pm-h">${d}${i === PLAN.today ? ' <span class="pm-today">Heute</span>' : ''}</div>
           ${PLAN.slots
             .map((s, si) => {
               const id = PLAN.entries[`${i}-${si}`]
@@ -677,7 +840,8 @@
     const groups = [...new Set(L.items.map((i) => i.group))]
     const open = L.items.filter((i) => !i.done).length
     const listRows = SHOPPING_LISTS.map(
-      (l, i) => `<button class="row ${i === 0 ? 'sel' : ''}" data-act="close"><div class="grow"><div class="t ellipsis">${l.name}</div><div class="subtle" style="font-size:12px">${l.range}</div></div><span class="subtle num" style="font-size:12px">${l.open ? `${l.open} offen` : 'erledigt'}</span></button>`,
+      (l, i) =>
+        `<button class="row ${i === 0 ? 'sel' : ''}" data-act="close"><div class="grow"><div class="t ellipsis">${l.name}</div><div class="subtle" style="font-size:12px">${l.range}</div></div><span class="subtle num" style="font-size:12px">${l.open ? `${l.open} offen` : 'erledigt'}</span></button>`,
     ).join('')
     const body = `
       <div class="shop">
@@ -697,20 +861,29 @@
           </div>
           ${groups
             .map(
-              (g) => `<div class="col-h" style="margin-top:20px">${g}</div><div class="rows">${L.items
-                .filter((i) => i.group === g)
-                .map(
-                  (i) =>
-                    `<div class="row sitem ${i.done ? 'done' : ''}"><span class="check ${i.done ? 'on' : ''}">${i.done ? icon('check') : ''}</span><div class="grow"><div class="t">${i.name}</div><div class="subtle s-from">für ${i.from.map((id) => esc(R[id].name)).join(', ')}</div></div><span class="muted num" style="font-size:13px">${i.amount}</span></div>`,
-                )
-                .join('')}</div>`,
+              (g) =>
+                `<div class="col-h" style="margin-top:20px">${g}</div><div class="rows">${L.items
+                  .filter((i) => i.group === g)
+                  .map(
+                    (i) =>
+                      `<div class="row sitem ${i.done ? 'done' : ''}"><span class="check ${i.done ? 'on' : ''}">${i.done ? icon('check') : ''}</span><div class="grow"><div class="t">${i.name}</div><div class="subtle s-from">für ${i.from.map((id) => esc(R[id].name)).join(', ')}</div></div><span class="muted num" style="font-size:13px">${i.amount}</span></div>`,
+                  )
+                  .join('')}</div>`,
             )
             .join('')}
         </div>
       </div>`
     // Phone: the title is the list switcher (no side column there).
     const mTitle = `<button class="title-switch" data-act="sheet:lists">${L.name}${icon('chevron-down')}</button> ${concept}`
-    const sheets = UI.sheet === 'lists' ? sheet('Einkaufslisten', `<div class="rows">${listRows}</div>`, 'side', `<button class="btn grow">${icon('plus')}Neue Liste</button>`) : ''
+    const sheets =
+      UI.sheet === 'lists'
+        ? sheet(
+            'Einkaufslisten',
+            `<div class="rows">${listRows}</div>`,
+            'side',
+            `<button class="btn grow">${icon('plus')}Neue Liste</button>`,
+          )
+        : ''
     return shell('shopping', { title: `Einkauf ${concept}`, mobileTitle: mTitle, body, sheets })
   }
 
@@ -734,7 +907,8 @@
   }
 
   S.profile = () => {
-    const sw = (t, d, on) => `<div class="row set"><div class="grow"><div class="t">${t}</div><div class="subtle" style="font-size:13px">${d}</div></div><span class="toggle ${on ? 'on' : ''}"></span></div>`
+    const sw = (t, d, on) =>
+      `<div class="row set"><div class="grow"><div class="t">${t}</div><div class="subtle" style="font-size:13px">${d}</div></div><span class="toggle ${on ? 'on' : ''}"></span></div>`
     const body = `
       <div class="narrow">
         <div class="prof-head"><span class="avatar lg">K</span><div><h2 class="page-title" style="font-size:22px">Kolja</h2><div class="muted" style="font-size:13px">42 Rezepte · 2 Gruppen</div></div></div>
@@ -750,14 +924,28 @@
   }
 
   S.categories = () => {
-    const swatches = ['#e11d48', '#f97316', '#f59e0b', '#fde047', '#84cc16', '#10b981', '#06b6d4', '#0ea5e9', '#1e3a8a', '#7c3aed', '#c026d3', '#78716c']
+    const swatches = [
+      '#e11d48',
+      '#f97316',
+      '#f59e0b',
+      '#fde047',
+      '#84cc16',
+      '#10b981',
+      '#06b6d4',
+      '#0ea5e9',
+      '#1e3a8a',
+      '#7c3aed',
+      '#c026d3',
+      '#78716c',
+    ]
     const edit = { name: 'Sommer', icon: '☀️', color: '#fde047' }
     const body = `
       <div class="narrow">
         <div class="section-h" style="margin-top:0"><h2>Meine Kategorien</h2><button class="btn sm">${icon('plus')}Neue Kategorie</button></div>
         <p class="muted" style="font-size:13px;margin:-4px 0 12px">Kategorien sind deine persönlichen Sammlungen. Ein Rezept kann in mehreren sein, andere sehen sie nicht.</p>
         <div class="card rows divided pad-rows">${CATEGORIES.map(
-          (c) => `<div class="row">${icon('grip-vertical', 'subtle hide-m')}${catMark(c)}<div class="grow"><div class="t">${esc(c.name)}</div><div class="subtle num" style="font-size:12px">${c.recipes.length} Rezepte</div></div><button class="btn ghost sm icon">${icon('more-horizontal')}</button></div>`,
+          (c) =>
+            `<div class="row">${icon('grip-vertical', 'subtle hide-m')}${catMark(c)}<div class="grow"><div class="t">${esc(c.name)}</div><div class="subtle num" style="font-size:12px">${c.recipes.length} Rezepte</div></div><button class="btn ghost sm icon">${icon('more-horizontal')}</button></div>`,
         ).join('')}</div>
         <div class="card cat-editor">
           <div class="col-h">Kategorie bearbeiten</div>
@@ -829,10 +1017,13 @@
     autofocus()
   }
   function act(a) {
-    const [k, v] = [a.slice(0, a.indexOf(':') < 0 ? a.length : a.indexOf(':')), a.includes(':') ? a.slice(a.indexOf(':') + 1) : '']
+    const [k, v] = [
+      a.slice(0, a.indexOf(':') < 0 ? a.length : a.indexOf(':')),
+      a.includes(':') ? a.slice(a.indexOf(':') + 1) : '',
+    ]
     if (k === 'view') UI.view = v
     else if (k === 'group') UI.grouped = v === 'cat'
-    else if (k === 'sort') (UI.sortKey = v), (UI.sortDir = v === 'rating' ? 'desc' : 'asc')
+    else if (k === 'sort') ((UI.sortKey = v), (UI.sortDir = v === 'rating' ? 'desc' : 'asc'))
     else if (k === 'dir') UI.sortDir = v
     else if (k === 'menu') UI.sheet = UI.sheet === v ? null : v
     else if (k === 'sheet') UI.sheet = UI.sheet === v ? null : v
@@ -855,7 +1046,7 @@
       else if (v === 'tags') F.tags = []
       else if (v === 'ings') F.ings = []
       else if (v === 'dur') F.dur = null
-      else if (v === 'access') (F.role = 'any'), (F.collab = 'any')
+      else if (v === 'access') ((F.role = 'any'), (F.collab = 'any'))
     }
     render(true)
   }
@@ -910,7 +1101,7 @@
     else if (e.key === 'ArrowLeft') act(`lb:${(UI.lb - 1 + n) % n}`)
   })
   window.addEventListener('hashchange', () => {
-    if (!EMBED) (screen = location.hash.replace('#/', '') || 'home'), (UI.sheet = null), render(false)
+    if (!EMBED) ((screen = location.hash.replace('#/', '') || 'home'), (UI.sheet = null), render(false))
   })
   render(false)
   autofocus()
