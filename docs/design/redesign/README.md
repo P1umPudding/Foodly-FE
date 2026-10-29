@@ -159,8 +159,9 @@ Funktional 1:1 wie `ListState` heute (`src/list/state.ts`), die Bedienung ist ne
     Kategorie-Seite.
   - Tags, Zutaten: Suche + Checkbox-Liste mit Trefferzahl, ausgewählte oben, dann die häufigsten; mehrere = UND.
     Bei Zutaten nur die häufigsten, den Rest über die Suche, statt einer Chip-Wand.
-  - Arbeitszeit: Beliebig, ≤ 15, ≤ 30, ≤ 60 oder „Höchstens … min“. Kein Regler mehr (heute: Regler, Zahl und Presets
-    für einen Wert).
+  - Arbeitszeit: **ein** Wert, drei Wege ihn zu setzen: Regler (0–180, 5er-Schritte), Feld „≤ … min“ und die
+    Schnellwahl 15 / 30 / 60. Die Schnellwahl ist keine eigene Auswahl, sie trägt nur in Regler und Feld ein und ist
+    hervorgehoben, solange der Wert passt. Regler und Feld folgen einander sofort. „Zurücksetzen“ bzw. ✕ = keine Grenze.
   - Zugriff: „Meine Rolle“ (Alle, Besitzer, Bearbeiter, Betrachter) und „Freigabe“ (Alle, Privat, Geteilt,
     Kollaborativ) als Optionsliste. Die heutige Logik für unmögliche Kombinationen bleibt.
 - **Zeile 3:** „5 von 14 Rezepten“ und „Alle Filter zurücksetzen“.

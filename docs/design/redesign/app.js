@@ -30,6 +30,7 @@
   const ALL_TAGS = [...new Set(RECIPES.flatMap((r) => r.tags))].sort()
   const ALL_INGS = [...new Set(RECIPES.flatMap((r) => r.sections.flatMap((s) => s.ingredients.map((i) => i.name))))].sort()
   const UNCAT = 0
+  const DUR_MAX = 180 // slider end; like today, the far right is 180 min, "no limit" is the reset
 
   /* ---------------- UI state (in-memory, like the real ListState) ---------------- */
   const UI = {
@@ -272,10 +273,15 @@
         <div class="ck-list scroll">${rows.map((v) => checkRow(sel.includes(v), `${k === 'tag' ? 'ftag' : 'fing'}:${v}`, esc(v), countBy((r) => has(r, v)), k === 'tag' && TAG_ICONS[v] ? icon(TAG_ICONS[v], 'subtle') : '')).join('')}</div>
         ${k === 'ing' ? `<p class="fhint fp-hint">Die häufigsten zuerst, alle anderen über die Suche. Mehrere = Rezept enthält alle.</p>` : `<p class="fhint fp-hint">Mehrere = Rezept hat alle.</p>`}`
     }
-    if (k === 'time')
-      return `<div class="ck-list">${[null, 15, 30, 60].map((m) => radioRow(F.dur === m, `dur:${m ?? 'none'}`, m === null ? 'Beliebig' : `≤ ${m} min`)).join('')}
-        <div class="ck custom"><span class="radio ${F.dur !== null && ![15, 30, 60].includes(F.dur) ? 'on' : ''}"></span><span>Höchstens</span><div class="input sm num dur-in"><input value="${F.dur !== null && ![15, 30, 60].includes(F.dur) ? F.dur : ''}" placeholder="45"><span class="subtle">min</span></div></div></div>
-        <p class="fhint fp-hint">Zählt die Arbeitszeit. Rezepte ohne Angabe fallen raus.</p>`
+    if (k === 'time') {
+      // One value, three ways to set it: slider, field, quick picks. The quick picks only fill in slider + field.
+      const v = F.dur ?? DUR_MAX
+      return `<div class="dur-pop">
+        <div class="dur-row"><input type="range" class="range" id="dur-range" min="0" max="${DUR_MAX}" step="5" value="${v}" style="--p:${(v / DUR_MAX) * 100}%" aria-label="Maximale Arbeitszeit">
+          <div class="input sm num dur-in"><span class="subtle">≤</span><input id="dur-field" inputmode="numeric" value="${F.dur ?? ''}" placeholder="–"><span class="subtle">min</span></div></div>
+        <div class="dur-quick">${[15, 30, 60].map((m) => `<button class="btn sm ${F.dur === m ? 'pressed' : ''}" data-act="dur:${m}">${m} min</button>`).join('')}</div>
+        <p class="fhint fp-hint">Zählt die Arbeitszeit. Rezepte ohne Angabe fallen raus.</p></div>`
+    }
     if (k === 'access')
       return `<div class="fp-sub">Meine Rolle</div><div class="ck-list">${[
         ['any', '', 'Alle'],
@@ -820,7 +826,30 @@
       if (to && to !== '#') go(to)
     }
   })
+  // Slider and field update each other live; the list re-renders when the drag/typing is done (change),
+  // so the slider is not rebuilt under the pointer.
+  const syncDur = (val) => {
+    const r = document.getElementById('dur-range')
+    const f = document.getElementById('dur-field')
+    if (r && document.activeElement !== r) r.value = val ?? DUR_MAX
+    if (r) r.style.setProperty('--p', `${((val ?? DUR_MAX) / DUR_MAX) * 100}%`)
+    if (f && document.activeElement !== f) f.value = val ?? ''
+  }
+  document.addEventListener('change', (e) => {
+    if (e.target.id === 'dur-range' || e.target.id === 'dur-field') render(true)
+  })
   document.addEventListener('input', (e) => {
+    if (e.target.id === 'dur-range') {
+      F.dur = Number(e.target.value)
+      syncDur(F.dur)
+      return
+    }
+    if (e.target.id === 'dur-field') {
+      const n = parseInt(e.target.value, 10)
+      F.dur = Number.isNaN(n) ? null : Math.min(DUR_MAX, Math.max(0, n))
+      syncDur(F.dur)
+      return
+    }
     if (e.target.id === 'q') {
       F.q = e.target.value
       render(true)

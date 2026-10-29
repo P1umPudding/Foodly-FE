@@ -2329,3 +2329,57 @@ a.row.set:hover {
 .toolbar .lb-right .seg button {
   height: 34px;
 }
+
+/* Arbeitszeit: slider + field + quick picks for one value */
+.dur-pop {
+  padding: 6px 6px 0;
+}
+.dur-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.range {
+  flex: 1;
+  min-width: 0;
+  height: 20px;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+.range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(var(--fg-muted), var(--fg-muted)) 0 / var(--p) 100% no-repeat, var(--divider);
+}
+.range::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(var(--fg-muted), var(--fg-muted)) 0 / var(--p) 100% no-repeat, var(--divider);
+}
+.range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--fg-muted);
+}
+.range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--fg-muted);
+}
+.dur-quick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+.dur-pop .fp-hint {
+  margin: 8px 0 0;
+}
