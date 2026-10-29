@@ -102,7 +102,7 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 - Spezifikation des Utils (Entscheidung: `docs/decisions/0002-category-colors.md`): Eingabe beliebige Hex-Farbe,
   Ausgabe `{ light, dark }` je mit den vier Rollen als sRGB-Hex. Ungültige Eingabe sowie Schwarz/Weiß/Grau
   (Chroma < 0,02) → neutrale Werte (die Defaults in `theme.css`). Ein Backend-Override `colorLight`/`colorDark`
-  ist für das jeweilige Theme die Eingabe statt der Grundfarbe und wird genauso normalisiert (ADR 0002), damit auch
+  ist für das jeweilige Theme die Eingabe statt `color` und wird genauso normalisiert, für alle vier Rollen (ADR 0002), damit auch
   ein Override lesbar bleibt. Eine eigene Eingabe für Overrides gibt es im UI nicht. Tests: 14 Testfarben inkl. Navy, Blassgelb, Neongrün;
   Kontrast `ink` auf `soft` ≥ 4,5:1, `dot` gegen `background` ≥ 3:1.
 - Angewendet wird das Ergebnis als CSS-Variablen auf dem Kategorie-Element: Dort stehen beide Varianten als
