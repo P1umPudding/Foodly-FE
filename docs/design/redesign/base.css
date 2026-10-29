@@ -718,3 +718,7 @@ svg.i {
     display: none !important;
   }
 }
+.grow {
+  flex: 1;
+  min-width: 0;
+}
