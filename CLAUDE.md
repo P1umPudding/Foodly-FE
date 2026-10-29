@@ -27,7 +27,7 @@ the Dispatcher, hands issues to worker agents and relays merge requests):
 - Agents **may push** branches named `agent/issue-<n>` (one per GitHub issue)
   and `lead/<slug>`.
 - **`main` is never pushed directly** — no push, no force-push.
-- **Merges only after explicit approval by Kolja.** The merge decision goes
+- **Merges only after explicit approval by Kolja or Daniel (either one is enough).** The merge decision goes
   through the Dispatcher; agents never merge PRs themselves.
 - Specs and plans live in `docs/superpowers/` (`specs/`, `plans/`, see
   [`docs/` conventions](#docs-conventions)).
