@@ -10,6 +10,9 @@
 @import 'tailwindcss/preflight.css' layer(base);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
+/* Inter, self-hosted (variable font; no external request — privacy, offline/Capacitor). */
+@import '@fontsource-variable/inter';
+
 /* Local editable token values. */
 @import './theme.css';
 

@@ -14,8 +14,8 @@
      sheets, popovers). Tailwind: rounded-sm / rounded-md / rounded-lg. */
   --radius: 0.375rem;
 
-  /* fonts: Inter (loaded in index.html), system stack as fallback */
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* fonts: Inter, self-hosted via @fontsource-variable/inter (styles.css) */
+  --font-sans: 'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
   --font-serif: ui-serif, Georgia, 'Times New Roman', serif;
   --font-weight-semibold: 600;

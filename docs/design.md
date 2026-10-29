@@ -61,7 +61,7 @@ hierher, nicht als Einzelwert in den Code.
 
 ### Schrift
 
-Inter für alles. Die Text-Skala ist kompakt (`--text-base` 14 px). Zielbild Handy: 15 px Grundschrift; das kommt mit
+Inter für alles, selbst gehostet über `@fontsource-variable/inter` (kein externer Request: Datenschutz, offline in Capacitor). Die Text-Skala ist kompakt (`--text-base` 14 px). Zielbild Handy: 15 px Grundschrift; das kommt mit
 dem Shell-/Detail-Issue (Override von `--text-base` unter 761 px), weil die heutigen Handy-Kopfzeilen dafür zu breit sind.
 
 | Klasse | px | Rolle |
