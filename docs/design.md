@@ -3,7 +3,7 @@
 Verbindlich für jeden UI-PR, genau wie [`architecture.md`](architecture.md) für den Code. Werte stehen als Tokens in
 `src/styles/theme.css` (Hell `:root`, Dunkel `.dark`) und `src/styles/styles.css` (`@theme`); diese Datei erklärt,
 **wann** welcher Wert und welches Muster gilt. Zielbild und Screens im Detail: die klickbaren Mockups und ihre
-Spezifikation unter `docs/design/redesign/` (Branch `lead/design-redesign-mockups`, `README.md` dort).
+Spezifikation unter `docs/design/redesign/` (`README.md` dort; `index.html` lokal über einen statischen Server öffnen).
 
 Eigentümer: Foodly Designer. Änderungen nur per PR (`lead/design-<slug>`), Entscheidungen von Kolja.
 
@@ -99,13 +99,15 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 | `ink` | Text/Symbol auf `soft`, Kategorie-Label | 0,46 / 0,13 | 0,86 / 0,10 |
 | `line` | 2-px-Linie an Gruppen, Rahmen | 0,84 / 0,08 | 0,42 / 0,09 |
 
-- Spezifikation des Utils: Eingabe beliebige CSS-Hex-Farbe, Ausgabe `{ light, dark }` je mit den vier Rollen als
-  `oklch(...)`-Strings oder Hex. Ungültige Eingabe sowie Schwarz/Weiß/Grau (Chroma < 0,02) → neutrale Werte
-  (die Defaults in `theme.css`). Backend-`colorLight`/`colorDark` gehen, wenn gesetzt, als Basis für das jeweilige
-  Theme vor; eine eigene Eingabe dafür gibt es im UI nicht. Tests: 14 Testfarben inkl. Navy, Blassgelb, Neongrün;
+- Spezifikation des Utils (Entscheidung: `docs/decisions/0002-category-colors.md`): Eingabe beliebige Hex-Farbe,
+  Ausgabe `{ light, dark }` je mit den vier Rollen als sRGB-Hex. Ungültige Eingabe sowie Schwarz/Weiß/Grau
+  (Chroma < 0,02) → neutrale Werte (die Defaults in `theme.css`). Ein Backend-Override `colorLight`/`colorDark`
+  ersetzt im jeweiligen Theme **nur `dot`** und wird unverändert übernommen; `soft`/`ink`/`line` werden immer
+  berechnet. Eine eigene Eingabe für Overrides gibt es im UI nicht. Tests: 14 Testfarben inkl. Navy, Blassgelb, Neongrün;
   Kontrast `ink` auf `soft` ≥ 4,5:1, `dot` gegen `background` ≥ 3:1.
 - Angewendet wird das Ergebnis als CSS-Variablen auf dem Kategorie-Element (`--cat-dot`, `--cat-soft`, `--cat-ink`,
-  `--cat-line`), die Utilities `bg-cat-soft` usw. greifen sie auf. Keine CSS Relative Color Syntax (ältere WebViews).
+  `--cat-line`), die Utilities `bg-cat-soft` usw. greifen sie auf. Das ist die **einzige erlaubte Inline-Style-Ausnahme**
+  (nur diese vier Variablen). Keine CSS Relative Color Syntax (ältere WebViews).
 - Ohne Kategorie gelten die neutralen Defaults aus `theme.css` – das ist ein normaler, kein Fehlerzustand.
 - Farbwahl: 12 im Farbton verteilte Vorschläge, eigene Farbe möglich, Hinweis bei < 20° Abstand zu einer vorhandenen.
 
@@ -116,6 +118,8 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
   Titel oder Breadcrumb, Seitenaktionen, Timer-Knopf.
 - **Handy (bis 760 px):** Tab-Leiste unten (Icon + Label), Kopfzeile mit Titel, Aktionen, Timer-Knopf und ganz
   rechts dem **Avatar → Profil** (auf Hauptseiten; Unterseiten haben stattdessen links den Zurück-Pfeil).
+  Erste Stufe: Der Avatar (Handy) bzw. der Profil-Eintrag unten in der Seitenleiste öffnet ein `DropdownMenu` mit
+  Name, Theme und Wake-Lock; eine eigene Profilseite kommt erst, wenn es mehr Einstellungen gibt.
   „Neues Rezept“ ist der runde FAB unten rechts über der Tab-Leiste.
 - **Nur echte Ziele zeigen** (Kolja/Lead, 29.10.2026): heute Start (`/`) und Rezepte (`/recipes`). Planer, Einkauf,
   Gruppen kommen in Leiste und Tabs, wenn ihre Phase kommt – keine Platzhalter-Einträge.
@@ -158,7 +162,9 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 ## 7. Handy
 
 - Tippflächen mindestens 40 × 40 px (Icon-Buttons `size="icon"`).
-- Popover werden auf dem Handy zu Bottom-Sheets mit Griff, Titel und ✕; Filter-Sheets haben unten nur „Anzeigen“.
+- Popover mit Inhalt (Filter, Timer, Formulare) werden auf dem Handy zu Bottom-Sheets mit Griff, Titel und ✕;
+  Filter-Sheets haben unten nur „Anzeigen“. Kurze Aktionsmenüs (bis 5 Einträge, z. B. das Profil-Menü) bleiben auch
+  auf dem Handy ein `DropdownMenu`.
 - Horizontal scrollen nur für die Filterleiste und Chip-Reihen, nie für Inhalt.
 - Kein Hover-only: alles, was ein Tooltip erklärt, braucht ein Label oder ist selbsterklärend.
 
