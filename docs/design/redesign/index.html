@@ -107,6 +107,10 @@
     <script>
       const st = Object.assign({ dir: 'a', theme: 'light', img: '1', dev: 'both', screen: 'home' }, Object.fromEntries(new URLSearchParams(location.hash.slice(1))))
       const names = { a: 'Ruhig', c: 'Bildstark' }
+      // srcdoc statt src: die Plattform verbietet das Einbetten ihrer Seiten per Header (Firefox blockt sonst)
+      const abs = (f) => new URL(f, location.href).href
+      const frameDoc = (q) =>
+        `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${['base', 'dir-a', 'dir-c', 'screens'].map((f) => `<link rel="stylesheet" href="${abs(f + '.css')}">`).join('')}</head><body><div id="root"></div><script>window.MOCK_QS=${JSON.stringify(q)}<\/script>${['icons', 'data', 'app'].map((f) => `<script src="${abs(f + '.js')}"><\/script>`).join('')}</body></html>`.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
       function draw() {
         for (const k of ['dir', 'theme', 'img', 'dev', 'screen'])
           document.querySelectorAll(`#${k} button`).forEach((b) => b.classList.toggle('on', b.dataset.v === st[k]))
@@ -119,8 +123,8 @@
           .flatMap((d) =>
             devs.map((v) => {
               const [w, h, s] = dims[v]
-              const src = `app.html?dir=${d}&theme=${st.theme}&img=${st.img}#/${st.screen}`
-              return `<div class="frame ${v}" style="width:${w * s}px;height:${h * s + 24}px"><span>${names[d]} · ${v === 'desk' ? 'Desktop' : 'Handy'}</span><div style="width:${w * s}px;height:${h * s}px;overflow:hidden;border-radius:${v === 'phone' ? 28 : 10}px"><iframe src="${src}" style="width:${w}px;height:${h}px;transform:scale(${s});transform-origin:0 0"></iframe></div></div>`
+              const doc = frameDoc(`dir=${d}&theme=${st.theme}&img=${st.img}&screen=${st.screen}`)
+              return `<div class="frame ${v}" style="width:${w * s}px;height:${h * s + 24}px"><span>${names[d]} · ${v === 'desk' ? 'Desktop' : 'Handy'}</span><div style="width:${w * s}px;height:${h * s}px;overflow:hidden;border-radius:${v === 'phone' ? 28 : 10}px"><iframe srcdoc="${doc}" style="width:${w}px;height:${h}px;transform:scale(${s});transform-origin:0 0"></iframe></div></div>`
             }),
           )
           .join('')

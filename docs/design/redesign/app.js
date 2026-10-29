@@ -3,7 +3,7 @@
    dir a = "Ruhig" (list-first, recommended), dir c = "Bildstark" (grid/photo-first).
    img=0 renders every recipe without a photo (today's backend state, B1). */
 ;(() => {
-  const qs = new URLSearchParams(location.search)
+  const qs = new URLSearchParams(window.MOCK_QS || location.search)
   const DIR = qs.get('dir') === 'c' ? 'c' : 'a'
   const THEME = qs.get('theme') || 'light'
   const IMG = qs.get('img') !== '0'
