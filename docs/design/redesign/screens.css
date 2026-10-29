@@ -2048,3 +2048,270 @@ a.row.set:hover {
     --grid-gap: 20px 12px;
   }
 }
+
+/* ---------- Filter bar (round 3): facet buttons with popovers instead of the filter rail ---------- */
+.list-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 10px;
+}
+.fbar {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lb-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+.list-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 26px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.fb-wrap {
+  position: relative;
+  flex: none;
+}
+.fbtn {
+  display: inline-flex;
+  align-items: stretch;
+  height: 30px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+}
+.fbtn.on {
+  border-color: var(--border-strong);
+}
+.fbtn.open {
+  border-color: var(--fg-subtle);
+}
+.fbtn button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.fbtn button:hover {
+  background: var(--hover);
+}
+.fb-main {
+  padding: 0 8px 0 10px;
+}
+.fbtn svg.i {
+  width: 14px;
+  height: 14px;
+}
+.fbtn.on .fb-l {
+  color: var(--fg-subtle);
+}
+.fbtn.on .fb-l::after {
+  content: ':';
+}
+.fb-v {
+  color: var(--fg);
+  font-weight: 600;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fb-x {
+  padding: 0 7px;
+  border-left: 1px solid var(--border) !important;
+}
+.popover.fpop {
+  left: 0;
+  right: auto;
+  width: 280px;
+  padding: 8px;
+}
+.popover.right {
+  right: 0;
+  left: auto;
+}
+.ck-list {
+  display: flex;
+  flex-direction: column;
+}
+.ck-list.scroll {
+  max-height: 264px;
+  overflow: auto;
+}
+.ck-row {
+  display: flex;
+  align-items: center;
+}
+.ck {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg-muted);
+  text-align: left;
+  cursor: pointer;
+}
+.ck:hover {
+  background: var(--hover);
+}
+.ck.on {
+  color: var(--fg);
+  font-weight: 500;
+}
+.ck .check {
+  width: 16px;
+  height: 16px;
+}
+.ck .check svg.i {
+  width: 12px;
+  height: 12px;
+}
+.ck svg.i.subtle {
+  width: 14px;
+  height: 14px;
+}
+.ck.custom {
+  cursor: default;
+}
+.ck.custom .dur-in {
+  width: 92px;
+  height: 28px;
+  margin-left: auto;
+}
+.ck-open {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-md);
+  color: var(--fg-subtle);
+  flex: none;
+}
+.ck-open:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+.radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  flex: none;
+}
+.radio.on {
+  border: 5px solid var(--fg);
+}
+.fp-search {
+  margin-bottom: 6px;
+  width: 100%;
+}
+.fp-sub {
+  padding: 8px 8px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-subtle);
+}
+.fp-hint {
+  margin: 6px 8px 0;
+}
+.fp-hint svg.i {
+  width: 12px;
+  height: 12px;
+  vertical-align: -2px;
+}
+.fp-f {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--divider);
+}
+.fp-f:has(> span:only-child) {
+  display: none;
+}
+.fp-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 8px;
+}
+.fp-h h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+}
+.overlay.fov {
+  background: transparent;
+}
+.sort-wrap .btn svg.i:first-child {
+  color: var(--fg-muted);
+}
+@media (max-width: 760px) {
+  .list-bar {
+    margin: 10px -16px 0;
+  }
+  .fbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 16px;
+  }
+  .fbtn {
+    height: 32px;
+  }
+  .fb-wrap {
+    position: static;
+  }
+  .popover.fpop {
+    position: fixed;
+    inset: auto 0 0 0;
+    width: auto;
+    max-height: 80vh;
+    overflow: auto;
+    padding: 12px 12px 16px;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+  }
+  .overlay.fov {
+    background: rgb(0 0 0 / 0.32);
+  }
+  .ck {
+    height: 40px;
+    font-size: 15px;
+  }
+  .ck-list.scroll {
+    max-height: 50vh;
+  }
+  .fp-f {
+    display: flex !important;
+  }
+  .fp-f .btn {
+    flex: 1;
+    margin-left: 8px;
+  }
+}

@@ -37,8 +37,7 @@
     grouped: qs.get('grouped') !== '0',
     sortKey: 'name',
     sortDir: 'asc',
-    rail: true, // desktop filter rail open
-    sheet: qs.get('sheet') || null, // filter | view | timer | lists | ing | sort
+    sheet: qs.get('sheet') || null, // f-<facet> | view | timer | lists | ing | sort
     side: qs.get('side') === '0', // sidebar collapsed
     collapsed: new Set(['uncat']), // "Ohne Kategorie" starts folded, as today
   }
@@ -232,78 +231,96 @@
     <div class="menu-list">${SORTS.map((s) => `<button class="mi ${UI.sortKey === s.key ? 'on' : ''}" data-act="sort:${s.key}">${icon(s.icon)}<span class="grow">${s.label}</span>${UI.sortKey === s.key ? icon('check') : ''}</button>`).join('')}</div>
     <div class="menu-sep"></div>
     <div class="seg full"><button class="${UI.sortDir === 'asc' ? 'on' : ''}" data-act="dir:asc">${dirLabel(UI.sortKey, 'asc')}</button><button class="${UI.sortDir === 'desc' ? 'on' : ''}" data-act="dir:desc">${dirLabel(UI.sortKey, 'desc')}</button></div>`
-  // Row 1: search + filter (always visible). Row 2 (desktop): count left, sort and view controls right.
-  // Phone: sort + view sit behind one button that opens a sheet.
+  // Sort button carries the direction itself (icon + criterion); the direction is chosen inside the menu.
+  const sortBtn = () => `
+    <div class="sort-wrap">
+      <button class="btn sm" data-act="menu:sort">${icon(dirIcon())}${sortObj().label}${icon('chevron-down', 'subtle')}</button>
+      ${UI.sheet === 'sort' ? `<div class="overlay clear" data-act="close"></div><div class="popover right">${sortMenu()}</div>` : ''}
+    </div>`
+
+  /* ---- Filter bar: one button per facet, the active value lives in the button (Linear/GitHub style) ---- */
+  const visibleAll = () => RECIPES.filter(matches)
+  const ROLE_L = { owner: 'Besitzer', editor: 'Bearbeiter', viewer: 'Betrachter' }
+  const COLLAB_L = { private: 'Privat', shared: 'Geteilt', collaborative: 'Kollaborativ' }
+  const listSummary = (arr, label) => (arr.length === 1 ? label(arr[0]) : `${label(arr[0])} +${arr.length - 1}`)
+  const catName = (id) => (id === UNCAT ? 'Ohne Kategorie' : CATEGORIES.find((c) => c.id === id).name)
+  const FACETS = [
+    { key: 'cat', label: 'Kategorie', icon: 'folder', n: () => F.cats.length, value: () => listSummary(F.cats, catName), clr: 'cats' },
+    { key: 'tag', label: 'Tags', icon: 'tag', n: () => F.tags.length, value: () => listSummary(F.tags, (t) => t), clr: 'tags' },
+    { key: 'ing', label: 'Zutaten', icon: 'list-checks', n: () => F.ings.length, value: () => listSummary(F.ings, (t) => t), clr: 'ings' },
+    { key: 'time', label: 'Arbeitszeit', icon: 'clock', n: () => +(F.dur !== null), value: () => `≤ ${F.dur} min`, clr: 'dur' },
+    { key: 'access', label: 'Zugriff', icon: 'users', n: () => (F.role !== 'any') + (F.collab !== 'any'), value: () => [ROLE_L[F.role], COLLAB_L[F.collab]].filter(Boolean).join(' · '), clr: 'access' },
+  ]
+  const checkRow = (on, act, label, n, lead = '', after = '') =>
+    `<div class="ck-row"><button class="ck ${on ? 'on' : ''}" data-act="${act}"><span class="check ${on ? 'on' : ''}">${on ? icon('check') : ''}</span>${lead}<span class="grow ellipsis">${label}</span><span class="subtle num">${n}</span></button>${after}</div>`
+  const radioRow = (on, act, label, lead = '') =>
+    `<button class="ck ${on ? 'on' : ''}" data-act="${act}"><span class="radio ${on ? 'on' : ''}"></span>${lead}<span class="grow">${label}</span></button>`
+  const countBy = (pred) => RECIPES.filter(pred).length
+  const facetBody = (k) => {
+    if (k === 'cat') {
+      const open = (c) => `<a class="ck-open" href="${route('category')}" aria-label="${esc(c.name)} öffnen">${icon('chevron-right')}</a>`
+      return `<div class="ck-list">${checkRow(F.cats.includes(UNCAT), `fcat:${UNCAT}`, 'Ohne Kategorie', countBy((r) => !catsOf(r).length), '<span class="cat-dot none"></span>')}${CATEGORIES.map((c) => checkRow(F.cats.includes(c.id), `fcat:${c.id}`, esc(c.name), c.recipes.length, dot(c), open(c))).join('')}</div>
+        <p class="fhint fp-hint">Mehrere = Rezepte aus einer davon. ${icon('chevron-right')} öffnet die Kategorie.</p>`
+    }
+    if (k === 'tag' || k === 'ing') {
+      const all = k === 'tag' ? ALL_TAGS : ALL_INGS
+      const sel = k === 'tag' ? F.tags : F.ings
+      const has = (r, v) => (k === 'tag' ? r.tags.includes(v) : r.sections.some((s) => s.ingredients.some((i) => i.name === v)))
+      const rest = all.filter((v) => !sel.includes(v)).sort((a, b) => countBy((r) => has(r, b)) - countBy((r) => has(r, a)))
+      const rows = [...sel, ...rest].slice(0, k === 'tag' ? 40 : 9)
+      return `<label class="input sm search fp-search">${icon('search')}<input placeholder="${k === 'tag' ? 'Tag' : 'Zutat'} suchen"></label>
+        <div class="ck-list scroll">${rows.map((v) => checkRow(sel.includes(v), `${k === 'tag' ? 'ftag' : 'fing'}:${v}`, esc(v), countBy((r) => has(r, v)), k === 'tag' && TAG_ICONS[v] ? icon(TAG_ICONS[v], 'subtle') : '')).join('')}</div>
+        ${k === 'ing' ? `<p class="fhint fp-hint">Die häufigsten zuerst, alle anderen über die Suche. Mehrere = Rezept enthält alle.</p>` : `<p class="fhint fp-hint">Mehrere = Rezept hat alle.</p>`}`
+    }
+    if (k === 'time')
+      return `<div class="ck-list">${[null, 15, 30, 60].map((m) => radioRow(F.dur === m, `dur:${m ?? 'none'}`, m === null ? 'Beliebig' : `≤ ${m} min`)).join('')}
+        <div class="ck custom"><span class="radio ${F.dur !== null && ![15, 30, 60].includes(F.dur) ? 'on' : ''}"></span><span>Höchstens</span><div class="input sm num dur-in"><input value="${F.dur !== null && ![15, 30, 60].includes(F.dur) ? F.dur : ''}" placeholder="45"><span class="subtle">min</span></div></div></div>
+        <p class="fhint fp-hint">Zählt die Arbeitszeit. Rezepte ohne Angabe fallen raus.</p>`
+    if (k === 'access')
+      return `<div class="fp-sub">Meine Rolle</div><div class="ck-list">${[
+        ['any', '', 'Alle'],
+        ['owner', 'crown', 'Besitzer'],
+        ['editor', 'pencil', 'Bearbeiter'],
+        ['viewer', 'eye', 'Betrachter'],
+      ]
+        .map(([v, i, l]) => radioRow(F.role === v, `role:${v}`, l, i ? icon(i, 'subtle') : ''))
+        .join('')}</div>
+        <div class="fp-sub">Freigabe</div><div class="ck-list">${[
+          ['any', '', 'Alle'],
+          ['private', 'lock', 'Privat'],
+          ['shared', 'share-2', 'Geteilt (nur lesen)'],
+          ['collaborative', 'users', 'Kollaborativ'],
+        ]
+          .map(([v, i, l]) => radioRow(F.collab === v, `collab:${v}`, l, i ? icon(i, 'subtle') : ''))
+          .join('')}</div>`
+  }
+  const facetBtn = (f) => {
+    const n = f.n()
+    const open = UI.sheet === 'f-' + f.key
+    const pop = open
+      ? `<div class="overlay fov" data-act="close"></div>
+         <div class="popover fpop" role="dialog">
+           <div class="fp-h only-m"><h2>${f.label}</h2><button class="btn ghost sm icon" data-act="close">${icon('x')}</button></div>
+           ${facetBody(f.key)}
+           <div class="fp-f">${n ? `<button class="link-btn" data-act="clr:${f.clr}">Zurücksetzen</button>` : '<span></span>'}<button class="btn sm primary only-m" data-act="close">${visibleAll().length} Rezepte anzeigen</button></div>
+         </div>`
+      : ''
+    return `<div class="fb-wrap"><span class="fbtn ${n ? 'on' : ''} ${open ? 'open' : ''}"><button class="fb-main" data-act="sheet:f-${f.key}">${n ? '' : icon(f.icon, 'subtle')}<span class="fb-l">${f.label}</span>${n ? `<span class="fb-v">${esc(f.value())}</span>` : icon('chevron-down', 'subtle')}</button>${n ? `<button class="fb-x" data-act="clr:${f.clr}" aria-label="${f.label} zurücksetzen">${icon('x')}</button>` : ''}</span>${pop}</div>`
+  }
+
+  // Row 1: search (+ sort/view button on the phone). Row 2: filter bar left, sort and views right (desktop).
+  // Row 3: result count + reset. Phone: the filter bar scrolls sideways, every facet opens a bottom sheet.
   const toolbar = ({ filters = true, count = '' } = {}) => `
     <div class="toolbar">
       <label class="input search">${icon('search')}<input id="q" placeholder="Rezept oder Zutat suchen" value="${esc(F.q)}">${F.q ? `<button class="x-btn" data-act="q-clear" aria-label="Suche leeren">${icon('x')}</button>` : '<span class="kbd hide-m">/</span>'}</label>
-      ${filters ? `<button class="btn hide-m ${UI.rail ? 'pressed' : ''}" data-act="rail">${icon('sliders-horizontal')}Filter${badge(facetCount())}</button>` : ''}
-      ${filters ? `<button class="btn only-m" data-act="sheet:filter" aria-label="Filter">${icon('sliders-horizontal')}${badge(facetCount())}</button>` : ''}
-      <button class="btn icon only-m" data-act="sheet:view" aria-label="Sortierung und Ansicht">${icon('arrow-up-down')}</button>
+      <button class="btn icon only-m" data-act="sheet:view" aria-label="Sortierung und Ansicht">${icon(dirIcon())}</button>
     </div>
-    <div class="list-bar hide-m">
-      <span class="list-count">${count}</span>
-      <div class="sort-wrap">
-        ${tip(dirLabel(), `<button class="btn sm icon" data-act="dir:${UI.sortDir === 'asc' ? 'desc' : 'asc'}" aria-label="Sortierrichtung">${icon(dirIcon())}</button>`)}
-        <button class="btn sm" data-act="menu:sort">${sortObj().label}${icon('chevron-down', 'subtle')}</button>
-        ${UI.sheet === 'sort' ? `<div class="overlay clear" data-act="close"></div><div class="popover">${sortMenu()}</div>` : ''}
-      </div>
-      <span class="vsep"></span>${viewSeg()}${filters ? groupSeg() : ''}
-    </div>`
+    <div class="list-bar">
+      ${filters ? `<div class="fbar">${FACETS.map(facetBtn).join('')}</div>` : '<span class="grow"></span>'}
+      <div class="lb-right hide-m">${sortBtn()}<span class="vsep"></span>${viewSeg()}${filters ? groupSeg() : ''}</div>
+    </div>
+    <div class="list-meta"><span class="num">${count}</span>${filters && facetCount() ? `<button class="link-btn" data-act="clr:all">Alle Filter zurücksetzen</button>` : ''}</div>`
 
-  const fgroup = (title, count, onClear, body) =>
-    `<section class="fgroup"><div class="fg-h"><h3>${title}${count ? ` <span class="subtle num">${count}</span>` : ''}</h3>${count ? `<button class="link-btn" data-act="${onClear}">${icon('x')}Zurücksetzen</button>` : ''}</div>${body}</section>`
-  const fchip = (on, act, label) => `<button class="fchip ${on ? 'on' : ''}" data-act="${act}">${label}</button>`
-  const visibleAll = () => RECIPES.filter(matches)
-  const filterPanel = () => {
-    const uncatN = RECIPES.filter((r) => !catsOf(r).length).length
-    const catRow = (id, label, n, c) =>
-      `<button class="crow-f ${F.cats.includes(id) ? 'on' : ''}" data-act="fcat:${id}"><span class="check ${F.cats.includes(id) ? 'on' : ''}">${F.cats.includes(id) ? icon('check') : ''}</span>${c ? dot(c) : '<span class="cat-dot none"></span>'}<span class="grow ellipsis">${label}</span><span class="subtle num">${n}</span></button>`
-    const tagChips = [...ALL_TAGS.filter((t) => F.tags.includes(t)), ...ALL_TAGS.filter((t) => !F.tags.includes(t))]
-    const ingChips = [...F.ings, ...ALL_INGS.filter((n) => !F.ings.includes(n)).slice(0, 14)]
-    const durOpts = [15, 30, 60]
-    const accessSeg = (axis, cur, opts) =>
-      `<div class="seg full">${opts.map(([v, i, l]) => `<button class="${cur === v ? 'on' : ''}" data-act="${axis}:${cur === v ? 'any' : v}">${icon(i)}${l}</button>`).join('')}</div>`
-    return `
-      ${fgroup('Kategorien', F.cats.length, 'clr:cats', `<div class="cat-checks">${catRow(UNCAT, 'Ohne Kategorie', uncatN)}${CATEGORIES.map((c) => catRow(c.id, esc(c.name), c.recipes.length, c)).join('')}</div>`)}
-      ${fgroup('Tags', F.tags.length, 'clr:tags', `<label class="input sm search">${icon('search')}<input placeholder="Tag suchen"></label><div class="fchips">${tagChips.map((t) => fchip(F.tags.includes(t), `ftag:${t}`, `${TAG_ICONS[t] ? icon(TAG_ICONS[t]) : ''}${esc(t)}`)).join('')}</div>`)}
-      ${fgroup('Zutaten', F.ings.length, 'clr:ings', `<label class="input sm search">${icon('search')}<input placeholder="Zutat suchen"></label><div class="fchips scroll-y">${ingChips.map((n) => fchip(F.ings.includes(n), `fing:${n}`, esc(n))).join('')}</div>`)}
-      ${fgroup(
-        'Arbeitszeit',
-        F.dur !== null ? 1 : 0,
-        'clr:dur',
-        `<div class="dur"><div class="slider"><span class="sl-fill" style="width:${((F.dur ?? 180) / 180) * 100}%"></span><span class="sl-knob" style="left:${((F.dur ?? 180) / 180) * 100}%"></span></div><div class="input sm dur-in num"><span class="subtle">≤</span><input value="${F.dur ?? ''}" placeholder="–"><span class="subtle">min</span></div></div>
-         <div class="seg full">${durOpts.map((m) => `<button class="${F.dur === m ? 'on' : ''}" data-act="dur:${F.dur === m ? 'none' : m}">≤ ${m} min</button>`).join('')}</div>`,
-      )}
-      ${fgroup(
-        'Zugriff',
-        (F.role !== 'any') + (F.collab !== 'any'),
-        'clr:access',
-        `<div class="flabel-s">Rolle</div>${accessSeg('role', F.role, [
-          ['owner', 'crown', 'Besitzer'],
-          ['editor', 'pencil', 'Bearbeiter'],
-          ['viewer', 'eye', 'Betrachter'],
-        ])}
-         <div class="flabel-s">Freigabe</div>${accessSeg('collab', F.collab, [
-           ['private', 'lock', 'Privat'],
-           ['shared', 'share-2', 'Geteilt'],
-           ['collaborative', 'users', 'Kollab.'],
-         ])}`,
-      )}`
-  }
-  const activeChips = () => {
-    const out = []
-    F.cats.forEach((id) => {
-      const c = CATEGORIES.find((x) => x.id === id)
-      out.push(`<button class="achip" data-act="fcat:${id}">${c ? dot(c) + esc(c.name) : 'Ohne Kategorie'}${icon('x')}</button>`)
-    })
-    F.tags.forEach((t) => out.push(`<button class="achip" data-act="ftag:${t}">${icon('tag')}${esc(t)}${icon('x')}</button>`))
-    F.ings.forEach((n) => out.push(`<button class="achip" data-act="fing:${n}">${esc(n)}${icon('x')}</button>`))
-    if (F.dur !== null) out.push(`<button class="achip" data-act="dur:none">${icon('clock')}≤ ${F.dur} min${icon('x')}</button>`)
-    if (F.role !== 'any') out.push(`<button class="achip" data-act="role:any">${{ owner: 'Besitzer', editor: 'Bearbeiter', viewer: 'Betrachter' }[F.role]}${icon('x')}</button>`)
-    if (F.collab !== 'any') out.push(`<button class="achip" data-act="collab:any">${{ private: 'Privat', shared: 'Geteilt', collaborative: 'Kollaborativ' }[F.collab]}${icon('x')}</button>`)
-    return out.length ? `<div class="achips">${out.join('')}<button class="link-btn" data-act="clr:all">Alle zurücksetzen</button></div>` : ''
-  }
   const viewSheet = () =>
     sheet(
       'Sortieren & Ansicht',
@@ -320,8 +337,6 @@
        <div class="seg full"><button class="${UI.grouped ? 'on' : ''}" data-act="group:cat">${icon('list-tree')}Nach Kategorie</button><button class="${UI.grouped ? '' : 'on'}" data-act="group:flat">${icon('list')}Einfache Liste</button></div>`,
       'side',
     )
-  const filterSheet = () =>
-    sheet('Filter', filterPanel(), 'side', `<button class="btn" data-act="clr:all">Zurücksetzen</button><button class="btn primary grow" data-act="close">${visibleAll().length} Rezepte anzeigen</button>`)
 
   /* ---------------- Screens ---------------- */
   const S = {}
@@ -399,14 +414,12 @@
     }
     const total = RECIPES.length
     const count = `<span class="subtle num">${vis.length === total ? total : `${vis.length} von ${total}`}</span>`
-    const catPills = `<div class="scroll-x only-m cat-pills">${CATEGORIES.map((c) => `<a class="filter-chip" href="${route('category')}">${dot(c)}${esc(c.name)}</a>`).join('')}</div>`
-    const main = `${catPills}${toolbar({ count: `${vis.length === total ? total : `${vis.length} von ${total}`} Rezepte` })}${activeChips()}<div class="list-content">${content}</div>`
-    const rail = UI.rail ? `<aside class="frail hide-m"><div class="frail-in">${filterPanel()}</div></aside>` : ''
-    return { body: `<div class="list-layout ${UI.rail ? 'with-rail' : ''}"><div class="list-main">${main}</div>${rail}</div>`, count }
+    const main = `${toolbar({ count: `${vis.length === total ? total : `${vis.length} von ${total}`} Rezepte` })}<div class="list-content">${content}</div>`
+    return { body: `<div class="list-layout">${main}</div>`, count }
   }
   S.list = () => {
     const { body, count } = listBody()
-    const sheets = UI.sheet === 'filter' ? filterSheet() : UI.sheet === 'view' ? viewSheet() : ''
+    const sheets = UI.sheet === 'view' ? viewSheet() : ''
     return shell("list", { title: "Rezepte", actions: newBtnM, body, wide: true, sheets })
   }
   S.listf = () => {
@@ -768,7 +781,6 @@
     else if (k === 'sort') (UI.sortKey = v), (UI.sortDir = v === 'rating' ? 'desc' : 'asc')
     else if (k === 'dir') UI.sortDir = v
     else if (k === 'menu') UI.sheet = UI.sheet === v ? null : v
-    else if (k === 'rail') UI.rail = !UI.rail
     else if (k === 'sheet') UI.sheet = UI.sheet === v ? null : v
     else if (k === 'close') UI.sheet = null
     else if (k === 'side') UI.side = !UI.side
