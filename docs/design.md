@@ -135,8 +135,8 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
   (Kompakt / Detailliert = Standard / Kacheln); Zeile 2 Filterleiste mit Facetten-Knöpfen (Wert im Knopf, eigenes ✕;
   Desktop Popover, Handy Sheet); Zeile 3 „x von y Rezepte“ · „Alle Filter zurücksetzen“. Gruppiert nach Kategorie mit
   2-px-`cat-line` und Sticky-Kopf; „Ohne Kategorie“ zuerst und eingeklappt.
-  Kategorie-Punkte in Zeilen haben auf dem Desktop einen postxl-`Tooltip` mit den Namen (gruppiert: „Auch in: …“),
-  wie die Zugriffs-Icons daneben; ein Tooltip für die ganze Punkt-Gruppe.
+  Kategorie-Punkte (Zeilen, Kacheln, überall) haben auf dem Desktop **je Punkt** einen postxl-`Tooltip` mit dem
+  Kategorienamen, „+N“ nennt die übrigen; wie die Zugriffs-Icons daneben. Trefferfläche größer als der Punkt.
 - **Detail:** Desktop Bild links / Infos rechts, darunter Zutaten (2/5) und Schritte (3/5). Ohne Foto rückt der Text
   nach oben, kein leerer Rahmen. Zeitangaben in Schritten werden Timer-Chips.
 - **Editor:** eine Spalte Inhalt, rechts Bilder, Notizen, Quelle. Zutatenzeile Desktop: Menge · Einheit · Zutat ·
