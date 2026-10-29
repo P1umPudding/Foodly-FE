@@ -93,9 +93,9 @@ Light/Dark-Werte. Wiederverwendetes Styling = React-Komponente. Komponenten nach
 Feature in `src/components/<feature>/`.
 
 Kategorie-Farben (ADR [0002](decisions/0002-category-colors.md)): eine gespeicherte
-Farbe, Rollen `dot/soft/ink/line/solid` pro Theme aus `src/lib/categoryColor.ts`.
+Farbe, Rollen `dot/soft/ink/line` pro Theme aus `src/lib/categoryColor.ts`.
 Einzige Inline-Ausnahme: der eine Helper setzt `--cat-*`-Custom-Properties am
-Element, Komponenten nutzen nur Utilities wie `bg-(--cat-dot)`.
+Element, Komponenten nutzen nur `bg-cat-dot`, `bg-cat-soft`, `text-cat-ink`, `border-cat-line`.
 
 ## 7. Tests
 
