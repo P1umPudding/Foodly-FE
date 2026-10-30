@@ -14,7 +14,16 @@ vi.mock('../../catalog/CatalogProvider', () => ({
   useCategories: () => ({
     status: 'ready',
     list: [
-      { id: 2, user: 1, name: 'Favoriten', recipes: [1, 2, 3], order: 1, color: '#e11d48', colorLight: null, colorDark: null },
+      {
+        id: 2,
+        user: 1,
+        name: 'Favoriten',
+        recipes: [1, 2, 3],
+        order: 1,
+        color: '#e11d48',
+        colorLight: null,
+        colorDark: null,
+      },
       { id: 5, user: 1, name: 'Schnell', recipes: [4], order: 2, color: '#0ea5e9', colorLight: null, colorDark: null },
     ],
   }),

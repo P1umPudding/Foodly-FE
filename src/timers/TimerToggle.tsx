@@ -3,7 +3,7 @@ import { Button, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-
 import { useTimers } from './TimerProvider'
 import { formatRemaining } from './format'
 
-// Nav trigger: opens the timer panel, shows the next-to-expire countdown when a
+// Shell-header trigger: opens the timer panel, shows the next-to-expire countdown when a
 // timer runs, and turns alarm-coloured while any timer is alarming.
 export function TimerToggle({ onClick }: { onClick: () => void }) {
   const { nextRemainingMs, alarmingIds } = useTimers()
