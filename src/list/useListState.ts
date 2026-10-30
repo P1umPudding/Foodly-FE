@@ -32,16 +32,10 @@ export function useListState(): { state: ListState; set: (patch: Partial<ListSta
     }
   }, [urlHasOurParams, state, currentUserId, setParams])
 
-  // The shell's nav links change the URL without going through set(). Persist every state the list
-  // shows after the first one (that one is the hydration effect's business: a bare URL must not
-  // overwrite the stored defaults before they are restored), so "Zurück" to a bare /recipes comes back
-  // to what the user last saw.
-  const firstState = useRef(true)
+  // The shell's nav links change the URL without going through set(); persist whatever the list shows,
+  // so "Zurück" to a bare /recipes comes back to what the user last saw. Must stay below the hydration
+  // effect: on a bare URL that one reads the stored state first, then its replace is saved here.
   useEffect(() => {
-    if (firstState.current) {
-      firstState.current = false
-      return
-    }
     savePersisted(currentUserId, state)
   }, [state, currentUserId])
 

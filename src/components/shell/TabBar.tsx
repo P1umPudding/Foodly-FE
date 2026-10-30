@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '@postxl/ui-components'
-import { visibleDestinations } from './nav'
+import { SHELL_NAV_STATE, visibleDestinations } from './nav'
 import { useNavState } from './useNavState'
 
 // Phone navigation (below 761 px): the same destinations as the sidebar, icon + label.
@@ -16,6 +16,7 @@ export function TabBar() {
         <NavLink
           key={path}
           to={hrefFor(path)}
+          state={SHELL_NAV_STATE}
           end={path === '/'}
           className={({ isActive }) =>
             cn(

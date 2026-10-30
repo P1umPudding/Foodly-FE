@@ -7,7 +7,7 @@ import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, cn } from '@
 import { PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { colorClasses } from '../../list/palette'
-import { visibleDestinations } from './nav'
+import { SHELL_NAV_STATE, visibleDestinations } from './nav'
 import { navItemClass } from './navItem'
 import { ProfileMenu } from './ProfileMenu'
 import { useNavState } from './useNavState'
@@ -112,6 +112,7 @@ export function Sidebar({
             <WithTip key={path} collapsed={collapsed} label={label}>
               <NavLink
                 to={hrefFor(path)}
+                state={SHELL_NAV_STATE}
                 end={path === '/'}
                 aria-label={collapsed ? label : undefined}
                 aria-current={yieldsToCategory ? 'false' : 'page'}
@@ -130,7 +131,9 @@ export function Sidebar({
         <nav aria-label="Kategorien" className="mt-4 flex min-h-0 flex-col gap-0.5 overflow-y-auto">
           {!collapsed && <h2 className="px-2.5 pb-1.5 text-xs font-semibold text-muted-foreground">Kategorien</h2>}
           {categories.status === 'loading'
-            ? [0, 1, 2].map((i) => <Skeleton key={i} className="h-9 w-full rounded-md" />)
+            ? [0, 1, 2].map((i) => (
+                <Skeleton key={i} data-testid="category-skeleton" className="h-9 w-full rounded-md" />
+              ))
             : ordered.map((c) => {
                 const active = highlightedCategory === c.id
                 const count = c.recipes.length
@@ -138,6 +141,7 @@ export function Sidebar({
                   <WithTip key={c.id} collapsed={collapsed} label={`${c.name} (${count})`}>
                     <Link
                       to={categoryHref(c.id)}
+                      state={SHELL_NAV_STATE}
                       aria-label={collapsed ? `${c.name} (${count})` : undefined}
                       aria-current={active ? 'page' : undefined}
                       className={navItemClass(active, collapsed)}

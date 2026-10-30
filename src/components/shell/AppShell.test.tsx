@@ -128,7 +128,7 @@ describe('AppShell on the desktop', () => {
     renderAt('/recipes?cat=2')
     const section = screen.getByRole('navigation', { name: 'Kategorien' })
     expect(section.querySelectorAll('a')).toHaveLength(0)
-    expect(section.querySelectorAll('.animate-pulse')).toHaveLength(3)
+    expect(within(section).getAllByTestId('category-skeleton')).toHaveLength(3)
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
   })
 

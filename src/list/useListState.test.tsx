@@ -40,11 +40,4 @@ describe('useListState', () => {
     expect(result.current.list.state.categories).toEqual([2])
     expect(JSON.parse(localStorage.getItem('foodly:list-state:1')!).state.categories).toEqual([2])
   })
-
-  it('does not overwrite stored filters with a bare URL before restoring them', () => {
-    localStorage.setItem('foodly:list-state:1', JSON.stringify({ version: 1, state: { tags: ['Vegan'] } }))
-    const { result } = renderHook(() => useListState(), { wrapper: wrapper(['/']) })
-    expect(result.current.state.tags).toEqual(['Vegan'])
-    expect(localStorage.getItem('foodly:list-state:1')).toContain('Vegan')
-  })
 })

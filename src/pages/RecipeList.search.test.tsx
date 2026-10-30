@@ -140,7 +140,7 @@ describe('RecipeList (server-side search)', () => {
   })
 
   describe('scroll restore', () => {
-    function renderAt(entry: string) {
+    function renderAt(entry: string | { pathname: string; search: string; state: unknown }) {
       return render(
         <MemoryRouter initialEntries={[entry]}>
           <TooltipProvider>
@@ -161,6 +161,33 @@ describe('RecipeList (server-side search)', () => {
       renderAt('/recipes?group=0&q=Pan')
       await waitFor(() => screen.getByText('Pancakes'))
       expect(scrollTo).toHaveBeenCalledWith(0, 640)
+    })
+
+    it('does not record scroll events from the loading page over the position to restore', async () => {
+      let resolve: (v: { items: Recipe[]; cursor: null }) => void = () => {}
+      vi.spyOn(foodly, 'searchRecipes').mockReturnValue(new Promise((r) => (resolve = r)))
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      const saved = JSON.stringify({ list: 'group=0', y: 640 })
+      sessionStorage.setItem('recipeList:scroll', saved)
+      renderAt('/recipes?group=0')
+      // the short skeleton page clamps the old position → a scroll event at y=0
+      window.dispatchEvent(new Event('scroll'))
+      expect(sessionStorage.getItem('recipeList:scroll')).toBe(saved)
+      await act(async () => resolve({ items: [rec(1, 'Pancakes')], cursor: null }))
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(scrollTo).toHaveBeenCalledWith(0, 640)
+    })
+
+    it('opens from the top when a shell nav link opened the list', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'group=0', y: 640 }))
+      renderAt({ pathname: '/recipes', search: '?group=0', state: { shellNav: true } })
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(scrollTo).toHaveBeenCalledWith(0, 0)
+      expect(scrollTo).not.toHaveBeenCalledWith(0, 640)
     })
 
     it('starts at the top when the position belongs to another list', async () => {

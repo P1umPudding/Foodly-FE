@@ -31,6 +31,7 @@ import { RecipeListView } from '../components/list/RecipeListView'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
 import { fromSearchParams, toSearchParams } from '../list/url'
+import { isShellNavState } from '../components/shell/nav'
 
 const SCROLL_KEY = 'recipeList:scroll'
 
@@ -139,23 +140,36 @@ export function RecipeList() {
   // the live position, then re-apply it once the list has rendered. sessionStorage so
   // a fresh load starts at the top. Only for the same list: the shell's sidebar can open
   // a different category from a recipe page, which must start at the top.
-  const { search: urlSearch } = useLocation()
+  const scrollRestored = useRef(false)
+  const { search: urlSearch, key: locationKey, state: locationState } = useLocation()
   const listRef = useRef(listIdentity(urlSearch))
   listRef.current = listIdentity(urlSearch)
+
+  // A sidebar/tab-bar link opens a list from its start, also while this list stays mounted (where the
+  // window would otherwise keep the previous list's position).
+  const fromShellNav = isShellNavState(locationState)
+  const openedFromShellNav = useRef(fromShellNav)
   useEffect(() => {
-    const onScroll = () =>
+    if (fromShellNav) window.scrollTo(0, 0)
+  }, [locationKey, fromShellNav])
+  useEffect(() => {
+    const onScroll = () => {
+      // Until the restore has run, scroll events come from the short loading page clamping the old
+      // position, not from the user; recording them would overwrite the position to restore.
+      if (!scrollRestored.current) return
       sessionStorage.setItem(SCROLL_KEY, JSON.stringify({ list: listRef.current, y: window.scrollY }))
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const scrollRestored = useRef(false)
   useEffect(() => {
     if (scrollRestored.current || search.status !== 'ready') return
     scrollRestored.current = true
     try {
       const saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null') as { list: string; y: number } | null
-      if (saved && saved.y > 0 && saved.list === listRef.current) window.scrollTo(0, saved.y)
+      const sameList = saved !== null && saved.list === listRef.current
+      if (sameList && saved.y > 0 && !openedFromShellNav.current) window.scrollTo(0, saved.y)
     } catch {
       // unreadable entry → start at the top
     }

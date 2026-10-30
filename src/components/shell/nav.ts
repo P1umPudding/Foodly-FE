@@ -38,10 +38,8 @@ export function listHref(categories: number[], prefs: ViewPrefs): string {
 // The category the list shows on its own, if any — that link is the active nav entry then, not "Rezepte".
 export function activeCategoryId(pathname: string, params: URLSearchParams): number | null {
   if (pathname !== '/recipes') return null
-  const cats = params.getAll('cat')
-  if (cats.length !== 1) return null
-  const id = Number(cats[0])
-  return Number.isInteger(id) ? id : null
+  const { categories } = fromSearchParams(params)
+  return categories.length === 1 ? categories[0] : null
 }
 
 export function routeTitle(pathname: string): string {
@@ -50,4 +48,12 @@ export function routeTitle(pathname: string): string {
   if (/^\/recipes\/[^/]+\/edit$/.test(pathname)) return 'Rezept bearbeiten'
   if (/^\/recipes\/[^/]+$/.test(pathname)) return 'Rezept'
   return ''
+}
+
+// Router state on sidebar/tab-bar links, so the list can tell a fresh "open this list" from its own
+// filter changes (which keep the scroll position).
+export const SHELL_NAV_STATE = { shellNav: true } as const
+
+export function isShellNavState(state: unknown): boolean {
+  return typeof state === 'object' && state !== null && (state as { shellNav?: unknown }).shellNav === true
 }
