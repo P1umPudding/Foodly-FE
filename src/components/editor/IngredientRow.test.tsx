@@ -66,6 +66,7 @@ describe('IngredientRow · Zusatz', () => {
 
     await pick('Zwiebel')
     expect(zusatz().disabled).toBe(false)
+    expect(zusatz().hasAttribute('aria-describedby')).toBe(false)
 
     fireEvent.change(zusatz(), { target: { value: 'nach Geschmack' } })
 
