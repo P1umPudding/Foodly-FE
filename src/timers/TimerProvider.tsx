@@ -1,4 +1,4 @@
-// Global kitchen-timer state. Lives above Nav and Routes so timers survive
+// Global kitchen-timer state. Lives above the app shell and Routes so timers survive
 // navigation (but not reload — no persistence). Remaining time is always derived
 // from an absolute `endAt`, so a throttled background tab can't drift the clock.
 

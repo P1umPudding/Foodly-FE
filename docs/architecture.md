@@ -51,8 +51,8 @@ werden hier nicht wiederholt.
 - `src/catalog/CatalogProvider.tsx` lädt Tags, Users, Ingredients und `me` einmal und
   stellt `byId`-Maps bereit. Neue globale Lookup-Daten gehören hierhin, nicht in
   Seiten-State.
-- App-weiter State als Provider in `src/App.tsx` (z. B. `TimerProvider`, der Nav +
-  Main umschließt, damit Timer Navigation überleben). Kein globaler Store (kein
+- App-weiter State als Provider in `src/App.tsx` (z. B. `TimerProvider`, der die
+  `AppShell` umschließt, damit Timer Navigation überleben). Kein globaler Store (kein
   Redux/Zustand) ohne Decision-Note.
 - Feature-State als reine Reducer/Funktionen + Hook: Liste in `src/list/`
   (`state.ts`, `query.ts`, `url.ts`, `persistence.ts`, `useListState.ts`), Editor in
@@ -83,11 +83,15 @@ werden hier nicht wiederholt.
   (`RecipeEditorRoute` in `src/App.tsx`).
 - Kein Data Router (`createBrowserRouter`) → kein `useBlocker`; Verlassen-Schutz via
   `beforeunload` + Flush bei Unmount. Migration nur mit Decision-Note.
-- Geplante Struktur (Phase 5 rev. 2, `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`):
-  `/` Dashboard, `/recipes` Liste (`/` mit Listen-Params → Redirect auf `/recipes?…`),
-  Kategorien nur als Filter `/recipes?cat=<id>` (keine eigene Route), `AppShell` mit
-  `NAV_DESTINATIONS` (Home · Recipes · +Create; Tabs im Header ≥ `md`, Bottom-Tabs
-  darunter). Groups-Routen erst nach B12 + Backend #13.
+- Struktur (Phase 5 rev. 2, `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`;
+  bei der Navigationsform hat das Redesign Vorrang, `docs/design/redesign/README.md` §1.6):
+  `/recipes` Liste; `/` leitet bis zum Dashboard-Issue mit Query auf `/recipes` weiter
+  (`RootRedirect`). Kategorien nur als Filter `/recipes?cat=<id>` (keine eigene Route).
+  `src/components/shell/`: `AppShell` mit `NAV_DESTINATIONS` (`nav.ts`, einzige Quelle,
+  „Start“ vorbereitet, aber ausgeblendet); ab 761 px (`useIsDesktop`) Seitenleiste
+  (einklappbar, Kategorien, Profil), darunter Tab-Leiste + „+“-FAB + Avatar. Das Fenster
+  bleibt der Scroll-Container; feste Seitenleisten nutzen `--shell-left`/`--shell-bottom`.
+  Groups-Routen erst nach B12 + Backend #13.
 
 ## 6. UI & Styling
 
