@@ -1,9 +1,8 @@
 import { Routes, Route, useParams } from 'react-router-dom'
-import { Toaster, TooltipProvider } from '@postxl/ui-components'
-import { Nav } from './components/Nav'
-import { Footer } from './components/Footer'
-import { NotFound } from './pages/NotFound'
+import { TooltipProvider } from '@postxl/ui-components'
+import { AppShell } from './components/shell/AppShell'
 import { RootRedirect } from './components/shell/RootRedirect'
+import { NotFound } from './pages/NotFound'
 import { CatalogProvider } from './catalog/CatalogProvider'
 import { TimerProvider } from './timers/TimerProvider'
 import { RecipeList } from './pages/RecipeList'
@@ -22,26 +21,22 @@ export function RecipeEditorRoute() {
 export default function App() {
   return (
     <TooltipProvider>
-      {/* TimerProvider wraps Nav + main so timers survive navigation. */}
+      {/* TimerProvider wraps the shell so timers survive navigation; the catalog sits above the shell
+          because the sidebar and profile menu need the categories and `me`. */}
       <TimerProvider>
-        <div className="flex min-h-screen flex-col bg-background text-foreground">
-          <Nav />
-          <main className="flex-1">
-            <CatalogProvider>
-              <Routes>
-                <Route path="/" element={<RootRedirect />} />
-                <Route path="/recipes" element={<RecipeList />} />
-                {/* before /recipes/:id — otherwise "new" is parsed as an id */}
-                <Route path="/recipes/new" element={<RecipeEditorRoute />} />
-                <Route path="/recipes/:id" element={<RecipeDetail />} />
-                <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </CatalogProvider>
-          </main>
-          <Footer />
-        </div>
-        <Toaster />
+        <CatalogProvider>
+          <AppShell>
+            <Routes>
+              <Route path="/" element={<RootRedirect />} />
+              <Route path="/recipes" element={<RecipeList />} />
+              {/* before /recipes/:id — otherwise "new" is parsed as an id */}
+              <Route path="/recipes/new" element={<RecipeEditorRoute />} />
+              <Route path="/recipes/:id" element={<RecipeDetail />} />
+              <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppShell>
+        </CatalogProvider>
       </TimerProvider>
     </TooltipProvider>
   )

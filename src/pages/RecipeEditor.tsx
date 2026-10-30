@@ -150,7 +150,7 @@ export function RecipeEditor() {
         <ImageManager mainImage={draft.mainImage} images={draft.images} onChange={patch} />
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-border bg-card">
+      <div className="fixed right-0 bottom-[var(--shell-bottom,0px)] left-[var(--shell-left,0px)] border-t border-border bg-card">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-6 py-3">
           {isNew ? (
             <>

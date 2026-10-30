@@ -1,14 +1,10 @@
 import { flushSync } from 'react-dom'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  buttonVariants,
-  cn,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@postxl/ui-components'
 import { useTheme } from '../theme/ThemeProvider'
 import type { ColorMode } from '../theme/ThemeProvider'
@@ -65,23 +61,6 @@ function MonitorIcon() {
     </svg>
   )
 }
-function CheckIcon() {
-  return (
-    <svg
-      className={ICON}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  )
-}
-
 type Option = { mode: ColorMode; label: string; icon: () => JSX.Element }
 const OPTIONS: Option[] = [
   { mode: 'light', label: 'Hell', icon: SunIcon },
@@ -89,7 +68,8 @@ const OPTIONS: Option[] = [
   { mode: 'system', label: 'System', icon: MonitorIcon },
 ]
 
-export function ThemeToggle() {
+// The colour-mode reveal: a circle grows from the click point (View Transitions API).
+function useThemeSwitch() {
   const { colorMode, resolvedColorMode, setColorMode } = useTheme()
 
   const select = async (e: React.MouseEvent<HTMLElement>, next: ColorMode) => {
@@ -139,6 +119,13 @@ export function ThemeToggle() {
     }
   }
 
+  return { colorMode, resolvedColorMode, select }
+}
+
+// Theme choice as a submenu of the profile menu (the shell has no standalone theme button any more).
+export function ThemeSubmenu() {
+  const { colorMode, resolvedColorMode, select } = useThemeSwitch()
+
   const ActiveIcon =
     colorMode === 'system'
       ? resolvedColorMode === 'dark'
@@ -147,46 +134,22 @@ export function ThemeToggle() {
       : (OPTIONS.find((o) => o.mode === colorMode)?.icon ?? MonitorIcon)
 
   return (
-    <DropdownMenu>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="inline-flex">
-            <DropdownMenuTrigger
-              aria-label="Theme wechseln"
-              className={cn(
-                buttonVariants({ variant: 'ghost', size: 'icon' }),
-                'rounded-md text-muted-foreground hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
-              )}
-            >
-              <ActiveIcon />
-            </DropdownMenuTrigger>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>Theme wechseln</TooltipContent>
-      </Tooltip>
-      <DropdownMenuContent
-        align="end"
-        sideOffset={10}
-        className="min-w-44 rounded-lg border-border/80 bg-popover p-1.5 shadow-lg"
-      >
-        {OPTIONS.map(({ mode, label, icon: Icon }) => {
-          const active = colorMode === mode
-          return (
-            <DropdownMenuItem
-              key={mode}
-              onClick={(e) => select(e, mode)}
-              className={cn(
-                'flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                active ? 'text-foreground' : 'text-muted-foreground',
-              )}
-            >
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger className="gap-2">
+        <ActiveIcon />
+        Theme
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent className="min-w-40">
+        <DropdownMenuRadioGroup value={colorMode}>
+          {OPTIONS.map(({ mode, label, icon: Icon }) => (
+            // onClick, not onValueChange: the reveal starts at the click point.
+            <DropdownMenuRadioItem key={mode} value={mode} onClick={(e) => select(e, mode)} className="gap-2">
               <Icon />
-              <span className="flex-1">{label}</span>
-              <span className="w-4 text-primary">{active ? <CheckIcon /> : null}</span>
-            </DropdownMenuItem>
-          )
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+              {label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
   )
 }
