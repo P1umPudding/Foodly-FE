@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeListView } from './RecipeListView'
+import { categoryColors } from '../../lib/categoryColor'
 import type { Recipe, UserCategory } from '../../api/protocol'
 
 vi.mock('../../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1, useTags: () => ({ byId: {} }) }))
@@ -58,9 +59,14 @@ it('renders a collapsible, colour-coded heading per category', () => {
     </TooltipProvider>,
   )
   const heading = screen.getByRole('button', { name: /Fav/i }) // CollapseTrigger is a button
-  // category text is darkened in light mode, vibrant in dark
-  expect(heading.className).toContain('text-[#be123c]')
-  expect(heading.className).toContain('dark:text-[#fb7185]')
+  expect(heading.className).toContain('text-cat-ink')
+  // The Collapse root carries the colour variables; the bridge CSS isn't loaded in
+  // jsdom, so only the variables are checked, not computed colours.
+  const group = heading.closest('[data-cat]') as HTMLElement
+  expect(group).not.toBeNull()
+  expect(group.style.getPropertyValue('--cat-ink-l')).toBe(categoryColors(cats[0]).light.ink)
+  expect(group.querySelector('.border-cat-line')).not.toBeNull()
+  expect(screen.getByRole('button', { name: /Ohne Kategorie/i }).closest('[data-cat]')).toBeNull()
 })
 
 it('flat list (grouped=false): no category headers, every recipe once', () => {
