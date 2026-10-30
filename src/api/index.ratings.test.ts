@@ -35,8 +35,7 @@ beforeEach(() => {
   fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
     const url = String(input)
     if (url.endsWith('/users/me')) return json({ id: ME, name: 'Me', profilePicture: null })
-    if (url.includes('/recipes/search'))
-      return json({ data: [preview(1), preview(2), preview(3)], cursor: null })
+    if (url.includes('/recipes/search')) return json({ data: [preview(1), preview(2), preview(3)], cursor: null })
     if (url.endsWith('/recipes/5'))
       return json({ ...preview(5, [{ user: 3, rating: 2 }]), sections: [], notes: [], images: [] })
     throw new Error(`unexpected fetch ${url}`)
@@ -80,14 +79,12 @@ describe('REST rating stub', () => {
     let { foodly } = await load()
     await foodly.me()
     await foodly.setMyRating(5, 4)
-
     ;({ foodly } = await load())
     await foodly.me()
     expect((await foodly.getRecipe(5)).rating).toContainEqual({ user: ME, rating: 4 })
 
     const cleared = await foodly.clearMyRating(5)
     expect(cleared.rating).toEqual([{ user: 3, rating: 2 }])
-
     ;({ foodly } = await load())
     await foodly.me()
     expect((await foodly.getRecipe(5)).rating).toEqual([{ user: 3, rating: 2 }])
