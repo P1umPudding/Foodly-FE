@@ -27,7 +27,7 @@ the Dispatcher, hands issues to worker agents and relays merge requests):
 - Agents **may push** branches named `agent/issue-<n>` (one per GitHub issue)
   and `lead/<slug>`.
 - **`main` is never pushed directly** — no push, no force-push.
-- **Merges only after explicit approval by Kolja.** The merge decision goes
+- **Merges only after explicit approval by Kolja or Daniel (either one is enough).** The merge decision goes
   through the Dispatcher; agents never merge PRs themselves.
 - Specs and plans live in `docs/superpowers/` (`specs/`, `plans/`, see
   [`docs/` conventions](#docs-conventions)).
@@ -109,6 +109,9 @@ In short:
   mock-only until the backend offers a list endpoint
   (`docs/backend-questions.md` B2). A new method gets both branches and a mock
   handler.
+- Missing backend endpoint in REST mode (Alpha): stub it inside `src/api`
+  (localStorage, `src/api/stubs.ts`, "Demo" hint in the UI) — see
+  [`docs/decisions/0003-backend-gap-stubs.md`](docs/decisions/0003-backend-gap-stubs.md).
 - Errors: the transport throws `Error(message)`; handle it via the hooks
   (`useRequest` / `useRecipeSearch` surface it as an error state;
   in `useRecipeSearch` only for the first page — a failed `loadMore` stops

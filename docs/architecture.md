@@ -19,6 +19,10 @@ werden hier nicht wiederholt.
     oder `VITE_MOCK` sind in Env oder `.env*` gesetzt) läuft **alles** über Mocks;
     ohne nur die Methoden, für die das Backend noch nichts hat (aktuell
     `listUsers`, siehe `docs/backend-questions.md` B2).
+  - **Stubs** für fehlende Endpoints im REST-Modus (Alpha): Zweig in der
+    `foodly.*`-Methode, Daten in `localStorage` (`foodly.stub.*`), Register
+    `src/api/stubs.ts` (`isStubbed`), UI-Hinweis „Demo“. Regeln:
+    `docs/decisions/0003-backend-gap-stubs.md`.
   - **WebSocket** (`src/api/socket.ts`) ist für späteres Live-Editing reserviert und
     wird heute nicht verbunden.
 - Jede neue `foodly.*`-Methode bekommt **beide Zweige** (`USE_MOCKS ? socket.request(...) : rest.*`)
