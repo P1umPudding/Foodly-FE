@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { Input } from '@postxl/ui-components'
 import { IngredientPicker } from './IngredientPicker'
 import { RowActions } from './RowActions'
@@ -21,9 +22,11 @@ export function IngredientRow({
   canMoveDown: boolean
 }) {
   const isCatalog = line.ingredient !== null
+  const zusatzHintId = useId()
 
   return (
-    <div className="flex items-center gap-2">
+    // Wraps on narrow screens: with the Zusatz column the fixed-width fields alone exceed a phone's width.
+    <div className="flex flex-wrap items-center gap-2">
       <Input
         aria-label="Präfix"
         className="w-16"
@@ -49,8 +52,7 @@ export function IngredientRow({
       <IngredientPicker
         value={line.ingredient}
         text={line.text}
-        // Swapping catalog ingredients keeps the Zusatz; on a free-text row `text` is the name, which must not
-        // turn into a Zusatz behind the newly picked ingredient.
+        // Catalog swap keeps the Zusatz; a free-text name must not become the Zusatz of the picked ingredient.
         onPick={(id) => onChange({ ingredient: id, text: isCatalog ? line.text : '' })}
         onText={(text) => onChange({ ingredient: null, text })}
       />
@@ -60,9 +62,15 @@ export function IngredientRow({
         className="w-32"
         placeholder={isCatalog ? 'z. B. gehackt' : undefined}
         disabled={!isCatalog}
+        aria-describedby={isCatalog ? undefined : zusatzHintId}
         value={isCatalog ? line.text : ''}
         onChange={(e) => onChange({ text: e.target.value })}
       />
+      {!isCatalog && (
+        <span id={zusatzHintId} className="sr-only">
+          Zusatz nur bei Zutaten aus dem Katalog
+        </span>
+      )}
       <RowActions
         onUp={onUp}
         onDown={onDown}

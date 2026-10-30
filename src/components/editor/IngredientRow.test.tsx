@@ -87,6 +87,8 @@ describe('IngredientRow · Zusatz', () => {
 
     expect(zusatz().disabled).toBe(true)
     expect(zusatz().value).toBe('')
+    const hintId = zusatz().getAttribute('aria-describedby')
+    expect(hintId && document.getElementById(hintId)?.textContent).toBe('Zusatz nur bei Zutaten aus dem Katalog')
     expect(screen.getByRole('combobox').textContent).toContain('Salz')
     expect(line().text).toBe('Salz')
   })
