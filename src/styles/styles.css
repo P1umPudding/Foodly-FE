@@ -179,6 +179,22 @@
     -moz-appearance: textfield !important;
     appearance: textfield !important;
   }
+  /* Category colour bridge (docs/design.md §2.4): a category element carries both
+     theme variants inline (categoryColorVars in src/lib/categoryColor.ts); this
+     picks one, so a theme switch needs no re-render. Elements without data-cat
+     keep the neutral --cat-* defaults from theme.css. */
+  [data-cat] {
+    --cat-dot: var(--cat-dot-l);
+    --cat-soft: var(--cat-soft-l);
+    --cat-ink: var(--cat-ink-l);
+    --cat-line: var(--cat-line-l);
+  }
+  .dark [data-cat] {
+    --cat-dot: var(--cat-dot-d);
+    --cat-soft: var(--cat-soft-d);
+    --cat-ink: var(--cat-ink-d);
+    --cat-line: var(--cat-line-d);
+  }
 }
 
 /* Project preference: on focus the postxl inputs show just a --ring border —
