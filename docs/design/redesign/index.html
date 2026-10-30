@@ -89,12 +89,16 @@
     <div class="bar">
       <b>Foodly Redesign</b>
       <div class="grp" id="theme"><button data-v="light">Hell</button><button data-v="dark">Dunkel</button></div>
-      <div class="grp" id="img"><button data-v="1">Mit Fotos</button><button data-v="0">Ohne Fotos (heute)</button></div>
+      <div class="grp" id="img">
+        <button data-v="1">Mit Fotos</button><button data-v="0">Ohne Fotos (heute)</button>
+      </div>
       <div class="grp" id="dev">
-        <button data-v="both">Desktop + Handy</button><button data-v="desk">Desktop</button><button data-v="phone">Handy</button>
+        <button data-v="both">Desktop + Handy</button><button data-v="desk">Desktop</button
+        ><button data-v="phone">Handy</button>
       </div>
       <div class="grp" id="view" title="Rezeptliste: Ansicht">
-        <button data-v="compact">Kompakt</button><button data-v="detailed">Detailliert</button><button data-v="tiles">Kacheln</button>
+        <button data-v="compact">Kompakt</button><button data-v="detailed">Detailliert</button
+        ><button data-v="tiles">Kacheln</button>
       </div>
       <div class="grp" id="screen"></div>
     </div>
@@ -123,16 +127,24 @@
         ['categories', 'Kategorien', 'categories'],
         ['states', 'Zustände', 'states'],
       ]
-      document.getElementById('screen').innerHTML = SCREENS.map(([k, l]) => `<button data-v="${k}">${l}</button>`).join('')
-      const st = Object.assign({ theme: 'light', img: '1', dev: 'both', view: 'detailed', screen: 'home' }, Object.fromEntries(new URLSearchParams(location.hash.slice(1))))
+      document.getElementById('screen').innerHTML = SCREENS.map(([k, l]) => `<button data-v="${k}">${l}</button>`).join(
+        '',
+      )
+      const st = Object.assign(
+        { theme: 'light', img: '1', dev: 'both', view: 'detailed', screen: 'home' },
+        Object.fromEntries(new URLSearchParams(location.hash.slice(1))),
+      )
       // srcdoc instead of src: the platform forbids embedding its pages via response headers (Firefox blocks them).
       const V = Date.now() // cache-buster: always load the current mockup files
       const abs = (f) => new URL(f, location.href).href + '?v=' + V
       const frameDoc = (q) =>
-        `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${['base', 'dir-a', 'screens'].map((f) => `<link rel="stylesheet" href="${abs(f + '.css')}">`).join('')}</head><body><div id="root"></div><script>window.MOCK_QS=${JSON.stringify(q)}<\/script>${['icons', 'data', 'app'].map((f) => `<script src="${abs(f + '.js')}"><\/script>`).join('')}</body></html>`.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${['base', 'dir-a', 'screens'].map((f) => `<link rel="stylesheet" href="${abs(f + '.css')}">`).join('')}</head><body><div id="root"></div><script>window.MOCK_QS=${JSON.stringify(q)}<\/script>${['icons', 'data', 'app'].map((f) => `<script src="${abs(f + '.js')}"><\/script>`).join('')}</body></html>`
+          .replace(/&/g, '&amp;')
+          .replace(/"/g, '&quot;')
       const KEYS = ['theme', 'img', 'dev', 'view', 'screen']
       function draw() {
-        for (const k of KEYS) document.querySelectorAll(`#${k} button`).forEach((b) => b.classList.toggle('on', b.dataset.v === st[k]))
+        for (const k of KEYS)
+          document.querySelectorAll(`#${k} button`).forEach((b) => b.classList.toggle('on', b.dataset.v === st[k]))
         location.hash = new URLSearchParams(st).toString()
         const [, , screen, extra] = SCREENS.find((x) => x[0] === st.screen) ?? SCREENS[0]
         const devs = st.dev === 'both' ? ['desk', 'phone'] : [st.dev]
@@ -140,7 +152,9 @@
         document.getElementById('stage').innerHTML = devs
           .map((v) => {
             const [w, h] = dims[v]
-            const doc = frameDoc(`theme=${st.theme}&img=${st.img}&view=${st.view}&screen=${screen}${extra ? '&' + extra : ''}`)
+            const doc = frameDoc(
+              `theme=${st.theme}&img=${st.img}&view=${st.view}&screen=${screen}${extra ? '&' + extra : ''}`,
+            )
             return `<div class="frame ${v}"><span>${v === 'desk' ? 'Desktop' : 'Handy'}</span><iframe srcdoc="${doc}" style="width:${w}px;height:${h}px"></iframe></div>`
           })
           .join('')

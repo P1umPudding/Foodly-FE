@@ -1,28 +1,24 @@
 import { Button } from '@postxl/ui-components'
-import { colorClasses } from '../../list/palette'
+import { categoryColorVars, type CategoryColorInput } from '../../lib/categoryColor'
 import { UNCATEGORIZED_ID } from '../../list/filter'
 import type { UserCategory } from '../../api/protocol'
 
-// Full-width stacked toggles: inactive = category-colour outline; active = filled
-// with the colour at a low alpha. Hovering keeps the category tint (stronger when
-// active, faint when not) so a button always gives click feedback without losing
-// its selected look. Multi-select (OR) — clicking toggles membership.
-// Uses the `ghost` variant (not `outline`): outline bakes in `dark:border-input`
-// which outranks our `border-[hex]` in dark mode, hiding the colour. ghost has no
-// border of its own, so our `border ${cc.border}` is the only rule → shows in both modes.
-// One full-width toggle. `cc` carries the category colour (neutral for the
-// "Ohne Kategorie" pseudo-entry).
+// Hovering an inactive toggle stays neutral so "hovered" never reads like "selected".
+// Multi-select (OR) — clicking toggles membership.
+// Uses the `ghost` variant (not `outline`): outline bakes in `dark:border-input`,
+// which would outrank `border-cat-line` in dark mode. `colors` null ("Ohne
+// Kategorie") → no data-cat, so the neutral --cat-* defaults apply.
 function CategoryButton({
   name,
   count,
   active,
-  cc,
+  colors,
   onClick,
 }: {
   name: string
   count: number
   active: boolean
-  cc: ReturnType<typeof colorClasses>
+  colors: CategoryColorInput | null
   onClick: () => void
 }) {
   return (
@@ -31,11 +27,17 @@ function CategoryButton({
       variant="ghost"
       onClick={onClick}
       aria-pressed={active}
-      className={`h-auto w-full justify-between gap-2 border px-3 py-1.5 text-sm font-normal ${cc.border} ${
-        active ? `${cc.bgActive} ${cc.bgActiveHover} ${cc.text}` : `bg-transparent ${cc.bgHover}`
+      {...(colors && categoryColorVars(colors))}
+      className={`h-auto w-full justify-between gap-2 border border-cat-line px-3 py-1.5 text-sm font-normal ${
+        active
+          ? 'bg-cat-soft text-cat-ink hover:bg-cat-soft hover:text-cat-ink dark:hover:bg-cat-soft'
+          : 'bg-transparent hover:bg-muted dark:hover:bg-muted'
       }`}
     >
-      <span className="min-w-0 truncate">{name}</span>
+      <span className="flex min-w-0 items-center gap-2">
+        <span aria-hidden className="size-2 shrink-0 rounded-full bg-cat-dot" />
+        <span className="truncate">{name}</span>
+      </span>
       <span className="shrink-0 tabular-nums text-xs text-muted-foreground">{count}</span>
     </Button>
   )
@@ -63,7 +65,7 @@ export function CategorySidebar({
           name="Ohne Kategorie"
           count={uncategorizedCount}
           active={selected.includes(UNCATEGORIZED_ID)}
-          cc={colorClasses('')}
+          colors={null}
           onClick={() => onToggle(UNCATEGORIZED_ID)}
         />
       )}
@@ -73,7 +75,7 @@ export function CategorySidebar({
           name={c.name}
           count={c.recipes.length}
           active={selected.includes(c.id)}
-          cc={colorClasses(c.color)}
+          colors={c}
           onClick={() => onToggle(c.id)}
         />
       ))}
