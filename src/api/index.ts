@@ -74,6 +74,7 @@ export const foodly = {
 
   // REST branch is a localStorage stub until Backend #11 routes ratings
   // (PUT|DELETE /recipes/{id}/ratings/me); it resolves to the re-merged recipe.
+  // If that refetch fails the rating is still stored and shows after a reload.
   setMyRating: (id: RecipeId, rating: number): Promise<Recipe> =>
     USE_MOCKS
       ? socket.request<Recipe>('ratings.set', { id, rating })
@@ -112,8 +113,6 @@ export const foodly = {
     USE_MOCKS ? socket.request<UploadedImage>('images.upload') : rest.postBinary<UploadedImage>('/images', file),
 }
 
-// The server sorts without stub ratings (Backend #11), so a rating sort is
-// redone per page; across page boundaries the server order stays.
 function withStubRatings(page: PaginatedRecipes, query: RecipeSearchQuery): PaginatedRecipes {
   const items = page.items.map(mergeMyRating)
   return { ...page, items: query.sort?.field === 'rating' ? sortByRating(items, query.sort.order) : items }

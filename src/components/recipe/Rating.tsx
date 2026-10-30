@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Star } from 'lucide-react'
 import {
   Avatar,
@@ -79,6 +79,7 @@ function MyRatingInput({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const disabled = saving || currentUserId === null
+  const labelId = useId()
 
   const save = async (write: () => Promise<Recipe>) => {
     setSaving(true)
@@ -95,8 +96,8 @@ function MyRatingInput({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between font-medium">
-        <span>Deine Bewertung</span>
-        <span className="inline-flex items-center">
+        <span id={labelId}>Deine Bewertung</span>
+        <span role="group" aria-labelledby={labelId} className="inline-flex items-center">
           {[1, 2, 3, 4, 5].map((n) => (
             <Button
               key={n}
@@ -152,7 +153,7 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
           Button doesn't forwardRef, which breaks Radix positioning). cursor-pointer
           is explicit until the lib ships it for interactive elements. */}
       <PopoverTrigger
-        aria-label={value === null ? 'Bewerten' : `Bewertung ${value.toFixed(1).replace('.', ',')} von 5, ändern`}
+        aria-label={value === null ? 'Bewerten' : `Bewertung ${value.toFixed(1).replace('.', ',')} von 5`}
         className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <Stars value={value ?? 0} size="md" />

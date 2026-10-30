@@ -18,15 +18,19 @@ export function isStubbed(feature: StubFeature): boolean {
 
 const PREFIX = 'foodly.stub.'
 
-// Corrupt JSON or a blocked localStorage reads as `fallback`: stub data is
-// disposable Alpha state, never worth an error screen.
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+// Stores are JSON objects. Corrupt JSON, a non-object value or a blocked
+// localStorage reads as `fallback`: stub data is disposable Alpha state, never
+// worth an error screen. Callers still validate the values inside.
 export const stubStore = {
-  read<T>(key: string, fallback: T): T {
+  read<T extends Record<string, unknown>>(key: string, fallback: T): T {
     try {
       const raw = localStorage.getItem(PREFIX + key)
       const parsed: unknown = raw === null ? null : JSON.parse(raw)
-      // Valid JSON of the wrong shape (null, a number) is as unusable as broken JSON.
-      return typeof parsed === typeof fallback && parsed !== null ? (parsed as T) : fallback
+      return isRecord(parsed) ? (parsed as T) : fallback
     } catch {
       return fallback
     }
@@ -58,19 +62,26 @@ export function stubUserId(): UserId | null {
 // empty). Future endpoint: PUT|DELETE /recipes/{id}/ratings/me
 // (docs/backend-questions.md). Stored as { [userId]: { [recipeId]: rating } }.
 
-type RatingStore = Record<string, Record<string, number>>
+type RatingStore = Record<string, unknown>
 
 const RATINGS_KEY = 'ratings'
 
+function myStoredRatings(store: RatingStore): Record<string, unknown> {
+  const mine = currentUserId === null ? undefined : store[currentUserId]
+  return isRecord(mine) ? mine : {}
+}
+
+// Anything but a whole 1–5 star value (hand-edited or older data) counts as unrated.
 export function readMyRating(recipeId: RecipeId): number | null {
   if (currentUserId === null) return null
-  return stubStore.read<RatingStore>(RATINGS_KEY, {})[currentUserId]?.[recipeId] ?? null
+  const value = myStoredRatings(stubStore.read<RatingStore>(RATINGS_KEY, {}))[recipeId]
+  return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 5 ? value : null
 }
 
 export function writeMyRating(recipeId: RecipeId, rating: number | null): void {
   if (currentUserId === null) throw new Error('Nicht angemeldet')
   const store = stubStore.read<RatingStore>(RATINGS_KEY, {})
-  const mine = { ...store[currentUserId] }
+  const mine = { ...myStoredRatings(store) }
   if (rating === null) delete mine[recipeId]
   else mine[recipeId] = rating
   stubStore.write(RATINGS_KEY, { ...store, [currentUserId]: mine })

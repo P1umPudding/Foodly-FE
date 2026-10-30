@@ -59,21 +59,27 @@ describe('stubStore', () => {
   it('prefixes keys with foodly.stub.', () => {
     stubStore.write('x', { a: 1 })
     expect(localStorage.getItem('foodly.stub.x')).toBe('{"a":1}')
-    expect(stubStore.read('x', null)).toEqual({ a: 1 })
+    expect(stubStore.read('x', {})).toEqual({ a: 1 })
   })
 
-  it('falls back on missing or corrupt JSON', () => {
-    expect(stubStore.read('missing', 'fb')).toBe('fb')
-    localStorage.setItem('foodly.stub.bad', '{nope')
-    expect(stubStore.read('bad', 'fb')).toBe('fb')
+  it('falls back on missing, corrupt or non-object JSON', () => {
+    const fallback = { fb: true }
+    expect(stubStore.read('missing', fallback)).toBe(fallback)
+    for (const raw of ['{nope', 'null', '5', '"x"', '[]']) {
+      localStorage.setItem('foodly.stub.bad', raw)
+      expect(stubStore.read('bad', fallback)).toBe(fallback)
+    }
   })
 
-  it('falls back on valid JSON of the wrong shape', () => {
-    for (const raw of ['null', '5', '"x"']) {
+  it('treats stored values of the wrong shape as unrated', () => {
+    setStubUser(7)
+    for (const raw of ['[]', '{"7":"abc"}', '{"7":{"5":"4"}}', '{"7":{"5":99}}', '{"7":{"5":2.5}}']) {
       localStorage.setItem('foodly.stub.ratings', raw)
-      setStubUser(7)
       expect(readMyRating(5)).toBeNull()
     }
+    localStorage.setItem('foodly.stub.ratings', '{"7":"abc"}')
+    writeMyRating(5, 4)
+    expect(JSON.parse(localStorage.getItem('foodly.stub.ratings')!)).toEqual({ '7': { '5': 4 } })
   })
 
   it('turns a failed write into a readable error', () => {

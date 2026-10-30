@@ -91,7 +91,7 @@ describe('Rating', () => {
 
   it('labels the trigger with the current value', () => {
     render(<Rating recipe={recipe({ rating: [{ user: 1, rating: 4 }] })} />)
-    expect(screen.getByRole('button', { name: 'Bewertung 4,0 von 5, ändern' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Bewertung 4,0 von 5' })).toBeTruthy()
   })
 
   it('shows a failed write inline', async () => {

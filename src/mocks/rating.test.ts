@@ -1,8 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { mockData, mockRequest, CURRENT_USER_ID } from './index'
 import type { Recipe } from '../api/protocol'
 
 const target = mockData.recipes[0]
+const original = target.rating
+
+afterEach(() => {
+  target.rating = original
+})
 
 describe('mock ratings', () => {
   it('sets, overwrites and clears the own rating, keeping other users', async () => {
