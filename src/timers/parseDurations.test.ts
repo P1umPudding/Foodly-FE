@@ -47,6 +47,8 @@ const POSITIVE: Array<[string, string, number]> = [
   ['nach einer halben Stunde wenden', 'einer halben Stunde', 30 * MIN],
   ['nach einer Viertelstunde wenden', 'einer Viertelstunde', 15 * MIN],
   ['Auf Stufe 2 - 5 Minuten rühren', '5 Minuten', 5 * MIN],
+  // A spaced hyphen is no range (see "Stufe 2 - 5"), so the chip covers the upper value only — same timer.
+  ['10 - 15 Min. backen', '15 Min.', 15 * MIN],
 ]
 
 const NEGATIVE = [

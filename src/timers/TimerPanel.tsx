@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Popover,
   PopoverContent,
@@ -34,8 +34,14 @@ export function TimerPanel() {
   const closedByOutsideClick = useRef(false)
   const onInteractOutside = (e: Event) => {
     keepOpenForToast(e)
+    // A press on the header button is not "outside": the button toggles the panel itself.
+    if (triggerRef.current?.contains(outsideTarget(e))) e.preventDefault()
     if (!e.defaultPrevented) closedByOutsideClick.current = true
   }
+  // Reopened during the closing animation, Radix never fires onCloseAutoFocus, so the flag would linger.
+  useEffect(() => {
+    if (open) closedByOutsideClick.current = false
+  }, [open])
   const restoreFocus = (e: Event) => {
     e.preventDefault()
     const returnTo = shared?.takeReturnFocus()
@@ -102,7 +108,7 @@ export function TimerPanel() {
 
   return (
     <>
-      <TimerToggle ref={triggerRef} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)} />
+      <TimerToggle ref={triggerRef} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(!open)} />
       <Sheet open={open} onOpenChange={setOpen} modal={false}>
         <SheetContent
           side="bottom"
@@ -126,6 +132,11 @@ export function TimerPanel() {
 // would be treated as a click-away and close the panel. Keep it open so the
 // action fires against a still-mounted timer row.
 function keepOpenForToast(e: Event): void {
-  const target = (e as CustomEvent<{ originalEvent?: Event }>).detail?.originalEvent?.target
+  const target = outsideTarget(e)
   if (target instanceof Element && target.closest('[data-sonner-toaster]')) e.preventDefault()
+}
+
+function outsideTarget(e: Event): Node | null {
+  const target = (e as CustomEvent<{ originalEvent?: Event }>).detail?.originalEvent?.target
+  return target instanceof Node ? target : null
 }
