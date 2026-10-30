@@ -16,9 +16,10 @@ import {
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { canEdit } from '../editor/access'
-import { useCurrentUserId } from '../catalog/CatalogProvider'
+import { useCurrentUserId, useTags } from '../catalog/CatalogProvider'
 import { averageRating } from '../api/views'
 import { TagText } from '../components/TagText'
+import { plainTagText } from '../components/tagTokens'
 import { Rating } from '../components/recipe/Rating'
 import { TagChips } from '../components/recipe/TagChips'
 import { SectionBlock } from '../components/recipe/SectionBlock'
@@ -37,6 +38,7 @@ export function RecipeDetail() {
   const recipeId = Number(id)
   const { status, data: recipe, error } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
   const currentUserId = useCurrentUserId()
+  const { byId: tags } = useTags()
 
   const navigate = useNavigate()
   const [cloning, setCloning] = useState(false)
@@ -79,6 +81,8 @@ export function RecipeDetail() {
 
   // All images of the recipe in viewer order: main first, then the gallery.
   const hasMain = !!recipe && recipe.mainImage !== null
+  // Timer labels are plain text, so tag tokens in the name become the tag's name.
+  const plainName = recipe ? plainTagText(recipe.name, tags) : ''
   const allImages = recipe ? (hasMain ? [recipe.mainImage as number, ...recipe.images] : recipe.images) : []
 
   return (
@@ -223,10 +227,12 @@ export function RecipeDetail() {
             </div>
           )}
 
-          {recipe.sections.map((section) => (
+          {recipe.sections.map((section, k) => (
             <SectionBlock
               key={section.id}
               section={section}
+              recipeName={plainName}
+              stepOffset={recipe.sections.slice(0, k).reduce((n, s) => n + s.steps.length, 0)}
               factor={factor}
               checkable={checkable}
               checkedIds={checkedIds}
