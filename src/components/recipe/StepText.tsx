@@ -63,7 +63,7 @@ function TimerChip({ match, timerLabel }: { match: DurationMatch; timerLabel: st
       aria-label={`Timer starten: ${match.label}`}
       // The chip sits inside a sentence, so it takes the step's text size and line height instead of
       // the Button's own.
-      className="mx-0.5 h-auto gap-1 rounded-[4px] px-1.5 py-0 align-baseline text-[length:inherit] leading-[inherit] font-normal shadow-none"
+      className="mx-0.5 h-auto gap-1 rounded-sm px-1.5 py-0 align-baseline text-[length:inherit] leading-[inherit] font-normal shadow-none"
     >
       <TimerIcon className="size-[1em]" />
       {match.label}

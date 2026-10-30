@@ -117,6 +117,7 @@ export function TimerPanel() {
           onCloseAutoFocus={restoreFocus}
           className="flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pb-[env(safe-area-inset-bottom)]"
         >
+          <div aria-hidden className="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-muted-foreground/30" />
           <SheetHeader className="px-4 pb-3">
             <SheetTitle>Timer</SheetTitle>
             <SheetDescription className="sr-only">Küchen-Timer verwalten</SheetDescription>
