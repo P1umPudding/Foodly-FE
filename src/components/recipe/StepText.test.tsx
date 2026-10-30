@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { StepText } from './StepText'
 import { TimerProvider, useTimers } from '../../timers/TimerProvider'
 import { TimerPanelProvider, useTimerPanel } from '../../timers/TimerPanelContext'
@@ -36,6 +36,7 @@ function renderStep() {
 const probe = () => JSON.parse(screen.getByTestId('probe').textContent ?? '{}')
 
 beforeEach(() => localStorage.clear())
+afterEach(() => vi.useRealTimers())
 
 describe('StepText', () => {
   it('renders tag tokens and one chip per time span', () => {
@@ -69,5 +70,20 @@ describe('StepText', () => {
     // A different span of the same step is its own timer.
     fireEvent.click(screen.getByRole('button', { name: 'Timer starten: 1½ Stunden' }))
     expect(probe().timers).toHaveLength(2)
+  })
+
+  it('starts a new timer once the old one for the step has run out', () => {
+    vi.useFakeTimers()
+    renderStep()
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
+    fireEvent.click(chip)
+    act(() => vi.advanceTimersByTime(30 * 60_000 + 500))
+    expect(probe().timers).toEqual([[LABEL, 30 * 60_000, 'expired']])
+
+    fireEvent.click(chip)
+    expect(probe().timers).toEqual([
+      [LABEL, 30 * 60_000, 'expired'],
+      [LABEL, 30 * 60_000, 'running'],
+    ])
   })
 })

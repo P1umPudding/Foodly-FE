@@ -31,27 +31,30 @@ const NUMBER_WORDS: Record<string, number> = {
 }
 const FRACTIONS: Record<string, number> = { '½': 0.5, '¼': 0.25, '¾': 0.75 }
 
-const DIGITS = String.raw`\d+(?:[.,]\d+)?(?:\s?[½¼¾])?`
+const DIGITS = String.raw`\d+\/\d+|\d+(?:[.,]\d+)?(?:\s?[½¼¾])?`
 const WORD = 'einen|einer|eine|ein|zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn|elf|zwölf'
-const RANGE = String.raw`\s*(?:-|–|—|\sbis\s)\s*`
+// A plain hyphen only counts unspaced: "Stufe 2 - 5 Minuten" must not become a 2–5 range.
+const RANGE = String.raw`(?:\s*[–—]\s*|-|\s+bis\s+)`
 const UNIT = String.raw`(stunden|stunde|std\.?|h|minuten|minute|min\.?|sekunden|sekunde|sek\.?|s)(?![\p{L}\d])`
 // Digits may touch the unit ("10min"); number words need a space, or "eins" would read as "ein s".
 const QUANTITY =
   String.raw`(?:(?:(${DIGITS})${RANGE})?(${DIGITS})\s?|(?:(${WORD})${RANGE})?(${WORD})\s+)${UNIT}` +
-  String.raw`|((?:eine\s+)?halbe\s+stunde|(?:eine\s+)?viertelstunde)(?![\p{L}\d])`
+  String.raw`|((?:eine\s+)?halbe\s+stunde|einer\s+halben\s+stunde|(?:eine[rn]?\s+)?viertelstunde)(?![\p{L}\d])`
 const PREFIX = String.raw`(?:(?:ca\.|etwa|gut)\s+)?`
 
 // No lookbehind for the left word boundary: Safari before 16.4 can't parse it (Vite's default target includes
 // Safari 16.0), so the boundary is checked in code instead.
 const FIRST = new RegExp(PREFIX + `(?:${QUANTITY})`, 'giu')
 // A follow-up part of a combination ("1 Stunde 30 Minuten", "1 Std. und 30 Min."), anchored where the last ended.
-const NEXT = new RegExp(String.raw`(?:\s*,)?(?:\s+und)?\s+(?:${QUANTITY})`, 'yiu')
+const NEXT = new RegExp(String.raw`(?:\s+und)?\s+(?:${QUANTITY})`, 'yiu')
 
 type Quantity = { ms: number; unitMs: number }
 
 function numberValue(raw: string): number {
   const word = NUMBER_WORDS[raw.toLowerCase()]
   if (word !== undefined) return word
+  const slash = /^(\d+)\/(\d+)$/.exec(raw)
+  if (slash) return Number(slash[1]) / Number(slash[2])
   const fraction = raw[raw.length - 1]
   if (fraction in FRACTIONS) {
     const whole = raw.slice(0, -1).trim()
@@ -79,8 +82,9 @@ function quantity(groups: string[]): Quantity {
   return { ms: Math.round(numberValue(digits ?? word) * u), unitMs: u }
 }
 
-function isWordChar(ch: string | undefined): boolean {
-  return ch !== undefined && /[\p{L}\d]/u.test(ch)
+// Also "/" and ":", so the tail of "3/4" or "1:30" never reads as a number of its own.
+function continuesToken(ch: string | undefined): boolean {
+  return ch !== undefined && /[\p{L}\d/:]/u.test(ch)
 }
 
 export function parseDurations(text: string): DurationMatch[] {
@@ -90,8 +94,9 @@ export function parseDurations(text: string): DurationMatch[] {
 
   for (let m = FIRST.exec(text); m !== null; m = FIRST.exec(text)) {
     const start = m.index
-    if (isWordChar(text[start - 1])) {
-      // Inside a word ("Achtung", "x12 min"): retry one character later, where a shorter match may still start.
+    if (continuesToken(text[start - 1])) {
+      // Inside a word or number ("Achtung", "x12 min"): retry one character later, where a shorter match may
+      // still start.
       FIRST.lastIndex = start + 1
       continue
     }
@@ -110,7 +115,7 @@ export function parseDurations(text: string): DurationMatch[] {
     }
     FIRST.lastIndex = end
 
-    if (ms <= 0) continue
+    if (!Number.isFinite(ms) || ms <= 0) continue
     if (tokens.some((t) => t.start < end && start < t.end)) continue
     matches.push({ start, end, durationMs: ms, label: text.slice(start, end) })
   }

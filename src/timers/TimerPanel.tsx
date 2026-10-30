@@ -23,10 +23,18 @@ export function TimerPanel() {
   const shared = useTimerPanel()
   const [localOpen, setLocalOpen] = useState(false)
   const open = shared?.open ?? localOpen
-  const setOpen = shared?.setOpen ?? setLocalOpen
+  const setOpen = (next: boolean) => (shared ? shared.setOpen(next) : setLocalOpen(next))
   const isDesktop = useIsDesktop()
   const triggerRef = useRef<HTMLSpanElement>(null)
   const { timers } = useTimers()
+
+  // Radix would return focus to the trigger's span wrapper (not focusable) or, for the Sheet without a
+  // trigger, to the body. Send it back to the chip that opened the panel, else to the header button.
+  const restoreFocus = (e: Event) => {
+    e.preventDefault()
+    const target = shared?.takeReturnFocus() ?? triggerRef.current?.querySelector('button')
+    target?.focus()
+  }
 
   // Named timers first (the ephemeral unnamed ones sink below); within each
   // group, expired/alarming first, then by remaining time ascending.
@@ -71,11 +79,7 @@ export function TimerPanel() {
         <PopoverContent
           align="end"
           onInteractOutside={keepOpenForToast}
-          // Radix would return focus to the span wrapper, which isn't focusable; hand it to the button.
-          onCloseAutoFocus={(e) => {
-            e.preventDefault()
-            triggerRef.current?.querySelector('button')?.focus()
-          }}
+          onCloseAutoFocus={restoreFocus}
           aria-label="Timer"
           className="flex max-h-[min(36rem,80vh)] w-80 flex-col px-0 pb-0"
         >
@@ -88,12 +92,13 @@ export function TimerPanel() {
 
   return (
     <>
-      <TimerToggle onClick={() => setOpen(true)} />
+      <TimerToggle ref={triggerRef} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)} />
       <Sheet open={open} onOpenChange={setOpen} modal={false}>
         <SheetContent
           side="bottom"
           __e2e_test_id__="timer-sheet"
           onInteractOutside={keepOpenForToast}
+          onCloseAutoFocus={restoreFocus}
           className="flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pb-[env(safe-area-inset-bottom)]"
         >
           <SheetHeader className="px-4 pb-3">

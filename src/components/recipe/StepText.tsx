@@ -1,5 +1,6 @@
 // A recipe step: tag tokens via TagText, plus time spans as chips that start a named timer.
 import { Fragment, useMemo } from 'react'
+import type { MouseEvent } from 'react'
 import { Timer as TimerIcon } from 'lucide-react'
 import { Button, toast } from '@postxl/ui-components'
 import { TagText } from '../TagText'
@@ -37,7 +38,7 @@ function TimerChip({ match, timerLabel }: { match: DurationMatch; timerLabel: st
   const { timers, add } = useTimers()
   const panel = useTimerPanel()
 
-  const onClick = () => {
+  const onClick = (e: MouseEvent<HTMLButtonElement>) => {
     // The label names the step, so two equal spans in one step count as the same timer.
     const running = timers.some(
       (t) =>
@@ -46,7 +47,7 @@ function TimerChip({ match, timerLabel }: { match: DurationMatch; timerLabel: st
         (t.status === 'running' || t.status === 'paused'),
     )
     if (running) {
-      panel?.setOpen(true)
+      panel?.setOpen(true, e.currentTarget)
       return
     }
     add({ label: timerLabel, durationMs: match.durationMs })
@@ -60,6 +61,8 @@ function TimerChip({ match, timerLabel }: { match: DurationMatch; timerLabel: st
       size="xs"
       onClick={onClick}
       aria-label={`Timer starten: ${match.label}`}
+      // The chip sits inside a sentence, so it takes the step's text size and line height instead of
+      // the Button's own.
       className="mx-0.5 h-auto gap-1 rounded-[4px] px-1.5 py-0 align-baseline text-[length:inherit] leading-[inherit] font-normal shadow-none"
     >
       <TimerIcon className="size-[1em]" />

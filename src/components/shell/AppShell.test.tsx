@@ -214,6 +214,7 @@ describe('Timer button in the header', () => {
     const panel = await screen.findByRole('dialog', { name: 'Timer' })
     expect(panel.getAttribute('data-slot')).toBe('popover-content')
     within(panel).getByText('Kein Timer läuft.')
+    expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('true')
   })
 
   it('opens a sheet on the phone', async () => {
@@ -221,8 +222,8 @@ describe('Timer button in the header', () => {
     renderAt('/recipes/1')
     openTimers()
     const panel = await screen.findByRole('dialog', { name: 'Timer' })
-    expect(panel.getAttribute('data-slot')).toBeNull()
     expect(panel.getAttribute('data-test-id')).toBe('timer-sheet')
+    expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('true')
   })
 
   it('shows the countdown of a started timer', async () => {

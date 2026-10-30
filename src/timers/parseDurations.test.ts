@@ -40,6 +40,11 @@ const POSITIVE: Array<[string, string, number]> = [
   ['halbe Stunde ziehen', 'halbe Stunde', 30 * MIN],
   ['eine Viertelstunde ruhen', 'eine Viertelstunde', 15 * MIN],
   ['{Kochzeit} 25 min', '25 min', 25 * MIN],
+  ['1/2 Stunde ruhen', '1/2 Stunde', 30 * MIN],
+  ['3/4 Std. backen', '3/4 Std.', 45 * MIN],
+  ['nach einer halben Stunde wenden', 'einer halben Stunde', 30 * MIN],
+  ['nach einer Viertelstunde wenden', 'einer Viertelstunde', 15 * MIN],
+  ['Auf Stufe 2 - 5 Minuten rühren', '5 Minuten', 5 * MIN],
 ]
 
 const NEGATIVE = [
@@ -57,6 +62,7 @@ const NEGATIVE = [
   'in eine Schüssel geben',
   'in der letzten halben Stunde wenden',
   'einen Moment warten',
+  'Zeit: 1:30 h',
 ]
 
 describe('parseDurations', () => {
@@ -78,6 +84,13 @@ describe('parseDurations', () => {
     expect(found.map((m) => [m.label, m.durationMs])).toEqual([
       ['Etwa 30 Minuten', 30 * MIN],
       ['1½ Stunden', 90 * MIN],
+    ])
+  })
+
+  it('keeps spans apart that a comma separates', () => {
+    expect(parseDurations('Insgesamt 2 Stunden, 30 Minuten davon zugedeckt').map((m) => m.durationMs)).toEqual([
+      2 * HOUR,
+      30 * MIN,
     ])
   })
 
