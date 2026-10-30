@@ -3,6 +3,7 @@ import { Toaster, TooltipProvider } from '@postxl/ui-components'
 import { Nav } from './components/Nav'
 import { Footer } from './components/Footer'
 import { NotFound } from './pages/NotFound'
+import { RootRedirect } from './components/shell/RootRedirect'
 import { CatalogProvider } from './catalog/CatalogProvider'
 import { TimerProvider } from './timers/TimerProvider'
 import { RecipeList } from './pages/RecipeList'
@@ -28,7 +29,8 @@ export default function App() {
           <main className="flex-1">
             <CatalogProvider>
               <Routes>
-                <Route path="/" element={<RecipeList />} />
+                <Route path="/" element={<RootRedirect />} />
+                <Route path="/recipes" element={<RecipeList />} />
                 {/* before /recipes/:id — otherwise "new" is parsed as an id */}
                 <Route path="/recipes/new" element={<RecipeEditorRoute />} />
                 <Route path="/recipes/:id" element={<RecipeDetail />} />

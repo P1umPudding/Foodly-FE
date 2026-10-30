@@ -45,7 +45,7 @@ function renderAt(entry: string) {
     <TooltipProvider>
       <MemoryRouter basename="/foo/" initialEntries={[entry]}>
         <Routes>
-          <Route path="/" element={<RecipeList />} />
+          <Route path="/recipes" element={<RecipeList />} />
           <Route path="/recipes/:id" element={<RecipeDetail />} />
         </Routes>
       </MemoryRouter>
@@ -72,13 +72,13 @@ describe('routing under a sub-path basename', () => {
     await screen.findByRole('heading', { name: 'Pancakes' })
     const imgSrcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
     expect(imgSrcs).toContain('/foo/recipes/3.svg')
-    expect(screen.getByRole('link', { name: '← Zurück' }).getAttribute('href')).toBe('/foo/')
+    expect(screen.getByRole('link', { name: '← Zurück' }).getAttribute('href')).toBe('/foo/recipes')
   })
 
   // group=0: categories=[] makes the recipe uncategorised, and that group
   // starts collapsed (see RecipeList.search.test.tsx).
   it('links list rows to the prefixed detail URL', async () => {
-    renderAt('/foo/?group=0')
+    renderAt('/foo/recipes?group=0')
 
     await screen.findByText('Pancakes')
     const hrefs = screen.getAllByRole('link').map((a) => a.getAttribute('href'))

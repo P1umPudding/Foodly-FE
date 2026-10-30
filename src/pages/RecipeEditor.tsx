@@ -82,7 +82,7 @@ export function RecipeEditor() {
           <AlertDescription className="flex flex-col gap-2">
             <span>{error?.message}</span>
             <Button asChild variant="outline" size="sm">
-              <Link to="/">Zur Liste</Link>
+              <Link to="/recipes">Zur Liste</Link>
             </Button>
           </AlertDescription>
         </Alert>
@@ -155,7 +155,7 @@ export function RecipeEditor() {
           {isNew ? (
             <>
               <Button asChild variant="ghost">
-                <Link to="/">Verwerfen</Link>
+                <Link to="/recipes">Verwerfen</Link>
               </Button>
               <div className="flex items-center gap-3">
                 {createError && <span className="text-destructive">{createError}</span>}

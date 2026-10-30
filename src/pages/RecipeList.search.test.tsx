@@ -45,7 +45,7 @@ vi.mock('../catalog/CatalogProvider', () => ({
 // URL so tests assert on rendered content, not on collapse defaults.
 function renderList() {
   return render(
-    <MemoryRouter initialEntries={['/?group=0']}>
+    <MemoryRouter initialEntries={['/recipes?group=0']}>
       <TooltipProvider>
         <RecipeList />
       </TooltipProvider>
@@ -78,7 +78,7 @@ describe('RecipeList (server-side search)', () => {
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [1])])
 
     render(
-      <MemoryRouter initialEntries={['/?cat=1&group=0']}>
+      <MemoryRouter initialEntries={['/recipes?cat=1&group=0']}>
         <TooltipProvider>
           <RecipeList />
         </TooltipProvider>
