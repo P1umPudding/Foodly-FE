@@ -1,28 +1,31 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  useIsMobile,
 } from '@postxl/ui-components'
+import { useIsDesktop } from '../hooks/useIsDesktop'
 import { useTimers } from './TimerProvider'
+import { useTimerPanel } from './TimerPanelContext'
 import { TimerToggle } from './TimerToggle'
 import { TimerRow } from './TimerRow'
 import { TimerForm } from './TimerForm'
 
-// Shell-header widget: owns the panel open/closed state and renders the trigger
-// plus a Sheet (desktop) or Drawer (mobile). Both carry a Title + Description so
-// the underlying Radix dialog stays accessible and console-clean.
+// Shell-header widget: the trigger plus a Popover (desktop) or bottom Sheet (phone). The open
+// state comes from TimerPanelProvider so a time chip in the page can open the panel too; the
+// local state only covers a panel rendered without the shell.
 export function TimerPanel() {
-  const [open, setOpen] = useState(false)
-  const isMobile = useIsMobile()
+  const shared = useTimerPanel()
+  const [localOpen, setLocalOpen] = useState(false)
+  const open = shared?.open ?? localOpen
+  const setOpen = shared?.setOpen ?? setLocalOpen
+  const isDesktop = useIsDesktop()
+  const triggerRef = useRef<HTMLSpanElement>(null)
   const { timers } = useTimers()
 
   // Named timers first (the ephemeral unnamed ones sink below); within each
@@ -43,7 +46,7 @@ export function TimerPanel() {
       <div className="px-4 pb-4">
         <TimerForm />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
         {ordered.length === 0 ? (
           <p className="text-muted-foreground">Kein Timer läuft.</p>
         ) : (
@@ -57,37 +60,43 @@ export function TimerPanel() {
     </>
   )
 
-  const trigger = <TimerToggle onClick={() => setOpen(true)} />
-
-  if (isMobile) {
+  // Both containers are non-modal so a timer-expired toast stays clickable while the panel is
+  // open (a modal dialog makes everything outside it inert).
+  if (isDesktop) {
     return (
-      <>
-        {trigger}
-        <Drawer open={open} onOpenChange={setOpen} modal={false}>
-          <DrawerContent onInteractOutside={keepOpenForToast}>
-            <DrawerHeader>
-              <DrawerTitle>Timer</DrawerTitle>
-              <DrawerDescription className="sr-only">Küchen-Timer verwalten</DrawerDescription>
-            </DrawerHeader>
-            <div className="flex max-h-[70vh] min-h-0 flex-col">{body}</div>
-          </DrawerContent>
-        </Drawer>
-      </>
+      <Popover open={open} onOpenChange={setOpen} modal={false}>
+        <PopoverTrigger asChild>
+          <TimerToggle ref={triggerRef} />
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          onInteractOutside={keepOpenForToast}
+          // Radix would return focus to the span wrapper, which isn't focusable; hand it to the button.
+          onCloseAutoFocus={(e) => {
+            e.preventDefault()
+            triggerRef.current?.querySelector('button')?.focus()
+          }}
+          aria-label="Timer"
+          className="flex max-h-[min(36rem,80vh)] w-80 flex-col px-0 pb-0"
+        >
+          <div className="px-4 pb-3 font-semibold">Timer</div>
+          {body}
+        </PopoverContent>
+      </Popover>
     )
   }
 
   return (
     <>
-      {trigger}
-      {/* Non-modal so a timer-expired toast stays clickable while the panel is
-          open (a modal dialog makes everything outside it inert). */}
+      <TimerToggle onClick={() => setOpen(true)} />
       <Sheet open={open} onOpenChange={setOpen} modal={false}>
         <SheetContent
-          side="right"
+          side="bottom"
+          __e2e_test_id__="timer-sheet"
           onInteractOutside={keepOpenForToast}
-          className="flex w-full flex-col gap-0 sm:max-w-sm"
+          className="flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pb-[env(safe-area-inset-bottom)]"
         >
-          <SheetHeader>
+          <SheetHeader className="px-4 pb-3">
             <SheetTitle>Timer</SheetTitle>
             <SheetDescription className="sr-only">Küchen-Timer verwalten</SheetDescription>
           </SheetHeader>
