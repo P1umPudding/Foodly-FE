@@ -132,8 +132,8 @@ function rolesFor(input: string, theme: Theme): Roles {
 // same way, so an override stays readable too (ADR 0002).
 export function categoryColors(cat: CategoryColorInput): { light: Roles; dark: Roles } {
   return {
-    light: rolesFor(cat.colorLight || cat.color, 'light'),
-    dark: rolesFor(cat.colorDark || cat.color, 'dark'),
+    light: rolesFor(cat.colorLight?.trim() || cat.color, 'light'),
+    dark: rolesFor(cat.colorDark?.trim() || cat.color, 'dark'),
   }
 }
 

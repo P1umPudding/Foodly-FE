@@ -3,9 +3,7 @@ import { categoryColorVars, type CategoryColorInput } from '../../lib/categoryCo
 import { UNCATEGORIZED_ID } from '../../list/filter'
 import type { UserCategory } from '../../api/protocol'
 
-// Full-width stacked toggles: dot, name, count. Inactive = category line as outline;
-// active = the soft category fill with ink text. Hovering an inactive toggle stays
-// neutral so "hovered" never reads like "selected"; an active one keeps its look.
+// Hovering an inactive toggle stays neutral so "hovered" never reads like "selected".
 // Multi-select (OR) — clicking toggles membership.
 // Uses the `ghost` variant (not `outline`): outline bakes in `dark:border-input`,
 // which would outrank `border-cat-line` in dark mode. `colors` null ("Ohne

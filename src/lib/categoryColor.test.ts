@@ -105,7 +105,9 @@ describe('categoryColors', () => {
 
   it('keeps the chroma of a low-chroma input below the cap', () => {
     const input = hexToOklch(TEST_COLORS.paleYellow)!.c
-    expect(hexToOklch(categoryColors(cat(TEST_COLORS.paleYellow)).light.dot)!.c).toBeCloseTo(input, 2)
+    const colors = categoryColors(cat(TEST_COLORS.paleYellow))
+    expect(hexToOklch(colors.light.dot)!.c).toBeCloseTo(input, 2)
+    expect(hexToOklch(colors.dark.dot)!.c).toBeCloseTo(input, 2)
   })
 
   it.each(['#000', '#000000', '#ffffff', '#808080', '#78808a'])('renders %s neutral', (hex) => {
@@ -140,6 +142,11 @@ describe('categoryColors', () => {
     expect(colors.light.dot).not.toBe('#ffffcc')
     expect(colors.dark.dot).not.toBe('#ffffcc')
     expect(contrastRatio(colors.light.dot, BACKGROUND.light)).toBeGreaterThanOrEqual(3)
+  })
+
+  it('falls back to the base colour for an empty or blank override', () => {
+    const red = categoryColors(cat('#ff0000'))
+    expect(categoryColors(cat('#ff0000', '', '  '))).toEqual(red)
   })
 
   it('renders an invalid override neutral for that theme only', () => {
