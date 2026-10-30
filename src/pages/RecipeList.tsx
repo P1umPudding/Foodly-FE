@@ -114,6 +114,10 @@ export function RecipeList() {
     ro.observe(el)
     if (nav) ro.observe(nav)
     if (railSlotRef.current) ro.observe(railSlotRef.current)
+    // Collapsing the shell's sidebar widens <main> but can leave the centered column's size unchanged
+    // (it is capped at max-w-6xl), so it would move without any observed resize.
+    const main = document.querySelector('main')
+    if (main) ro.observe(main)
     // ResizeObserver catches size changes; a window resize can move the centered column
     // without resizing it, so re-measure --rail-left/width then too.
     window.addEventListener('resize', apply)
@@ -175,8 +179,9 @@ export function RecipeList() {
     <>
       {/* Two columns: the list (with its own sticky header) and the filter rail's
           reserved slot. The list holds a min width so that, once space gets tight, the
-          RAIL shrinks (18→13.5rem) instead of only the list. */}
-      <div className="mx-auto grid max-w-6xl gap-6 px-6 pb-10 md:grid-cols-[minmax(28rem,1fr)_minmax(13.5rem,18rem)]">
+          RAIL shrinks (18→13.5rem) instead of only the list. From lg, not md: next to the
+          shell's sidebar both columns (~43rem) don't fit at 768 px. */}
+      <div className="mx-auto grid max-w-6xl gap-6 px-6 pb-10 lg:grid-cols-[minmax(28rem,1fr)_minmax(13.5rem,18rem)]">
         <div className="min-w-0">
           {/* Sticky page header over the scrolling list (solid — no blur). Its measured
             height feeds --list-sticky-top so the category headers tuck right beneath it. */}
@@ -189,7 +194,7 @@ export function RecipeList() {
               {/* Mobile-only filter drawer trigger */}
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-1.5 md:hidden">
+                  <Button variant="outline" size="sm" className="gap-1.5 lg:hidden">
                     <Filter className="h-4 w-4" />
                     Filter
                     {activeFacetCount(state) > 0 && (
@@ -304,14 +309,14 @@ export function RecipeList() {
         </div>
 
         {/* Reserves the rail's column; the real rail is position:fixed over it. */}
-        <div ref={railSlotRef} aria-hidden className="hidden md:block" />
+        <div ref={railSlotRef} aria-hidden className="hidden lg:block" />
       </div>
 
       {/* Desktop rail: position:fixed over its reserved column, anchored to the viewport
           so the end of a short list can't drag it — only its own content scrolls. The
           non-scrolling spacer aligns the content with the search bar; overflow lives on
           the content (scrollbar starts at the content, not up in the spacer). */}
-      <aside className="fixed top-(--site-nav-h) left-(--rail-left) hidden max-h-[calc(100vh-var(--site-nav-h)-1rem)] w-(--rail-width) flex-col md:flex">
+      <aside className="fixed top-(--site-nav-h) left-(--rail-left) hidden max-h-[calc(100vh-var(--site-nav-h)-1rem)] w-(--rail-width) flex-col lg:flex">
         <div className="h-(--list-search-offset,4.5rem) shrink-0" />
         <div className="min-h-0 flex-1 overflow-y-auto pb-4">{filters}</div>
       </aside>
