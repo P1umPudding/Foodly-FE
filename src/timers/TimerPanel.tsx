@@ -17,7 +17,7 @@ import { TimerToggle } from './TimerToggle'
 import { TimerRow } from './TimerRow'
 import { TimerForm } from './TimerForm'
 
-// Nav-facing widget: owns the panel open/closed state and renders the trigger
+// Shell-header widget: owns the panel open/closed state and renders the trigger
 // plus a Sheet (desktop) or Drawer (mobile). Both carry a Title + Description so
 // the underlying Radix dialog stays accessible and console-clean.
 export function TimerPanel() {

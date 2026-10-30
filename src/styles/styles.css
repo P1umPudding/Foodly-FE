@@ -221,7 +221,7 @@ div:has(> input[data-slot='input']):focus-within {
   }
 }
 
-/* ---- View Transitions API styles for the color-mode toggle (ThemeToggle) ---- */
+/* ---- View Transitions API styles for the color-mode toggle (ThemeMenu) ---- */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLocation, useNavigationType } from 'react-router-dom'
 import {
   Alert,
   AlertDescription,
@@ -13,10 +14,8 @@ import {
   Skeleton,
 } from '@postxl/ui-components'
 import { Filter, UtensilsCrossed, SearchX } from 'lucide-react'
-import { foodly } from '../api'
-import { useRequest } from '../hooks/useRequest'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
-import { useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
+import { useCategories, useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
 import { useListState } from '../list/useListState'
 import { groupingCategories, inSelectedCategory } from '../list/filter'
 import { buildSearchQuery } from '../list/query'
@@ -31,8 +30,16 @@ import { ListToolbar } from '../components/list/ListToolbar'
 import { RecipeListView } from '../components/list/RecipeListView'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
+import { fromSearchParams, toSearchParams } from '../list/url'
+import { isShellNavState } from '../components/shell/nav'
 
-const SCROLL_KEY = 'recipeList:scrollY'
+const SCROLL_KEY = 'recipeList:scroll'
+
+// The list a scroll position belongs to: its filters/sort/view/search, ignoring how the URL spells them
+// (a nav link writes `group=1`, the list itself omits defaults).
+function listIdentity(search: string): string {
+  return toSearchParams(fromSearchParams(new URLSearchParams(search))).toString()
+}
 
 export function RecipeList() {
   const { state, set, clear } = useListState()
@@ -42,11 +49,11 @@ export function RecipeList() {
 
   // Server-side filter/sort/pagination. Query changes (by value) reset to page 1.
   const search = useRecipeSearch(buildSearchQuery(state))
-  const categoriesReq = useRequest(() => foodly.listCategories(), [])
+  const categoriesCatalog = useCategories()
 
   // Access guard is redundant (backend enforces it) but harmless.
   const accessibleRecipes = search.recipes.filter((r) => canViewRecipe(r, currentUserId))
-  const categories = categoriesReq.data ?? []
+  const categories = categoriesCatalog.list
   const tagList = Object.values(tags.byId)
 
   // Ingredient facet: prefer ingredients actually present on loaded recipes; when
@@ -116,6 +123,10 @@ export function RecipeList() {
     ro.observe(el)
     if (nav) ro.observe(nav)
     if (railSlotRef.current) ro.observe(railSlotRef.current)
+    // Collapsing the shell's sidebar widens <main> but can leave the centered column's size unchanged
+    // (it is capped at max-w-6xl), so it would move without any observed resize.
+    const main = document.querySelector('main')
+    if (main) ro.observe(main)
     // ResizeObserver catches size changes; a window resize can move the centered column
     // without resizing it, so re-measure --rail-left/width then too.
     window.addEventListener('resize', apply)
@@ -127,19 +138,43 @@ export function RecipeList() {
 
   // Restore scroll position when returning from a recipe (within the session): track
   // the live position, then re-apply it once the list has rendered. sessionStorage so
-  // a fresh load starts at the top.
+  // a fresh load starts at the top. Only for the same list: the shell's sidebar can open
+  // a different category from a recipe page, which must start at the top.
+  const scrollRestored = useRef(false)
+  const { search: urlSearch, key: locationKey, state: locationState } = useLocation()
+  const listRef = useRef(listIdentity(urlSearch))
+  listRef.current = listIdentity(urlSearch)
+
+  // A sidebar/tab-bar link opens a list from its start, also while this list stays mounted (where the
+  // window would otherwise keep the previous list's position). Only on the click itself: Back to that
+  // history entry brings its state along, and must restore.
+  const navigationType = useNavigationType()
+  const fromShellNav = isShellNavState(locationState) && navigationType !== 'POP'
+  const openedFromShellNav = useRef(fromShellNav)
   useEffect(() => {
-    const onScroll = () => sessionStorage.setItem(SCROLL_KEY, String(window.scrollY))
+    if (fromShellNav) window.scrollTo(0, 0)
+  }, [locationKey, fromShellNav])
+  useEffect(() => {
+    const onScroll = () => {
+      // Until the restore has run, scroll events come from the short loading page clamping the old
+      // position, not from the user; recording them would overwrite the position to restore.
+      if (!scrollRestored.current) return
+      sessionStorage.setItem(SCROLL_KEY, JSON.stringify({ list: listRef.current, y: window.scrollY }))
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const scrollRestored = useRef(false)
   useEffect(() => {
     if (scrollRestored.current || search.status !== 'ready') return
     scrollRestored.current = true
-    const y = Number(sessionStorage.getItem(SCROLL_KEY) ?? '')
-    if (y > 0) window.scrollTo(0, y)
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null') as { list: string; y: number } | null
+      const sameList = saved !== null && saved.list === listRef.current
+      if (sameList && saved.y > 0 && !openedFromShellNav.current) window.scrollTo(0, saved.y)
+    } catch {
+      // unreadable entry → start at the top
+    }
   }, [search.status])
 
   // Load the next page when a sentinel near the list end scrolls into view.
@@ -159,7 +194,7 @@ export function RecipeList() {
       state={state}
       set={set}
       categories={categories}
-      categoriesLoading={categoriesReq.status === 'loading'}
+      categoriesLoading={categoriesCatalog.status === 'loading'}
       onToggleCategory={(id) =>
         set({
           categories: state.categories.includes(id)
@@ -177,8 +212,9 @@ export function RecipeList() {
     <>
       {/* Two columns: the list (with its own sticky header) and the filter rail's
           reserved slot. The list holds a min width so that, once space gets tight, the
-          RAIL shrinks (18→13.5rem) instead of only the list. */}
-      <div className="mx-auto grid max-w-6xl gap-6 px-6 pb-10 md:grid-cols-[minmax(28rem,1fr)_minmax(13.5rem,18rem)]">
+          RAIL shrinks (18→13.5rem) instead of only the list. From lg, not md: next to the
+          shell's sidebar both columns (~43rem) don't fit at 768 px. */}
+      <div className="mx-auto grid max-w-6xl gap-6 px-6 pb-10 lg:grid-cols-[minmax(28rem,1fr)_minmax(13.5rem,18rem)]">
         <div className="min-w-0">
           {/* Sticky page header over the scrolling list (solid — no blur). Its measured
             height feeds --list-sticky-top so the category headers tuck right beneath it. */}
@@ -191,7 +227,7 @@ export function RecipeList() {
               {/* Mobile-only filter drawer trigger */}
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-1.5 md:hidden">
+                  <Button variant="outline" size="sm" className="gap-1.5 lg:hidden">
                     <Filter className="h-4 w-4" />
                     Filter
                     {activeFacetCount(state) > 0 && (
@@ -306,14 +342,14 @@ export function RecipeList() {
         </div>
 
         {/* Reserves the rail's column; the real rail is position:fixed over it. */}
-        <div ref={railSlotRef} aria-hidden className="hidden md:block" />
+        <div ref={railSlotRef} aria-hidden className="hidden lg:block" />
       </div>
 
       {/* Desktop rail: position:fixed over its reserved column, anchored to the viewport
           so the end of a short list can't drag it — only its own content scrolls. The
           non-scrolling spacer aligns the content with the search bar; overflow lives on
           the content (scrollbar starts at the content, not up in the spacer). */}
-      <aside className="fixed top-(--site-nav-h) left-(--rail-left) hidden max-h-[calc(100vh-var(--site-nav-h)-1rem)] w-(--rail-width) flex-col md:flex">
+      <aside className="fixed top-(--site-nav-h) left-(--rail-left) hidden max-h-[calc(100vh-var(--site-nav-h)-1rem)] w-(--rail-width) flex-col lg:flex">
         <div className="h-(--list-search-offset,4.5rem) shrink-0" />
         <div className="min-h-0 flex-1 overflow-y-auto pb-4">{filters}</div>
       </aside>

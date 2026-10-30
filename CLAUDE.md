@@ -74,16 +74,17 @@ There's no server code and no secrets in the repo.
     mock responder short-circuits `request()`.
 - `src/mocks/` — mock responder + JSON data (`src/mocks/data/`), used for
   `VITE_MOCK=1` and for methods the backend doesn't offer yet.
-- `src/catalog/` — `CatalogProvider` (tags, users, ingredients, `me` as `byId`
-  maps). `src/list/` — recipe-list state (filters, sort, search, URL,
+- `src/catalog/` — `CatalogProvider` (tags, users, ingredients as `byId`
+  maps, plus `me` and the user's categories). `src/list/` — recipe-list state (filters, sort, search, URL,
   persistence). `src/editor/` — recipe-editor draft + autosave. `src/timers/` —
   global cooking timers.
 - `src/hooks/` — `useRequest` (run a request, track loading/ready/error),
   `useRecipeSearch` (cursor-paginated recipe search, infinite scroll),
-  `useWakeLock`. `useSocketStatus` belongs to the future live editing: the nav
-  `ConnectionDot` shows connected whenever the mock responder is installed
-  (it sets the socket to open) and does **not** reflect REST/backend health.
-- `src/components/` — shared UI, plus `editor/`, `list/`, `recipe/`;
+  `useWakeLock`. `useSocketStatus` belongs to the future live editing: `ConnectionDot`
+  (not rendered in the shell today) shows connected whenever the mock responder
+  is installed (it sets the socket to open) and does **not** reflect REST/backend health.
+- `src/components/` — shared UI, plus `editor/`, `list/`, `recipe/`, `shell/`
+  (app shell and navigation);
   `src/pages/` — `RecipeList`, `RecipeDetail`, `RecipeEditor`, `NotFound`.
 - `src/styles/theme.css` holds the design-token VALUES (direction "Ruhig":
   greyscale chrome, colour only from categories — rules in
@@ -243,6 +244,6 @@ restating its name and signature. Don't do that.
   drops it, so a bare `border` would fall back to `currentColor` — too bright in
   dark, too dark in light). Add explicit `border-*` only to override.
 - **Animations & `prefers-reduced-motion`:** decide per animation whether it
-  should be gated. The theme-switch reveal (`ThemeToggle`) is intentionally
+  should be gated. The theme-switch reveal (`ThemeMenu`) is intentionally
   user-initiated and runs regardless; gate larger/automatic motion behind
   reduced-motion.

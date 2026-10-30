@@ -85,7 +85,7 @@ export function RecipeDetail() {
     <div className="mx-auto max-w-5xl px-6 py-10">
       <div className="mb-4 flex items-center justify-between gap-3">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/">← Zurück</Link>
+          <Link to="/recipes">← Zurück</Link>
         </Button>
         {status === 'ready' && recipe && (
           <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export function RecipeDetail() {
           <AlertDescription className="flex flex-col gap-2">
             <span>{error?.message}</span>
             <Button asChild variant="outline" size="sm">
-              <Link to="/">Zur Liste</Link>
+              <Link to="/recipes">Zur Liste</Link>
             </Button>
           </AlertDescription>
         </Alert>
