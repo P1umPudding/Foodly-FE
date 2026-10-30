@@ -1,9 +1,11 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './RecipeList'
 import { foodly } from '../api'
+import { useRequest } from '../hooks/useRequest'
+import { SHELL_NAV_STATE } from '../components/shell/nav'
 import type { Recipe, UserCategory } from '../api/protocol'
 
 function cat(id: number, recipes: number[]): UserCategory {
@@ -37,6 +39,11 @@ vi.mock('../catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),
+  // Goes through the real foodly.listCategories, so each test's spy decides the categories.
+  useCategories: () => {
+    const req = useRequest(() => foodly.listCategories(), [])
+    return { list: req.data ?? [], status: req.status }
+  },
 }))
 
 // categories=[] makes every recipe "uncategorised", and that group starts
@@ -45,7 +52,7 @@ vi.mock('../catalog/CatalogProvider', () => ({
 // URL so tests assert on rendered content, not on collapse defaults.
 function renderList() {
   return render(
-    <MemoryRouter initialEntries={['/?group=0']}>
+    <MemoryRouter initialEntries={['/recipes?group=0']}>
       <TooltipProvider>
         <RecipeList />
       </TooltipProvider>
@@ -78,7 +85,7 @@ describe('RecipeList (server-side search)', () => {
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [1])])
 
     render(
-      <MemoryRouter initialEntries={['/?cat=1&group=0']}>
+      <MemoryRouter initialEntries={['/recipes?cat=1&group=0']}>
         <TooltipProvider>
           <RecipeList />
         </TooltipProvider>
@@ -131,5 +138,109 @@ describe('RecipeList (server-side search)', () => {
     expect(searchSpy).toHaveBeenCalledTimes(2)
     // Page 1 still present — loadMore appends, never replaces.
     screen.getByText('Pancakes')
+  })
+
+  describe('scroll restore', () => {
+    function renderAt(entry: string | { pathname: string; search: string; state: unknown }) {
+      return render(
+        <MemoryRouter initialEntries={[entry]}>
+          <TooltipProvider>
+            <RecipeList />
+          </TooltipProvider>
+        </MemoryRouter>,
+      )
+    }
+
+    afterEach(() => sessionStorage.clear())
+
+    it('returns to the saved position of the same list', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      // Saved as the list writes it (defaults omitted); a nav link's explicit group=1 is the same list.
+      sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'q=Pan&group=0', y: 640 }))
+      renderAt('/recipes?q=Pan&group=0&dir=asc')
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(scrollTo).toHaveBeenCalledWith(0, 640)
+    })
+
+    it('does not record scroll events from the loading page over the position to restore', async () => {
+      let resolve: (v: { items: Recipe[]; cursor: null }) => void = () => {}
+      vi.spyOn(foodly, 'searchRecipes').mockReturnValue(new Promise((r) => (resolve = r)))
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      const saved = JSON.stringify({ list: 'group=0', y: 640 })
+      sessionStorage.setItem('recipeList:scroll', saved)
+      renderAt('/recipes?group=0')
+      // the short skeleton page clamps the old position → a scroll event at y=0
+      window.dispatchEvent(new Event('scroll'))
+      expect(sessionStorage.getItem('recipeList:scroll')).toBe(saved)
+      await act(async () => resolve({ items: [rec(1, 'Pancakes')], cursor: null }))
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(scrollTo).toHaveBeenCalledWith(0, 640)
+    })
+
+    // From a recipe page, a sidebar link (router state SHELL_NAV_STATE) opens the list; Back from a
+    // recipe returns to it.
+    function renderFlow(entries: Array<string | { pathname: string; search: string; state: unknown }>, index: number) {
+      let goBack: () => void = () => {}
+      function Detail() {
+        const navigate = useNavigate()
+        goBack = () => navigate(-1)
+        return (
+          <Link to="/recipes?group=0" state={SHELL_NAV_STATE}>
+            open list
+          </Link>
+        )
+      }
+      render(
+        <MemoryRouter initialEntries={entries} initialIndex={index}>
+          <TooltipProvider>
+            <Routes>
+              <Route path="/recipes" element={<RecipeList />} />
+              <Route path="/recipes/:id" element={<Detail />} />
+            </Routes>
+          </TooltipProvider>
+        </MemoryRouter>,
+      )
+      return { back: () => act(() => goBack()) }
+    }
+
+    it('opens from the top when a shell nav link opened the list', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'group=0', y: 640 }))
+      renderFlow(['/recipes/1'], 0)
+      fireEvent.click(screen.getByText('open list'))
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(scrollTo).toHaveBeenCalledWith(0, 0)
+      expect(scrollTo).not.toHaveBeenCalledWith(0, 640)
+    })
+
+    it('restores on Back to a list that a shell nav link had opened', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'group=0', y: 640 }))
+      const { back } = renderFlow(
+        [{ pathname: '/recipes', search: '?group=0', state: SHELL_NAV_STATE }, '/recipes/1'],
+        1,
+      )
+      back()
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(scrollTo).toHaveBeenCalledWith(0, 640)
+      expect(scrollTo).not.toHaveBeenCalledWith(0, 0)
+    })
+
+    it('starts at the top when the position belongs to another list', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'cat=7&group=0', y: 640 }))
+      renderAt('/recipes?group=0')
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(scrollTo).not.toHaveBeenCalled()
+    })
   })
 })

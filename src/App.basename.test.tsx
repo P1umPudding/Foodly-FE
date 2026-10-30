@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
 import { foodly } from './api'
+import { useRequest } from './hooks/useRequest'
 import type { Recipe } from './api/protocol'
 
 // The Skaile preview serves the app under a sub-path: main.tsx sets the router
@@ -16,6 +17,11 @@ vi.mock('./catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),
+  // Goes through the real foodly.listCategories, so each test's spy decides the categories.
+  useCategories: () => {
+    const req = useRequest(() => foodly.listCategories(), [])
+    return { list: req.data ?? [], status: req.status }
+  },
 }))
 
 // mainImage 3 isn't in assets.ts's module-load-time image map, so its URL is
@@ -45,7 +51,7 @@ function renderAt(entry: string) {
     <TooltipProvider>
       <MemoryRouter basename="/foo/" initialEntries={[entry]}>
         <Routes>
-          <Route path="/" element={<RecipeList />} />
+          <Route path="/recipes" element={<RecipeList />} />
           <Route path="/recipes/:id" element={<RecipeDetail />} />
         </Routes>
       </MemoryRouter>
@@ -72,13 +78,13 @@ describe('routing under a sub-path basename', () => {
     await screen.findByRole('heading', { name: 'Pancakes' })
     const imgSrcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
     expect(imgSrcs).toContain('/foo/recipes/3.svg')
-    expect(screen.getByRole('link', { name: '← Zurück' }).getAttribute('href')).toBe('/foo/')
+    expect(screen.getByRole('link', { name: '← Zurück' }).getAttribute('href')).toBe('/foo/recipes')
   })
 
   // group=0: categories=[] makes the recipe uncategorised, and that group
   // starts collapsed (see RecipeList.search.test.tsx).
   it('links list rows to the prefixed detail URL', async () => {
-    renderAt('/foo/?group=0')
+    renderAt('/foo/recipes?group=0')
 
     await screen.findByText('Pancakes')
     const hrefs = screen.getAllByRole('link').map((a) => a.getAttribute('href'))

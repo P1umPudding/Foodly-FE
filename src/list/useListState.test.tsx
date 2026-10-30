@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useNavigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useListState } from './useListState'
 
@@ -30,5 +30,14 @@ describe('useListState', () => {
     localStorage.setItem('foodly:list-state:1', JSON.stringify({ version: 1, state: { detail: 'compact' } }))
     const { result } = renderHook(() => useListState(), { wrapper: wrapper(['/']) })
     expect(result.current.state.detail).toBe('compact')
+  })
+
+  it('persists URL changes made outside set(), e.g. by a nav link', () => {
+    const { result } = renderHook(() => ({ list: useListState(), navigate: useNavigate() }), {
+      wrapper: wrapper(['/?sort=rating']),
+    })
+    act(() => result.current.navigate('/?cat=2&sort=rating'))
+    expect(result.current.list.state.categories).toEqual([2])
+    expect(JSON.parse(localStorage.getItem('foodly:list-state:1')!).state.categories).toEqual([2])
   })
 })
