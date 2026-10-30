@@ -33,6 +33,8 @@ const ROLE_TABLE: Record<Theme, Record<CategoryRole, { l: number; maxC: number }
 const NEUTRAL_CHROMA = 0.02
 
 function parseHex(hex: string): [number, number, number] | null {
+  // The type says string, but the value comes from a foreign backend: guard anyway.
+  if (typeof hex !== 'string') return null
   const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex.trim())
   if (!m) return null
   const digits = m[1].length === 3 ? [...m[1]].map((d) => d + d).join('') : m[1]

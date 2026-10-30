@@ -19,6 +19,7 @@ describe('CategorySidebar toggle buttons', () => {
     expect(btn.style.getPropertyValue('--cat-dot-d')).toBe(dark.dot)
     expect(btn.className).toContain('border-cat-line')
     expect(btn.className).not.toContain('bg-cat-soft')
+    expect(btn.querySelector('.bg-cat-dot')).not.toBeNull()
     fireEvent.click(btn)
     expect(onToggle).toHaveBeenCalledWith(1)
   })

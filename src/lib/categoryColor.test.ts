@@ -38,7 +38,7 @@ const TEST_COLORS = {
   neonGreen: '#39ff14',
   grey: '#808080',
   red: '#ff0000',
-  green: '#00ff00',
+  blue: '#0000ff',
   cyan: '#00ffff',
   magenta: '#ff00ff',
   orange: '#ff8800',
@@ -142,6 +142,10 @@ describe('categoryColors', () => {
     expect(colors.light.dot).not.toBe('#ffffcc')
     expect(colors.dark.dot).not.toBe('#ffffcc')
     expect(contrastRatio(colors.light.dot, BACKGROUND.light)).toBeGreaterThanOrEqual(3)
+  })
+
+  it('renders a missing base colour neutral instead of throwing', () => {
+    expect(categoryColors(cat(null as unknown as string))).toEqual({ light: neutral('light'), dark: neutral('dark') })
   })
 
   it('falls back to the base colour for an empty or blank override', () => {
