@@ -111,6 +111,14 @@ describe('REST rating stub', () => {
     expect(localStorage.getItem('foodly.stub.ratings')).toBeNull()
   })
 
+  it('forgets the stub user when me() fails', async () => {
+    const { foodly, stubs } = await load()
+    await foodly.me()
+    fetchSpy.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) } as unknown as Response)
+    await expect(foodly.me()).rejects.toThrow()
+    expect(stubs.stubUserId()).toBeNull()
+  })
+
   it('never writes ratings to the backend', async () => {
     const { foodly } = await load()
     await foodly.me()

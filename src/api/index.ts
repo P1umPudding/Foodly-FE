@@ -43,10 +43,16 @@ export const foodly = {
   me: (): Promise<User> =>
     USE_MOCKS
       ? socket.request<User>('me')
-      : rest.get<User>('/users/me').then((user) => {
-          setStubUser(user?.id ?? null)
-          return user
-        }),
+      : rest.get<User>('/users/me').then(
+          (user) => {
+            setStubUser(user?.id ?? null)
+            return user
+          },
+          (error: unknown) => {
+            setStubUser(null)
+            throw error
+          },
+        ),
   listUsers: () => socket.request<User[]>('users.list'),
   listCategories: (): Promise<UserCategory[]> =>
     USE_MOCKS

@@ -31,6 +31,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.restoreAllMocks()
   vi.unstubAllEnvs()
   vi.resetModules()
 })
@@ -65,6 +66,21 @@ describe('stubStore', () => {
     expect(stubStore.read('missing', 'fb')).toBe('fb')
     localStorage.setItem('foodly.stub.bad', '{nope')
     expect(stubStore.read('bad', 'fb')).toBe('fb')
+  })
+
+  it('falls back on valid JSON of the wrong shape', () => {
+    for (const raw of ['null', '5', '"x"']) {
+      localStorage.setItem('foodly.stub.ratings', raw)
+      setStubUser(7)
+      expect(readMyRating(5)).toBeNull()
+    }
+  })
+
+  it('turns a failed write into a readable error', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('quota', 'QuotaExceededError')
+    })
+    expect(() => stubStore.write('x', 1)).toThrow('Konnte nicht im Browser gespeichert werden')
   })
 })
 

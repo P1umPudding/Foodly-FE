@@ -5,10 +5,11 @@ import { foodly } from '../../api'
 import type { Recipe } from '../../api/protocol'
 
 const stubbed = vi.hoisted(() => ({ value: true }))
+const currentUser = vi.hoisted(() => ({ id: 1 as number | null }))
 vi.mock('../../api/stubs', () => ({ isStubbed: () => stubbed.value }))
 vi.mock('../../api', () => ({ foodly: { setMyRating: vi.fn(), clearMyRating: vi.fn() } }))
 vi.mock('../../catalog/CatalogProvider', () => ({
-  useCurrentUserId: () => 1,
+  useCurrentUserId: () => currentUser.id,
   useUser: (id: number) => ({ id, name: `User ${id}`, profilePicture: null }),
 }))
 
@@ -35,7 +36,11 @@ function recipe(overrides: Partial<Recipe> = {}): Recipe {
   }
 }
 
-afterEach(() => vi.clearAllMocks())
+afterEach(() => {
+  vi.clearAllMocks()
+  stubbed.value = true
+  currentUser.id = 1
+})
 
 function open(r: Recipe, onChange = vi.fn()) {
   render(<Rating recipe={r} onChange={onChange} />)
@@ -61,12 +66,32 @@ describe('Rating', () => {
   })
 
   it('removes the own rating', async () => {
-    vi.mocked(foodly.clearMyRating).mockResolvedValue(recipe())
-    open(recipe({ rating: [{ user: 1, rating: 3 }] }))
+    const cleared = recipe()
+    vi.mocked(foodly.clearMyRating).mockResolvedValue(cleared)
+    const onChange = open(recipe({ rating: [{ user: 1, rating: 3 }] }))
 
     expect((await screen.findByRole('button', { name: '3 von 5' })).getAttribute('aria-pressed')).toBe('true')
     fireEvent.click(screen.getByRole('button', { name: 'Entfernen' }))
     expect(foodly.clearMyRating).toHaveBeenCalledWith(5)
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(cleared))
+  })
+
+  it('disables the stars while a write is in flight', async () => {
+    vi.mocked(foodly.setMyRating).mockReturnValue(new Promise(() => {}))
+    open(recipe())
+    fireEvent.click(await screen.findByRole('button', { name: '4 von 5' }))
+    expect((screen.getByRole('button', { name: '5 von 5' }) as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('disables the stars while the current user is unknown', async () => {
+    currentUser.id = null
+    open(recipe())
+    expect(((await screen.findByRole('button', { name: '4 von 5' })) as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('labels the trigger with the current value', () => {
+    render(<Rating recipe={recipe({ rating: [{ user: 1, rating: 4 }] })} />)
+    expect(screen.getByRole('button', { name: 'Bewertung 4,0 von 5, ändern' })).toBeTruthy()
   })
 
   it('shows a failed write inline', async () => {
@@ -81,7 +106,6 @@ describe('Rating', () => {
     open(recipe())
     await screen.findByText('Deine Bewertung')
     expect(screen.queryByText(/^Demo:/)).toBeNull()
-    stubbed.value = true
   })
 
   it('keeps average and raters in collaborative mode next to the editable row', async () => {

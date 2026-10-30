@@ -28,8 +28,8 @@ const ROLE_LABEL: Record<RatedRole, string> = {
 
 const ROLE_ORDER: RatedRole[] = ['owner', 'editor', 'viewer', 'other']
 
-// is fixed-width (tabular, always N.N).
-// is fixed-width (tabular, always N.N), so the star bars line up across rows.
+// Full 5-star bar + number for the Durchschnitt row; tabular N.N keeps the
+// width stable.
 function StarsValue({ value }: { value: number }) {
   return (
     <span className="inline-flex items-center gap-2 tabular-nums">
@@ -151,7 +151,10 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
       {/* PopoverTrigger is the library's own ref-forwarding button (the @postxl
           Button doesn't forwardRef, which breaks Radix positioning). cursor-pointer
           is explicit until the lib ships it for interactive elements. */}
-      <PopoverTrigger className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+      <PopoverTrigger
+        aria-label={value === null ? 'Bewerten' : `Bewertung ${value.toFixed(1).replace('.', ',')} von 5, ändern`}
+        className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      >
         <Stars value={value ?? 0} size="md" />
         {value === null && <span className="text-sm text-muted-foreground">Bewerten</span>}
       </PopoverTrigger>

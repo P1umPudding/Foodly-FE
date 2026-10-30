@@ -24,13 +24,20 @@ export const stubStore = {
   read<T>(key: string, fallback: T): T {
     try {
       const raw = localStorage.getItem(PREFIX + key)
-      return raw === null ? fallback : (JSON.parse(raw) as T)
+      const parsed: unknown = raw === null ? null : JSON.parse(raw)
+      // Valid JSON of the wrong shape (null, a number) is as unusable as broken JSON.
+      return typeof parsed === typeof fallback && parsed !== null ? (parsed as T) : fallback
     } catch {
       return fallback
     }
   },
+  // Quota/blocked-storage errors surface as a readable German message in the UI.
   write(key: string, value: unknown): void {
-    localStorage.setItem(PREFIX + key, JSON.stringify(value))
+    try {
+      localStorage.setItem(PREFIX + key, JSON.stringify(value))
+    } catch {
+      throw new Error('Konnte nicht im Browser gespeichert werden')
+    }
   },
 }
 
