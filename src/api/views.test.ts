@@ -1,4 +1,4 @@
-import { roleOf, myRole, collaborationState, visibleRating, canViewRecipe, scaleAmount } from './views'
+import { roleOf, myRole, collaborationState, visibleRating, canViewRecipe, scaleAmount, ingredientParts } from './views'
 import type { Recipe } from './protocol'
 
 const base: Recipe = {
@@ -65,6 +65,25 @@ describe('collaborationState', () => {
   it('collaborative when any editor', () => {
     expect(collaborationState(r({ viewers: [], editors: [2] }))).toBe('collaborative')
     expect(collaborationState(r({ viewers: [3], editors: [2] }))).toBe('collaborative')
+  })
+})
+
+describe('ingredientParts', () => {
+  it('joins a catalog name and its Zusatz with a space', () => {
+    const line = {
+      id: 1,
+      ingredient: { id: 5, name: 'Zwiebel' },
+      text: 'gehackt',
+      amount: '1',
+      amountPrefix: null,
+      unit: null,
+    }
+    expect(ingredientParts(line).name).toBe('Zwiebel gehackt')
+  })
+
+  it('uses the text as the whole name for free text', () => {
+    const line = { id: 2, ingredient: null, text: 'Salz', amount: null, amountPrefix: null, unit: null }
+    expect(ingredientParts(line).name).toBe('Salz')
   })
 })
 
