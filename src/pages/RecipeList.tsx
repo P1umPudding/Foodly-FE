@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigationType } from 'react-router-dom'
 import {
   Alert,
   AlertDescription,
@@ -35,10 +35,10 @@ import { isShellNavState } from '../components/shell/nav'
 
 const SCROLL_KEY = 'recipeList:scroll'
 
-// The list a scroll position belongs to: its filters/sort/view, ignoring how the URL spells them (a nav
-// link writes `group=1`, the list itself omits defaults) and the free-text search, which isn't restored.
+// The list a scroll position belongs to: its filters/sort/view/search, ignoring how the URL spells them
+// (a nav link writes `group=1`, the list itself omits defaults).
 function listIdentity(search: string): string {
-  return toSearchParams({ ...fromSearchParams(new URLSearchParams(search)), search: '' }).toString()
+  return toSearchParams(fromSearchParams(new URLSearchParams(search))).toString()
 }
 
 export function RecipeList() {
@@ -146,8 +146,10 @@ export function RecipeList() {
   listRef.current = listIdentity(urlSearch)
 
   // A sidebar/tab-bar link opens a list from its start, also while this list stays mounted (where the
-  // window would otherwise keep the previous list's position).
-  const fromShellNav = isShellNavState(locationState)
+  // window would otherwise keep the previous list's position). Only on the click itself: Back to that
+  // history entry brings its state along, and must restore.
+  const navigationType = useNavigationType()
+  const fromShellNav = isShellNavState(locationState) && navigationType !== 'POP'
   const openedFromShellNav = useRef(fromShellNav)
   useEffect(() => {
     if (fromShellNav) window.scrollTo(0, 0)

@@ -57,3 +57,9 @@ export const SHELL_NAV_STATE = { shellNav: true } as const
 export function isShellNavState(state: unknown): boolean {
   return typeof state === 'object' && state !== null && (state as { shellNav?: unknown }).shellNav === true
 }
+
+// aria-current for an active destination: the page itself, or a page inside its section (a recipe
+// under "Rezepte").
+export function currentFor(pathname: string, path: string): 'page' | 'location' {
+  return pathname === path ? 'page' : 'location'
+}

@@ -179,6 +179,8 @@ describe('AppShell on the phone', () => {
   it('has no "+" button and no avatar on sub-pages', () => {
     renderAt('/recipes/5')
     screen.getByText('detail page')
+    // still inside the "Rezepte" section, but not that page
+    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('location')
     mainNav()
     expect(screen.queryByRole('link', { name: 'Neues Rezept' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Profil & Einstellungen' })).toBeNull()

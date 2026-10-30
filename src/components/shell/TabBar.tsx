@@ -1,11 +1,11 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '@postxl/ui-components'
-import { SHELL_NAV_STATE, visibleDestinations } from './nav'
+import { SHELL_NAV_STATE, currentFor, visibleDestinations } from './nav'
 import { useNavState } from './useNavState'
 
 // Phone navigation (below 761 px): the same destinations as the sidebar, icon + label.
 export function TabBar() {
-  const { hrefFor } = useNavState()
+  const { pathname, hrefFor } = useNavState()
   return (
     <nav
       aria-label="Hauptnavigation"
@@ -18,6 +18,7 @@ export function TabBar() {
           to={hrefFor(path)}
           state={SHELL_NAV_STATE}
           end={path === '/'}
+          aria-current={currentFor(pathname, path)}
           className={({ isActive }) =>
             cn(
               'flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium',

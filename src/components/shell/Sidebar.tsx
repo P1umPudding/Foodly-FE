@@ -7,7 +7,7 @@ import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, cn } from '@
 import { PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { colorClasses } from '../../list/palette'
-import { SHELL_NAV_STATE, visibleDestinations } from './nav'
+import { SHELL_NAV_STATE, currentFor, visibleDestinations } from './nav'
 import { navItemClass } from './navItem'
 import { ProfileMenu } from './ProfileMenu'
 import { useNavState } from './useNavState'
@@ -55,7 +55,7 @@ export function Sidebar({
   onCollapsedChange: (next: boolean) => void
   widthClass: string
 }) {
-  const { activeCategory, hrefFor, categoryHref } = useNavState()
+  const { pathname, activeCategory, hrefFor, categoryHref } = useNavState()
   const categories = useCategories()
   const ordered = [...categories.list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   // Only a category entry that is actually listed can take over the highlight (not ?cat=999, nor while
@@ -105,6 +105,7 @@ export function Sidebar({
 
       <nav aria-label="Hauptnavigation" className="flex flex-col gap-0.5">
         {visibleDestinations().map(({ label, path, icon: Icon }) => {
+          // Highlighted on its sub-pages too (a recipe belongs to "Rezepte"), but "page" only on itself.
           // NavLink's own active check ignores the query, so it can't tell "all recipes" from one category:
           // while a single category is shown, that category is the current entry, not "Rezepte".
           const yieldsToCategory = path === '/recipes' && highlightedCategory !== null
@@ -115,7 +116,7 @@ export function Sidebar({
                 state={SHELL_NAV_STATE}
                 end={path === '/'}
                 aria-label={collapsed ? label : undefined}
-                aria-current={yieldsToCategory ? 'false' : 'page'}
+                aria-current={yieldsToCategory ? 'false' : currentFor(pathname, path)}
                 className={({ isActive }) => navItemClass(isActive && !yieldsToCategory, collapsed)}
               >
                 <Icon className="size-4" />
