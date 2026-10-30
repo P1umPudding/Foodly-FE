@@ -6,7 +6,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
 import { PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react'
 import { useCategories } from '../../catalog/CatalogProvider'
-import { colorClasses } from '../../list/palette'
+import { categoryColorVars } from '../../lib/categoryColor'
 import { SHELL_NAV_STATE, currentFor, visibleDestinations } from './nav'
 import { navItemClass } from './navItem'
 import { ProfileMenu } from './ProfileMenu'
@@ -147,7 +147,11 @@ export function Sidebar({
                       aria-current={active ? 'page' : undefined}
                       className={navItemClass(active, collapsed)}
                     >
-                      <span aria-hidden className={cn('size-2.5 shrink-0 rounded-full', colorClasses(c.color).dot)} />
+                      <span
+                        aria-hidden
+                        {...categoryColorVars(c)}
+                        className="size-2.5 shrink-0 rounded-full bg-cat-dot"
+                      />
                       {!collapsed && (
                         <>
                           <span className="min-w-0 flex-1 truncate">{c.name}</span>
