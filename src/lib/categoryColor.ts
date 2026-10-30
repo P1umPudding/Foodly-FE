@@ -130,12 +130,14 @@ function rolesFor(input: string, theme: Theme): Roles {
   return roles
 }
 
+const overrideOrEmpty = (v: unknown) => (typeof v === 'string' ? v.trim() : '')
+
 // A backend override is that theme's input instead of `color` and is normalised the
 // same way, so an override stays readable too (ADR 0002).
 export function categoryColors(cat: CategoryColorInput): { light: Roles; dark: Roles } {
   return {
-    light: rolesFor(cat.colorLight?.trim() || cat.color, 'light'),
-    dark: rolesFor(cat.colorDark?.trim() || cat.color, 'dark'),
+    light: rolesFor(overrideOrEmpty(cat.colorLight) || cat.color, 'light'),
+    dark: rolesFor(overrideOrEmpty(cat.colorDark) || cat.color, 'dark'),
   }
 }
 

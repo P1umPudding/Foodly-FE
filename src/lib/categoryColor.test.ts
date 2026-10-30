@@ -151,6 +151,7 @@ describe('categoryColors', () => {
   it('falls back to the base colour for an empty or blank override', () => {
     const red = categoryColors(cat('#ff0000'))
     expect(categoryColors(cat('#ff0000', '', '  '))).toEqual(red)
+    expect(categoryColors(cat('#ff0000', 42 as unknown as string))).toEqual(red)
   })
 
   it('renders an invalid override neutral for that theme only', () => {
