@@ -31,11 +31,13 @@ const NUMBER_WORDS: Record<string, number> = {
 }
 const FRACTIONS: Record<string, number> = { '½': 0.5, '¼': 0.25, '¾': 0.75 }
 
-const DIGITS = String.raw`\d+\/\d+|\d+(?:[.,]\d+)?(?:\s?[½¼¾])?`
+// Mixed fractions ("1 1/2") come first, or the parser would skip the whole number and time just "1/2".
+const DIGITS = String.raw`(?:\d+\s+)?\d+\/\d+|\d+(?:[.,]\d+)?(?:\s?[½¼¾])?`
 const WORD = 'einen|einer|eine|ein|zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn|elf|zwölf'
 // A plain hyphen only counts unspaced: "Stufe 2 - 5 Minuten" must not become a 2–5 range.
 const RANGE = String.raw`(?:\s*[–—]\s*|-|\s+bis\s+)`
-const UNIT = String.raw`(stunden|stunde|std\.?|h|minuten|minute|min\.?|sekunden|sekunde|sek\.?|s)(?![\p{L}\d])`
+// The one-letter units also refuse a following hyphen, so "3 S-Haken" is not three seconds.
+const UNIT = String.raw`(stunden|stunde|std\.?|minuten|minute|min\.?|sekunden|sekunde|sek\.?|(?:h|s)(?!-))(?![\p{L}\d])`
 // Digits may touch the unit ("10min"); number words need a space, or "eins" would read as "ein s".
 const QUANTITY =
   String.raw`(?:(?:(${DIGITS})${RANGE})?(${DIGITS})\s?|(?:(${WORD})${RANGE})?(${WORD})\s+)${UNIT}` +
@@ -53,8 +55,8 @@ type Quantity = { ms: number; unitMs: number }
 function numberValue(raw: string): number {
   const word = NUMBER_WORDS[raw.toLowerCase()]
   if (word !== undefined) return word
-  const slash = /^(\d+)\/(\d+)$/.exec(raw)
-  if (slash) return Number(slash[1]) / Number(slash[2])
+  const slash = /^(?:(\d+)\s+)?(\d+)\/(\d+)$/.exec(raw)
+  if (slash) return Number(slash[1] ?? 0) + Number(slash[2]) / Number(slash[3])
   const fraction = raw[raw.length - 1]
   if (fraction in FRACTIONS) {
     const whole = raw.slice(0, -1).trim()

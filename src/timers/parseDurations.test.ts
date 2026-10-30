@@ -42,6 +42,8 @@ const POSITIVE: Array<[string, string, number]> = [
   ['{Kochzeit} 25 min', '25 min', 25 * MIN],
   ['1/2 Stunde ruhen', '1/2 Stunde', 30 * MIN],
   ['3/4 Std. backen', '3/4 Std.', 45 * MIN],
+  ['1 1/2 Stunden backen', '1 1/2 Stunden', 90 * MIN],
+  ['2 1/4 Std. schmoren', '2 1/4 Std.', 135 * MIN],
   ['nach einer halben Stunde wenden', 'einer halben Stunde', 30 * MIN],
   ['nach einer Viertelstunde wenden', 'einer Viertelstunde', 15 * MIN],
   ['Auf Stufe 2 - 5 Minuten rühren', '5 Minuten', 5 * MIN],
@@ -63,6 +65,7 @@ const NEGATIVE = [
   'in der letzten halben Stunde wenden',
   'einen Moment warten',
   'Zeit: 1:30 h',
+  '3 S-Haken aufhängen',
 ]
 
 describe('parseDurations', () => {

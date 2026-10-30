@@ -1,8 +1,10 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { StepText } from './StepText'
 import { TimerProvider, useTimers } from '../../timers/TimerProvider'
 import { TimerPanelProvider, useTimerPanel } from '../../timers/TimerPanelContext'
+import { TimerPanel } from '../../timers/TimerPanel'
 
 vi.mock('../../catalog/CatalogProvider', () => ({
   useTags: () => ({ byId: { Ofen: { id: 'Ofen', svg: null } }, status: 'ready' }),
@@ -85,5 +87,26 @@ describe('StepText', () => {
       [LABEL, 30 * 60_000, 'expired'],
       [LABEL, 30 * 60_000, 'running'],
     ])
+  })
+
+  it('gives focus back to the chip when the panel it opened closes', async () => {
+    render(
+      <TooltipProvider>
+        <TimerProvider>
+          <TimerPanelProvider>
+            <TimerPanel />
+            <StepText value={STEP} timerLabel={LABEL} />
+          </TimerPanelProvider>
+        </TimerProvider>
+      </TooltipProvider>,
+    )
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
+    fireEvent.click(chip)
+    fireEvent.click(chip)
+    const panel = await screen.findByRole('dialog', { name: 'Timer' })
+    fireEvent.keyDown(panel, { key: 'Escape' })
+    expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull()
+    // Radix restores focus a tick after unmounting the panel.
+    await waitFor(() => expect(document.activeElement).toBe(chip))
   })
 })

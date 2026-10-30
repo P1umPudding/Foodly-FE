@@ -29,11 +29,21 @@ export function TimerPanel() {
   const { timers } = useTimers()
 
   // Radix would return focus to the trigger's span wrapper (not focusable) or, for the Sheet without a
-  // trigger, to the body. Send it back to the chip that opened the panel, else to the header button.
+  // trigger, to the body. Send it back to the chip that opened the panel, else to the header button —
+  // unless the panel closed because the user clicked elsewhere: that click owns the focus now.
+  const closedByOutsideClick = useRef(false)
+  const onInteractOutside = (e: Event) => {
+    keepOpenForToast(e)
+    if (!e.defaultPrevented) closedByOutsideClick.current = true
+  }
   const restoreFocus = (e: Event) => {
     e.preventDefault()
-    const target = shared?.takeReturnFocus() ?? triggerRef.current?.querySelector('button')
-    target?.focus()
+    const returnTo = shared?.takeReturnFocus()
+    if (closedByOutsideClick.current) {
+      closedByOutsideClick.current = false
+      return
+    }
+    ;(returnTo ?? triggerRef.current?.querySelector('button'))?.focus()
   }
 
   // Named timers first (the ephemeral unnamed ones sink below); within each
@@ -78,7 +88,7 @@ export function TimerPanel() {
         </PopoverTrigger>
         <PopoverContent
           align="end"
-          onInteractOutside={keepOpenForToast}
+          onInteractOutside={onInteractOutside}
           onCloseAutoFocus={restoreFocus}
           aria-label="Timer"
           className="flex max-h-[min(36rem,80vh)] w-80 flex-col px-0 pb-0"
@@ -97,7 +107,7 @@ export function TimerPanel() {
         <SheetContent
           side="bottom"
           __e2e_test_id__="timer-sheet"
-          onInteractOutside={keepOpenForToast}
+          onInteractOutside={onInteractOutside}
           onCloseAutoFocus={restoreFocus}
           className="flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pb-[env(safe-area-inset-bottom)]"
         >
