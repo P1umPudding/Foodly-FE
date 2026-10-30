@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { RootRedirect } from './RootRedirect'
 
 function Where() {
-  const { pathname, search } = useLocation()
-  return <p data-testid="where">{pathname + search}</p>
+  const { pathname, search, hash } = useLocation()
+  return <p data-testid="where">{pathname + search + hash}</p>
 }
 
 function renderAt(entry: string, basename?: string) {
@@ -28,6 +28,11 @@ describe('RootRedirect', () => {
   it('keeps the list params', () => {
     renderAt('/?cat=1&q=pasta&group=0')
     expect(screen.getByTestId('where').textContent).toBe('/recipes?cat=1&q=pasta&group=0')
+  })
+
+  it('keeps the hash', () => {
+    renderAt('/?q=x#top')
+    expect(screen.getByTestId('where').textContent).toBe('/recipes?q=x#top')
   })
 
   it('works under a sub-path basename', () => {

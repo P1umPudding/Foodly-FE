@@ -4,12 +4,15 @@ import { useSyncExternalStore } from 'react'
 // Deliberately not postxl's useIsMobile (768 px), which only picks containers like the timer panel's.
 export const SHELL_DESKTOP_QUERY = '(min-width: 761px)'
 
+let desktopQuery: MediaQueryList | null = null
+const query = () => (desktopQuery ??= window.matchMedia(SHELL_DESKTOP_QUERY))
+
 function subscribe(onChange: () => void) {
-  const mql = window.matchMedia(SHELL_DESKTOP_QUERY)
+  const mql = query()
   mql.addEventListener('change', onChange)
   return () => mql.removeEventListener('change', onChange)
 }
 
 export function useIsDesktop(): boolean {
-  return useSyncExternalStore(subscribe, () => window.matchMedia(SHELL_DESKTOP_QUERY).matches)
+  return useSyncExternalStore(subscribe, () => query().matches)
 }

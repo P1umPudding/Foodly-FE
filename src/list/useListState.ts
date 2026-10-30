@@ -32,6 +32,19 @@ export function useListState(): { state: ListState; set: (patch: Partial<ListSta
     }
   }, [urlHasOurParams, state, currentUserId, setParams])
 
+  // The shell's nav links change the URL without going through set(). Persist every state the list
+  // shows after the first one (that one is the hydration effect's business: a bare URL must not
+  // overwrite the stored defaults before they are restored), so "Zurück" to a bare /recipes comes back
+  // to what the user last saw.
+  const firstState = useRef(true)
+  useEffect(() => {
+    if (firstState.current) {
+      firstState.current = false
+      return
+    }
+    savePersisted(currentUserId, state)
+  }, [state, currentUserId])
+
   const set = useCallback(
     (patch: Partial<ListState>) => {
       const next = { ...fromSearchParams(params), ...patch }

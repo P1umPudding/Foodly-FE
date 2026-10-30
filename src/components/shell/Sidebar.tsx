@@ -58,6 +58,9 @@ export function Sidebar({
   const { activeCategory, hrefFor, categoryHref } = useNavState()
   const categories = useCategories()
   const ordered = [...categories.list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  // Only a category entry that is actually listed can take over the highlight (not ?cat=999, nor while
+  // the categories are loading or failed).
+  const highlightedCategory = ordered.some((c) => c.id === activeCategory) ? activeCategory : null
   const toggleLabel = collapsed ? 'Seitenleiste ausklappen' : 'Seitenleiste einklappen'
   const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose
 
@@ -104,7 +107,7 @@ export function Sidebar({
         {visibleDestinations().map(({ label, path, icon: Icon }) => {
           // NavLink's own active check ignores the query, so it can't tell "all recipes" from one category:
           // while a single category is shown, that category is the current entry, not "Rezepte".
-          const yieldsToCategory = path === '/recipes' && activeCategory !== null
+          const yieldsToCategory = path === '/recipes' && highlightedCategory !== null
           return (
             <WithTip key={path} collapsed={collapsed} label={label}>
               <NavLink
@@ -124,12 +127,12 @@ export function Sidebar({
 
       {categories.status !== 'error' && (categories.status === 'loading' || ordered.length > 0) && (
         // Own scroll area, so a long category list never pushes the profile row off the screen.
-        <section aria-label="Kategorien" className="mt-4 flex min-h-0 flex-col gap-0.5 overflow-y-auto">
+        <nav aria-label="Kategorien" className="mt-4 flex min-h-0 flex-col gap-0.5 overflow-y-auto">
           {!collapsed && <h2 className="px-2.5 pb-1.5 text-xs font-semibold text-muted-foreground">Kategorien</h2>}
           {categories.status === 'loading'
             ? [0, 1, 2].map((i) => <Skeleton key={i} className="h-9 w-full rounded-md" />)
             : ordered.map((c) => {
-                const active = activeCategory === c.id
+                const active = highlightedCategory === c.id
                 const count = c.recipes.length
                 return (
                   <WithTip key={c.id} collapsed={collapsed} label={`${c.name} (${count})`}>
@@ -150,7 +153,7 @@ export function Sidebar({
                   </WithTip>
                 )
               })}
-        </section>
+        </nav>
       )}
 
       <div className="mt-auto pt-3">

@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   Alert,
   AlertDescription,
@@ -29,8 +30,15 @@ import { ListToolbar } from '../components/list/ListToolbar'
 import { RecipeListView } from '../components/list/RecipeListView'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
+import { fromSearchParams, toSearchParams } from '../list/url'
 
-const SCROLL_KEY = 'recipeList:scrollY'
+const SCROLL_KEY = 'recipeList:scroll'
+
+// The list a scroll position belongs to: its filters/sort/view, ignoring how the URL spells them (a nav
+// link writes `group=1`, the list itself omits defaults) and the free-text search, which isn't restored.
+function listIdentity(search: string): string {
+  return toSearchParams({ ...fromSearchParams(new URLSearchParams(search)), search: '' }).toString()
+}
 
 export function RecipeList() {
   const { state, set, clear } = useListState()
@@ -129,9 +137,14 @@ export function RecipeList() {
 
   // Restore scroll position when returning from a recipe (within the session): track
   // the live position, then re-apply it once the list has rendered. sessionStorage so
-  // a fresh load starts at the top.
+  // a fresh load starts at the top. Only for the same list: the shell's sidebar can open
+  // a different category from a recipe page, which must start at the top.
+  const { search: urlSearch } = useLocation()
+  const listRef = useRef(listIdentity(urlSearch))
+  listRef.current = listIdentity(urlSearch)
   useEffect(() => {
-    const onScroll = () => sessionStorage.setItem(SCROLL_KEY, String(window.scrollY))
+    const onScroll = () =>
+      sessionStorage.setItem(SCROLL_KEY, JSON.stringify({ list: listRef.current, y: window.scrollY }))
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -140,8 +153,12 @@ export function RecipeList() {
   useEffect(() => {
     if (scrollRestored.current || search.status !== 'ready') return
     scrollRestored.current = true
-    const y = Number(sessionStorage.getItem(SCROLL_KEY) ?? '')
-    if (y > 0) window.scrollTo(0, y)
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null') as { list: string; y: number } | null
+      if (saved && saved.y > 0 && saved.list === listRef.current) window.scrollTo(0, saved.y)
+    } catch {
+      // unreadable entry → start at the top
+    }
   }, [search.status])
 
   // Load the next page when a sentinel near the list end scrolls into view.

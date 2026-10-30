@@ -27,10 +27,12 @@ export function navPrefs(pathname: string, params: URLSearchParams, persisted: P
 }
 
 // A nav link means "these categories" (or "all recipes"), so it drops the other filters but keeps the
-// view prefs. Without them a bare /recipes would reset sort and view while the list is mounted.
+// view prefs. `group` is always written: a bare /recipes would make the list restore the last stored
+// filters instead of showing all recipes.
 export function listHref(categories: number[], prefs: ViewPrefs): string {
-  const query = toSearchParams({ ...DEFAULT_STATE, ...prefs, categories }).toString()
-  return query ? `/recipes?${query}` : '/recipes'
+  const params = toSearchParams({ ...DEFAULT_STATE, ...prefs, categories })
+  params.set('group', prefs.grouped ? '1' : '0')
+  return `/recipes?${params.toString()}`
 }
 
 // The category the list shows on its own, if any — that link is the active nav entry then, not "Rezepte".

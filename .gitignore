@@ -12,3 +12,6 @@ dist
 
 # local Claude Code state (worktrees, settings)
 .claude/
+
+# TypeScript incremental build info
+*.tsbuildinfo

@@ -29,7 +29,7 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
   const initial = (me?.name.trim()[0] ?? '?').toUpperCase()
 
   const avatar = (
-    <Avatar className={variant === 'avatar' ? 'size-8' : 'size-6'}>
+    <Avatar aria-hidden className={variant === 'avatar' ? 'size-8' : 'size-6'}>
       <AvatarFallback className="text-xs font-semibold">{initial}</AvatarFallback>
     </Avatar>
   )
@@ -38,7 +38,7 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
   // forwardRef, so Radix couldn't anchor the menu to it (same reason as in TimerToggle).
   const trigger =
     variant === 'row' ? (
-      <DropdownMenuTrigger className={navItemClass(false, false)}>
+      <DropdownMenuTrigger aria-label={`${name} – ${LABEL}`} className={navItemClass(false, false)}>
         {avatar}
         <span className="truncate">{name}</span>
       </DropdownMenuTrigger>

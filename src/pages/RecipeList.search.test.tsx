@@ -138,4 +138,39 @@ describe('RecipeList (server-side search)', () => {
     // Page 1 still present — loadMore appends, never replaces.
     screen.getByText('Pancakes')
   })
+
+  describe('scroll restore', () => {
+    function renderAt(entry: string) {
+      return render(
+        <MemoryRouter initialEntries={[entry]}>
+          <TooltipProvider>
+            <RecipeList />
+          </TooltipProvider>
+        </MemoryRouter>,
+      )
+    }
+
+    afterEach(() => sessionStorage.clear())
+
+    it('returns to the saved position of the same list', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      // The free-text search isn't part of the list's identity (it isn't restored either).
+      sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'group=0', y: 640 }))
+      renderAt('/recipes?group=0&q=Pan')
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(scrollTo).toHaveBeenCalledWith(0, 640)
+    })
+
+    it('starts at the top when the position belongs to another list', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'cat=7&group=0', y: 640 }))
+      renderAt('/recipes?group=0')
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(scrollTo).not.toHaveBeenCalled()
+    })
+  })
 })

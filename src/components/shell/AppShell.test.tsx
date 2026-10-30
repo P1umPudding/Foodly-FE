@@ -8,25 +8,26 @@ import { ThemeProvider } from '../../theme/ThemeProvider'
 import { TimerProvider } from '../../timers/TimerProvider'
 import { setViewport } from '../../test/viewport'
 
+const CATEGORIES = [
+  {
+    id: 2,
+    user: 1,
+    name: 'Favoriten',
+    recipes: [1, 2, 3],
+    order: 1,
+    color: '#e11d48',
+    colorLight: null,
+    colorDark: null,
+  },
+  { id: 5, user: 1, name: 'Schnell', recipes: [4], order: 2, color: '#0ea5e9', colorLight: null, colorDark: null },
+]
+// Swapped per test for the loading / error / empty states.
+const catalog = vi.hoisted(() => ({ categories: { status: 'ready', list: [] as unknown[] } }))
+
 vi.mock('../../catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
   useMe: () => ({ id: 1, name: 'Kolja', profilePicture: null }),
-  useCategories: () => ({
-    status: 'ready',
-    list: [
-      {
-        id: 2,
-        user: 1,
-        name: 'Favoriten',
-        recipes: [1, 2, 3],
-        order: 1,
-        color: '#e11d48',
-        colorLight: null,
-        colorDark: null,
-      },
-      { id: 5, user: 1, name: 'Schnell', recipes: [4], order: 2, color: '#0ea5e9', colorLight: null, colorDark: null },
-    ],
-  }),
+  useCategories: () => catalog.categories,
 }))
 
 // A page with its own state: if the shell remounted the routed page, the count would reset.
@@ -62,7 +63,10 @@ function renderAt(entry: string) {
 const sidebar = () => screen.getByRole('complementary', { name: 'Seitenleiste' })
 const mainNav = () => screen.getByRole('navigation', { name: 'Hauptnavigation' })
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => {
+  localStorage.clear()
+  catalog.categories = { status: 'ready', list: CATEGORIES }
+})
 afterEach(() => setViewport(1024))
 
 describe('AppShell on the desktop', () => {
@@ -72,7 +76,7 @@ describe('AppShell on the desktop', () => {
     expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
     expect(side.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
     expect(side.queryByRole('link', { name: 'Start' })).toBeNull()
-    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('href')).toBe('/recipes?cat=2')
+    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('href')).toBe('/recipes?cat=2&group=1')
     side.getByText('3')
     // phone-only pieces are absent
     expect(screen.getAllByRole('navigation', { name: 'Hauptnavigation' })).toHaveLength(1)
@@ -106,10 +110,36 @@ describe('AppShell on the desktop', () => {
   it('keeps the view prefs in nav links but drops the filters', () => {
     renderAt('/recipes?sort=rating&view=compact&cat=2&tag=x')
     const side = within(sidebar())
-    expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('href')).toBe('/recipes?sort=rating&view=compact')
-    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('href')).toBe(
-      '/recipes?cat=5&sort=rating&view=compact',
+    expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('href')).toBe(
+      '/recipes?sort=rating&view=compact&group=1',
     )
+    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('href')).toBe(
+      '/recipes?cat=5&sort=rating&view=compact&group=1',
+    )
+  })
+
+  it('keeps "Rezepte" current for a category that is not listed', () => {
+    renderAt('/recipes?cat=999')
+    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
+  })
+
+  it('shows skeleton rows while the categories load', () => {
+    catalog.categories = { status: 'loading', list: [] }
+    renderAt('/recipes?cat=2')
+    const section = screen.getByRole('navigation', { name: 'Kategorien' })
+    expect(section.querySelectorAll('a')).toHaveLength(0)
+    expect(section.querySelectorAll('.animate-pulse')).toHaveLength(3)
+    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
+  })
+
+  it('hides the categories section when they failed or are empty', () => {
+    catalog.categories = { status: 'error', list: [] }
+    const { unmount } = renderAt('/recipes')
+    expect(screen.queryByRole('navigation', { name: 'Kategorien' })).toBeNull()
+    unmount()
+    catalog.categories = { status: 'ready', list: [] }
+    renderAt('/recipes')
+    expect(screen.queryByRole('navigation', { name: 'Kategorien' })).toBeNull()
   })
 
   it('opens the editor from "Neues Rezept"', () => {
@@ -120,7 +150,9 @@ describe('AppShell on the desktop', () => {
 
   it('opens the profile menu with the name and the theme choice', async () => {
     renderAt('/recipes')
-    fireEvent.keyDown(within(sidebar()).getByRole('button', { name: /Kolja/ }), { key: 'Enter' })
+    fireEvent.keyDown(within(sidebar()).getByRole('button', { name: 'Kolja – Profil & Einstellungen' }), {
+      key: 'Enter',
+    })
     const menu = await screen.findByRole('menu')
     within(menu).getByText('Kolja')
     within(menu).getByRole('menuitem', { name: /Theme/ })
@@ -137,6 +169,11 @@ describe('AppShell on the phone', () => {
     screen.getByRole('button', { name: 'Profil & Einstellungen' })
     fireEvent.click(screen.getByRole('link', { name: 'Neues Rezept' }))
     screen.getByText('editor page')
+  })
+
+  it('keeps "Rezepte" current on a category view (no category tabs)', () => {
+    renderAt('/recipes?cat=2')
+    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
   })
 
   it('has no "+" button and no avatar on sub-pages', () => {

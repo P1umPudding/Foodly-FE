@@ -12,13 +12,13 @@ describe('NAV_DESTINATIONS', () => {
 })
 
 describe('listHref', () => {
-  it('is a bare /recipes with default prefs and no category', () => {
-    expect(listHref([], defaults)).toBe('/recipes')
+  it('is never a bare /recipes, which would restore the stored filters', () => {
+    expect(listHref([], defaults)).toBe('/recipes?group=1')
   })
 
-  it('carries the category and non-default prefs', () => {
-    expect(listHref([3], { ...defaults, sortKey: 'rating', detail: 'compact' })).toBe(
-      '/recipes?cat=3&sort=rating&view=compact',
+  it('carries the category and the prefs', () => {
+    expect(listHref([3], { ...defaults, sortKey: 'rating', detail: 'compact', grouped: false })).toBe(
+      '/recipes?cat=3&sort=rating&view=compact&group=0',
     )
   })
 })
