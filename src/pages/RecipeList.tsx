@@ -13,10 +13,8 @@ import {
   Skeleton,
 } from '@postxl/ui-components'
 import { Filter, UtensilsCrossed, SearchX } from 'lucide-react'
-import { foodly } from '../api'
-import { useRequest } from '../hooks/useRequest'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
-import { useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
+import { useCategories, useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
 import { useListState } from '../list/useListState'
 import { groupingCategories, inSelectedCategory } from '../list/filter'
 import { buildSearchQuery } from '../list/query'
@@ -42,11 +40,11 @@ export function RecipeList() {
 
   // Server-side filter/sort/pagination. Query changes (by value) reset to page 1.
   const search = useRecipeSearch(buildSearchQuery(state))
-  const categoriesReq = useRequest(() => foodly.listCategories(), [])
+  const categoriesCatalog = useCategories()
 
   // Access guard is redundant (backend enforces it) but harmless.
   const accessibleRecipes = search.recipes.filter((r) => canViewRecipe(r, currentUserId))
-  const categories = categoriesReq.data ?? []
+  const categories = categoriesCatalog.list
   const tagList = Object.values(tags.byId)
 
   // Ingredient facet: prefer ingredients actually present on loaded recipes; when
@@ -159,7 +157,7 @@ export function RecipeList() {
       state={state}
       set={set}
       categories={categories}
-      categoriesLoading={categoriesReq.status === 'loading'}
+      categoriesLoading={categoriesCatalog.status === 'loading'}
       onToggleCategory={(id) =>
         set({
           categories: state.categories.includes(id)

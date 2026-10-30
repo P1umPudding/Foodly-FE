@@ -4,6 +4,7 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './RecipeList'
 import { foodly } from '../api'
+import { useRequest } from '../hooks/useRequest'
 import type { Recipe, UserCategory } from '../api/protocol'
 
 function cat(id: number, recipes: number[]): UserCategory {
@@ -37,6 +38,11 @@ vi.mock('../catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),
+  // Goes through the real foodly.listCategories, so each test's spy decides the categories.
+  useCategories: () => {
+    const req = useRequest(() => foodly.listCategories(), [])
+    return { list: req.data ?? [], status: req.status }
+  },
 }))
 
 // categories=[] makes every recipe "uncategorised", and that group starts
