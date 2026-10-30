@@ -44,6 +44,13 @@ export function averageRating(recipe: Recipe): number | null {
   return Math.round((sum / ratings.length) * 10) / 10
 }
 
+// Whole stars only; shared by the mock responder and the REST stub so both
+// reject the same inputs.
+export function assertRating(rating: number): void {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5)
+    throw new Error('Bewertung muss eine ganze Zahl von 1 bis 5 sein')
+}
+
 // The rating visible to the current user, accounting for collaboration mode.
 // Private/Shared: shows only the current user's own rating (null if not rated).
 // Collaborative: shows the pooled average of all ratings.
