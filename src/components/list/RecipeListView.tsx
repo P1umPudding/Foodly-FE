@@ -1,7 +1,7 @@
 import { Button, Collapse, CollapseContent, CollapseTrigger } from '@postxl/ui-components'
 import { ChevronDown } from 'lucide-react'
 import { RecipeRow } from '../recipe/RecipeRow'
-import { colorClasses } from '../../list/palette'
+import { categoryColorVars, type CategoryColorInput } from '../../lib/categoryColor'
 import { deriveGroups } from '../../list/grouping'
 import type { Recipe, UserCategory } from '../../api/protocol'
 import type { DetailView } from '../../list/state'
@@ -19,25 +19,24 @@ function Rows({ recipes, compact }: { recipes: Recipe[]; compact: boolean }) {
   )
 }
 
-// `color` null → neutral; uncategorised passes an empty string → neutral fallback.
+// `colors` null (uncategorised) → no data-cat, so the neutral --cat-* defaults apply.
 function CategoryGroup({
   name,
-  color,
+  colors,
   recipes,
   compact,
   open,
   onOpenChange,
 }: {
   name: string
-  color: string
+  colors: CategoryColorInput | null
   recipes: Recipe[]
   compact: boolean
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const c = colorClasses(color)
   return (
-    <Collapse open={open} onOpenChange={onOpenChange} className="group/cat">
+    <Collapse open={open} onOpenChange={onOpenChange} className="group/cat" {...(colors && categoryColorVars(colors))}>
       {/* A real (postxl) Button as the trigger — Button asChild merges onto the
           Radix trigger (which forwards refs), so we get button semantics +
           cursor-pointer without changing the heading's look. Sticky so the category
@@ -46,7 +45,7 @@ function CategoryGroup({
       <Button
         asChild
         variant="ghost"
-        className={`sticky top-[var(--list-sticky-top,var(--site-nav-h))] z-20 mb-2 h-auto w-full justify-start gap-2 rounded-none bg-background px-0 py-1.5 text-lg font-semibold hover:bg-background dark:hover:bg-background has-[>svg]:px-0 ${c.text} ${c.textHover}`}
+        className="sticky top-[var(--list-sticky-top,var(--site-nav-h))] z-20 mb-2 h-auto w-full justify-start gap-2 rounded-none bg-background px-0 py-1.5 text-lg font-semibold hover:bg-background dark:hover:bg-background has-[>svg]:px-0 text-cat-ink hover:text-cat-ink"
       >
         <CollapseTrigger>
           <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=closed]/cat:-rotate-90" />
@@ -56,7 +55,7 @@ function CategoryGroup({
       </Button>
       <CollapseContent>
         {/* line nudged right (ml-[7px]) so the 2px rule centres under the chevron's bottom tip */}
-        <div className={`ml-[7px] border-l-2 pl-4 ${c.line}`}>
+        <div className="ml-[7px] border-l-2 border-cat-line pl-4">
           <Rows recipes={recipes} compact={compact} />
         </div>
       </CollapseContent>
@@ -102,7 +101,7 @@ export function RecipeListView({
         <CategoryGroup
           key={g.key}
           name={g.name}
-          color={g.color}
+          colors={g.colors}
           recipes={g.recipes}
           compact={compact}
           open={!collapsed.has(g.key)}

@@ -6,7 +6,7 @@ const recipe = (id: number): Recipe =>
   ({ id, name: `r${id}`, owner: 1, editors: [], viewers: [], tags: [], sections: [] }) as unknown as Recipe
 
 const cat = (id: number, name: string, recipes: number[], order: number): UserCategory =>
-  ({ id, name, recipes, order, color: '' }) as unknown as UserCategory
+  ({ id, name, recipes, order, color: '#e11d48', colorLight: null, colorDark: null }) as unknown as UserCategory
 
 describe('deriveGroups', () => {
   it('leads with "Ohne Kategorie" for leftovers, then ordered categories', () => {
@@ -25,5 +25,12 @@ describe('deriveGroups', () => {
   it('returns no "uncat" group when everything is categorised', () => {
     const groups = deriveGroups([recipe(1)], [cat(10, 'A', [1], 1)])
     expect(groups.some((g) => g.key === 'uncat')).toBe(false)
+  })
+
+  it('carries the category colours, none for "Ohne Kategorie"', () => {
+    const c = { ...cat(10, 'A', [1], 1), colorLight: '#ff0000' }
+    const groups = deriveGroups([recipe(1), recipe(2)], [c])
+    expect(groups[0].colors).toBeNull()
+    expect(groups[1].colors).toEqual({ color: c.color, colorLight: '#ff0000', colorDark: null })
   })
 })
