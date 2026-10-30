@@ -74,14 +74,13 @@ export const foodly = {
 
   // REST branch is a localStorage stub until Backend #11 routes ratings
   // (PUT|DELETE /recipes/{id}/ratings/me); it resolves to the re-merged recipe.
-  // If that refetch fails the rating is still stored and shows after a reload.
   setMyRating: (id: RecipeId, rating: number): Promise<Recipe> =>
     USE_MOCKS
       ? socket.request<Recipe>('ratings.set', { id, rating })
       : Promise.resolve().then(() => {
           assertRating(rating)
           writeMyRating(id, rating)
-          return foodly.getRecipe(id)
+          return refetchAfterStubWrite(id)
         }),
 
   clearMyRating: (id: RecipeId): Promise<Recipe> =>
@@ -89,7 +88,7 @@ export const foodly = {
       ? socket.request<Recipe>('ratings.clear', { id })
       : Promise.resolve().then(() => {
           writeMyRating(id, null)
-          return foodly.getRecipe(id)
+          return refetchAfterStubWrite(id)
         }),
 
   copyRecipe: (id: RecipeId): Promise<Recipe> =>
@@ -111,6 +110,14 @@ export const foodly = {
 
   uploadImage: (file: Blob): Promise<UploadedImage> =>
     USE_MOCKS ? socket.request<UploadedImage>('images.upload') : rest.postBinary<UploadedImage>('/images', file),
+}
+
+// The write already landed in localStorage; a failed refetch must not read as
+// a failed save.
+function refetchAfterStubWrite(id: RecipeId): Promise<Recipe> {
+  return foodly.getRecipe(id).catch(() => {
+    throw new Error('Gespeichert – die Anzeige aktualisiert sich nach dem Neuladen')
+  })
 }
 
 function withStubRatings(page: PaginatedRecipes, query: RecipeSearchQuery): PaginatedRecipes {

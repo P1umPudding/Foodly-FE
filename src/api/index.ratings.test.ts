@@ -104,6 +104,14 @@ describe('REST rating stub', () => {
     expect(byName.items.map((r) => r.id)).toEqual([1, 2, 3])
   })
 
+  it('reports a stored rating as saved when only the refetch fails', async () => {
+    const { foodly } = await load()
+    await foodly.me()
+    fetchSpy.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) } as unknown as Response)
+    await expect(foodly.setMyRating(5, 4)).rejects.toThrow(/^Gespeichert/)
+    expect(JSON.parse(localStorage.getItem('foodly.stub.ratings')!)).toEqual({ [ME]: { 5: 4 } })
+  })
+
   it('rejects invalid ratings without storing anything', async () => {
     const { foodly } = await load()
     await foodly.me()

@@ -118,18 +118,17 @@ function MyRatingInput({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
           ))}
         </span>
       </div>
-      {own !== null && (
-        <div className="flex justify-end">
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={disabled}
-            onClick={() => save(() => foodly.clearMyRating(recipe.id))}
-          >
-            Entfernen
-          </Button>
-        </div>
-      )}
+      {/* Stays mounted (disabled when unrated) so focus isn't dropped after removing. */}
+      <div className="flex justify-end">
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={disabled || own === null}
+          onClick={() => save(() => foodly.clearMyRating(recipe.id))}
+        >
+          Entfernen
+        </Button>
+      </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
       <DemoHint feature="ratings" />
     </div>
@@ -156,7 +155,9 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
         aria-label={value === null ? 'Bewerten' : `Bewertung ${value.toFixed(1).replace('.', ',')} von 5`}
         className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
-        <Stars value={value ?? 0} size="md" />
+        <span aria-hidden className="inline-flex">
+          <Stars value={value ?? 0} size="md" />
+        </span>
         {value === null && <span className="text-sm text-muted-foreground">Bewerten</span>}
       </PopoverTrigger>
       <PopoverContent className="max-h-[60vh] w-72 overflow-y-auto">

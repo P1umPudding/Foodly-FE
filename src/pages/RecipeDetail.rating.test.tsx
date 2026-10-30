@@ -54,7 +54,7 @@ describe('RecipeDetail rating', () => {
     fireEvent.click(await screen.findByRole('button', { name: '4 von 5' }))
 
     await waitFor(() => expect(screen.queryByText('Bewerten')).toBeNull())
-    expect(screen.getByLabelText('4.0 von 5')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Bewertung 4,0 von 5' })).toBeTruthy()
     expect(foodly.getRecipe).toHaveBeenCalledTimes(1)
   })
 })

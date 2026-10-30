@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Rating } from './Rating'
 import { foodly } from '../../api'
@@ -63,6 +64,27 @@ describe('Rating', () => {
     expect(foodly.setMyRating).toHaveBeenCalledWith(5, 4)
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(updated))
     expect(screen.getByText('Demo: nur in diesem Browser gespeichert')).toBeTruthy()
+  })
+
+  it('fills the stars once the parent passes the updated recipe back', async () => {
+    vi.mocked(foodly.setMyRating).mockResolvedValue(recipe({ rating: [{ user: 1, rating: 4 }] }))
+    function Stateful() {
+      const [current, setCurrent] = useState(recipe())
+      return <Rating recipe={current} onChange={setCurrent} />
+    }
+    render(<Stateful />)
+    fireEvent.click(screen.getByRole('button', { name: 'Bewerten' }))
+    fireEvent.click(await screen.findByRole('button', { name: '4 von 5' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: '4 von 5' }).getAttribute('aria-pressed')).toBe('true'),
+    )
+    expect((screen.getByRole('button', { name: 'Entfernen' }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('keeps Entfernen disabled while unrated', async () => {
+    open(recipe())
+    expect(((await screen.findByRole('button', { name: 'Entfernen' })) as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('removes the own rating', async () => {
