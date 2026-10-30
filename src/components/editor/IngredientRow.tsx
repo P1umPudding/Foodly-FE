@@ -20,6 +20,8 @@ export function IngredientRow({
   canMoveUp: boolean
   canMoveDown: boolean
 }) {
+  const isCatalog = line.ingredient !== null
+
   return (
     <div className="flex items-center gap-2">
       <Input
@@ -47,8 +49,19 @@ export function IngredientRow({
       <IngredientPicker
         value={line.ingredient}
         text={line.text}
-        onPick={(id) => onChange({ ingredient: id, text: '' })}
+        // Swapping catalog ingredients keeps the Zusatz; on a free-text row `text` is the name, which must not
+        // turn into a Zusatz behind the newly picked ingredient.
+        onPick={(id) => onChange({ ingredient: id, text: isCatalog ? line.text : '' })}
         onText={(text) => onChange({ ingredient: null, text })}
+      />
+      {/* Free text keeps its whole name in `text` (nothing is split), so there is no Zusatz to edit. */}
+      <Input
+        aria-label="Zusatz"
+        className="w-32"
+        placeholder={isCatalog ? 'z. B. gehackt' : undefined}
+        disabled={!isCatalog}
+        value={isCatalog ? line.text : ''}
+        onChange={(e) => onChange({ text: e.target.value })}
       />
       <RowActions
         onUp={onUp}
