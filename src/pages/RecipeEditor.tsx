@@ -72,11 +72,16 @@ export function RecipeEditor() {
     }
   }
 
+  // The shell header shows the title visibly; the sr-only h1 keeps one page heading for screen readers,
+  // also while loading and on error.
+  const heading = <h1 className="sr-only">{isNew ? 'Neues Rezept' : 'Rezept bearbeiten'}</h1>
+
   const patch = (p: Partial<Draft>) => setDraft((d) => (d === null ? d : { ...d, ...p }))
 
   if (status === 'error') {
     return (
       <div className="mx-auto max-w-3xl px-6 py-10">
+        {heading}
         <Alert variant="destructive">
           <AlertTitle>Rezept nicht gefunden</AlertTitle>
           <AlertDescription className="flex flex-col gap-2">
@@ -93,6 +98,7 @@ export function RecipeEditor() {
   if (!editable) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-10">
+        {heading}
         <Alert variant="destructive">
           <AlertTitle>Kein Zugriff</AlertTitle>
           <AlertDescription className="flex flex-col gap-2">
@@ -109,7 +115,7 @@ export function RecipeEditor() {
   if (draft === null) {
     return (
       <div className="mx-auto flex max-w-3xl flex-col gap-4 px-6 py-10">
-        <Skeleton className="h-9 w-2/3" />
+        {heading}
         <Skeleton className="h-40 w-full" />
       </div>
     )
@@ -117,9 +123,7 @@ export function RecipeEditor() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 pb-28">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <h1 className="font-display text-3xl">{isNew ? 'Neues Rezept' : 'Rezept bearbeiten'}</h1>
-      </div>
+      {heading}
 
       <div className="flex flex-col gap-4">
         <BasicsCard draft={draft} onChange={patch} />
