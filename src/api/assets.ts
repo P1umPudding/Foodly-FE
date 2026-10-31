@@ -20,6 +20,11 @@ const DEV_RECIPE_IMAGE: Record<number, string> = {
   2: publicUrl('recipes/cake.png'), // transparent PNG — test fixture for the image backdrop (Schokokuchen)
 }
 
+// Backend #9 (B1) / ADR 0003 §5: without an image route, list and detail look as if there were no photo.
+export function showsRecipeImages(): boolean {
+  return !isStubbed('images')
+}
+
 export function recipeImageSrc(id: ImageId): string {
   // Backend #9 (B1): ImageId has no route yet, so REST shows a neutral placeholder (ADR 0003 §5).
   if (isStubbed('images')) return publicUrl('recipes/placeholder.svg')

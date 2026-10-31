@@ -15,6 +15,11 @@ afterEach(() => {
 })
 
 describe('recipe images in REST mode', () => {
+  it('hides recipe images in list and detail', async () => {
+    const { showsRecipeImages } = await loadAssets({ mock: false })
+    expect(showsRecipeImages()).toBe(false)
+  })
+
   it('serves the placeholder for every image id', async () => {
     const { recipeImageSrc } = await loadAssets({ mock: false })
     for (const id of [1, 3, 999]) expect(recipeImageSrc(id)).toMatch(/\/recipes\/placeholder\.svg$/)
@@ -32,6 +37,11 @@ describe('recipe images in REST mode', () => {
 })
 
 describe('recipe images in mock mode', () => {
+  it('shows recipe images', async () => {
+    const { showsRecipeImages } = await loadAssets({ mock: true })
+    expect(showsRecipeImages()).toBe(true)
+  })
+
   it('keeps the mock asset URLs', async () => {
     const { recipeImageSrc } = await loadAssets({ mock: true })
     expect(recipeImageSrc(1)).toMatch(/\/recipes\/1\.png$/)
