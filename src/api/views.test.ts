@@ -1,4 +1,13 @@
-import { roleOf, myRole, collaborationState, visibleRating, canViewRecipe, scaleAmount, ingredientParts } from './views'
+import {
+  roleOf,
+  myRole,
+  collaborationState,
+  visibleRating,
+  formatRating,
+  canViewRecipe,
+  scaleAmount,
+  ingredientParts,
+} from './views'
 import type { Recipe } from './protocol'
 
 const base: Recipe = {
@@ -142,5 +151,18 @@ describe('visibleRating', () => {
   it('null current user: private/shared yields null', () => {
     const shared = r({ owner: 1, viewers: [2], rating: [{ user: 1, rating: 5 }] })
     expect(visibleRating(shared, null)).toBeNull()
+  })
+})
+
+describe('formatRating', () => {
+  it('always shows one decimal with a comma', () => {
+    expect(formatRating(4.5)).toBe('4,5')
+    expect(formatRating(4)).toBe('4,0')
+    expect(formatRating(0)).toBe('0,0')
+    expect(formatRating(5)).toBe('5,0')
+  })
+
+  it('rounds raw values to one decimal', () => {
+    expect(formatRating(3.6666)).toBe('3,7')
   })
 })
