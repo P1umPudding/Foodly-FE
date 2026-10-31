@@ -147,6 +147,22 @@ describe('Rating', () => {
     expect(screen.getByRole('button', { name: '4 von 5' }).getAttribute('aria-pressed')).toBe('true')
   })
 
+  it('shows average and rater values with a decimal comma', async () => {
+    open(
+      recipe({
+        editors: [2],
+        rating: [
+          { user: 1, rating: 4 },
+          { user: 2, rating: 5 },
+        ],
+      }),
+    )
+    expect(await screen.findByText('4,5')).toBeTruthy()
+    expect(screen.getByText('4,0')).toBeTruthy()
+    expect(screen.getByText('5,0')).toBeTruthy()
+    expect(screen.queryByText('4.5')).toBeNull()
+  })
+
   it('omits the average row in collaborative mode without ratings', async () => {
     open(recipe({ editors: [2] }))
     await screen.findByText('Deine Bewertung')
@@ -248,6 +264,7 @@ describe('Rating on a phone', () => {
     )
     const sheet = await screen.findByRole('dialog', { name: 'Bewertung' })
     expect(within(sheet).getByText('Durchschnitt')).toBeTruthy()
+    expect(within(sheet).getByText('3,0')).toBeTruthy()
     expect(within(sheet).getByText('Bearbeiter')).toBeTruthy()
     expect(within(sheet).getByText('User 2')).toBeTruthy()
   })

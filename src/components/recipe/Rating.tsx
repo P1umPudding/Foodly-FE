@@ -20,7 +20,7 @@ import {
 import { Stars } from './Stars'
 import { DemoHint } from '../DemoHint'
 import { foodly } from '../../api'
-import { visibleRating, ratingsByRole, collaborationState, type RatedRole } from '../../api/views'
+import { visibleRating, formatRating, ratingsByRole, collaborationState, type RatedRole } from '../../api/views'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
 import { userImageSrc } from '../../api/assets'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
@@ -37,13 +37,13 @@ const ROLE_ORDER: RatedRole[] = ['owner', 'editor', 'viewer', 'other']
 
 type Layout = 'popover' | 'sheet'
 
-// Full 5-star bar + number for the Durchschnitt row; tabular N.N keeps the
+// Full 5-star bar + number for the Durchschnitt row; tabular N,N keeps the
 // width stable.
 function StarsValue({ value }: { value: number }) {
   return (
     <span className="inline-flex items-center gap-2 tabular-nums">
       <Stars value={value} size="xs" />
-      {value.toFixed(1)}
+      {formatRating(value)}
     </span>
   )
 }
@@ -52,7 +52,7 @@ function StarValue({ value }: { value: number }) {
   return (
     <span className="inline-flex items-center gap-1 tabular-nums">
       <Star className="h-3.5 w-3.5 fill-current text-star" />
-      {value.toFixed(1)}
+      {formatRating(value)}
     </span>
   )
 }
@@ -228,7 +228,7 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
           @postxl Button doesn't forwardRef. cursor-pointer is explicit until the lib
           ships it for interactive elements. */}
       <Trigger
-        aria-label={value === null ? 'Bewerten' : `Bewertung ${value.toFixed(1).replace('.', ',')} von 5`}
+        aria-label={value === null ? 'Bewerten' : `Bewertung ${formatRating(value)} von 5`}
         className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <span aria-hidden className="inline-flex">
