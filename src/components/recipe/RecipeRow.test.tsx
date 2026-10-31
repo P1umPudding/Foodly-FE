@@ -63,7 +63,7 @@ it('collaborative recipe shows the average with a decimal comma', () => {
     ],
   })
   expect(screen.getByText('4,5')).toBeTruthy()
-  expect(screen.queryByText('4.5')).toBeNull()
+  expect(document.body.textContent).not.toMatch(/\d\.\d/)
 })
 
 describe('detailed thumbnail', () => {

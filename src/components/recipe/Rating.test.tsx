@@ -160,7 +160,7 @@ describe('Rating', () => {
     expect(await screen.findByText('4,5')).toBeTruthy()
     expect(screen.getByText('4,0')).toBeTruthy()
     expect(screen.getByText('5,0')).toBeTruthy()
-    expect(screen.queryByText('4.5')).toBeNull()
+    expect(document.body.textContent).not.toMatch(/\d\.\d/)
   })
 
   it('omits the average row in collaborative mode without ratings', async () => {
