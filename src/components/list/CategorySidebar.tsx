@@ -4,6 +4,8 @@ import { UNCATEGORIZED_ID } from '../../list/filter'
 import type { UserCategory } from '../../api/protocol'
 
 // Hovering an inactive toggle stays neutral so "hovered" never reads like "selected".
+// The soft fill alone is ~1.1:1 against the background in light mode, so the active
+// state also gets the dot-coloured border (≥ 3:1, WCAG 1.4.11) and medium weight.
 // Multi-select (OR) — clicking toggles membership.
 // Uses the `ghost` variant (not `outline`): outline bakes in `dark:border-input`,
 // which would outrank `border-cat-line` in dark mode. `colors` null ("Ohne
@@ -28,10 +30,10 @@ function CategoryButton({
       onClick={onClick}
       aria-pressed={active}
       {...(colors && categoryColorVars(colors))}
-      className={`h-auto w-full justify-between gap-2 border border-cat-line px-3 py-1.5 text-sm font-normal ${
+      className={`h-auto w-full justify-between gap-2 border px-3 py-1.5 text-sm ${
         active
-          ? 'bg-cat-soft text-cat-ink hover:bg-cat-soft hover:text-cat-ink dark:hover:bg-cat-soft'
-          : 'bg-transparent hover:bg-muted dark:hover:bg-muted'
+          ? 'border-cat-dot bg-cat-soft font-medium text-cat-ink hover:bg-cat-soft hover:text-cat-ink dark:hover:bg-cat-soft'
+          : 'border-cat-line bg-transparent font-normal hover:bg-muted dark:hover:bg-muted'
       }`}
     >
       <span className="flex min-w-0 items-center gap-2">

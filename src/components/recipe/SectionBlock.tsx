@@ -1,15 +1,22 @@
 import { TagText } from '../TagText'
+import { StepText } from './StepText'
 import { IngredientLine } from './IngredientLine'
 import type { RecipeIngredientId, Section } from '../../api/protocol'
 
 export function SectionBlock({
   section,
+  recipeName,
+  stepOffset,
   factor = 1,
   checkable = false,
   checkedIds,
   onToggle,
 }: {
   section: Section
+  recipeName: string
+  // Steps in earlier sections: timer labels count steps across the whole recipe, while the visible
+  // numbering restarts per section.
+  stepOffset: number
   factor?: number
   checkable?: boolean
   checkedIds?: Set<RecipeIngredientId>
@@ -57,7 +64,7 @@ export function SectionBlock({
             <li key={i} className="flex gap-3">
               <span className="shrink-0 tabular-nums text-foreground/75">{i + 1}.</span>
               <span className="min-w-0">
-                <TagText value={step} />
+                <StepText value={step} timerLabel={`${recipeName} · Schritt ${stepOffset + i + 1}`} />
               </span>
             </li>
           ))}

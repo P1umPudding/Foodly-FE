@@ -6,6 +6,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Button, Toaster, cn } from '@postxl/ui-components'
 import { Plus } from 'lucide-react'
 import { TimerPanel } from '../../timers/TimerPanel'
+import { TimerPanelProvider } from '../../timers/TimerPanelContext'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { routeTitle, visibleDestinations } from './nav'
 import { ProfileMenu } from './ProfileMenu'
@@ -36,39 +37,45 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   // One tree for both layouts: only the sidebar, tab bar, "+" button and avatar are conditional, so
   // crossing the breakpoint never remounts the page (an editor draft or the list's state survive).
+  // TimerPanelProvider spans header and page, so a time chip in a step can open the header's panel.
   return (
-    <div
-      className={cn('flex min-h-screen bg-background text-foreground', isDesktop ? sidebar.shellVar : PHONE_SHELL_VAR)}
-    >
-      {isDesktop && (
-        <Sidebar collapsed={collapsed} onCollapsedChange={setSidebarCollapsed} widthClass={sidebar.width} />
-      )}
-      <div className={cn('flex min-w-0 flex-1 flex-col', !isDesktop && 'pb-16')}>
-        {/* `site-header`: RecipeList measures this element for its sticky offsets (--site-nav-h). */}
-        <header
-          className={cn(
-            'site-header sticky top-0 z-50 flex h-14 items-center gap-3 border-b border-border/60 bg-background',
-            isDesktop ? 'px-6' : 'px-4',
-          )}
-        >
-          {/* Not a heading: pages keep their own h1. */}
-          <span className="truncate font-semibold">{routeTitle(pathname)}</span>
-          {/* Room for page actions. */}
-          <div className="flex-1" />
-          <TimerPanel />
-          {!isDesktop && onMainPage && <ProfileMenu variant="avatar" />}
-        </header>
-        <main className="flex-1">{children}</main>
+    <TimerPanelProvider>
+      <div
+        className={cn(
+          'flex min-h-screen bg-background text-foreground',
+          isDesktop ? sidebar.shellVar : PHONE_SHELL_VAR,
+        )}
+      >
+        {isDesktop && (
+          <Sidebar collapsed={collapsed} onCollapsedChange={setSidebarCollapsed} widthClass={sidebar.width} />
+        )}
+        <div className={cn('flex min-w-0 flex-1 flex-col', !isDesktop && 'pb-16')}>
+          {/* `site-header`: RecipeList measures this element for its sticky offsets (--site-nav-h). */}
+          <header
+            className={cn(
+              'site-header sticky top-0 z-50 flex h-14 items-center gap-3 border-b border-border/60 bg-background',
+              isDesktop ? 'px-6' : 'px-4',
+            )}
+          >
+            {/* Not a heading: pages keep their own h1. */}
+            <span className="truncate font-semibold">{routeTitle(pathname)}</span>
+            {/* Room for page actions. */}
+            <div className="flex-1" />
+            <TimerPanel />
+            {!isDesktop && onMainPage && <ProfileMenu variant="avatar" />}
+          </header>
+          <main className="flex-1">{children}</main>
+        </div>
+        {!isDesktop && <TabBar />}
+        {!isDesktop && pathname === '/recipes' && (
+          <Button asChild size="icon" className="fixed right-4 bottom-20 z-40 size-14 rounded-full shadow-lg">
+            <Link to="/recipes/new" aria-label="Neues Rezept">
+              <Plus className="size-6" />
+            </Link>
+          </Button>
+        )}
+        <Toaster offset={isDesktop ? undefined : PHONE_TOAST_OFFSET} mobileOffset={PHONE_TOAST_OFFSET} />
       </div>
-      {!isDesktop && <TabBar />}
-      {!isDesktop && pathname === '/recipes' && (
-        <Button asChild size="icon" className="fixed right-4 bottom-20 z-40 size-14 rounded-full shadow-lg">
-          <Link to="/recipes/new" aria-label="Neues Rezept">
-            <Plus className="size-6" />
-          </Link>
-        </Button>
-      )}
-      <Toaster offset={isDesktop ? undefined : PHONE_TOAST_OFFSET} mobileOffset={PHONE_TOAST_OFFSET} />
-    </div>
+    </TimerPanelProvider>
   )
 }

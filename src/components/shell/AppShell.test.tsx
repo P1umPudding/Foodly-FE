@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -203,4 +203,40 @@ it('keeps the page mounted when crossing the breakpoint', () => {
   setViewport(1024)
   screen.getByRole('button', { name: 'count 1' })
   sidebar()
+})
+
+describe('Timer button in the header', () => {
+  const openTimers = () => fireEvent.click(screen.getByRole('button', { name: 'Timer' }))
+
+  it('opens a popover on the desktop', async () => {
+    renderAt('/recipes')
+    openTimers()
+    const panel = await screen.findByRole('dialog', { name: 'Timer' })
+    expect(panel.getAttribute('data-slot')).toBe('popover-content')
+    within(panel).getByText('Kein Timer läuft.')
+    expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('true')
+  })
+
+  it('opens a sheet on the phone', async () => {
+    setViewport(375)
+    renderAt('/recipes/1')
+    openTimers()
+    const panel = await screen.findByRole('dialog', { name: 'Timer' })
+    expect(panel.getAttribute('data-test-id')).toBe('timer-sheet')
+    expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('true')
+
+    // The header button toggles the sheet closed again.
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Timer' }))
+    openTimers()
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+  })
+
+  it('shows the countdown of a started timer', async () => {
+    renderAt('/recipes')
+    openTimers()
+    const panel = await screen.findByRole('dialog', { name: 'Timer' })
+    fireEvent.click(within(panel).getByRole('button', { name: '10 min' }))
+    fireEvent.click(within(panel).getByRole('button', { name: 'Timer starten' }))
+    expect(screen.getByRole('button', { name: 'Timer' }).textContent).toBe('10:00')
+  })
 })

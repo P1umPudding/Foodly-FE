@@ -18,7 +18,9 @@ describe('CategorySidebar toggle buttons', () => {
     expect(btn.style.getPropertyValue('--cat-dot-l')).toBe(light.dot)
     expect(btn.style.getPropertyValue('--cat-dot-d')).toBe(dark.dot)
     expect(btn.className).toContain('border-cat-line')
+    expect(btn.className).toContain('font-normal')
     expect(btn.className).not.toContain('bg-cat-soft')
+    expect(btn.className).not.toContain('border-cat-dot')
     expect(btn.querySelector('.bg-cat-dot')).not.toBeNull()
     fireEvent.click(btn)
     expect(onToggle).toHaveBeenCalledWith(1)
@@ -29,6 +31,9 @@ describe('CategorySidebar toggle buttons', () => {
     const btn = screen.getByRole('button', { name: /Favoriten/i })
     expect(btn.className).toContain('bg-cat-soft')
     expect(btn.className).toContain('text-cat-ink')
+    expect(btn.className).toContain('border-cat-dot')
+    expect(btn.className).toContain('font-medium')
+    expect(btn.className).not.toContain('border-cat-line')
   })
 
   it('keeps "Ohne Kategorie" neutral', () => {
