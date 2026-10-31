@@ -6,7 +6,7 @@ import { TagText } from '../TagText'
 import { TagChips } from './TagChips'
 import { StarMeter } from './Stars'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
-import { visibleRating } from '../../api/views'
+import { visibleRating, formatRating } from '../../api/views'
 import { recipeImageSrc, showsRecipeImages } from '../../api/assets'
 import { useCurrentUserId } from '../../catalog/CatalogProvider'
 import type { Recipe } from '../../api/protocol'
@@ -15,7 +15,7 @@ function Rating({ value }: { value: number }) {
   return (
     <span className="inline-flex shrink-0 items-center gap-1 tabular-nums">
       <StarMeter value={value} size="sm" />
-      {value.toFixed(1)}
+      {formatRating(value)}
     </span>
   )
 }
