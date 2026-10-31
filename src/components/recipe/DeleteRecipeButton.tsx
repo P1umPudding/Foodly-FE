@@ -51,7 +51,7 @@ export function DeleteRecipeButton({
       await foodly.deleteRecipe(recipeId)
       onDeleted()
     } catch (e) {
-      setError((e as Error).message)
+      setError((e as Error).message || 'Löschen fehlgeschlagen')
       setPending(false)
       inFlight.current = false
     }
