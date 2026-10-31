@@ -27,10 +27,11 @@ The change is CSS classes only. There are no new components, hooks or routes, an
 
 ## Step 2: PortionScaler steppers (`src/components/recipe/PortionScaler.tsx`)
 - Both − and + Buttons already share an identical className. Move it into one const, `stepperClass = 'rounded-md text-muted-foreground hover:text-foreground max-[760px]:size-10'`, with the why-comment once on the const. Both keep `size="iconSm"`.
-- The `steppers` wrapper div gets `max-[760px]:-my-1`, plus `max-[760px]:gap-0` (and `max-[760px]:ml-0` in `full`): the 40 px buttons' own padding replaces gap and air, so the size column widens only 16 px (portions) or 8 px (multiplier) instead of 20–24 px, which squeezes the 1fr rating/time column as little as possible (added in code review). This applies to both `steppers` and `full`, since both render in row 2 next to the 32 px `sm` toggles. Net effect: the row height stays the same (A2).
+- The `steppers` wrapper div gets `max-[760px]:-my-1`, plus `max-[760px]:gap-0` (and `max-[760px]:ml-0` in `full`): the 40 px buttons' own padding replaces gap and air, so the size column widens only 16 px (portions) or 8 px (multiplier) instead of 20 px, which squeezes the 1fr rating/time column as little as possible (added in code review). This applies to both `steppers` and `full`, since both render in row 2 next to the 32 px `sm` toggles. Net effect: the row height stays the same (A2).
 - Tests (`PortionScaler.test.tsx`, new describe "tap targets"):
   - In portions mode (`part="steppers"`) and in multiplier mode (`full`), both buttons ("Weniger" and "Mehr") have `max-[760px]:size-10` and still have `size-7.5` (AC2), checked with `classList.contains`.
   - The wrapper (`getByRole('button', { name: 'Weniger' }).parentElement`) has `max-[760px]:-my-1`, with a short why-comment: it guards the row height.
+  - The wrapper also keeps `gap-1` (and `ml-2` in `full`) next to `max-[760px]:gap-0` / `max-[760px]:ml-0`.
   - No separate disabled test: the class is static.
 
 ## Step 3: Mobile nudge (`src/pages/RecipeDetail.tsx`)
@@ -59,9 +60,4 @@ The change is CSS classes only. There are no new components, hooks or routes, an
 - AC3: the Step 5 commands are the same as CI.
 
 ## Commits
-No `Co-Authored-By` or other AI trailer (CLAUDE.md overrides harness defaults). Subjects are in German like the git history (which wins over the English subjects in older plan files), ending with `(#58)`:
-1. `Plan: Tippflächen ≥ 40 px am Handy (#58)`
-2. `Bewertungs-Trigger am Handy mit 40-px-Tippfläche (#58)`
-3. `PortionScaler-Knöpfe am Handy 40 × 40 px (#58)` (includes the RecipeDetail nudge)
-4. if needed: `Formatierung`
-
+No `Co-Authored-By` or other AI trailer (CLAUDE.md overrides harness defaults). Subjects are in German like the git history, ending with `(#58)`. One commit per step (plan, Rating trigger, PortionScaler with the RecipeDetail nudge), plus the code-review follow-ups.
