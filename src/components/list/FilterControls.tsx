@@ -221,7 +221,7 @@ export function FilterControls({
       className={`flex cursor-pointer items-center gap-1 text-sm ${tagSelected(t.id) ? SELECTED_CHIP : ''}`}
       onClick={() => set({ tags: toggle(state.tags, t.id) })}
     >
-      {t.svg && <TagIcon hash={t.svg} alt={t.id} size="sm" />}
+      {t.svg && <TagIcon tag={t} alt={t.id} size="sm" />}
       {t.id}
     </Badge>
   )
