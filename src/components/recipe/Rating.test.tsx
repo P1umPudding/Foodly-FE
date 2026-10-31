@@ -1,9 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Rating } from './Rating'
 import { foodly } from '../../api'
 import type { Recipe } from '../../api/protocol'
+import { setViewport } from '../../test/viewport'
 
 const stubbed = vi.hoisted(() => ({ value: true }))
 const currentUser = vi.hoisted(() => ({ id: 1 as number | null }))
@@ -150,5 +151,78 @@ describe('Rating', () => {
     open(recipe({ editors: [2] }))
     await screen.findByText('Deine Bewertung')
     expect(screen.queryByText('Durchschnitt')).toBeNull()
+  })
+
+  it('opens a popover with the compact stars on desktop', async () => {
+    open(recipe())
+    const panel = await screen.findByRole('dialog')
+    expect(panel.getAttribute('data-slot')).toBe('popover-content')
+    for (const star of screen.getAllByRole('button', { name: /^\d von 5$/ })) {
+      expect(star.className).toContain('size-7.5')
+      expect(star.className).not.toContain('size-10')
+    }
+  })
+})
+
+describe('Rating on a phone', () => {
+  beforeEach(() => setViewport(375))
+  afterEach(() => setViewport(1024))
+
+  it('opens a bottom sheet with title and close button, and returns focus on close', async () => {
+    render(<Rating recipe={recipe()} />)
+    // Grabbed before opening: the modal sheet hides everything else from the accessibility tree.
+    const trigger = screen.getByRole('button', { name: 'Bewerten' })
+    fireEvent.click(trigger)
+
+    const sheet = await screen.findByRole('dialog', { name: 'Bewertung' })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Close' }))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Bewertung' })).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(trigger))
+  })
+
+  it('uses the sheet right below the desktop breakpoint', async () => {
+    setViewport(760)
+    open(recipe())
+    expect(await screen.findByRole('dialog', { name: 'Bewertung' })).toBeTruthy()
+  })
+
+  it('gives the stars a 40 px tap target', async () => {
+    open(recipe())
+    const sheet = await screen.findByRole('dialog', { name: 'Bewertung' })
+    const stars = within(sheet).getAllByRole('button', { name: /^\d von 5$/ })
+    expect(stars).toHaveLength(5)
+    for (const star of stars) {
+      expect(star.className).toContain('size-10')
+      expect(star.className).not.toContain('size-9')
+    }
+  })
+
+  it('rates from the sheet', async () => {
+    const updated = recipe({ rating: [{ user: 1, rating: 4 }] })
+    vi.mocked(foodly.setMyRating).mockResolvedValue(updated)
+    const onChange = open(recipe())
+
+    const sheet = await screen.findByRole('dialog', { name: 'Bewertung' })
+    fireEvent.click(within(sheet).getByRole('button', { name: '4 von 5' }))
+    expect(foodly.setMyRating).toHaveBeenCalledWith(5, 4)
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(updated))
+    expect(within(sheet).getByRole('button', { name: 'Entfernen' })).toBeTruthy()
+    expect(within(sheet).getByText('Demo: nur in diesem Browser gespeichert')).toBeTruthy()
+  })
+
+  it('shows the shared collaborative content in the sheet', async () => {
+    open(
+      recipe({
+        editors: [2],
+        rating: [
+          { user: 1, rating: 4 },
+          { user: 2, rating: 2 },
+        ],
+      }),
+    )
+    const sheet = await screen.findByRole('dialog', { name: 'Bewertung' })
+    expect(within(sheet).getByText('Durchschnitt')).toBeTruthy()
+    expect(within(sheet).getByText('Bearbeiter')).toBeTruthy()
+    expect(within(sheet).getByText('User 2')).toBeTruthy()
   })
 })

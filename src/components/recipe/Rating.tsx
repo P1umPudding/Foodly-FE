@@ -9,6 +9,12 @@ import {
   PopoverContent,
   PopoverTrigger,
   Separator,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
   cn,
 } from '@postxl/ui-components'
 import { Stars } from './Stars'
@@ -17,6 +23,7 @@ import { foodly } from '../../api'
 import { visibleRating, ratingsByRole, collaborationState, type RatedRole } from '../../api/views'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
 import { userImageSrc } from '../../api/assets'
+import { useIsDesktop } from '../../hooks/useIsDesktop'
 import type { Recipe, UserId } from '../../api/protocol'
 
 const ROLE_LABEL: Record<RatedRole, string> = {
@@ -27,6 +34,8 @@ const ROLE_LABEL: Record<RatedRole, string> = {
 }
 
 const ROLE_ORDER: RatedRole[] = ['owner', 'editor', 'viewer', 'other']
+
+type Layout = 'popover' | 'sheet'
 
 // Full 5-star bar + number for the Durchschnitt row; tabular N.N keeps the
 // width stable.
@@ -73,7 +82,15 @@ function RaterRow({ id, rating, isCurrent }: { id: UserId; rating: number; isCur
 
 // Editable own rating, shown in every collaboration mode. Re-clicking the
 // current star is a no-op; removing is the explicit button.
-function MyRatingInput({ recipe, onChange }: { recipe: Recipe; onChange?: (recipe: Recipe) => void }) {
+function MyRatingInput({
+  recipe,
+  layout,
+  onChange,
+}: {
+  recipe: Recipe
+  layout: Layout
+  onChange?: (recipe: Recipe) => void
+}) {
   const currentUserId = useCurrentUserId()
   const own = currentUserId === null ? null : (recipe.rating.find((r) => r.user === currentUserId)?.rating ?? null)
   const [saving, setSaving] = useState(false)
@@ -93,16 +110,26 @@ function MyRatingInput({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
     }
   }
 
+  const sheet = layout === 'sheet'
+
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between font-medium">
-        <span id={labelId}>Deine Bewertung</span>
-        <span role="group" aria-labelledby={labelId} className="inline-flex items-center">
+      <div className={cn('font-medium', sheet ? 'space-y-1.5' : 'flex items-center justify-between')}>
+        <span id={labelId} className={sheet ? 'block' : undefined}>
+          Deine Bewertung
+        </span>
+        <span
+          role="group"
+          aria-labelledby={labelId}
+          className={cn('items-center', sheet ? 'flex w-full justify-between' : 'inline-flex')}
+        >
           {[1, 2, 3, 4, 5].map((n) => (
             <Button
               key={n}
               variant="ghost"
-              size="iconSm"
+              size={sheet ? 'icon' : 'iconSm'}
+              // §7 wants 40 px tap targets on phones; the lib's icon size is only 36 px.
+              className={cn(sheet && 'size-10')}
               aria-label={`${n} von 5`}
               aria-pressed={own === n}
               disabled={disabled}
@@ -110,7 +137,7 @@ function MyRatingInput({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
             >
               <Star
                 className={cn(
-                  'h-4 w-4',
+                  sheet ? 'h-5 w-5' : 'h-4 w-4',
                   own !== null && n <= own ? 'fill-current text-star' : 'text-muted-foreground/40',
                 )}
               />
@@ -141,10 +168,12 @@ function MyRatingInput({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
 function RatingDetails({
   recipe,
   value,
+  layout,
   onChange,
 }: {
   recipe: Recipe
   value: number | null
+  layout: Layout
   onChange?: (recipe: Recipe) => void
 }) {
   const currentUserId = useCurrentUserId()
@@ -162,7 +191,7 @@ function RatingDetails({
         </div>
       )}
 
-      <MyRatingInput recipe={recipe} onChange={onChange} />
+      <MyRatingInput recipe={recipe} layout={layout} onChange={onChange} />
 
       {ROLE_ORDER.map((role) => {
         const members = rows.filter((r) => r.role === role)
@@ -186,15 +215,19 @@ function RatingDetails({
 }
 
 // Always rendered, so an unrated recipe still offers a way to give the first rating.
+// Popover on desktop, bottom sheet on phones (docs/design.md §7); the content is shared.
 export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recipe: Recipe) => void }) {
   const value = visibleRating(recipe, useCurrentUserId())
+  const isDesktop = useIsDesktop()
+  const Root = isDesktop ? Popover : Sheet
+  const Trigger = isDesktop ? PopoverTrigger : SheetTrigger
 
   return (
-    <Popover>
-      {/* PopoverTrigger is the library's own ref-forwarding button (the @postxl
-          Button doesn't forwardRef, which breaks Radix positioning). cursor-pointer
-          is explicit until the lib ships it for interactive elements. */}
-      <PopoverTrigger
+    <Root>
+      {/* The Radix trigger is a ref-forwarding button (the @postxl Button doesn't
+          forwardRef, which breaks Radix positioning). cursor-pointer is explicit
+          until the lib ships it for interactive elements. */}
+      <Trigger
         aria-label={value === null ? 'Bewerten' : `Bewertung ${value.toFixed(1).replace('.', ',')} von 5`}
         className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
@@ -202,10 +235,28 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
           <Stars value={value ?? 0} size="md" />
         </span>
         {value === null && <span className="text-sm text-muted-foreground">Bewerten</span>}
-      </PopoverTrigger>
-      <PopoverContent className="max-h-[60vh] w-72 overflow-y-auto">
-        <RatingDetails recipe={recipe} value={value} onChange={onChange} />
-      </PopoverContent>
-    </Popover>
+      </Trigger>
+      {isDesktop ? (
+        <PopoverContent className="max-h-[60vh] w-72 overflow-y-auto">
+          <RatingDetails recipe={recipe} value={value} layout="popover" onChange={onChange} />
+        </PopoverContent>
+      ) : (
+        // Modal, unlike TimerPanel's sheet: a short form gets the focus trap and focus return,
+        // at the cost of timer toasts not being clickable while it is open.
+        <SheetContent
+          side="bottom"
+          className="flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pb-[env(safe-area-inset-bottom)]"
+        >
+          <div aria-hidden className="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-muted-foreground/30" />
+          <SheetHeader className="px-4 pb-3">
+            <SheetTitle>Bewertung</SheetTitle>
+            <SheetDescription className="sr-only">Eigene Bewertung abgeben</SheetDescription>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+            <RatingDetails recipe={recipe} value={value} layout="sheet" onChange={onChange} />
+          </div>
+        </SheetContent>
+      )}
+    </Root>
   )
 }
