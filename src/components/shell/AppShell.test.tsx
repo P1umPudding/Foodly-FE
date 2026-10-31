@@ -48,6 +48,7 @@ function renderAt(entry: string) {
           <MemoryRouter initialEntries={[entry]}>
             <AppShell>
               <Routes>
+                <Route path="/" element={<p>start page</p>} />
                 <Route path="/recipes" element={<Counter />} />
                 <Route path="/recipes/new" element={<p>editor page</p>} />
                 <Route path="/recipes/:id" element={<p>detail page</p>} />
@@ -85,7 +86,9 @@ describe('AppShell on the desktop', () => {
 
   it('collapses to icons, remembers it, and expands again', () => {
     const { unmount } = renderAt('/recipes')
+    within(sidebar()).getByRole('link', { name: 'Foodly' })
     fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    expect(within(sidebar()).queryByRole('link', { name: 'Foodly' })).toBeNull()
     expect(within(sidebar()).queryByText('Favoriten')).toBeNull()
     expect(within(sidebar()).getByRole('link', { name: 'Favoriten (3)' })).toBeTruthy()
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' })).toBeTruthy()
@@ -97,6 +100,14 @@ describe('AppShell on the desktop', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste ausklappen' }))
     within(sidebar()).getByText('Favoriten')
     expect(localStorage.getItem('foodly:sidebar-collapsed')).toBe('0')
+  })
+
+  it('leads to the start page from the wordmark', () => {
+    renderAt('/recipes/1')
+    const wordmark = within(sidebar()).getByRole('link', { name: 'Foodly' })
+    expect(wordmark.getAttribute('href')).toBe('/')
+    fireEvent.click(wordmark)
+    screen.getByText('start page')
   })
 
   it('highlights the single shown category instead of "Rezepte"', () => {

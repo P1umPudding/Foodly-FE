@@ -70,6 +70,7 @@ dem Shell-/Detail-Issue (Override von `--text-base` unter 761 px), weil die heut
 | `text-sm` | 13 | Sekundärtext, Labels, Toolbar |
 | `text-base` | 14 | Fließtext, Zeilentitel |
 | `text-lg font-semibold` | 15 | Abschnittstitel; Zutaten und Schritte im Detail |
+| `text-xl font-display` | 18 / 650 | Wortmarke Seitenleiste |
 | `text-2xl font-display` | 26 / 650 | Seitentitel (genau einer pro Seite) |
 
 Zahlen, die sich vergleichen lassen (Zeiten, Mengen, Zähler), mit `tabular-nums`. Keine weiteren Größen; Koch-Modus
