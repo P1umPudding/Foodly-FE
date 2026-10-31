@@ -1,10 +1,12 @@
 import { StrictMode } from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TagText } from './TagText'
 import { resetTagIconCache } from '../api/assets'
 
-// Vitest runs in REST mode (VITE_MOCK unset), so icons load as blobs over fetch.
+// The mode is read when the modules load, so pin REST before the imports run
+// (vi.hoisted), whatever the shell env or .env.local sets.
+vi.hoisted(() => vi.stubEnv('VITE_MOCK', ''))
 vi.mock('../catalog/CatalogProvider', () => ({
   useTags: () => ({
     byId: { vegan: { id: 'vegan', svg: 'abc' }, Ofen: { id: 'Ofen', svg: null } },
@@ -33,6 +35,8 @@ afterEach(() => {
   vi.restoreAllMocks()
   resetTagIconCache()
 })
+
+afterAll(() => vi.unstubAllEnvs())
 
 describe('TagText tag icons in REST mode', () => {
   it('shows the name while the icon loads, then the icon', async () => {
