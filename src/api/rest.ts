@@ -30,7 +30,9 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 
   if (!res.ok) throw new Error(await errorMessage(res))
 
-  if (res.status === 204) return undefined as T
+  // DELETE bodies are never parsed: whether the backend answers 204 or an empty 200
+  // is unconfirmed, and a parse error would report a delete that already happened as failed.
+  if (res.status === 204 || method === 'DELETE') return undefined as T
   return (await res.json()) as T
 }
 

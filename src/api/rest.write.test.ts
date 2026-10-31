@@ -34,6 +34,24 @@ describe('rest write verbs', () => {
     const [url, init] = fetchSpy.mock.calls[0]
     expect(url).toBe('/api/v1/recipes/7')
     expect(init?.method).toBe('DELETE')
+    expect((init?.headers as Record<string, string>).Authorization).toBe('Bearer dev-token')
+  })
+
+  it('del resolves undefined on an empty 200 without parsing the body', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new SyntaxError('Unexpected end of JSON input')
+      },
+    } as unknown as Response)
+
+    await expect(rest.del('/recipes/7')).resolves.toBeUndefined()
+  })
+
+  it('del throws the backend error message', async () => {
+    mockFetch(403, { error: { message: 'Not the owner' } })
+    await expect(rest.del('/recipes/7')).rejects.toThrow('Not the owner')
   })
 
   it('postBinary sends the raw blob with its own content type', async () => {
