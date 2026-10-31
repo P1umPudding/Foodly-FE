@@ -15,7 +15,7 @@ import {
 } from '@postxl/ui-components'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
-import { canEdit } from '../editor/access'
+import { canEdit, isOwner } from '../editor/access'
 import { useCurrentUserId, useTags } from '../catalog/CatalogProvider'
 import { TagText } from '../components/TagText'
 import { plainTagText } from '../components/tagTokens'
@@ -25,6 +25,7 @@ import { SectionBlock } from '../components/recipe/SectionBlock'
 import { PortionScaler } from '../components/recipe/PortionScaler'
 import { WakeLockToggle } from '../components/WakeLockToggle'
 import { RecipeImages } from '../components/recipe/RecipeImages'
+import { DeleteRecipeButton } from '../components/recipe/DeleteRecipeButton'
 import { Lightbox } from '../components/recipe/Lightbox'
 import type { Recipe, RecipeIngredientId } from '../api/protocol'
 
@@ -97,6 +98,14 @@ export function RecipeDetail() {
         {status === 'ready' && recipe && (
           <div className="flex items-center gap-2">
             {cloneError && <span className="text-sm text-destructive">{cloneError}</span>}
+            {isOwner(recipe, currentUserId) && (
+              <DeleteRecipeButton
+                recipeId={recipe.id}
+                name={plainName}
+                // replace: Back must not lead to the deleted recipe's "not found" page.
+                onDeleted={() => navigate('/recipes', { replace: true })}
+              />
+            )}
             <Button variant="outline" size="sm" className="gap-1.5" onClick={onClone} disabled={cloning}>
               <Copy className="h-4 w-4" />
               Duplizieren
