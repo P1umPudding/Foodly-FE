@@ -1,6 +1,7 @@
-import { Fragment } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { useTags } from '../catalog/CatalogProvider'
-import { tagImageSrc } from '../api/assets'
+import { useTagIcon } from '../hooks/useTagIcon'
+import { markTagIconBroken } from '../api/assets'
 import type { Tag } from '../api/protocol'
 import { TAG_TOKEN } from './tagTokens'
 
@@ -15,8 +16,29 @@ const TAG_ICON_SIZE = {
 
 export type TagSize = keyof typeof TAG_ICON_SIZE
 
-export function TagIcon({ hash, alt, size = 'sm' }: { hash: string; alt: string; size?: TagSize }) {
-  return <img src={tagImageSrc(hash)} alt={alt} className={`inline-block w-auto ${TAG_ICON_SIZE[size]}`} />
+// `fallback` shows while the icon loads (REST) and when it can't be shown, so a
+// missing icon never renders as a broken image.
+export function TagIcon({
+  tag,
+  alt,
+  size = 'sm',
+  fallback = null,
+}: {
+  tag: Tag
+  alt: string
+  size?: TagSize
+  fallback?: ReactNode
+}) {
+  const src = useTagIcon(tag)
+  if (!src) return <>{fallback}</>
+  return (
+    <img
+      src={src}
+      alt={alt}
+      onError={() => markTagIconBroken(tag)}
+      className={`inline-block w-auto ${TAG_ICON_SIZE[size]}`}
+    />
+  )
 }
 
 // Render a recipe-authored string, replacing {tagId}/{!tagId} tokens. Text tags
@@ -37,7 +59,7 @@ export function TagText({ value, size = 'sm' }: { value: string; size?: TagSize 
     } else if (bang === '!' || tag.svg === null) {
       nodes.push(id) // forced name, or no image → name without braces
     } else {
-      nodes.push(<TagIcon hash={tag.svg} alt={id} size={size} />)
+      nodes.push(<TagIcon tag={tag} alt={id} size={size} fallback={id} />)
     }
     last = start + full.length
   }

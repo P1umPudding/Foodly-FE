@@ -1,7 +1,8 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@postxl/ui-components'
 import { useTags } from '../../catalog/CatalogProvider'
 import { TagIcon } from '../TagText'
-import type { TagId } from '../../api/protocol'
+import { useTagIcon } from '../../hooks/useTagIcon'
+import type { Tag, TagId } from '../../api/protocol'
 
 // recipe.tags are bare ids (= names). Render each either/or: icon when the tag
 // has one, otherwise the name — no surrounding chip box. With `hoverName` (detail
@@ -21,29 +22,8 @@ export function TagChips({
   if (tags.length === 0) return null
 
   const items = tags.map((t) => {
-    const svg = byId[t]?.svg ?? null
-    if (!svg) {
-      return (
-        <span key={t} className="text-foreground/75">
-          {t}
-        </span>
-      )
-    }
-    const icon = <TagIcon hash={svg} alt={t} size={size === 'lg' ? 'md' : 'sm'} />
-    if (!hoverName)
-      return (
-        <span key={t} className="inline-flex">
-          {icon}
-        </span>
-      )
-    return (
-      <Tooltip key={t}>
-        <TooltipTrigger asChild>
-          <span className="inline-flex cursor-default">{icon}</span>
-        </TooltipTrigger>
-        <TooltipContent>{t}</TooltipContent>
-      </Tooltip>
-    )
+    const tag = byId[t]
+    return tag?.svg ? <IconChip key={t} tag={tag} hoverName={hoverName} size={size} /> : <TagName key={t} name={t} />
   })
 
   const row = (
@@ -54,4 +34,25 @@ export function TagChips({
     </div>
   )
   return hoverName ? <TooltipProvider delayDuration={150}>{row}</TooltipProvider> : row
+}
+
+function TagName({ name }: { name: string }) {
+  return <span className="text-foreground/75">{name}</span>
+}
+
+// While the icon loads (REST) or when it fails to show, the tag reads as its plain
+// name, without a tooltip repeating that name.
+function IconChip({ tag, hoverName, size }: { tag: Tag; hoverName: boolean; size: 'sm' | 'lg' }) {
+  const src = useTagIcon(tag)
+  if (!src) return <TagName name={tag.id} />
+  const icon = <TagIcon tag={tag} alt={tag.id} size={size === 'lg' ? 'md' : 'sm'} />
+  if (!hoverName) return <span className="inline-flex">{icon}</span>
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex cursor-default">{icon}</span>
+      </TooltipTrigger>
+      <TooltipContent>{tag.id}</TooltipContent>
+    </Tooltip>
+  )
 }
