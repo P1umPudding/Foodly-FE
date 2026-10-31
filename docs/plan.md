@@ -32,7 +32,7 @@ Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 **Gestubbt (ADR 0003), später auf REST umstellen:**
 | Funktion | Stub | Backend |
 |---|---|---|
-| Rezeptbilder anzeigen | neutraler Platzhalter | #9 (B1) |
+| Rezeptbilder anzeigen | wie ohne Foto (Editor: Platzhalter) | #9 (B1) |
 | Namen von Owner/Editoren | Mock-Liste wie heute | #10 (B2) |
 | Rating abgeben | localStorage | #11 (B3) |
 | Teilen (Editoren/Viewer) | localStorage | #12 (B4) |
