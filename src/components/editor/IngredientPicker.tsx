@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  Button,
+  buttonVariants,
   Command,
   CommandEmpty,
   CommandGroup,
@@ -39,11 +39,15 @@ export function IngredientPicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" aria-expanded={open} className="flex-1 justify-between font-normal">
-          <span className={label === '' ? 'text-muted-foreground' : undefined}>{label === '' ? 'Zutat …' : label}</span>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-        </Button>
+      {/* PopoverTrigger itself, styled as the outline Button: the @postxl Button doesn't
+          forwardRef, so as an asChild trigger Radix can't anchor the popover and it never shows. */}
+      <PopoverTrigger
+        role="combobox"
+        aria-expanded={open}
+        className={buttonVariants({ variant: 'outline', className: 'flex-1 justify-between font-normal' })}
+      >
+        <span className={label === '' ? 'text-muted-foreground' : undefined}>{label === '' ? 'Zutat …' : label}</span>
+        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
       </PopoverTrigger>
       <PopoverContent className="w-64 p-0" align="start">
         <Command shouldFilter={false}>
