@@ -26,7 +26,7 @@ export function showsRecipeImages(): boolean {
 }
 
 export function recipeImageSrc(id: ImageId): string {
-  // Backend #9 (B1): ImageId has no route yet, so REST shows a neutral placeholder (ADR 0003 §5).
+  // Backend #9 (B1): ImageId has no route yet, so in REST only the editor shows this neutral placeholder.
   if (isStubbed('images')) return publicUrl('recipes/placeholder.svg')
   return DEV_RECIPE_IMAGE[id] ?? publicUrl(`recipes/${id}.svg`)
 }
