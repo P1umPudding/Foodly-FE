@@ -221,7 +221,7 @@ export function RecipeList() {
           <div ref={headerRef} className="sticky top-(--site-nav-h) z-30 bg-background pb-3 pt-6">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-baseline gap-4">
-                <h1 className="font-display text-3xl text-foreground">Rezepte</h1>
+                <h1 className="sr-only">Rezepte</h1>
                 <ResultCount matching={visible.length} total={accessibleRecipes.length} />
               </div>
               {/* Mobile-only filter drawer trigger */}
