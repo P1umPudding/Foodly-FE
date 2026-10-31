@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
 import { foodly } from './api'
+import { isStubbed } from './api/stubs'
 import { useRequest } from './hooks/useRequest'
 import type { Recipe } from './api/protocol'
 
@@ -24,8 +25,9 @@ vi.mock('./catalog/CatalogProvider', () => ({
   },
 }))
 
-// mainImage 3 isn't in assets.ts's module-load-time image map, so its URL is
-// built at call time from the stubbed BASE_URL.
+// Image URLs must be built at call time from the stubbed BASE_URL. REST mode
+// does that for the placeholder; in mock mode id 3 must stay out of assets.ts's
+// DEV_RECIPE_IMAGE, which captures BASE_URL at module load.
 const recipe: Recipe = {
   id: 1,
   owner: 1,
@@ -77,7 +79,7 @@ describe('routing under a sub-path basename', () => {
 
     await screen.findByRole('heading', { name: 'Pancakes' })
     const imgSrcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
-    expect(imgSrcs).toContain('/foo/recipes/3.svg')
+    expect(imgSrcs).toContain(isStubbed('images') ? '/foo/recipes/placeholder.svg' : '/foo/recipes/3.svg')
     expect(screen.getByRole('link', { name: '← Zurück' }).getAttribute('href')).toBe('/foo/recipes')
   })
 

@@ -1,8 +1,9 @@
 // Resolve backend asset hashes/ids to URLs. The real hash→URL scheme is
-// backend-dependent and still TBD; in dev the mocks store filename stems served
-// from /public. Centralised so there's a single place to wire the real scheme.
+// backend-dependent and still TBD; mock data maps to files served from /public.
+// Centralised so there's a single place to wire the real scheme.
 
 import type { ImageId } from './protocol'
+import { isStubbed } from './stubs'
 
 // Public assets live under Vite's base (a sub-path in the Skaile preview).
 const publicUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`
@@ -20,6 +21,8 @@ const DEV_RECIPE_IMAGE: Record<number, string> = {
 }
 
 export function recipeImageSrc(id: ImageId): string {
+  // Backend #9 (B1): ImageId has no route yet, so REST shows a neutral placeholder (ADR 0003 §5).
+  if (isStubbed('images')) return publicUrl('recipes/placeholder.svg')
   return DEV_RECIPE_IMAGE[id] ?? publicUrl(`recipes/${id}.svg`)
 }
 
@@ -32,6 +35,7 @@ const DEV_IMAGE_NAME: Record<number, string> = {
 }
 
 export function imageName(id: ImageId): string {
+  if (isStubbed('images')) return `Bild ${id}`
   return DEV_IMAGE_NAME[id] ?? `Bild ${id}`
 }
 
