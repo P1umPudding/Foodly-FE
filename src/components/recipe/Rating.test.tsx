@@ -169,6 +169,16 @@ describe('Rating', () => {
     expect(screen.queryByText('Durchschnitt')).toBeNull()
   })
 
+  it('keeps the desktop trigger compact and grows it only below the breakpoint', () => {
+    render(<Rating recipe={recipe()} />)
+    const trigger = screen.getByRole('button', { name: /Bewert/ })
+    // Exact tokens: jsdom applies no CSS, and the prefixed classes contain the bare ones as substrings.
+    for (const token of ['px-1.5', 'py-0.5', 'max-[760px]:min-h-10', 'max-[760px]:-my-2']) {
+      expect(trigger.classList.contains(token)).toBe(true)
+    }
+    expect(trigger.classList.contains('min-h-10')).toBe(false)
+  })
+
   it('opens a popover with the compact stars on desktop', async () => {
     open(recipe())
     const panel = await screen.findByRole('dialog')
@@ -214,6 +224,14 @@ describe('Rating on a phone', () => {
     const sheet = await screen.findByRole('dialog', { name: 'Bewertung' })
     fireEvent.click(within(sheet).getByRole('button', { name: '2 von 5' }))
     expect(await within(sheet).findByText('kaputt')).toBeTruthy()
+  })
+
+  it('keeps the tap-target classes on the sheet trigger', () => {
+    // A different trigger component than on desktop (SheetTrigger), and the rated label.
+    render(<Rating recipe={recipe({ rating: [{ user: 1, rating: 4 }] })} />)
+    const trigger = screen.getByRole('button', { name: /Bewert/ })
+    expect(trigger.classList.contains('max-[760px]:min-h-10')).toBe(true)
+    expect(trigger.classList.contains('max-[760px]:-my-2')).toBe(true)
   })
 
   it('gives the stars a 40 px tap target', async () => {

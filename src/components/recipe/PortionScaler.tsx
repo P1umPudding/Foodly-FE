@@ -50,6 +50,9 @@ export function PortionScaler({
     apply(portions ? Math.max(1, current - 1) : Math.max(0.25, round2(current - (current <= 1 ? 0.25 : 0.5))))
   const canDecrement = portions ? current > 1 : current > 0.25
 
+  // Phones get 40 px tap targets (docs/design.md §7); desktop keeps the compact iconSm.
+  const stepperClass = 'rounded-md text-muted-foreground hover:text-foreground max-[760px]:size-10'
+
   const minus = (
     <Button
       type="button"
@@ -58,21 +61,14 @@ export function PortionScaler({
       onClick={stepDown}
       disabled={!canDecrement}
       aria-label="Weniger"
-      className="rounded-md text-muted-foreground hover:text-foreground"
+      className={stepperClass}
     >
       <Minus className="size-4" />
     </Button>
   )
 
   const plus = (
-    <Button
-      type="button"
-      variant="ghost"
-      size="iconSm"
-      onClick={stepUp}
-      aria-label="Mehr"
-      className="rounded-md text-muted-foreground hover:text-foreground"
-    >
+    <Button type="button" variant="ghost" size="iconSm" onClick={stepUp} aria-label="Mehr" className={stepperClass}>
       <Plus className="size-4" />
     </Button>
   )
@@ -115,8 +111,16 @@ export function PortionScaler({
 
   const steppers = (
     // In multiplier-mode a little air sets the steppers off from the value; the
-    // gap between − and + itself stays the same as the standalone portions ones.
-    <div className={cn('inline-flex items-center gap-1', part === 'full' && 'ml-2')}>
+    // gap between − and + itself stays the same as the standalone portions ones. On phones the
+    // 40 px buttons outgrow the row's 32 px toggles: the negative margin keeps the row height, and
+    // their own padding replaces gap and air so the size column widens only slightly (squeezing
+    // the 1fr rating/time column next to it as little as possible).
+    <div
+      className={cn(
+        'inline-flex items-center gap-1 max-[760px]:-my-1 max-[760px]:gap-0',
+        part === 'full' && 'ml-2 max-[760px]:ml-0',
+      )}
+    >
       {minus}
       {plus}
     </div>

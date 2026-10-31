@@ -100,3 +100,29 @@ describe('PortionScaler — commit rules', () => {
     expect(onChange).toHaveBeenLastCalledWith(1)
   })
 })
+
+describe('PortionScaler — tap targets', () => {
+  // Exact tokens: jsdom applies no CSS, and `max-[760px]:size-10` contains `size-10` as a substring.
+  const has = (el: Element, token: string) => el.classList.contains(token)
+
+  it.each([
+    ['portions steppers', { part: 'steppers' as const, sizeNumber: 4 }],
+    ['multiplier scaler', { part: 'full' as const }],
+  ])('%s: keeps iconSm and adds the phone tap-target classes', (_, props) => {
+    renderScaler(props)
+    for (const name of ['Weniger', 'Mehr']) {
+      const button = screen.getByRole('button', { name })
+      expect(has(button, 'size-7.5')).toBe(true)
+      expect(has(button, 'max-[760px]:size-10')).toBe(true)
+    }
+    // Keep the row from growing next to the 32 px toggles, and the column from widening.
+    const pair = screen.getByRole('button', { name: 'Weniger' }).parentElement!
+    expect(has(pair, 'gap-1')).toBe(true)
+    expect(has(pair, 'max-[760px]:-my-1')).toBe(true)
+    expect(has(pair, 'max-[760px]:gap-0')).toBe(true)
+    if (props.part === 'full') {
+      expect(has(pair, 'ml-2')).toBe(true)
+      expect(has(pair, 'max-[760px]:ml-0')).toBe(true)
+    }
+  })
+})
