@@ -126,6 +126,7 @@ describe('page title shown once', () => {
     setViewport(375)
     await renderAt('/recipes?group=0')
     await screen.findByText('Pancakes')
+    expect(screen.queryByRole('complementary', { name: 'Seitenleiste' })).toBeNull()
     expectTitleOnce('Rezepte')
     expect(h1s()).toHaveLength(1)
   })
@@ -148,7 +149,7 @@ describe('exactly one h1', () => {
   it('editor while loading', async () => {
     vi.mocked(foodly.getRecipe).mockImplementation(never)
     await renderAt('/recipes/5/edit')
-    expect(screen.getByRole('main').querySelector('.animate-pulse')).not.toBeNull()
+    expect(screen.getByRole('main').querySelector('[aria-busy="true"]')).not.toBeNull()
     expect(screen.getByRole('heading', { level: 1, name: 'Rezept bearbeiten' })).toBeTruthy()
     expect(h1s()).toHaveLength(1)
   })
