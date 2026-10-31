@@ -2,9 +2,7 @@ import { Fragment } from 'react'
 import { useTags } from '../catalog/CatalogProvider'
 import { tagImageSrc } from '../api/assets'
 import type { Tag } from '../api/protocol'
-
-// {X} or {!X}; X = tag id (anything but braces). Global flag → iterate matches.
-const TOKEN = /\{(!?)([^{}]+)\}/g
+import { TAG_TOKEN } from './tagTokens'
 
 // Tag icons are sized per context (body text vs. the larger meta vs. the title),
 // but always through this one component so the dimensions live in one place and
@@ -28,7 +26,7 @@ export function TagText({ value, size = 'sm' }: { value: string; size?: TagSize 
   const nodes: Array<string | JSX.Element> = []
   let last = 0
 
-  for (const m of value.matchAll(TOKEN)) {
+  for (const m of value.matchAll(TAG_TOKEN)) {
     const [full, bang, id] = m
     const start = m.index ?? 0
     if (start > last) nodes.push(value.slice(last, start))
