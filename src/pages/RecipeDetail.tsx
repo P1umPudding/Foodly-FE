@@ -11,6 +11,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  buttonVariants,
   cn,
 } from '@postxl/ui-components'
 import { foodly } from '../api'
@@ -106,17 +107,35 @@ export function RecipeDetail() {
                 onDeleted={() => navigate('/recipes', { replace: true })}
               />
             )}
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={onClone} disabled={cloning}>
-              <Copy className="h-4 w-4" />
-              Duplizieren
-            </Button>
+            {/* On phones all three actions are icon-only 40×40 tap targets (design.md §7), labelled via
+                tooltip. The triggers are styled via buttonVariants: postxl Button isn't forwardRef, so the
+                tooltip couldn't anchor to it. */}
+            <Tooltip>
+              <TooltipTrigger
+                aria-label="Duplizieren"
+                onClick={onClone}
+                disabled={cloning}
+                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 max-[760px]:size-10')}
+              >
+                <Copy className="h-4 w-4" />
+                <span className="max-[760px]:hidden">Duplizieren</span>
+              </TooltipTrigger>
+              <TooltipContent>Rezept duplizieren</TooltipContent>
+            </Tooltip>
             {canEdit(recipe, currentUserId) && (
-              <Button asChild size="sm" className="gap-1.5">
-                <Link to={`/recipes/${recipe.id}/edit`}>
-                  <Pencil className="h-4 w-4" />
-                  Bearbeiten
-                </Link>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    to={`/recipes/${recipe.id}/edit`}
+                    aria-label="Bearbeiten"
+                    className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 max-[760px]:size-10')}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    <span className="max-[760px]:hidden">Bearbeiten</span>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>Rezept bearbeiten</TooltipContent>
+              </Tooltip>
             )}
           </div>
         )}
