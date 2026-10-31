@@ -35,6 +35,7 @@ const DEV_IMAGE_NAME: Record<number, string> = {
 }
 
 export function imageName(id: ImageId): string {
+  // Mock names would caption the REST placeholder.
   if (isStubbed('images')) return `Bild ${id}`
   return DEV_IMAGE_NAME[id] ?? `Bild ${id}`
 }
