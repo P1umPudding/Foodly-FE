@@ -217,7 +217,10 @@ describe('Rating on a phone', () => {
     await screen.findByRole('dialog', { name: 'Bewertung' })
     setViewport(1024)
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(screen.getByRole('button', { name: 'Bewerten' })).toBeTruthy()
+    // The unmounted modal must not leave the page locked.
+    expect(document.body.style.pointerEvents).not.toBe('none')
+    fireEvent.click(screen.getByRole('button', { name: 'Bewerten' }))
+    expect((await screen.findByRole('dialog')).getAttribute('data-slot')).toBe('popover-content')
   })
 
   it('rates from the sheet', async () => {

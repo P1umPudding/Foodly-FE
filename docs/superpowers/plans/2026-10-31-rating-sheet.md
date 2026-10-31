@@ -17,8 +17,8 @@ Facts checked in node_modules (@postxl/ui-components 1.8.2): `size="icon"` = `si
 - Add `layout: 'popover' | 'sheet'` to `RatingDetails` and `MyRatingInput`:
   - `popover`: markup and classes exactly as today (label + stars in one `justify-between` row, `size="iconSm"`).
   - `sheet`: label on its own line, star group below as a full-width row (`flex w-full justify-between`), stars
-    `size="icon"` + `className="size-10"` (lib `icon` is `size-9` = 36 px; `cn` drops it), glyph `h-5 w-5`.
-  - `role="group"`/`aria-labelledby`, aria-labels, aria-pressed, Entfernen, error, DemoHint unchanged in both.
+    `size="icon"` + `className="size-10"` (lib `icon` is `size-9` = 36 px; `cn` drops it), glyph `size-5` (the Button's default svg size overrides `h-*`/`w-*`); „Entfernen“ `h-10`.
+  - `role="group"`/`aria-labelledby`, aria-labels, aria-pressed, Entfernen behaviour, error, DemoHint unchanged in both.
 - In `Rating`: `const isDesktop = useIsDesktop()`; `const Root = isDesktop ? Popover : Sheet`,
   `const Trigger = isDesktop ? PopoverTrigger : SheetTrigger`; one trigger JSX block with the existing classes,
   aria-label and children (both are plain Radix buttons, no `asChild`).
@@ -59,7 +59,7 @@ have `size-7.5`, not `size-10`.
 No `Co-Authored-By` or other AI trailer in any commit (CLAUDE.md overrides harness defaults).
 
 ## Out of scope (mention in PR)
-„Entfernen“ (`size="sm"`, 32 px), the trigger (~24 px tall) and the lib's ✕ stay under 40 px; also PortionScaler's
+The trigger (~24 px tall) and the lib's ✕ stay under 40 px; also PortionScaler's
 `iconSm` buttons; the ✕'s label is the lib's English "Close" (same as TimerPanel). Modal sheet blocks timer toasts
 while open (accepted trade-off). Suggest a follow-up issue in the PR text instead of widening this PR (#47 also touches Rating.tsx).
 
