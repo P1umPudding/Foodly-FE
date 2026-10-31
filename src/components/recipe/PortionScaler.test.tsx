@@ -108,14 +108,16 @@ describe('PortionScaler — tap targets', () => {
   it.each([
     ['portions steppers', { part: 'steppers' as const, sizeNumber: 4 }],
     ['multiplier scaler', { part: 'full' as const }],
-  ])('%s: compact on desktop, 40 px on phones', (_, props) => {
+  ])('%s: keeps iconSm and adds the phone tap-target classes', (_, props) => {
     renderScaler(props)
     for (const name of ['Weniger', 'Mehr']) {
       const button = screen.getByRole('button', { name })
       expect(has(button, 'size-7.5')).toBe(true)
       expect(has(button, 'max-[760px]:size-10')).toBe(true)
     }
-    // Keeps the row from growing next to the 32 px toggles.
-    expect(has(screen.getByRole('button', { name: 'Weniger' }).parentElement!, 'max-[760px]:-my-1')).toBe(true)
+    // Keep the row from growing next to the 32 px toggles, and the column from widening.
+    const pair = screen.getByRole('button', { name: 'Weniger' }).parentElement!
+    expect(has(pair, 'max-[760px]:-my-1')).toBe(true)
+    expect(has(pair, 'max-[760px]:gap-0')).toBe(true)
   })
 })

@@ -226,7 +226,8 @@ describe('Rating on a phone', () => {
     expect(await within(sheet).findByText('kaputt')).toBeTruthy()
   })
 
-  it('gives the trigger a 40 px tap target', () => {
+  it('keeps the tap-target classes on the sheet trigger', () => {
+    // A different trigger component than on desktop (SheetTrigger), and the rated label.
     render(<Rating recipe={recipe({ rating: [{ user: 1, rating: 4 }] })} />)
     const trigger = screen.getByRole('button', { name: /Bewert/ })
     expect(trigger.classList.contains('max-[760px]:min-h-10')).toBe(true)
