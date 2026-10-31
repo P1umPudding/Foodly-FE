@@ -87,6 +87,17 @@ describe('toCreateRecipe', () => {
     })
   })
 
+  it('keeps the Zusatz of a catalog ingredient through draft and save', () => {
+    const withZusatz = recipe()
+    withZusatz.sections[0].ingredients[0] = { ...withZusatz.sections[0].ingredients[0], text: 'nach Geschmack' }
+
+    const draft = toDraft(withZusatz)
+    expect(draft.sections[0].ingredients[0]).toMatchObject({ ingredient: 5, text: 'nach Geschmack' })
+
+    const wire = toCreateRecipe(draft)
+    expect(wire.sections[0].ingredients[0]).toMatchObject({ ingredient: 5, text: 'nach Geschmack' })
+  })
+
   it('drops ingredient rows with neither an ingredient nor text', () => {
     const draft = toDraft(recipe())
     draft.sections[0].ingredients.push(newIngredient())
