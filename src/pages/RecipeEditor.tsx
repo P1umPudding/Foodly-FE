@@ -114,7 +114,7 @@ export function RecipeEditor() {
 
   if (draft === null) {
     return (
-      <div aria-busy="true" className="mx-auto flex max-w-3xl flex-col gap-4 px-6 py-10">
+      <div className="mx-auto flex max-w-3xl flex-col gap-4 px-6 py-10">
         {heading}
         <Skeleton className="h-40 w-full" />
       </div>

@@ -149,7 +149,7 @@ describe('exactly one h1', () => {
   it('editor while loading', async () => {
     vi.mocked(foodly.getRecipe).mockImplementation(never)
     await renderAt('/recipes/5/edit')
-    expect(screen.getByRole('main').querySelector('[aria-busy="true"]')).not.toBeNull()
+    expect(screen.queryByLabelText('Titel')).toBeNull()
     expect(screen.getByRole('heading', { level: 1, name: 'Rezept bearbeiten' })).toBeTruthy()
     expect(h1s()).toHaveLength(1)
   })
