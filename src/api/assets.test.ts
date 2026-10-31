@@ -74,6 +74,7 @@ describe('tag icon loading', () => {
   }
 
   let created: Blob[]
+  const originalCreateObjectURL = URL.createObjectURL
   beforeEach(() => {
     created = []
     URL.createObjectURL = vi.fn((blob: Blob) => {
@@ -81,7 +82,10 @@ describe('tag icon loading', () => {
       return `blob:icon-${created.length}`
     })
   })
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => {
+    URL.createObjectURL = originalCreateObjectURL
+    vi.restoreAllMocks()
+  })
 
   it('loads the icon once with the bearer and caches the object URL', async () => {
     const spy = fetchBlob(new Blob(['<svg/>'], { type: 'image/svg+xml' }))

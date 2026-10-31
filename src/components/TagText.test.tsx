@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TagText } from './TagText'
@@ -21,11 +22,14 @@ const notFound = {
   json: async () => ({ error: { message: 'Tag has no icon' } }),
 } as unknown as Response
 
+const originalCreateObjectURL = URL.createObjectURL
+
 beforeEach(() => {
   URL.createObjectURL = vi.fn(() => 'blob:vegan')
 })
 
 afterEach(() => {
+  URL.createObjectURL = originalCreateObjectURL
   vi.restoreAllMocks()
   resetTagIconCache()
 })
@@ -65,5 +69,33 @@ describe('TagText tag icons in REST mode', () => {
     const { container } = render(<TagText value="{Ofen} und {!vegan}" />)
     expect(container.textContent).toBe('Ofen und vegan')
     expect(spy).not.toHaveBeenCalled()
+  })
+
+  it('loads once under StrictMode and renders the icon', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(iconResponse())
+    render(
+      <StrictMode>
+        <TagText value="{vegan} {vegan}" />
+      </StrictMode>,
+    )
+    expect(await screen.findAllByRole('img', { name: 'vegan' })).toHaveLength(2)
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows the icon for a second component mounted after the load settled', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(iconResponse())
+    const { rerender } = render(<TagText value="{vegan}" />)
+    await screen.findByRole('img', { name: 'vegan' })
+    rerender(<TagText value="{Ofen} {vegan}" />)
+    expect(screen.getByRole('img', { name: 'vegan' }).getAttribute('src')).toBe('blob:vegan')
+  })
+
+  it('drops the icon when the text no longer names the tag', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(iconResponse())
+    const { container, rerender } = render(<TagText value="{vegan}" />)
+    await screen.findByRole('img', { name: 'vegan' })
+    rerender(<TagText value="{Ofen}" />)
+    expect(screen.queryByRole('img')).toBeNull()
+    expect(container.textContent).toBe('Ofen')
   })
 })

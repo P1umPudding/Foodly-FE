@@ -22,11 +22,13 @@ export function TagIcon({
   alt,
   size = 'sm',
   fallback = null,
+  onFail,
 }: {
   tag: Tag
   alt: string
   size?: TagSize
   fallback?: ReactNode
+  onFail?: () => void
 }) {
   const src = useTagIcon(tag)
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
@@ -35,7 +37,10 @@ export function TagIcon({
     <img
       src={src}
       alt={alt}
-      onError={() => setFailedSrc(src)}
+      onError={() => {
+        setFailedSrc(src)
+        onFail?.()
+      }}
       className={`inline-block w-auto ${TAG_ICON_SIZE[size]}`}
     />
   )

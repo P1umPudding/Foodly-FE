@@ -8,19 +8,22 @@ import type { Tag } from '../api/protocol'
 export function useTagIcon(tag: Tag): string | null {
   const [, settled] = useState(0)
   const { id, svg } = tag
+  const src = peekTagIcon(tag)
+  const pending = src === undefined
 
   useEffect(() => {
-    const current: Tag = { id, svg }
-    if (peekTagIcon(current) !== undefined) return
+    // A load started elsewhere may settle between this render and the effect;
+    // loadTagIcon then resolves from the cache and still triggers the rerender.
+    if (!pending) return
     let active = true
-    loadTagIcon(current).then(() => {
+    loadTagIcon({ id, svg }).then(() => {
       if (active) settled((n) => n + 1)
     })
     return () => {
       active = false
     }
-  }, [id, svg])
+  }, [id, svg, pending])
 
   // Read from the cache on every render, so a changed tag never shows the old icon.
-  return peekTagIcon(tag) ?? null
+  return src ?? null
 }
