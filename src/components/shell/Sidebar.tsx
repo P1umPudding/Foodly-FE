@@ -73,7 +73,14 @@ export function Sidebar({
       )}
     >
       <div className={cn('flex items-center pb-4', collapsed ? 'flex-col gap-2' : 'justify-between pl-2.5')}>
-        {!collapsed && <span className="font-display text-[1.2rem]">Foodly</span>}
+        {!collapsed && (
+          <Link
+            to="/"
+            className="-ml-1 rounded-md px-1 font-display text-xl focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-hidden"
+          >
+            Foodly
+          </Link>
+        )}
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="inline-flex">
