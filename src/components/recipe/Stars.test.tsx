@@ -26,14 +26,14 @@ describe('StarMeter', () => {
   })
 
   it('labels with one decimal (no raw float)', () => {
-    expect(render(<StarMeter value={3.6666} />).getByLabelText('3.7 von 5')).toBeTruthy()
+    expect(render(<StarMeter value={3.6666} />).getByLabelText('3,7 von 5')).toBeTruthy()
   })
 })
 
 describe('Stars (5-star bar)', () => {
   it('renders five star bases and a one-decimal label', () => {
     const { container, getByLabelText } = render(<Stars value={3.2} />)
-    expect(getByLabelText('3.2 von 5')).toBeTruthy()
+    expect(getByLabelText('3,2 von 5')).toBeTruthy()
     expect(container.querySelectorAll('svg').length).toBe(10) // 5 base + 5 overlay
   })
 })

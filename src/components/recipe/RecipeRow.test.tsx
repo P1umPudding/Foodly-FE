@@ -49,7 +49,21 @@ function renderRow(recipe: Recipe) {
 
 it('shared recipe shows the own rating, not the average', () => {
   renderRow(base)
-  expect(screen.getByText('5.0')).toBeTruthy() // own, not avg (3.0)
+  expect(screen.getByText('5,0')).toBeTruthy() // own, not avg (3,0)
+})
+
+it('collaborative recipe shows the average with a decimal comma', () => {
+  renderRow({
+    ...base,
+    editors: [2],
+    viewers: [],
+    rating: [
+      { user: 1, rating: 4 },
+      { user: 2, rating: 5 },
+    ],
+  })
+  expect(screen.getByText('4,5')).toBeTruthy()
+  expect(document.body.textContent).not.toMatch(/\d\.\d/)
 })
 
 describe('detailed thumbnail', () => {
