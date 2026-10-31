@@ -2,6 +2,8 @@ import { useState } from 'react'
 import {
   Badge,
   Button,
+  buttonVariants,
+  cn,
   Command,
   CommandEmpty,
   CommandGroup,
@@ -34,7 +36,8 @@ export function TagPicker({ value, onChange }: { value: TagId[]; onChange: (tags
           <Button
             variant="ghost"
             size="sm"
-            className="h-auto p-0"
+            // size="sm" adds has-[>svg]:px-2.5, which a plain p-0 doesn't override.
+            className="h-auto p-0 has-[>svg]:p-0"
             aria-label={`${id} entfernen`}
             onClick={() => onChange(value.filter((t) => t !== id))}
           >
@@ -44,11 +47,10 @@ export function TagPicker({ value, onChange }: { value: TagId[]; onChange: (tags
       ))}
 
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" role="combobox" className="gap-1.5">
-            <Plus className="h-3 w-3" />
-            Tag
-          </Button>
+        {/* PopoverTrigger itself, styled as the Button: see IngredientPicker. */}
+        <PopoverTrigger role="combobox" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}>
+          <Plus className="h-3 w-3" />
+          Tag
         </PopoverTrigger>
         <PopoverContent className="w-56 p-0" align="start">
           <Command>

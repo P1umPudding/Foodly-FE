@@ -125,6 +125,39 @@ describe('RecipeEditor · edit', () => {
     await waitFor(() => screen.getByText('Rezept nicht gefunden'))
   })
 
+  it('shows a loaded Zusatz and saves an edit to it', async () => {
+    params = { id: '5' }
+    const loaded = recipe({
+      sections: [
+        {
+          id: 1,
+          name: null,
+          ingredients: [
+            {
+              id: 7,
+              ingredient: { id: 1, name: 'Zwiebel' },
+              text: 'gehackt',
+              amount: '1',
+              amountPrefix: null,
+              unit: null,
+            },
+          ],
+          steps: ['Kochen.'],
+        },
+      ],
+    })
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(loaded)
+    const update = vi.spyOn(foodly, 'updateRecipe').mockResolvedValue(loaded)
+    view()
+
+    await waitFor(() => expect((screen.getByLabelText('Zusatz') as HTMLInputElement).value).toBe('gehackt'))
+
+    fireEvent.change(screen.getByLabelText('Zusatz'), { target: { value: 'nach Geschmack' } })
+
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1), { timeout: 3000 })
+    expect(update.mock.calls[0][1].sections[0].ingredients[0]).toMatchObject({ ingredient: 1, text: 'nach Geschmack' })
+  })
+
   it('adds a section', async () => {
     params = { id: '5' }
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
