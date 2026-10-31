@@ -7,7 +7,7 @@ import { TagChips } from './TagChips'
 import { StarMeter } from './Stars'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import { visibleRating } from '../../api/views'
-import { recipeImageSrc } from '../../api/assets'
+import { recipeImageSrc, showsRecipeImages } from '../../api/assets'
 import { useCurrentUserId } from '../../catalog/CatalogProvider'
 import type { Recipe } from '../../api/protocol'
 
@@ -89,7 +89,7 @@ export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact
     <Link to={`/recipes/${recipe.id}`} className="group block">
       <Card className="flex items-stretch gap-3 p-2 transition-colors hover:bg-muted/50">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg">
-          {recipe.mainImage !== null ? (
+          {recipe.mainImage !== null && showsRecipeImages() ? (
             <img src={recipeImageSrc(recipe.mainImage)} alt="" className="h-full w-full object-cover" />
           ) : (
             // No own background → the row's hover background shows through.

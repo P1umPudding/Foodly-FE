@@ -2,7 +2,15 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeRow } from './RecipeRow'
+import type { StubFeature } from '../../api/stubs'
 import type { Recipe } from '../../api/protocol'
+
+// Only the images stub is toggled, so the real showsRecipeImages/recipeImageSrc decide what renders.
+const imageStub = vi.hoisted(() => ({ stubbed: true }))
+vi.mock('../../api/stubs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../api/stubs')>()
+  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
+})
 
 vi.mock('../../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1, useTags: () => ({ byId: {} }) }))
 
@@ -29,13 +37,33 @@ const base: Recipe = {
   sections: [],
 }
 
-it('shared recipe shows the own rating, not the average', () => {
-  render(
+function renderRow(recipe: Recipe) {
+  return render(
     <TooltipProvider>
       <MemoryRouter>
-        <RecipeRow recipe={base} />
+        <RecipeRow recipe={recipe} compact={false} />
       </MemoryRouter>
     </TooltipProvider>,
   )
+}
+
+it('shared recipe shows the own rating, not the average', () => {
+  renderRow(base)
   expect(screen.getByText('5.0')).toBeTruthy() // own, not avg (3.0)
+})
+
+describe('detailed thumbnail', () => {
+  it('REST: a recipe with a main image shows the no-photo fallback', () => {
+    imageStub.stubbed = true
+    const { container } = renderRow({ ...base, mainImage: 3 })
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('.lucide-utensils-crossed')).toBeTruthy()
+  })
+
+  it('mock: a recipe with a main image shows it', () => {
+    imageStub.stubbed = false
+    const { container } = renderRow({ ...base, mainImage: 3 })
+    expect(container.querySelector('img')?.getAttribute('src')).toMatch(/\/recipes\/3\.svg$/)
+    expect(container.querySelector('.lucide-utensils-crossed')).toBeNull()
+  })
 })

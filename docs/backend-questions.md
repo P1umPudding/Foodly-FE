@@ -50,8 +50,9 @@ Abschnitte unten). Duplikat-Check vorher: keine Issues im Repo, nur PRs #1–#8.
 **Problem.** `Recipe.mainImage` / `Recipe.images` sind `ImageId` (int), ausgeliefert
 wird aber nur `GET /images/{hash}`. Es gibt keinen Weg von der ID zum Hash
 (`src/api/rest/images.rs`, `src/models/recipe.rs`). Das Frontend zeigt im
-REST-Modus deshalb nur Platzhalter (`src/api/assets.ts`), und der Editor kann
-hochgeladene Bilder nach dem Speichern nicht mehr anzeigen.
+REST-Modus Rezepte in Liste und Detail deshalb wie ohne Foto und im Editor nur
+Platzhalter (`src/api/assets.ts`); hochgeladene Bilder lassen sich nach dem Speichern
+nicht mehr anzeigen.
 
 **Vorschlag (A, empfohlen):** Recipe liefert Bilder expandiert, analog zu
 `IngredientRef`: `mainImage: { id, hash, name } | null`, `images: { id, hash, name }[]`;
