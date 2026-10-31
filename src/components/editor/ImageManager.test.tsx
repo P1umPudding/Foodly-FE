@@ -3,6 +3,13 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImageManager } from './ImageManager'
 import { foodly } from '../../api'
+import type { StubFeature } from '../../api/stubs'
+
+const imageStub = vi.hoisted(() => ({ stubbed: true }))
+vi.mock('../../api/stubs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../api/stubs')>()
+  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
+})
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -18,6 +25,14 @@ function setup(onChange = vi.fn(), mainImage: number | null = 1, images: number[
 }
 
 describe('ImageManager', () => {
+  // The editor keeps the placeholder previews in REST mode, unlike list and detail.
+  it('REST: previews the images with the placeholder', () => {
+    imageStub.stubbed = true
+    setup()
+
+    expect(screen.getByAltText('Hauptbild').getAttribute('src')).toMatch(/\/recipes\/placeholder\.svg$/)
+  })
+
   it('uploads a file and appends it to the gallery', async () => {
     vi.spyOn(foodly, 'uploadImage').mockResolvedValue({ id: 9, hash: 'h', name: null })
     const onChange = setup()
