@@ -72,7 +72,8 @@ export function RecipeEditor() {
     }
   }
 
-  // The shell header shows the title; this h1 is for screen readers, in every state.
+  // The shell header shows the title visibly; the sr-only h1 keeps one page heading for screen readers,
+  // also while loading and on error.
   const heading = <h1 className="sr-only">{isNew ? 'Neues Rezept' : 'Rezept bearbeiten'}</h1>
 
   const patch = (p: Partial<Draft>) => setDraft((d) => (d === null ? d : { ...d, ...p }))

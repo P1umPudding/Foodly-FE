@@ -84,7 +84,7 @@ function expectTitleOnce(title: string) {
   const inPage = within(screen.getByRole('main')).getAllByText(title)
   expect(inPage).toHaveLength(1)
   expect(inPage[0].tagName).toBe('H1')
-  expect(inPage[0].className).toContain('sr-only')
+  expect(inPage[0].classList.contains('sr-only')).toBe(true)
 }
 
 beforeEach(() => {
@@ -121,6 +121,14 @@ describe('page title shown once', () => {
     expectTitleOnce('Rezept bearbeiten')
     expect(h1s()).toHaveLength(1)
   })
+
+  it('list on the phone: title only in the header', async () => {
+    setViewport(375)
+    await renderAt('/recipes?group=0')
+    await screen.findByText('Pancakes')
+    expectTitleOnce('Rezepte')
+    expect(h1s()).toHaveLength(1)
+  })
 })
 
 describe('exactly one h1', () => {
@@ -140,6 +148,7 @@ describe('exactly one h1', () => {
   it('editor while loading', async () => {
     vi.mocked(foodly.getRecipe).mockImplementation(never)
     await renderAt('/recipes/5/edit')
+    expect(screen.getByRole('main').querySelector('.animate-pulse')).not.toBeNull()
     expect(screen.getByRole('heading', { level: 1, name: 'Rezept bearbeiten' })).toBeTruthy()
     expect(h1s()).toHaveLength(1)
   })

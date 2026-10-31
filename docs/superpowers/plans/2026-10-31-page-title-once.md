@@ -1,4 +1,4 @@
-# Plan: #42 Seitentitel nur einmal
+# Plan: #42 Page title shown once
 
 The shell header (`routeTitle`) shows the page title; List and Editor also had a big visible `h1` with the same text.
 
