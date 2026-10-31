@@ -57,7 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               isDesktop ? 'px-6' : 'px-4',
             )}
           >
-            {/* Not a heading: pages keep their own h1. */}
+            {/* Not a heading: each page owns its single h1. */}
             <span className="truncate font-semibold">{routeTitle(pathname)}</span>
             {/* Room for page actions. */}
             <div className="flex-1" />
