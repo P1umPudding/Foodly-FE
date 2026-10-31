@@ -3,6 +3,7 @@
 
 import type { CreateRecipe, Ingredient, Recipe, RecipeId, Tag, User, UserCategory } from '../api/protocol'
 import { applyQuery, PAGE_SIZE } from '../list/query'
+import { assertRating } from '../api/views'
 import type { PaginatedRecipes, RecipeSearchQuery } from '../api/protocol'
 
 import recipes from './data/recipes.json'
@@ -129,6 +130,21 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       updated.rating = existing.rating
       mockData.recipes[index] = updated
       return updated
+    }
+    case 'ratings.set': {
+      const { rating } = payload as { rating: number }
+      const recipe = mockData.recipes.find((r) => r.id === id)
+      if (!recipe) throw new Error(`recipe ${id} not found`)
+      assertRating(rating)
+      recipe.rating = [...recipe.rating.filter((r) => r.user !== CURRENT_USER_ID), { user: CURRENT_USER_ID, rating }]
+      // A fresh object: callers hold the stored one, and React skips identical state.
+      return { ...recipe }
+    }
+    case 'ratings.clear': {
+      const recipe = mockData.recipes.find((r) => r.id === id)
+      if (!recipe) throw new Error(`recipe ${id} not found`)
+      recipe.rating = recipe.rating.filter((r) => r.user !== CURRENT_USER_ID)
+      return { ...recipe }
     }
     case 'images.upload': {
       const imageId = nextId++

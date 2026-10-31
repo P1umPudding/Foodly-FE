@@ -17,7 +17,6 @@ import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { canEdit } from '../editor/access'
 import { useCurrentUserId, useTags } from '../catalog/CatalogProvider'
-import { averageRating } from '../api/views'
 import { TagText } from '../components/TagText'
 import { plainTagText } from '../components/tagTokens'
 import { Rating } from '../components/recipe/Rating'
@@ -27,7 +26,7 @@ import { PortionScaler } from '../components/recipe/PortionScaler'
 import { WakeLockToggle } from '../components/WakeLockToggle'
 import { RecipeImages } from '../components/recipe/RecipeImages'
 import { Lightbox } from '../components/recipe/Lightbox'
-import type { RecipeIngredientId } from '../api/protocol'
+import type { Recipe, RecipeIngredientId } from '../api/protocol'
 
 function isUrl(s: string): boolean {
   return /^https?:\/\//i.test(s.trim())
@@ -59,6 +58,9 @@ export function RecipeDetail() {
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
+  // The recipe a rating write resolved to; only applies to the recipe it belongs to.
+  const [ratedRecipe, setRatedRecipe] = useState<Recipe | null>(null)
+
   // Koch-Modus state is recipe-local and never persisted: switching recipes
   // clears the factor, the check-off mode and all ticks.
   const [factor, setFactor] = useState(1)
@@ -69,6 +71,7 @@ export function RecipeDetail() {
     setFactor(1)
     setCheckable(false)
     setCheckedIds(new Set())
+    setRatedRecipe(null)
   }, [recipeId])
 
   const toggleChecked = (id: RecipeIngredientId) =>
@@ -149,7 +152,9 @@ export function RecipeDetail() {
                 below. */}
             <div className="mt-1 grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-3 text-xl">
               <div className="flex items-center gap-4">
-                <div className="shrink-0">{averageRating(recipe) !== null && <Rating recipe={recipe} />}</div>
+                <div className="shrink-0">
+                  <Rating recipe={ratedRecipe?.id === recipe.id ? ratedRecipe : recipe} onChange={setRatedRecipe} />
+                </div>
                 <div className="flex-1 text-center">
                   {recipe.time && (
                     <span className="inline-flex items-center gap-2">
