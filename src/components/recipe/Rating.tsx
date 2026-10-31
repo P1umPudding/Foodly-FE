@@ -115,9 +115,7 @@ function MyRatingInput({
   return (
     <div className="space-y-1.5">
       <div className={cn('font-medium', sheet ? 'space-y-1.5' : 'flex items-center justify-between')}>
-        <span id={labelId} className={sheet ? 'block' : undefined}>
-          Deine Bewertung
-        </span>
+        <span id={labelId}>Deine Bewertung</span>
         <span
           role="group"
           aria-labelledby={labelId}
@@ -137,7 +135,7 @@ function MyRatingInput({
             >
               <Star
                 className={cn(
-                  sheet ? 'h-5 w-5' : 'h-4 w-4',
+                  sheet ? 'size-5' : 'h-4 w-4',
                   own !== null && n <= own ? 'fill-current text-star' : 'text-muted-foreground/40',
                 )}
               />
@@ -218,7 +216,8 @@ function RatingDetails({
 // Always rendered, so an unrated recipe still offers a way to give the first rating.
 // Popover on desktop, bottom sheet on phones (docs/design.md §7); the content is shared.
 export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recipe: Recipe) => void }) {
-  const value = visibleRating(recipe, useCurrentUserId())
+  const currentUserId = useCurrentUserId()
+  const value = visibleRating(recipe, currentUserId)
   const isDesktop = useIsDesktop()
   const Root = isDesktop ? Popover : Sheet
   const Trigger = isDesktop ? PopoverTrigger : SheetTrigger

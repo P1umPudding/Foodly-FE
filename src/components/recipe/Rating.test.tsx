@@ -186,6 +186,20 @@ describe('Rating on a phone', () => {
     expect(await screen.findByRole('dialog', { name: 'Bewertung' })).toBeTruthy()
   })
 
+  it('keeps the popover from the desktop breakpoint up', async () => {
+    setViewport(761)
+    open(recipe())
+    expect((await screen.findByRole('dialog')).getAttribute('data-slot')).toBe('popover-content')
+  })
+
+  it('shows a failed write inside the sheet', async () => {
+    vi.mocked(foodly.setMyRating).mockRejectedValue(new Error('kaputt'))
+    open(recipe())
+    const sheet = await screen.findByRole('dialog', { name: 'Bewertung' })
+    fireEvent.click(within(sheet).getByRole('button', { name: '2 von 5' }))
+    expect(await within(sheet).findByText('kaputt')).toBeTruthy()
+  })
+
   it('gives the stars a 40 px tap target', async () => {
     open(recipe())
     const sheet = await screen.findByRole('dialog', { name: 'Bewertung' })
