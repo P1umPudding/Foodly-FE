@@ -5,3 +5,7 @@ export function canEdit(recipe: Recipe, userId: UserId | null): boolean {
   if (userId === null) return false
   return recipe.owner === userId || recipe.editors.includes(userId)
 }
+
+export function isOwner(recipe: Recipe, userId: UserId | null): boolean {
+  return userId !== null && recipe.owner === userId
+}

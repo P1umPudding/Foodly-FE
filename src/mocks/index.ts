@@ -113,6 +113,15 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       }
       return copy
     }
+    case 'recipes.delete': {
+      const index = mockData.recipes.findIndex((r) => r.id === id)
+      if (index === -1) throw new Error(`recipe ${id} not found`)
+      mockData.recipes.splice(index, 1)
+      for (const category of mockData.categories) {
+        category.recipes = category.recipes.filter((r) => r !== id)
+      }
+      return undefined
+    }
     case 'recipes.create': {
       const { input } = payload as { input: CreateRecipe }
       const created = expand(input, nextId++, CURRENT_USER_ID)
