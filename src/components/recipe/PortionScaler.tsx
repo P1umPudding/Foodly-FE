@@ -113,8 +113,8 @@ export function PortionScaler({
     // In multiplier-mode a little air sets the steppers off from the value; the
     // gap between − and + itself stays the same as the standalone portions ones. On phones the
     // 40 px buttons outgrow the row's 32 px toggles: the negative margin keeps the row height, and
-    // their own padding replaces gap and air so the size column (and the 1fr column next to it)
-    // keeps its width.
+    // their own padding replaces gap and air so the size column widens only slightly (squeezing
+    // the 1fr rating/time column next to it as little as possible).
     <div
       className={cn(
         'inline-flex items-center gap-1 max-[760px]:-my-1 max-[760px]:gap-0',

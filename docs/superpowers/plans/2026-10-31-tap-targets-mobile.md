@@ -27,7 +27,7 @@ The change is CSS classes only. There are no new components, hooks or routes, an
 
 ## Step 2: PortionScaler steppers (`src/components/recipe/PortionScaler.tsx`)
 - Both − and + Buttons already share an identical className. Move it into one const, `stepperClass = 'rounded-md text-muted-foreground hover:text-foreground max-[760px]:size-10'`, with the why-comment once on the const. Both keep `size="iconSm"`.
-- The `steppers` wrapper div gets `max-[760px]:-my-1`. This applies to both `steppers` and `full`, since both render in row 2 next to the 32 px `sm` toggles. Net effect: the row height stays the same (A2).
+- The `steppers` wrapper div gets `max-[760px]:-my-1`, plus `max-[760px]:gap-0` (and `max-[760px]:ml-0` in `full`): the 40 px buttons' own padding replaces gap and air, so the size column widens only 16 px (portions) or 8 px (multiplier) instead of 20–24 px, which squeezes the 1fr rating/time column as little as possible (added in code review). This applies to both `steppers` and `full`, since both render in row 2 next to the 32 px `sm` toggles. Net effect: the row height stays the same (A2).
 - Tests (`PortionScaler.test.tsx`, new describe "tap targets"):
   - In portions mode (`part="steppers"`) and in multiplier mode (`full`), both buttons ("Weniger" and "Mehr") have `max-[760px]:size-10` and still have `size-7.5` (AC2), checked with `classList.contains`.
   - The wrapper (`getByRole('button', { name: 'Weniger' }).parentElement`) has `max-[760px]:-my-1`, with a short why-comment: it guards the row height.

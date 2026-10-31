@@ -117,7 +117,12 @@ describe('PortionScaler — tap targets', () => {
     }
     // Keep the row from growing next to the 32 px toggles, and the column from widening.
     const pair = screen.getByRole('button', { name: 'Weniger' }).parentElement!
+    expect(has(pair, 'gap-1')).toBe(true)
     expect(has(pair, 'max-[760px]:-my-1')).toBe(true)
     expect(has(pair, 'max-[760px]:gap-0')).toBe(true)
+    if (props.part === 'full') {
+      expect(has(pair, 'ml-2')).toBe(true)
+      expect(has(pair, 'max-[760px]:ml-0')).toBe(true)
+    }
   })
 })
