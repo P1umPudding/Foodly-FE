@@ -71,6 +71,7 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
 | `searchRecipes` | `POST /recipes/search` (cursor-paginated) |
 | `getRecipe` | `GET /recipes/{id}` |
 | `copyRecipe` | `POST /recipes/{id}/copy` |
+| `deleteRecipe` | `DELETE /recipes/{id}` |
 | `listTags` | `GET /tags` |
 | `listIngredients` | `GET /ingredients` |
 | `createRecipe` | `POST /recipes` |
