@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import {
   AlertDialog,
@@ -32,6 +32,8 @@ export function DeleteRecipeButton({
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // State lags a fast double click; the ref doesn't.
+  const inFlight = useRef(false)
 
   const onOpenChange = (next: boolean) => {
     // Closing mid-request would leave the delete running behind a closed dialog.
@@ -41,6 +43,8 @@ export function DeleteRecipeButton({
   }
 
   const onConfirm = async () => {
+    if (inFlight.current) return
+    inFlight.current = true
     setPending(true)
     setError(null)
     try {
@@ -49,6 +53,7 @@ export function DeleteRecipeButton({
     } catch (e) {
       setError((e as Error).message)
       setPending(false)
+      inFlight.current = false
     }
   }
 
@@ -81,8 +86,14 @@ export function DeleteRecipeButton({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>Abbrechen</AlertDialogCancel>
           {/* A plain Button, not AlertDialogAction: the action closes the dialog on click, but a failed
-              delete has to keep it open to show the error. */}
-          <Button variant="destructive" onClick={onConfirm} disabled={pending} className="gap-1.5">
+              delete has to keep it open to show the error. aria-disabled instead of disabled keeps
+              focus on the button while pending; a disabled button would drop it out of the dialog. */}
+          <Button
+            variant="destructive"
+            onClick={onConfirm}
+            aria-disabled={pending}
+            className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+          >
             {pending && <Spinner className="size-4" />}
             Löschen
           </Button>

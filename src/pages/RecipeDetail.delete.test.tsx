@@ -110,7 +110,7 @@ describe('RecipeDetail delete', () => {
     const dialog = await openDialog()
     fireEvent.click(dialog.getByRole('button', { name: 'Löschen' }))
 
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/recipes', { replace: true }))
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/recipes', { replace: true }), { timeout: 2000 })
     expect(mockData.recipes.some((r) => r.id === seeded.id)).toBe(false)
   })
 
@@ -122,8 +122,14 @@ describe('RecipeDetail delete', () => {
     const dialog = await openDialog()
     fireEvent.click(dialog.getByRole('button', { name: 'Löschen' }))
 
-    await waitFor(() => expect(dialog.getByRole('button', { name: 'Löschen' }).hasAttribute('disabled')).toBe(true))
+    const confirm = dialog.getByRole('button', { name: 'Löschen' })
+    await waitFor(() => expect(confirm.getAttribute('aria-disabled')).toBe('true'))
     expect(dialog.getByRole('button', { name: 'Abbrechen' }).hasAttribute('disabled')).toBe(true)
+
+    fireEvent.click(confirm)
+    expect(foodly.deleteRecipe).toHaveBeenCalledTimes(1)
+    fireEvent.keyDown(screen.getByRole('alertdialog'), { key: 'Escape' })
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
 
     resolve()
     await waitFor(() => expect(navigate).toHaveBeenCalled())
@@ -138,7 +144,12 @@ describe('RecipeDetail delete', () => {
 
     expect((await dialog.findByRole('alert')).textContent).toBe('Kaputt')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
-    expect(dialog.getByRole('button', { name: 'Löschen' }).hasAttribute('disabled')).toBe(false)
+    expect(dialog.getByRole('button', { name: 'Löschen' }).getAttribute('aria-disabled')).toBe('false')
     expect(navigate).not.toHaveBeenCalled()
+
+    fireEvent.click(dialog.getByRole('button', { name: 'Abbrechen' }))
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+    const reopened = await openDialog()
+    expect(reopened.queryByRole('alert')).toBeNull()
   })
 })

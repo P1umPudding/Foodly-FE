@@ -17,10 +17,10 @@ Source: `.git/agent-work/spec.md` (AC1–6, assumptions A1–A9).
 - Commit: `access: isOwner`
 
 ## Step 3: Delete action + dialog (AC2–5)
-- New `src/components/recipe/DeleteRecipeButton.tsx` (`{ recipe: Recipe; name: string; onDeleted: () => void }`):
+- New `src/components/recipe/DeleteRecipeButton.tsx` (`{ recipeId: RecipeId; name: string; onDeleted: () => void }`):
   - postxl `AlertDialog` controlled via `open` state. Trigger: `<Tooltip><TooltipTrigger asChild><AlertDialogTrigger aria-label="Löschen" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 max-[760px]:size-10')}>` with `Trash2` icon and label `<span className="max-[760px]:hidden">Löschen</span>`; `TooltipContent` "Rezept löschen" (A7). No inner postxl `Button`: it is not forwardRef, so Slot would drop the ref (no tooltip, no focus return) — precedent and why-comment as in `ProfileMenu.tsx`. Below the shell's phone breakpoint (`SHELL_DESKTOP_QUERY`, <761px) it is icon-only at 40×40 (design.md §7).
   - `AlertDialogTitle` "Rezept löschen?", `AlertDialogDescription` names the recipe: „<name>“ wird endgültig gelöscht.
-  - Footer (`AlertDialogFooter`): `AlertDialogCancel` "Abbrechen" (`disabled={pending}`) and a plain postxl `<Button variant="destructive" onClick={onConfirm} disabled={pending}>` with the postxl `Loader` while pending (design.md §5) and the label "Löschen"` — not `AlertDialogAction`, which auto-closes and has no variant prop; the dialog must stay open on error.
+  - Footer (`AlertDialogFooter`): `AlertDialogCancel` "Abbrechen" (`disabled={pending}`) and a plain postxl `<Button variant="destructive" onClick={onConfirm} aria-disabled={pending}>` (aria-disabled keeps focus in the dialog; a ref guards double clicks) with the postxl `Spinner` while pending (postxl `Loader` is a full-area overlay, not an inline button spinner) and the label "Löschen"` — not `AlertDialogAction`, which auto-closes and has no variant prop; the dialog must stay open on error.
   - `onConfirm`: `setPending(true)`, `setError(null)`, `await foodly.deleteRecipe(recipe.id)` → `onDeleted()`; on error `setError(message)`, `setPending(false)`.
   - While pending: both buttons `disabled`; `onOpenChange` ignores close requests (Esc; Radix AlertDialog already ignores overlay clicks) (A8). Opening resets `error` and `pending`.
   - Error: `<p role="alert" className="text-sm text-destructive">` inside the content. Tokens only.
