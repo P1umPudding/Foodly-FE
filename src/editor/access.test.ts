@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canEdit } from './access'
+import { canEdit, isOwner } from './access'
 import type { Recipe } from '../api/protocol'
 
 const recipe = (over: Partial<Recipe>): Recipe =>
@@ -21,5 +21,14 @@ describe('canEdit', () => {
   it('denies an unrelated user and an unknown user', () => {
     expect(canEdit(recipe({ owner: 1 }), 7)).toBe(false)
     expect(canEdit(recipe({ owner: 1 }), null)).toBe(false)
+  })
+})
+
+describe('isOwner', () => {
+  it('is true only for the owner', () => {
+    expect(isOwner(recipe({ owner: 7 }), 7)).toBe(true)
+    expect(isOwner(recipe({ owner: 1, editors: [7] }), 7)).toBe(false)
+    expect(isOwner(recipe({ owner: 1, viewers: [7] }), 7)).toBe(false)
+    expect(isOwner(recipe({ owner: 1 }), null)).toBe(false)
   })
 })
