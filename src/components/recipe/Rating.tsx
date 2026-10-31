@@ -226,10 +226,11 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
     <Root>
       {/* Radix needs a ref-forwarding trigger (popover positioning, focus return); the
           @postxl Button doesn't forwardRef. cursor-pointer is explicit until the lib
-          ships it for interactive elements. */}
+          ships it for interactive elements. On phones the hit area grows to 40 px (docs/design.md §7);
+          the negative margin keeps the row height. */}
       <Trigger
         aria-label={value === null ? 'Bewerten' : `Bewertung ${formatRating(value)} von 5`}
-        className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none max-[760px]:-my-2 max-[760px]:min-h-10"
       >
         <span aria-hidden className="inline-flex">
           <Stars value={value ?? 0} size="md" />
