@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   buttonVariants,
+  cn,
   Command,
   CommandEmpty,
   CommandGroup,
@@ -40,11 +41,12 @@ export function IngredientPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       {/* PopoverTrigger itself, styled as the outline Button: the @postxl Button doesn't
-          forwardRef, so as an asChild trigger Radix can't anchor the popover and it never shows. */}
+          forwardRef, so as an asChild trigger Radix can't anchor the popover and it never shows.
+          cn() (tailwind-merge, as inside Button) lets justify-between beat the variant's justify-center. */}
       <PopoverTrigger
         role="combobox"
         aria-expanded={open}
-        className={buttonVariants({ variant: 'outline', className: 'flex-1 justify-between font-normal' })}
+        className={cn(buttonVariants({ variant: 'outline' }), 'flex-1 justify-between font-normal')}
       >
         <span className={label === '' ? 'text-muted-foreground' : undefined}>{label === '' ? 'Zutat …' : label}</span>
         <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
