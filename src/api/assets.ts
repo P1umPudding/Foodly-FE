@@ -25,16 +25,30 @@ const tagIconLoads = new Map<string, Promise<string | null>>()
 const tagIconResults = new Map<string, string | null>()
 const tagIconKey = (tag: Tag) => `${tag.id}\u0000${tag.svg}`
 
+// Every TagIcon of a tag re-reads the cache when a load settles or an image
+// turns out broken, so one failure never shows as a broken image elsewhere.
+const tagIconListeners = new Set<() => void>()
+const settleTagIcon = (key: string, src: string | null) => {
+  tagIconResults.set(key, src)
+  tagIconListeners.forEach((notify) => notify())
+}
+
+export function subscribeTagIcons(notify: () => void): () => void {
+  tagIconListeners.add(notify)
+  return () => tagIconListeners.delete(notify)
+}
+
 // The backend sends image/svg+xml, but an untyped SVG blob wouldn't render in an
 // <img>; raster formats are sniffed from their bytes either way.
 const asImage = (blob: Blob) =>
   blob.type === '' || blob.type === 'application/octet-stream' ? new Blob([blob], { type: 'image/svg+xml' }) : blob
 
-// undefined = not settled yet; null = no icon or the load failed.
+// undefined = not settled yet; null = no icon, the load failed or the image is broken.
 export function peekTagIcon(tag: Tag): string | null | undefined {
   if (tag.svg === null) return null
-  if (USE_MOCKS) return tagImageSrc(tag)
-  return tagIconResults.get(tagIconKey(tag))
+  const key = tagIconKey(tag)
+  if (tagIconResults.has(key)) return tagIconResults.get(key)
+  return USE_MOCKS ? tagImageSrc(tag) : undefined
 }
 
 export function loadTagIcon(tag: Tag): Promise<string | null> {
@@ -48,12 +62,17 @@ export function loadTagIcon(tag: Tag): Promise<string | null> {
       .then((blob) => URL.createObjectURL(asImage(blob)))
       .catch(() => null)
       .then((src) => {
-        tagIconResults.set(key, src)
+        settleTagIcon(key, src)
         return src
       })
     tagIconLoads.set(key, load)
   }
   return load
+}
+
+// For an <img> that failed to render (e.g. invalid SVG, missing mock file).
+export function markTagIconBroken(tag: Tag): void {
+  settleTagIcon(tagIconKey(tag), null)
 }
 
 // Tests only: the cache is module state and would leak between cases.

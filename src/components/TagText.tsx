@@ -1,6 +1,7 @@
-import { Fragment, useState, type ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { useTags } from '../catalog/CatalogProvider'
 import { useTagIcon } from '../hooks/useTagIcon'
+import { markTagIconBroken } from '../api/assets'
 import type { Tag } from '../api/protocol'
 import { TAG_TOKEN } from './tagTokens'
 
@@ -22,25 +23,19 @@ export function TagIcon({
   alt,
   size = 'sm',
   fallback = null,
-  onFail,
 }: {
   tag: Tag
   alt: string
   size?: TagSize
   fallback?: ReactNode
-  onFail?: () => void
 }) {
   const src = useTagIcon(tag)
-  const [failedSrc, setFailedSrc] = useState<string | null>(null)
-  if (!src || src === failedSrc) return <>{fallback}</>
+  if (!src) return <>{fallback}</>
   return (
     <img
       src={src}
       alt={alt}
-      onError={() => {
-        setFailedSrc(src)
-        onFail?.()
-      }}
+      onError={() => markTagIconBroken(tag)}
       className={`inline-block w-auto ${TAG_ICON_SIZE[size]}`}
     />
   )

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@postxl/ui-components'
 import { useTags } from '../../catalog/CatalogProvider'
 import { TagIcon } from '../TagText'
@@ -45,9 +44,8 @@ function TagName({ name }: { name: string }) {
 // name, without a tooltip repeating that name.
 function IconChip({ tag, hoverName, size }: { tag: Tag; hoverName: boolean; size: 'sm' | 'lg' }) {
   const src = useTagIcon(tag)
-  const [failedSrc, setFailedSrc] = useState<string | null>(null)
-  if (!src || src === failedSrc) return <TagName name={tag.id} />
-  const icon = <TagIcon tag={tag} alt={tag.id} size={size === 'lg' ? 'md' : 'sm'} onFail={() => setFailedSrc(src)} />
+  if (!src) return <TagName name={tag.id} />
+  const icon = <TagIcon tag={tag} alt={tag.id} size={size === 'lg' ? 'md' : 'sm'} />
   if (!hoverName) return <span className="inline-flex">{icon}</span>
   return (
     <Tooltip>

@@ -137,4 +137,10 @@ describe('tag icon loading', () => {
     expect(await loadTagIcon(vegan)).toMatch(/\/tags\/abc123\.svg$/)
     expect(spy).not.toHaveBeenCalled()
   })
+
+  it('reports a broken mock image as no icon', async () => {
+    const { markTagIconBroken, peekTagIcon } = await loadAssets({ mock: true })
+    markTagIconBroken(vegan)
+    expect(peekTagIcon(vegan)).toBeNull()
+  })
 })

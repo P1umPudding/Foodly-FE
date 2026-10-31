@@ -98,4 +98,14 @@ describe('TagText tag icons in REST mode', () => {
     expect(screen.queryByRole('img')).toBeNull()
     expect(container.textContent).toBe('Ofen')
   })
+
+  it('remembers a broken image for every other use of the tag', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(iconResponse())
+    const { container, rerender } = render(<TagText value="{vegan}" />)
+    fireEvent.error(await screen.findByRole('img', { name: 'vegan' }))
+    rerender(<TagText value="{vegan} {vegan}" />)
+    expect(screen.queryByRole('img')).toBeNull()
+    expect(container.textContent).toBe('vegan vegan')
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
 })
