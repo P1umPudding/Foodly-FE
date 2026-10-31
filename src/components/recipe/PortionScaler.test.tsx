@@ -100,3 +100,22 @@ describe('PortionScaler — commit rules', () => {
     expect(onChange).toHaveBeenLastCalledWith(1)
   })
 })
+
+describe('PortionScaler — tap targets', () => {
+  // Exact tokens: jsdom applies no CSS, and `max-[760px]:size-10` contains `size-10` as a substring.
+  const has = (el: Element, token: string) => el.classList.contains(token)
+
+  it.each([
+    ['portions steppers', { part: 'steppers' as const, sizeNumber: 4 }],
+    ['multiplier scaler', { part: 'full' as const }],
+  ])('%s: compact on desktop, 40 px on phones', (_, props) => {
+    renderScaler(props)
+    for (const name of ['Weniger', 'Mehr']) {
+      const button = screen.getByRole('button', { name })
+      expect(has(button, 'size-7.5')).toBe(true)
+      expect(has(button, 'max-[760px]:size-10')).toBe(true)
+    }
+    // Keeps the row from growing next to the 32 px toggles.
+    expect(has(screen.getByRole('button', { name: 'Weniger' }).parentElement!, 'max-[760px]:-my-1')).toBe(true)
+  })
+})

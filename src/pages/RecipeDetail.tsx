@@ -235,8 +235,11 @@ export function RecipeDetail() {
                   // Nudge up (via transform, so the row height — and Abhaken/
                   // Wachhalten with it — stays put) and slightly right of centre
                   // for a deliberately asymmetric look. The portions steppers go
-                  // further on both axes; the multiplier scaler only a little.
-                  recipe.sizeNumber !== null ? '-translate-y-3 translate-x-2' : '-translate-y-1.5 translate-x-1',
+                  // further on both axes; the multiplier scaler only a little. On phones the
+                  // portions steppers' 40 px hit area would reach into the box above, so less.
+                  recipe.sizeNumber !== null
+                    ? '-translate-y-3 translate-x-2 max-[760px]:-translate-y-2'
+                    : '-translate-y-1.5 translate-x-1',
                 )}
               >
                 <PortionScaler
