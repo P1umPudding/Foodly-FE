@@ -61,6 +61,11 @@ export function visibleRating(recipe: Recipe, currentUserId: UserId | null): num
   return own ? own.rating : null
 }
 
+// Fixed German notation (design.md §8); no Intl, locale switching is a non-goal.
+export function formatRating(value: number): string {
+  return value.toFixed(1).replace('.', ',')
+}
+
 // Compose one ingredient line: "amountPrefix amount unit name/text".
 export function formatIngredient(line: RecipeIngredient): string {
   const quantity = [line.amountPrefix, line.amount, line.unit].filter((part): part is string => Boolean(part)).join(' ')
