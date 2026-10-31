@@ -137,14 +137,57 @@ function MyRatingInput({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
 
 // Collaboration-aware visibility: private/shared show only the current user's
 // own rating; collaborative shows the pooled average plus every rater grouped
-// by role. visibleRating() encodes that rule. Always rendered, so an unrated
-// recipe still offers a way to give the first rating.
-export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recipe: Recipe) => void }) {
+// by role. visibleRating() encodes that rule.
+function RatingDetails({
+  recipe,
+  value,
+  onChange,
+}: {
+  recipe: Recipe
+  value: number | null
+  onChange?: (recipe: Recipe) => void
+}) {
   const currentUserId = useCurrentUserId()
-  const value = visibleRating(recipe, currentUserId)
-
   const collaborative = collaborationState(recipe) === 'collaborative'
   const rows = collaborative ? ratingsByRole(recipe) : []
+
+  return (
+    <>
+      {collaborative && value !== null && (
+        <div className="mb-1.5 flex items-center justify-between font-medium">
+          <span>
+            Durchschnitt <span className="font-normal text-muted-foreground">({rows.length})</span>
+          </span>
+          <StarsValue value={value} />
+        </div>
+      )}
+
+      <MyRatingInput recipe={recipe} onChange={onChange} />
+
+      {ROLE_ORDER.map((role) => {
+        const members = rows.filter((r) => r.role === role)
+        if (members.length === 0) return null
+        return (
+          <div key={role}>
+            <Separator className="my-3" />
+            <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {ROLE_LABEL[role]}
+            </p>
+            <ul className="space-y-1.5">
+              {members.map((r) => (
+                <RaterRow key={r.user} id={r.user} rating={r.rating} isCurrent={r.user === currentUserId} />
+              ))}
+            </ul>
+          </div>
+        )
+      })}
+    </>
+  )
+}
+
+// Always rendered, so an unrated recipe still offers a way to give the first rating.
+export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recipe: Recipe) => void }) {
+  const value = visibleRating(recipe, useCurrentUserId())
 
   return (
     <Popover>
@@ -161,34 +204,7 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
         {value === null && <span className="text-sm text-muted-foreground">Bewerten</span>}
       </PopoverTrigger>
       <PopoverContent className="max-h-[60vh] w-72 overflow-y-auto">
-        {collaborative && value !== null && (
-          <div className="mb-1.5 flex items-center justify-between font-medium">
-            <span>
-              Durchschnitt <span className="font-normal text-muted-foreground">({rows.length})</span>
-            </span>
-            <StarsValue value={value} />
-          </div>
-        )}
-
-        <MyRatingInput recipe={recipe} onChange={onChange} />
-
-        {ROLE_ORDER.map((role) => {
-          const members = rows.filter((r) => r.role === role)
-          if (members.length === 0) return null
-          return (
-            <div key={role}>
-              <Separator className="my-3" />
-              <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {ROLE_LABEL[role]}
-              </p>
-              <ul className="space-y-1.5">
-                {members.map((r) => (
-                  <RaterRow key={r.user} id={r.user} rating={r.rating} isCurrent={r.user === currentUserId} />
-                ))}
-              </ul>
-            </div>
-          )
-        })}
+        <RatingDetails recipe={recipe} value={value} onChange={onChange} />
       </PopoverContent>
     </Popover>
   )
