@@ -95,4 +95,20 @@ describe('mock writes', () => {
     expect(freeText.ingredient).toBeNull()
     expect(freeText.text).toBe('etwas Freitext')
   })
+
+  it('deletes a recipe and drops it from its categories', async () => {
+    const created = (await mockRequest('recipes.create', { input })) as Recipe
+    const category = mockData.categories[0]
+    category.recipes.push(created.id)
+
+    await expect(mockRequest('recipes.delete', { id: created.id })).resolves.toBeUndefined()
+
+    await expect(mockRequest('recipes.get', { id: created.id })).rejects.toThrow('not found')
+    expect(mockData.recipes.some((r) => r.id === created.id)).toBe(false)
+    expect(mockData.categories[0].recipes).not.toContain(created.id)
+  })
+
+  it('throws when deleting an unknown recipe', async () => {
+    await expect(mockRequest('recipes.delete', { id: 999_999 })).rejects.toThrow('recipe 999999 not found')
+  })
 })

@@ -94,6 +94,9 @@ export const foodly = {
   copyRecipe: (id: RecipeId): Promise<Recipe> =>
     USE_MOCKS ? socket.request<Recipe>('recipes.copy', { id }) : rest.post<Recipe>(`/recipes/${id}/copy`),
 
+  deleteRecipe: (id: RecipeId): Promise<void> =>
+    USE_MOCKS ? socket.request<void>('recipes.delete', { id }) : rest.del(`/recipes/${id}`),
+
   listTags: (): Promise<Tag[]> =>
     USE_MOCKS ? socket.request<Tag[]>('tags.list') : rest.get<PaginatedResponse<Tag>>('/tags').then((r) => r.data),
 
