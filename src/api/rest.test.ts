@@ -41,6 +41,22 @@ describe('rest', () => {
     mockFetch({ ok: true, status: 204, jsonBody: undefined })
     await expect(rest.get('/x')).resolves.toBeUndefined()
   })
+
+  it('getBlob sends the Bearer header and returns the body as a blob', async () => {
+    const blob = new Blob(['<svg/>'], { type: 'image/svg+xml' })
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue({ ok: true, status: 200, blob: async () => blob } as unknown as Response)
+    await expect(rest.getBlob('/tags/vegan/icon')).resolves.toBe(blob)
+    const [url, init] = spy.mock.calls[0]
+    expect(String(url)).toMatch(/\/tags\/vegan\/icon$/)
+    expect((init?.headers as Record<string, string>).Authorization).toMatch(/^Bearer /)
+  })
+
+  it('getBlob throws the backend error.message on non-2xx', async () => {
+    mockFetch({ ok: false, status: 404, jsonBody: { error: { code: 'NOT_FOUND', message: 'Tag has no icon' } } })
+    await expect(rest.getBlob('/tags/x/icon')).rejects.toThrow('Tag has no icon')
+  })
 })
 
 describe('collectPages', () => {
