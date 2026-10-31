@@ -195,6 +195,15 @@ describe('Rating on a phone', () => {
       expect(star.className).toContain('size-10')
       expect(star.className).not.toContain('size-9')
     }
+    expect(within(sheet).getByRole('button', { name: 'Entfernen' }).className).toContain('h-10')
+  })
+
+  it('closes the sheet and keeps the trigger when the viewport grows to desktop', async () => {
+    open(recipe())
+    await screen.findByRole('dialog', { name: 'Bewertung' })
+    setViewport(1024)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.getByRole('button', { name: 'Bewerten' })).toBeTruthy()
   })
 
   it('rates from the sheet', async () => {

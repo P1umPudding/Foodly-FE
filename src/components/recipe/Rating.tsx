@@ -129,7 +129,7 @@ function MyRatingInput({
               variant="ghost"
               size={sheet ? 'icon' : 'iconSm'}
               // §7 wants 40 px tap targets on phones; the lib's icon size is only 36 px.
-              className={cn(sheet && 'size-10')}
+              className={sheet ? 'size-10' : undefined}
               aria-label={`${n} von 5`}
               aria-pressed={own === n}
               disabled={disabled}
@@ -150,6 +150,7 @@ function MyRatingInput({
         <Button
           variant="ghost"
           size="sm"
+          className={sheet ? 'h-10' : undefined}
           disabled={disabled || own === null}
           onClick={() => save(() => foodly.clearMyRating(recipe.id))}
         >
@@ -224,9 +225,9 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
 
   return (
     <Root>
-      {/* The Radix trigger is a ref-forwarding button (the @postxl Button doesn't
-          forwardRef, which breaks Radix positioning). cursor-pointer is explicit
-          until the lib ships it for interactive elements. */}
+      {/* Radix needs a ref-forwarding trigger (popover positioning, focus return); the
+          @postxl Button doesn't forwardRef. cursor-pointer is explicit until the lib
+          ships it for interactive elements. */}
       <Trigger
         aria-label={value === null ? 'Bewerten' : `Bewertung ${value.toFixed(1).replace('.', ',')} von 5`}
         className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
