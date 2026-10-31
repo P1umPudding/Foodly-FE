@@ -4,7 +4,7 @@ import { DurationPicker } from '../components/DurationPicker'
 import type { Duration } from '../components/DurationPicker'
 import { useTimers } from './TimerProvider'
 
-const QUICK_MINUTES = [1, 3, 5, 10, 15]
+const QUICK_MINUTES = [5, 10, 15, 30]
 const DEFAULT: Duration = { h: 0, m: 5, s: 0 }
 
 function totalMs({ h, m, s }: Duration): number {
