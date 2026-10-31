@@ -8,6 +8,8 @@ import type { PaginatedResponse } from './protocol'
 const BASE = import.meta.env.VITE_API_URL ?? '/api/v1'
 const DEV_TOKEN = 'dev-token'
 
+export const apiUrl = (path: string) => `${BASE}${path}`
+
 async function errorMessage(res: Response): Promise<string> {
   try {
     const parsed = (await res.json()) as { error?: { message?: string } }
@@ -19,7 +21,7 @@ async function errorMessage(res: Response): Promise<string> {
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method,
     headers: {
       Authorization: `Bearer ${DEV_TOKEN}`,
@@ -40,7 +42,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 // always sets Content-Type: application/json when a body is present, so this
 // can't reuse it.
 async function requestBinary<T>(path: string, blob: Blob): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: 'POST',
     headers: { Authorization: `Bearer ${DEV_TOKEN}`, 'Content-Type': blob.type },
     body: blob,
@@ -49,12 +51,20 @@ async function requestBinary<T>(path: string, blob: Blob): Promise<T> {
   return (await res.json()) as T
 }
 
+// Binary GETs (tag icons): the routes need the bearer, which an <img src> can't send.
+async function requestBlob(path: string): Promise<Blob> {
+  const res = await fetch(apiUrl(path), { headers: { Authorization: `Bearer ${DEV_TOKEN}` } })
+  if (!res.ok) throw new Error(await errorMessage(res))
+  return res.blob()
+}
+
 export const rest = {
   get: <T>(path: string) => request<T>('GET', path),
   post: <T>(path: string, body?: unknown) => request<T>('POST', path, body),
   put: <T>(path: string, body: unknown) => request<T>('PUT', path, body),
   del: (path: string) => request<void>('DELETE', path),
   postBinary: <T>(path: string, blob: Blob) => requestBinary<T>(path, blob),
+  getBlob: (path: string) => requestBlob(path),
 }
 
 // Drain a cursor-paginated endpoint into a single list. The backend sets

@@ -31,7 +31,7 @@ export function TagPicker({ value, onChange }: { value: TagId[]; onChange: (tags
     <div className="flex flex-wrap items-center gap-2">
       {value.map((id) => (
         <Badge key={id} variant="secondary" className="gap-1">
-          {byId[id]?.svg && <TagIcon hash={byId[id].svg!} alt={id} size="sm" />}
+          {byId[id]?.svg && <TagIcon tag={byId[id]} alt="" size="sm" />}
           {id}
           <Button
             variant="ghost"
@@ -67,7 +67,7 @@ export function TagPicker({ value, onChange }: { value: TagId[]; onChange: (tags
                       setOpen(false)
                     }}
                   >
-                    {byId[id]?.svg && <TagIcon hash={byId[id].svg!} alt={id} size="sm" />}
+                    {byId[id]?.svg && <TagIcon tag={byId[id]} alt="" size="sm" />}
                     {id}
                   </CommandItem>
                 ))}

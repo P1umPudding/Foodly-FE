@@ -67,7 +67,8 @@ There's no server code and no secrets in the repo.
     error contract (throws `Error(message)`), `collectPages` for cursor pages.
   - `protocol.ts` — wire types, 1:1 with the backend. `adapters.ts` — shape
     fixes at the API boundary (e.g. `previewToRecipe`). `views.ts` — derived
-    values as pure functions. `assets.ts` — image/icon URLs.
+    values as pure functions. `assets.ts` — image/icon URLs; tag icons load as cached blobs
+    (the route needs the bearer, `<img>` can't send it).
   - `socket.ts` — `SocketClient` (connect, auto-reconnect, request/response
     correlation, events), **reserved for future live editing** and never
     connected today. Its `{ id, type, payload }` envelope is unused today; the
