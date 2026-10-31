@@ -34,7 +34,7 @@ Kolja) · `später` (nicht blockierend).
 | B16 | Trefferzahlen/Facetten in der Suche      | offen       | nein (FE ohne Zahlen)   | [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17) |
 | G1  | `createdAt` / `updatedAt` an Recipe     | FE-Arbeit   | –                       | –             |
 | G2  | `UserRating` DB-only                    | gelöst      | –                       | –             |
-| G3  | Tag-Icons (`GET /tags/{id}/icon`)       | FE-Arbeit   | –                       | –             |
+| G3  | Tag-Icons (`GET /tags/{id}/icon`)       | gelöst      | –                       | –             |
 | G4  | Kategorien-Liste                        | gelöst      | –                       | –             |
 | G5  | Sortfeld-Namen                          | gelöst      | –                       | –             |
 
@@ -192,8 +192,11 @@ Backend-Umbau der Zugriffsabfrage.
   nicht blockiert).
 - **G2 `UserRating` DB-only:** Backend sagt explizit „never exposed". FE hat den Typ
   bereits auskommentiert — erledigt.
-- **G3 Tag-Icons:** `GET /tags/{id}/icon` existiert. **FE:** `tagImageSrc` in
-  `src/api/assets.ts` im REST-Modus darauf umstellen.
+- **G3 Tag-Icons:** `GET /tags/{id}/icon` existiert. **FE (gelöst, #38):** Die Route
+  liegt hinter der Bearer-Prüfung (`auth_middleware`) und antwortet ohne
+  `Authorization` mit 401; `<img>` sendet keinen Header. Darum lädt `src/api/assets.ts`
+  das Icon über `rest.getBlob` und zeigt eine gecachte Object-URL. Ohne Icon oder bei
+  einem Ladefehler steht der Tag-Name.
 - **G4 Kategorien:** `GET /categories` existiert (paginiert); FE nutzt es seit
   `feat/rest-backend-wiring`. Kategorie-Filter kann jetzt serverseitig laufen.
 - **G5 Sortfelder:** Backend akzeptiert `worktime|work_time` und

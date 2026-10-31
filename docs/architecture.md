@@ -44,7 +44,9 @@ werden hier nicht wiederholt.
   `collaborationState`, `averageRating`, `formatIngredient`, `scaleAmount`, …).
   Keine abgeleiteten Felder in die Wire-Typen schreiben.
 - Asset-URLs (Bilder, Tag-Icons) nur über `src/api/assets.ts` — eine Stelle für das
-  Backend-Schema (offen: B1).
+  Backend-Schema (offen: B1). Tag-Icons braucht die REST-Route mit Bearer, darum lädt
+  `assets.ts` sie als Blob (`loadTagIcon`, gecacht); `useTagIcon` ist der eine Hook,
+  der `assets.ts` statt `foodly.*` aufruft.
 
 ## 3. Kataloge & globaler State
 
