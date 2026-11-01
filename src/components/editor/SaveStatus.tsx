@@ -7,7 +7,8 @@ const time = (at: number) => new Date(at).toLocaleTimeString('de-DE', { hour: '2
 export function SaveStatusIndicator({ status, onRetry }: { status: SaveStatus; onRetry: () => void }) {
   if (status.state === 'error') {
     return (
-      <span className="flex items-center gap-2 text-destructive">
+      // role="alert": a failed save (e.g. after "Fertig") must reach screen readers too.
+      <span role="alert" className="flex items-center gap-2 text-destructive">
         <AlertTriangle className="h-4 w-4" />
         Nicht gespeichert
         <Button variant="outline" size="sm" onClick={onRetry}>
