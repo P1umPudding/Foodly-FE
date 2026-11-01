@@ -213,8 +213,10 @@ export function RecipeList() {
       {/* Two columns: the list (with its own sticky header) and the filter rail's
           reserved slot. The list holds a min width so that, once space gets tight, the
           RAIL shrinks (18→13.5rem) instead of only the list. From lg, not md: next to the
-          shell's sidebar both columns (~43rem) don't fit at 768 px. */}
-      <div className="mx-auto grid max-w-6xl gap-6 px-6 pb-10 lg:grid-cols-[minmax(28rem,1fr)_minmax(13.5rem,18rem)]">
+          shell's sidebar both columns (~43rem) don't fit at 768 px. On phones the shell's bottom
+          padding only clears the tab bar; the extra room lets the last card scroll past the fixed
+          "+" button above it (safe-area inset ready for viewport-fit=cover). */}
+      <div className="mx-auto grid max-w-6xl gap-6 px-6 pb-10 phone:pb-[calc(6rem+env(safe-area-inset-bottom))] lg:grid-cols-[minmax(28rem,1fr)_minmax(13.5rem,18rem)]">
         <div className="min-w-0">
           {/* Sticky page header over the scrolling list (solid — no blur). Its measured
             height feeds --list-sticky-top so the category headers tuck right beneath it. */}
