@@ -1,6 +1,6 @@
 # Plan: #74 Handy: „+“-FAB verdeckt die letzte Karte der Rezeptliste
 
-Basis: spec.md incl. assumptions A1–A5. Smallest change: phone-only bottom padding on the RecipeList outer wrapper. No shell change, FAB/TabBar/toast offset untouched.
+Basis: spec.md incl. assumptions A1–A5. Smallest change: phone-only bottom padding on the RecipeList outer wrapper. No layout change in the shell (only a pointer comment at the FAB), FAB/TabBar/toast offset untouched.
 
 ## Step 0: Commit the plan
 - Copy this plan as `docs/superpowers/plans/2026-11-01-phone-fab-clearance.md` (CLAUDE.md: plans live in docs/superpowers/plans; precedent #67, #84). Own commit.
@@ -26,6 +26,7 @@ Basis: spec.md incl. assumptions A1–A5. Smallest change: phone-only bottom pad
 ## Commits
 0. `Plan: Rezeptliste am Handy unter dem „+“-Knopf freihalten (#74)` (docs/superpowers/plans)
 1. `RecipeList: letzte Karte am Handy nicht mehr unter dem „+“-Knopf (#74)` (fix + test)
+2. `AppShell: Hinweis auf die Listen-Polsterung am „+“-Knopf (#74)` (comment only, from code review round 1)
 `npm run format` before the commit. No Co-Authored-By or other AI trailer.
 
 ## Review log

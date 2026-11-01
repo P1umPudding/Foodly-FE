@@ -67,7 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <main className="flex-1">{children}</main>
         </div>
         {!isDesktop && <TabBar />}
-        {/* RecipeList's phone bottom padding is sized to scroll its last card past this button (#74). */}
+        {/* Moving or resizing this button? RecipeList's phone:pb-[…] must still clear its top edge (#74). */}
         {!isDesktop && pathname === '/recipes' && (
           <Button asChild size="icon" className="fixed right-4 bottom-20 z-40 size-14 rounded-full shadow-lg">
             <Link to="/recipes/new" aria-label="Neues Rezept">

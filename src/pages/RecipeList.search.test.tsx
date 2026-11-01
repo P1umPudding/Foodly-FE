@@ -255,7 +255,8 @@ describe('RecipeList (layout)', () => {
 
     // jsdom has no layout (and its width doesn't matter here), so the classes stand in for the geometry:
     // the FAB's top edge must stay below the last card when scrolled to the end (#74).
-    const wrapper = screen.getByRole('heading', { name: 'Rezepte' }).closest('.grid')!
+    const wrapper = screen.getByRole('heading', { name: 'Rezepte' }).closest('.grid')
+    if (!wrapper) throw new Error('list wrapper (.grid) not found')
     expect(wrapper.classList.contains('pb-10')).toBe(true)
     expect(wrapper.classList.contains('phone:pb-[calc(6rem+env(safe-area-inset-bottom))]')).toBe(true)
   })
