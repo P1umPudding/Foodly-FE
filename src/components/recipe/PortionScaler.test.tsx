@@ -140,6 +140,7 @@ describe('PortionScaler — field shows the applied value', () => {
     ['portions, scaled: negative', portions, 1.5, '-2', '6', null],
     ['portions, scaled: cleared', portions, 1.5, '', '4', 1],
     ['portions: rounds to 0', portions, 1, '0.001', '4', 1],
+    ['portions: exponent that rounds to 0', portions, 1, '1e-9', '4', 1],
     ['portions: rounds to the shown value', portions, 1, '4.001', '4', null],
     ['portions: valid value', portions, 1, '6', '6', 1.5],
     ['multiplier, unscaled: cleared', multiplier, 1, '', '1', 1],
@@ -167,6 +168,13 @@ describe('PortionScaler — field shows the applied value', () => {
     // The blur that follows has nothing left to commit.
     fireEvent.blur(input)
     expect(onChange).toHaveBeenCalledTimes(1)
+  })
+
+  // QA (#72): a factor of 0 or NaN shows up as "0" / "NaN" amounts.
+  it.each(['', '0', '-0', '0.001', '1e-9', '-2', 'abc', '1e999'])('never commits factor 0 or NaN for %j', (typed) => {
+    const { onChange } = renderStateful({ ...portions, factor: 1.5 })
+    type(typed)
+    for (const [f] of onChange.mock.calls) expect(Number.isFinite(f) && f > 0).toBe(true)
   })
 
   it('typing the current value commits nothing', () => {

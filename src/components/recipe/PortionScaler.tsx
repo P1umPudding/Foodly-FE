@@ -44,10 +44,11 @@ export function PortionScaler({
   // Map a box value back to a factor: portions divide by the base, the
   // multiplier is the factor itself.
   const apply = (value: number) => onChange(portions ? value / base : value)
-  // Commit (blur/Enter): negative → ignore; empty / 0 → reset to default. A value
-  // that rounds to the shown one is ignored too, so 4.001 doesn't quietly rescale.
+  // Commit (blur/Enter): negative or non-finite → ignore; empty / 0 → reset to
+  // default. So the factor never becomes 0 or NaN (both would show as amounts). A
+  // value that rounds to the shown one is ignored too, so 4.001 doesn't quietly rescale.
   const commit = (value: number | null) => {
-    if (value !== null && value < 0) return
+    if (value !== null && (value < 0 || !Number.isFinite(value))) return
     if (value === null || round2(value) === 0) return onChange(1)
     if (round2(value) === current) return
     apply(value)
