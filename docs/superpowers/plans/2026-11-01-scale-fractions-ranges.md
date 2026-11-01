@@ -25,11 +25,10 @@ Commit: "Portionieren: Brüche und Bereiche in scaleAmount skalieren (#72)", inc
 
 ## Step 2: "nicht skaliert" hint (src/components/recipe/IngredientLine.tsx)
 - `const unscaled = factor !== 1 && Boolean(line.amount?.trim()) && !isScalableAmount(line.amount)`.
-- In the name cell after `<TagText value={name} />`: `{unscaled && <span className="ml-2 text-xs text-muted-foreground">nicht skaliert</span>}` (A1; plain text, so screen readers read it; dims with the row when ticked).
-- Test setup: only the `useTags` mock is needed (no `{tag}`s rendered), not the VITE_MOCK stub or fetch mocks from TagText.test.tsx.
+- In the name cell after `<TagText value={name} />`: `<span className="ml-2 text-xs text-muted-foreground"><span className="sr-only">Menge </span>nicht skaliert</span>` when unscaled (A1; screen readers hear "Menge nicht skaliert"; muted instead of subtle for contrast at text-xs; dims with the row when ticked).
 - No change to SectionBlock/RecipeDetail/PortionScaler (keeps clear of #71, which works on PortionScaler).
 
-Test: new src/components/recipe/IngredientLine.test.tsx (vitest + Testing Library). Mock `../../catalog/CatalogProvider` `useTags` like TagText.test.tsx; render inside `<table><tbody>`. Cases (AC5):
+Test: new src/components/recipe/IngredientLine.test.tsx (vitest + Testing Library). Mock `../TagText` to render its value verbatim (as PortionScaler.test.tsx does); render inside `<table><tbody>`. Cases (AC5):
 - 'etwas', factor 2 → hint "nicht skaliert" visible, amount 'etwas' shown.
 - 'etwas', factor 1 → no hint.
 - '½', factor 2 → shows '1', no hint.
