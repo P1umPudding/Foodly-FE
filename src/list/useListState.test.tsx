@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react'
 import { MemoryRouter, useNavigate, useNavigationType } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useListState } from './useListState'
+import { DEFAULT_STATE } from './state'
 
 // Stub the catalog hook so the test needs no provider.
 vi.mock('../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1 }))
@@ -117,13 +118,30 @@ describe('useListState', () => {
     })
 
     it('starts a new entry when editing a search opened from a link', () => {
-      const { result } = renderHook(() => ({ list: useListState(), type: useNavigationType() }), {
-        wrapper: wrapper(['/?q=pas']),
-      })
+      const { result } = renderHook(
+        () => ({ list: useListState(), navigate: useNavigate(), type: useNavigationType() }),
+        { wrapper: wrapper(['/?q=pas']) },
+      )
       act(() => result.current.list.setSearch('past'))
       expect(result.current.type).toBe('PUSH')
       act(() => result.current.list.setSearch('pasta'))
       expect(result.current.type).toBe('REPLACE')
+      act(() => result.current.navigate(-1))
+      expect(result.current.list.state.search).toBe('pas')
+    })
+
+    it('does not overwrite an older search reached with Back', () => {
+      const { result } = renderWithHistory()
+      typeSearch(result, 'pasta')
+      act(() => result.current.list.set({ tags: ['Vegan'] }))
+      back(result)
+      expect(result.current.list.state).toMatchObject({ search: 'pasta', tags: [] })
+      act(() => result.current.list.setSearch(''))
+      expect(result.current.type).toBe('PUSH')
+      act(() => result.current.list.setSearch('n'))
+      expect(result.current.type).toBe('REPLACE')
+      back(result)
+      expect(result.current.list.state).toMatchObject({ search: 'pasta', tags: [] })
     })
 
     it('keeps a linked search reachable with Back after clearing it', () => {
@@ -149,6 +167,6 @@ describe('useListState', () => {
     act(() => result.current.list.set({ sortKey: 'rating' }))
     expect(result.current.type).toBe('PUSH')
     back(result)
-    expect(result.current.list.state.sortKey).not.toBe('rating')
+    expect(result.current.list.state.sortKey).toBe(DEFAULT_STATE.sortKey)
   })
 })

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom'
 import { useCurrentUserId } from '../catalog/CatalogProvider'
 import { DEFAULT_STATE, clearedState, type ListState } from './state'
 import { fromSearchParams, toSearchParams } from './url'
@@ -21,6 +21,7 @@ export function useListState(): {
 } {
   const [params, setParams] = useSearchParams()
   const location = useLocation()
+  const navigationType = useNavigationType()
   const currentUserId = useCurrentUserId()
   const hydrated = useRef(false)
 
@@ -65,14 +66,16 @@ export function useListState(): {
 
   // A search gets ONE history entry: its first change pushes, later ones (more letters, clearing, retyping)
   // replace it, so Back returns to the list before the search instead of walking back letter by letter.
+  // An older search reached via Back/Forward (POP) is not overwritten: editing it starts a new entry.
   const setSearch = useCallback(
     (search: string) => {
-      if (isSearchEntry(location.state)) apply({ search }, true, SEARCH_ENTRY_STATE)
-      // blank → blank leaves the URL as is (blank `q` is dropped), so don't push a duplicate entry
+      if (isSearchEntry(location.state) && navigationType !== 'POP') apply({ search }, true, SEARCH_ENTRY_STATE)
+      // blank → blank changes nothing in the URL (blank `q` is dropped, which also normalises a whitespace-only
+      // `q`), so don't push a duplicate entry
       else if (search.trim() === '' && state.search.trim() === '') apply({ search }, true)
       else apply({ search }, false, SEARCH_ENTRY_STATE)
     },
-    [location.state, state.search, apply],
+    [location.state, navigationType, state.search, apply],
   )
 
   const clear = useCallback(() => set(clearedState(fromSearchParams(params))), [params, set])
