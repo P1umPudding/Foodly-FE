@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom'
 import { useCurrentUserId } from '../catalog/CatalogProvider'
 import { DEFAULT_STATE, clearedState, type ListState } from './state'
 import { fromSearchParams, toSearchParams } from './url'
@@ -7,8 +7,21 @@ import { loadPersisted, savePersisted } from './persistence'
 
 const OUR_KEYS = ['cat', 'tag', 'ing', 'dmax', 'role', 'collab', 'q', 'sort', 'dir', 'view', 'group']
 
-export function useListState(): { state: ListState; set: (patch: Partial<ListState>) => void; clear: () => void } {
+// Router location state marking the history entry a search started; typing on it replaces instead of pushing.
+const SEARCH_ENTRY_STATE = { listSearch: true } as const
+
+const isSearchEntry = (state: unknown): boolean =>
+  typeof state === 'object' && state !== null && (state as { listSearch?: unknown }).listSearch === true
+
+export function useListState(): {
+  state: ListState
+  set: (patch: Partial<ListState>) => void
+  setSearch: (search: string) => void
+  clear: () => void
+} {
   const [params, setParams] = useSearchParams()
+  const location = useLocation()
+  const navigationType = useNavigationType()
   const currentUserId = useCurrentUserId()
   const hydrated = useRef(false)
 
@@ -40,16 +53,32 @@ export function useListState(): { state: ListState; set: (patch: Partial<ListSta
     savePersisted(currentUserId, state)
   }, [state, currentUserId])
 
-  const set = useCallback(
-    (patch: Partial<ListState>) => {
+  const apply = useCallback(
+    (patch: Partial<ListState>, replace: boolean, entryState?: unknown) => {
       const next = { ...fromSearchParams(params), ...patch }
       savePersisted(currentUserId, next)
-      setParams(toSearchParams(next))
+      setParams(toSearchParams(next), { replace, state: entryState })
     },
     [params, currentUserId, setParams],
   )
 
+  const set = useCallback((patch: Partial<ListState>) => apply(patch, false), [apply])
+
+  // A search gets ONE history entry: its first change pushes, later ones (more letters, clearing, retyping)
+  // replace it, so Back returns to the list before the search instead of walking back letter by letter.
+  // An older search reached via Back/Forward (POP) is not overwritten: editing it starts a new entry.
+  const setSearch = useCallback(
+    (search: string) => {
+      if (isSearchEntry(location.state) && navigationType !== 'POP') apply({ search }, true, SEARCH_ENTRY_STATE)
+      // blank → blank changes nothing in the URL (blank `q` is dropped, which also normalises a whitespace-only
+      // `q`), so don't push a duplicate entry
+      else if (search.trim() === '' && state.search.trim() === '') apply({ search }, true)
+      else apply({ search }, false, SEARCH_ENTRY_STATE)
+    },
+    [location.state, navigationType, state.search, apply],
+  )
+
   const clear = useCallback(() => set(clearedState(fromSearchParams(params))), [params, set])
 
-  return { state, set, clear }
+  return { state, set, setSearch, clear }
 }
