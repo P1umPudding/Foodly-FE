@@ -6,6 +6,7 @@ import {
   formatRating,
   canViewRecipe,
   scaleAmount,
+  isScalableAmount,
   ingredientParts,
 } from './views'
 import type { Recipe } from './protocol'
@@ -118,6 +119,51 @@ describe('scaleAmount', () => {
   })
   it('rounds to at most two decimals', () => {
     expect(scaleAmount('1', 1 / 3)).toBe('0,33')
+  })
+  it('scales Unicode, slash and mixed fractions', () => {
+    expect(scaleAmount('½', 2)).toBe('1')
+    expect(scaleAmount('1/2', 3)).toBe('1,5')
+    expect(scaleAmount('1 / 2', 2)).toBe('1')
+    expect(scaleAmount('1½', 2)).toBe('3')
+    expect(scaleAmount('1 ½', 2)).toBe('3')
+    expect(scaleAmount('1 1/2', 2)).toBe('3')
+    expect(scaleAmount('1 1 / 2', 2)).toBe('3')
+    expect(scaleAmount('⅓', 2)).toBe('0,67')
+    expect(scaleAmount('¾', 2)).toBe('1,5')
+  })
+  it('scales both ends of a range and keeps the dash and its spacing', () => {
+    expect(scaleAmount('1-2', 2)).toBe('2-4')
+    expect(scaleAmount('1–2', 1.5)).toBe('1,5–3')
+    expect(scaleAmount('½-1', 2)).toBe('1-2')
+    expect(scaleAmount('½–1', 2)).toBe('1–2')
+    expect(scaleAmount('1 - 2', 2)).toBe('2 - 4')
+    expect(scaleAmount('1,5-2.5', 2)).toBe('3-5')
+    expect(scaleAmount('1½-2½', 2)).toBe('3-5')
+    expect(scaleAmount('1 1/2-2', 2)).toBe('3-4')
+  })
+  it('reads "2 -1/2" as the range 2 to ½, not a negative amount', () => {
+    expect(scaleAmount('2 -1/2', 2)).toBe('4 -1')
+  })
+  it('keeps the decimal forms the old Number() path accepted', () => {
+    expect(scaleAmount('.5', 2)).toBe('1')
+    expect(scaleAmount('5.', 2)).toBe('10')
+  })
+  it('returns fractions and ranges unchanged at factor 1', () => {
+    for (const amount of ['½', '1-2', '1 1/2', 'etwas']) expect(scaleAmount(amount, 1)).toBe(amount)
+  })
+  it('passes through amounts it does not recognise', () => {
+    for (const amount of ['1 Dose à 400', '-2', '1-', '1--2', '1/0', '1e2', '1—2', '1,5½', '½1', '1⁄2'])
+      expect(scaleAmount(amount, 2)).toBe(amount)
+  })
+})
+
+describe('isScalableAmount', () => {
+  it('is true for numbers, fractions and ranges', () => {
+    for (const amount of ['2', '2,5', '½', '1 1/2', '1-2', '½–1']) expect(isScalableAmount(amount)).toBe(true)
+  })
+  it('is false for empty, missing and unrecognised amounts', () => {
+    for (const amount of [null, '', '  ', 'etwas', '1 Dose à 400', '-2', '1/0'])
+      expect(isScalableAmount(amount)).toBe(false)
   })
 })
 
