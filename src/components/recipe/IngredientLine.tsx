@@ -1,6 +1,6 @@
 import { Checkbox, cn } from '@postxl/ui-components'
 import { TagText } from '../TagText'
-import { ingredientParts, scaleAmount } from '../../api/views'
+import { ingredientParts, isScalableAmount, scaleAmount } from '../../api/views'
 import type { RecipeIngredient, RecipeIngredientId } from '../../api/protocol'
 
 // One row of the (visually borderless) ingredient table: quantity right-aligned
@@ -20,6 +20,8 @@ export function IngredientLine({
   onToggle?: (id: RecipeIngredientId) => void
 }) {
   const { quantity, name } = ingredientParts({ ...line, amount: scaleAmount(line.amount, factor) })
+  // Without the hint an amount like "etwas" looks scaled next to the scaled rows.
+  const unscaled = factor !== 1 && Boolean(line.amount?.trim()) && !isScalableAmount(line.amount)
 
   // Dim via row opacity so both text cells fade uniformly regardless of their own
   // colour utilities (the quantity cell is already text-foreground/75).
@@ -42,6 +44,7 @@ export function IngredientLine({
       </td>
       <td className={cn('py-1 align-baseline', dim)}>
         <TagText value={name} />
+        {unscaled && <span className="ml-2 text-xs text-subtle-foreground">nicht skaliert</span>}
       </td>
     </tr>
   )
