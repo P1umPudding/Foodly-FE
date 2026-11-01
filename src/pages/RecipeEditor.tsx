@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Alert, AlertDescription, AlertTitle, Button, Skeleton, toast } from '@postxl/ui-components'
-import { Plus } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { useCurrentUserId } from '../catalog/CatalogProvider'
@@ -40,7 +40,11 @@ export function RecipeEditor() {
 
   // `draft !== null` matters: autosave must stay off until the recipe has loaded,
   // otherwise the null -> loaded transition would be saved back as if it were an edit.
-  const { status: saveStatus, retry } = useAutosave(
+  const {
+    status: saveStatus,
+    retry,
+    flush,
+  } = useAutosave(
     draft,
     async (value) => {
       if (value === null || recipeId === null) return
@@ -53,6 +57,31 @@ export function RecipeEditor() {
       onFlushError: () => toast.error('Änderungen konnten nicht gespeichert werden.'),
     },
   )
+
+  // StrictMode-safe: re-armed on every (re)mount, like `mounted` in useAutosave.
+  const alive = useRef(true)
+  useEffect(() => {
+    alive.current = true
+    return () => {
+      alive.current = false
+    }
+  }, [])
+
+  // "Fertig" waits for the save: the detail page re-fetches on mount, and a GET
+  // that overtakes a still-running PUT would show the old recipe.
+  const [finishing, setFinishing] = useState(false)
+  const finish = async () => {
+    setFinishing(true)
+    try {
+      await flush()
+      // Left via another route meanwhile: don't pull the user back.
+      if (alive.current) navigate(`/recipes/${recipeId}`)
+    } catch {
+      // The save status indicator already shows the error with a retry.
+    } finally {
+      if (alive.current) setFinishing(false)
+    }
+  }
 
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
@@ -171,8 +200,9 @@ export function RecipeEditor() {
           ) : (
             <>
               <SaveStatusIndicator status={saveStatus} onRetry={retry} />
-              <Button asChild>
-                <Link to={`/recipes/${recipeId}`}>Fertig</Link>
+              <Button className="gap-1.5" onClick={finish} disabled={finishing} aria-busy={finishing}>
+                {finishing && <Loader2 className="h-4 w-4 animate-spin" />}
+                Fertig
               </Button>
             </>
           )}
