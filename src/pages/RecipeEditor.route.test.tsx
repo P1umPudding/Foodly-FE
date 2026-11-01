@@ -1,5 +1,6 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditorRoute } from '../App'
@@ -69,5 +70,190 @@ describe('RecipeEditorRoute · remount on route change', () => {
     // autosave would PUT updateRecipe(5, ...) while the header says "Neues Rezept".
     await waitFor(() => expect((screen.getByLabelText('Titel') as HTMLInputElement).value).toBe(''))
     expect(screen.getByRole('button', { name: 'Anlegen' })).toBeTruthy()
+  })
+})
+
+// "Fertig" must not navigate while a PUT is outstanding: the detail page GETs on
+// mount, and a GET that beats the PUT would show the old recipe (#69). The fake
+// server below only changes when the deferred PUT resolves, while GET answers at
+// once — the REST ordering that exposed the bug.
+describe('RecipeEditorRoute · Fertig waits for the save', () => {
+  function server() {
+    let current = recipe()
+    const puts: { title: string; resolve: () => void; reject: (e: Error) => void }[] = []
+    const getRecipe = vi.spyOn(foodly, 'getRecipe').mockImplementation(async () => current)
+    const updateRecipe = vi.spyOn(foodly, 'updateRecipe').mockImplementation(
+      (_id, body) =>
+        new Promise((resolve, reject) => {
+          puts.push({
+            title: body.name,
+            resolve: () => {
+              current = { ...current, name: body.name }
+              resolve(current)
+            },
+            reject,
+          })
+        }),
+    )
+    return { getRecipe, updateRecipe, puts }
+  }
+
+  function DetailStub() {
+    const [name, setName] = useState<string | null>(null)
+    useEffect(() => {
+      foodly.getRecipe(5).then((r) => setName(r.name))
+    }, [])
+    return <p>Detail: {name ?? '…'}</p>
+  }
+
+  // Every navigation gets a fresh location key, so this records each one — even
+  // a repeated push of the same path.
+  const visits: string[] = []
+  function VisitLog() {
+    const location = useLocation()
+    useEffect(() => {
+      visits.push(location.pathname)
+    }, [location.key])
+    return null
+  }
+
+  function renderEditor() {
+    visits.length = 0
+    render(
+      <TooltipProvider>
+        <MemoryRouter initialEntries={['/recipes/5/edit']}>
+          <VisitLog />
+          <Link to="/recipes">elsewhere</Link>
+          <Routes>
+            <Route path="/recipes" element={<p>List</p>} />
+            <Route path="/recipes/:id" element={<DetailStub />} />
+            <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
+          </Routes>
+        </MemoryRouter>
+      </TooltipProvider>,
+    )
+  }
+
+  const titleInput = () => screen.getByLabelText('Titel') as HTMLInputElement
+  const fertig = () => screen.getByRole('button', { name: 'Fertig' }) as HTMLButtonElement
+
+  async function openAndRename(title: string) {
+    await waitFor(() => expect(titleInput().value).toBe('Pasta 5'))
+    fireEvent.change(titleInput(), { target: { value: title } })
+  }
+
+  it('navigates only after the PUT landed, so the detail shows the new title', async () => {
+    const { getRecipe, updateRecipe, puts } = server()
+    renderEditor()
+    await openAndRename('Pasta neu')
+
+    fireEvent.click(fertig()) // well within the 800 ms debounce
+
+    await waitFor(() => expect(updateRecipe).toHaveBeenCalledTimes(1))
+    expect(puts[0].title).toBe('Pasta neu')
+    expect(fertig().getAttribute('aria-disabled')).toBe('true')
+    expect(fertig().getAttribute('aria-busy')).toBe('true')
+    // Not `disabled`: browsers drop focus to <body> from a disabled button (jsdom doesn't, hence this check).
+    expect(fertig().disabled).toBe(false)
+    expect(screen.queryByText(/Detail:/)).toBeNull()
+    expect(getRecipe).toHaveBeenCalledTimes(1) // only the editor's own load
+
+    act(() => puts[0].resolve())
+
+    expect(await screen.findByText('Detail: Pasta neu')).toBeTruthy()
+    expect(updateRecipe).toHaveBeenCalledTimes(1) // no extra PUT from the unmount flush
+  })
+
+  it('also waits for the follow-up save queued behind a running one', async () => {
+    const { updateRecipe, puts } = server()
+    renderEditor()
+    await openAndRename('Pasta 1')
+    await waitFor(() => expect(updateRecipe).toHaveBeenCalledTimes(1), { timeout: 2000 }) // debounce fired
+
+    fireEvent.change(titleInput(), { target: { value: 'Pasta 2' } })
+    fireEvent.click(fertig())
+
+    act(() => puts[0].resolve())
+    await waitFor(() => expect(updateRecipe).toHaveBeenCalledTimes(2))
+    expect(puts[1].title).toBe('Pasta 2')
+    expect(screen.queryByText(/Detail:/)).toBeNull()
+
+    act(() => puts[1].resolve())
+
+    expect(await screen.findByText('Detail: Pasta 2')).toBeTruthy()
+  })
+
+  it('stays in the editor with a retry when the save fails, and Fertig again retries', async () => {
+    const { puts } = server()
+    renderEditor()
+    await openAndRename('Pasta neu')
+
+    fertig().focus()
+    fireEvent.click(fertig())
+    await waitFor(() => expect(puts).toHaveLength(1))
+    expect(document.activeElement).toBe(fertig())
+    act(() => puts[0].reject(new Error('offline')))
+
+    expect(await screen.findByText('Nicht gespeichert')).toBeTruthy()
+    expect(screen.getByText('Erneut versuchen')).toBeTruthy()
+    await waitFor(() => expect(fertig().getAttribute('aria-disabled')).toBe('false'))
+    expect(document.activeElement).toBe(fertig()) // focus stays on Fertig through wait and failure
+    expect(screen.queryByText(/Detail:/)).toBeNull()
+
+    fireEvent.click(fertig())
+    await waitFor(() => expect(puts).toHaveLength(2))
+    act(() => puts[1].resolve())
+
+    expect(await screen.findByText('Detail: Pasta neu')).toBeTruthy()
+  })
+
+  it('ignores repeated clicks while waiting', async () => {
+    const { updateRecipe, puts } = server()
+    renderEditor()
+    await openAndRename('Pasta neu')
+
+    fireEvent.click(fertig())
+    await waitFor(() => expect(puts).toHaveLength(1))
+    fireEvent.click(fertig())
+    fireEvent.click(fertig())
+
+    act(() => puts[0].resolve())
+
+    expect(await screen.findByText('Detail: Pasta neu')).toBeTruthy()
+    await act(async () => {})
+    expect(updateRecipe).toHaveBeenCalledTimes(1)
+    expect(visits).toEqual(['/recipes/5/edit', '/recipes/5']) // navigated once, not three times
+  })
+
+  it('navigates straight away without unsaved changes', async () => {
+    const { updateRecipe } = server()
+    renderEditor()
+    await waitFor(() => expect(titleInput().value).toBe('Pasta 5'))
+
+    fireEvent.click(fertig())
+
+    expect(await screen.findByText('Detail: Pasta 5')).toBeTruthy()
+    expect(updateRecipe).not.toHaveBeenCalled()
+  })
+
+  it('does not pull the user back when they left while Fertig was waiting', async () => {
+    const { puts } = server()
+    renderEditor()
+    await openAndRename('Pasta neu')
+
+    fireEvent.click(fertig())
+    await waitFor(() => expect(puts).toHaveLength(1))
+    fireEvent.click(screen.getByText('elsewhere'))
+    expect(await screen.findByText('List')).toBeTruthy()
+
+    await act(async () => {
+      puts[0].resolve()
+      // Let the whole save -> flush -> finish() continuation chain run.
+      for (let i = 0; i < 10; i++) await Promise.resolve()
+    })
+
+    expect(puts).toHaveLength(1) // the unmount flush doesn't re-send the value in flight
+    expect(screen.getByText('List')).toBeTruthy()
+    expect(screen.queryByText(/Detail:/)).toBeNull()
   })
 })

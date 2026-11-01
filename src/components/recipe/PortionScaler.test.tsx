@@ -102,7 +102,7 @@ describe('PortionScaler — commit rules', () => {
 })
 
 describe('PortionScaler — tap targets', () => {
-  // Exact tokens: jsdom applies no CSS, and `max-[760px]:size-10` contains `size-10` as a substring.
+  // Exact tokens: jsdom applies no CSS, and `phone:size-10` contains `size-10` as a substring.
   const has = (el: Element, token: string) => el.classList.contains(token)
 
   it.each([
@@ -113,16 +113,16 @@ describe('PortionScaler — tap targets', () => {
     for (const name of ['Weniger', 'Mehr']) {
       const button = screen.getByRole('button', { name })
       expect(has(button, 'size-7.5')).toBe(true)
-      expect(has(button, 'max-[760px]:size-10')).toBe(true)
+      expect(has(button, 'phone:size-10')).toBe(true)
     }
     // Keep the row from growing next to the 32 px toggles, and the column from widening.
     const pair = screen.getByRole('button', { name: 'Weniger' }).parentElement!
     expect(has(pair, 'gap-1')).toBe(true)
-    expect(has(pair, 'max-[760px]:-my-1')).toBe(true)
-    expect(has(pair, 'max-[760px]:gap-0')).toBe(true)
+    expect(has(pair, 'phone:-my-1')).toBe(true)
+    expect(has(pair, 'phone:gap-0')).toBe(true)
     if (props.part === 'full') {
       expect(has(pair, 'ml-2')).toBe(true)
-      expect(has(pair, 'max-[760px]:ml-0')).toBe(true)
+      expect(has(pair, 'phone:ml-0')).toBe(true)
     }
   })
 })

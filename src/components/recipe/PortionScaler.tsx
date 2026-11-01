@@ -51,7 +51,7 @@ export function PortionScaler({
   const canDecrement = portions ? current > 1 : current > 0.25
 
   // Phones get 40 px tap targets (docs/design.md §7); desktop keeps the compact iconSm.
-  const stepperClass = 'rounded-md text-muted-foreground hover:text-foreground max-[760px]:size-10'
+  const stepperClass = 'rounded-md text-muted-foreground hover:text-foreground phone:size-10'
 
   const minus = (
     <Button
@@ -115,12 +115,7 @@ export function PortionScaler({
     // 40 px buttons outgrow the row's 32 px toggles: the negative margin keeps the row height, and
     // their own padding replaces gap and air so the size column widens only slightly (squeezing
     // the 1fr rating/time column next to it as little as possible).
-    <div
-      className={cn(
-        'inline-flex items-center gap-1 max-[760px]:-my-1 max-[760px]:gap-0',
-        part === 'full' && 'ml-2 max-[760px]:ml-0',
-      )}
-    >
+    <div className={cn('inline-flex items-center gap-1 phone:-my-1 phone:gap-0', part === 'full' && 'ml-2 phone:ml-0')}>
       {minus}
       {plus}
     </div>
