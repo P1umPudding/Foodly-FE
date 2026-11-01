@@ -32,11 +32,15 @@ export function PortionScaler({
   sizeText: string | null
   part?: 'full' | 'input' | 'steppers'
 }) {
-  // undefined = not editing; null = the box was cleared.
-  const [draft, setDraft] = useState<number | null | undefined>(undefined)
   const portions = sizeNumber !== null
   const base = sizeNumber ?? 1
   const current = round2(portions ? factor * base : factor)
+  // The pending edit remembers the value it was typed over; once the applied
+  // value changes from outside (steppers, reset), it is dropped for good (adjusted
+  // during render, not in an effect), so a later blur can't overwrite that change
+  // and stepping back doesn't revive it. `typed` null = the box was cleared.
+  const [draft, setDraft] = useState<{ typed: number | null; over: number } | null>(null)
+  if (draft && draft.over !== current) setDraft(null)
 
   // Map a box value back to a factor: portions divide by the base, the
   // multiplier is the factor itself.
@@ -50,8 +54,8 @@ export function PortionScaler({
     apply(value)
   }
   const finishEdit = () => {
-    if (draft !== undefined) commit(draft)
-    setDraft(undefined)
+    if (draft) commit(draft.typed)
+    setDraft(null)
   }
   // Portions step whole counts (floor 1). The multiplier steps 0.5 at/above ×1
   // and 0.25 below it (…0.25, 0.5, 0.75, 1, 1.5, 2…), floored at ×0.25.
@@ -85,8 +89,10 @@ export function PortionScaler({
 
   const input = (
     <NumberInput
-      value={draft === undefined ? current : (draft ?? undefined)}
-      onChange={(value) => setDraft(value ?? null)}
+      value={draft ? (draft.typed ?? undefined) : current}
+      onChange={(value) => setDraft({ typed: value ?? null, over: current })}
+      // Replaces NumberInput's own onBlur (it spreads props last); that one only
+      // matters with a `format`, which this box doesn't use.
       onBlur={finishEdit}
       onEnter={finishEdit}
       min={0}

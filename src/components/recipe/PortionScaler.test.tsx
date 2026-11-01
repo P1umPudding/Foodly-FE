@@ -164,6 +164,9 @@ describe('PortionScaler — field shows the applied value', () => {
     expect(onChange).toHaveBeenLastCalledWith(1)
     // A remounting fix would drop focus here.
     expect(document.activeElement).toBe(input)
+    // The blur that follows has nothing left to commit.
+    fireEvent.blur(input)
+    expect(onChange).toHaveBeenCalledTimes(1)
   })
 
   it('typing the current value commits nothing', () => {
@@ -181,6 +184,48 @@ describe('PortionScaler — field shows the applied value', () => {
     expect(box().value).toBe('1')
     fireEvent.click(screen.getByLabelText('Mehr'))
     expect(box().value).toBe('1.5')
+  })
+})
+
+// RecipeDetail splits portions-mode across two instances: the box (meta row) and
+// its steppers (tools row), both driven by one factor.
+describe('PortionScaler — split layout', () => {
+  it('a stepper change drops a pending edit, so the next blur cannot overwrite it', () => {
+    const onChange = vi.fn()
+    function Split() {
+      const [factor, setFactor] = useState(1)
+      const props = {
+        factor,
+        sizeNumber: 4,
+        sizeText: 'Portionen',
+        onChange: (f: number) => {
+          onChange(f)
+          setFactor(f)
+        },
+      }
+      return (
+        <>
+          <PortionScaler {...props} part="input" />
+          <PortionScaler {...props} part="steppers" />
+        </>
+      )
+    }
+    render(
+      <TooltipProvider>
+        <Split />
+      </TooltipProvider>,
+    )
+    fireEvent.change(box(), { target: { value: '7' } })
+    fireEvent.click(screen.getByLabelText('Mehr'))
+    expect(box().value).toBe('5')
+    // Stepping back to the value the edit was typed over doesn't revive it.
+    fireEvent.click(screen.getByLabelText('Weniger'))
+    expect(box().value).toBe('4')
+    fireEvent.click(screen.getByLabelText('Mehr'))
+    fireEvent.blur(box())
+    expect(box().value).toBe('5')
+    expect(onChange).toHaveBeenCalledTimes(3)
+    expect(onChange).toHaveBeenLastCalledWith(5 / 4)
   })
 })
 
