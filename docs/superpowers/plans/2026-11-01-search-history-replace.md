@@ -43,6 +43,8 @@ Use the existing pattern: `renderHook` with `{ list: useListState(), navigate: u
 
 No page-level test: the hook tests cover AC4. The call-site change is one line.
 
+Added during code review: an older search reached by Back (or restored by a reload) is not overwritten, because its first edit pushes; and clearing a linked `?q=` keeps it reachable with Back.
+
 ## Step 4 — verification
 
 - `npm run build`, `npm test -- --passWithNoTests`, `npm run format` (then `format:check`).

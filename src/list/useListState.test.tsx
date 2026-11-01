@@ -130,6 +130,25 @@ describe('useListState', () => {
       expect(result.current.list.state.search).toBe('pas')
     })
 
+    it('starts a new entry when editing a search restored by a reload', () => {
+      const { result } = renderHook(
+        () => ({ list: useListState(), navigate: useNavigate(), type: useNavigationType() }),
+        {
+          wrapper: ({ children }: { children: ReactNode }) => (
+            <MemoryRouter initialEntries={[{ pathname: '/', search: '?q=pas', state: { listSearch: true } }]}>
+              {children}
+            </MemoryRouter>
+          ),
+        },
+      )
+      act(() => result.current.list.setSearch('past'))
+      expect(result.current.type).toBe('PUSH')
+      act(() => result.current.list.setSearch('pasta'))
+      expect(result.current.type).toBe('REPLACE')
+      act(() => result.current.navigate(-1))
+      expect(result.current.list.state.search).toBe('pas')
+    })
+
     it('does not overwrite an older search reached with Back', () => {
       const { result } = renderWithHistory()
       typeSearch(result, 'pasta')
