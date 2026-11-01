@@ -128,10 +128,10 @@ export function RecipeDetail() {
                 aria-label="Duplizieren"
                 onClick={onClone}
                 disabled={cloning}
-                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 max-[760px]:size-10')}
+                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 phone:size-10')}
               >
                 <Copy className="h-4 w-4" />
-                <span className="max-[760px]:hidden">Duplizieren</span>
+                <span className="phone:hidden">Duplizieren</span>
               </TooltipTrigger>
               <TooltipContent>Rezept duplizieren</TooltipContent>
             </Tooltip>
@@ -141,10 +141,10 @@ export function RecipeDetail() {
                   <Link
                     to={`/recipes/${recipe.id}/edit`}
                     aria-label="Bearbeiten"
-                    className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 max-[760px]:size-10')}
+                    className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 phone:size-10')}
                   >
                     <Pencil className="h-4 w-4" />
-                    <span className="max-[760px]:hidden">Bearbeiten</span>
+                    <span className="phone:hidden">Bearbeiten</span>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent>Rezept bearbeiten</TooltipContent>
@@ -246,7 +246,7 @@ export function RecipeDetail() {
                   // further on both axes; the multiplier scaler only a little. On phones the
                   // portions steppers' 40 px hit area would reach into the box above, so less.
                   recipe.sizeNumber !== null
-                    ? '-translate-y-3 translate-x-2 max-[760px]:-translate-y-2'
+                    ? '-translate-y-3 translate-x-2 phone:-translate-y-2'
                     : '-translate-y-1.5 translate-x-1',
                 )}
               >

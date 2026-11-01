@@ -65,10 +65,10 @@ export function DeleteRecipeButton({
               forwardRef, so neither the tooltip nor the dialog's focus return could reach it. */}
           <AlertDialogTrigger
             aria-label="Löschen"
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 max-[760px]:size-10')}
+            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 phone:size-10')}
           >
             <Trash2 className="h-4 w-4" />
-            <span className="max-[760px]:hidden">Löschen</span>
+            <span className="phone:hidden">Löschen</span>
           </AlertDialogTrigger>
         </TooltipTrigger>
         <TooltipContent>Rezept löschen</TooltipContent>

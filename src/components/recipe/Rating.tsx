@@ -230,7 +230,7 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
           the negative margin keeps the row height. */}
       <Trigger
         aria-label={value === null ? 'Bewerten' : `Bewertung ${formatRating(value)} von 5`}
-        className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none max-[760px]:-my-2 max-[760px]:min-h-10"
+        className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none phone:-my-2 phone:min-h-10"
       >
         <span aria-hidden className="inline-flex">
           <Stars value={value ?? 0} size="md" />

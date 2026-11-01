@@ -20,6 +20,10 @@
    Path is relative to THIS stylesheet. */
 @source '../../node_modules/@postxl/ui-components';
 
+/* docs/ is not app code, and old plans there quote the 760 px max-variant classes,
+   which would bring back the media-query gap from #66. */
+@source not '../../docs';
+
 /* Tailwind v4 dropped preflight's default border-color, so a bare `border`
    utility falls back to currentColor (the text colour) — too bright in dark
    mode, too dark in light. Restore a sane default so components that ship a
@@ -36,6 +40,11 @@
 
 /* Class-based dark mode (Tailwind v4 custom variant). */
 @custom-variant dark (&:where(.dark, .dark *)); /* NOSONAR - Tailwind v4 at-rule */
+
+/* Phone side of the shell breakpoint: the exact complement of SHELL_DESKTOP_QUERY
+   (src/hooks/useIsDesktop.ts), so no width gets JS phone layout with desktop CSS (#66).
+   Guarded by phoneVariant.test.ts. */
+@custom-variant phone (@media (width < 761px)); /* NOSONAR - Tailwind v4 at-rule */
 
 /* Map semantic tokens -> Tailwind v4 utility namespaces. `inline` so var()
    values resolve at the utility's usage site (respects the .dark override). */
