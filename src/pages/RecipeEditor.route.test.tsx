@@ -146,6 +146,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     act(() => puts[0].resolve())
 
     expect(await screen.findByText('Detail: Pasta neu')).toBeTruthy()
+    expect(updateRecipe).toHaveBeenCalledTimes(1) // no extra PUT from the unmount flush
   })
 
   it('also waits for the follow-up save queued behind a running one', async () => {
@@ -212,6 +213,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     act(() => puts[0].resolve())
     await act(async () => {})
 
+    expect(puts).toHaveLength(1) // the unmount flush doesn't re-send the value in flight
     expect(screen.getByText('List')).toBeTruthy()
     expect(screen.queryByText(/Detail:/)).toBeNull()
   })

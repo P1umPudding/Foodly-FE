@@ -86,28 +86,30 @@ export function useAutosave<T>(
       .finally(() => {
         inFlight.current = false
         // Something changed while we were saving — fold it into one more save.
-        if (queued.current) {
-          queued.current = false
-          run()
-        } else if (waiter.current) {
-          settleWaiter()
-        }
+        // Skipped when the saved value is already the newest one (e.g. the
+        // unmount flush queued behind a save of that same value).
+        const followUp = queued.current && dirty()
+        queued.current = false
+        if (followUp) run()
+        else settleWaiter()
       })
   }, [])
 
   // Runs after a flight with nothing queued. Also after unmount: a flush() caller
-  // may still be awaiting, and its promise must not be left hanging.
+  // may still be awaiting, and its promise must not be left hanging. Reads refs
+  // only, which is what makes calling it from the memoized `run` safe.
   const settleWaiter = () => {
     const w = waiter.current
     if (!w) return
+    const done = (settle: () => void) => {
+      waiter.current = null
+      settle()
+    }
     const attempt = lastAttempt.current
-    if (!enabledRef.current || !dirty()) {
-      waiter.current = null
-      w.resolve()
-    } else if (attempt && attempt.error !== null && Object.is(attempt.value, latest.current)) {
-      waiter.current = null
-      w.reject(attempt.error)
-    } else {
+    if (!enabledRef.current || !dirty()) done(w.resolve)
+    else if (attempt && attempt.error !== null && Object.is(attempt.value, latest.current))
+      done(() => w.reject(attempt.error))
+    else {
       // A newer edit than the last attempt (typed while waiting): save it now
       // instead of letting its debounce run.
       if (timer.current) {
@@ -147,7 +149,8 @@ export function useAutosave<T>(
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => {
       timer.current = null
-      run()
+      // flush() may already have saved this value before the effect armed the timer.
+      if (dirty()) run()
     }, delay)
 
     return () => {
