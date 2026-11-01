@@ -7,17 +7,18 @@ Base: main 880d0e0, branch agent/issue-71. Scope: `src/components/recipe/Portion
 `DeferredNumberInput` (library) copies the `value` prop into its own `localValue` only when the prop changes, so a rejected or no-op commit leaves the typed text in the field. Two in-repo options:
 - (a) `key` counter on `DeferredNumberInput`, bumped after a rejected/no-op commit → remount. Downside: remount drops focus after Enter.
 - (b) **chosen:** buffer the edit in PortionScaler and render the library's exported `NumberInput` (still `@postxl/ui-components`, same look/props) directly:
-  - `const [draft, setDraft] = useState<number | null | undefined>(undefined)` — `undefined` = not editing.
-  - `value={draft === undefined ? current : (draft ?? undefined)}` → while editing, the draft shows (empty stays empty); otherwise always `current`.
-  - `onChange={(v) => setDraft(v ?? null)}`
-  - `onBlur` and `onEnter` → `finishEdit()`: `if (draft !== undefined) commit(draft); setDraft(undefined)`.
-  Result: after every commit the field shows `current` derived from the (possibly unchanged) factor; focus stays after Enter; stepper changes while not editing show immediately (draft is undefined). A later blur after Enter is a no-op (draft undefined).
+  - `const [draft, setDraft] = useState<{ typed: number | null; over: number } | null>(null)` — `null` = not editing; `typed` null = the box was cleared; `over` = the applied value (`current`) the edit was typed over.
+  - During render: `if (draft && draft.over !== current) setDraft(null)` — a factor change from outside (the steppers in the other row, a reset) drops the pending edit for good, so a later blur can't overwrite that change and stepping back doesn't revive it (found in code review 1).
+  - `value={draft ? (draft.typed ?? undefined) : current}` → while editing, the draft shows (empty stays empty); otherwise always `current`.
+  - `onChange={(v) => setDraft({ typed: v ?? null, over: current })}`
+  - `onBlur` and `onEnter` → `finishEdit()`: `if (draft) commit(draft.typed); setDraft(null)`.
+  Result: after every commit the field shows `current` derived from the (possibly unchanged) factor; focus stays after Enter; a later blur after Enter is a no-op. Typing a value and then tapping a stepper discards the typed value (the stepper wins).
   Why not keep DeferredNumberInput: its re-sync depends on prop changes, which is exactly the broken case.
 
 ## Steps
 0. Commit the plan as `docs/superpowers/plans/2026-11-01-portion-field-snap-back.md` (repo convention, see #68/#82): commit `docs: Plan für #71 (Portionsfeld zeigt nach Verlassen den angewendeten Wert)`.
 1. `PortionScaler.tsx`
-   - Import `NumberInput` instead of `DeferredNumberInput`; add `useState` from react. The `useState` call sits at the top of the component, before the `part === 'input'` / `'steppers'` early returns (hook order). Each instance has its own `draft`; the steppers-only instance never uses it.
+   - Import `NumberInput` instead of `DeferredNumberInput`; add `useState` from react. The `useState` call sits before the `part === 'input'` / `'steppers'` early returns (hook order). Each instance has its own `draft`; the steppers-only instance never uses it.
    - NumberInput spreads `...props` after its own onBlur, so our `onBlur` replaces its internal handler; that handler only matters with `format` (not set), same as DeferredNumberInput today.
    - `commit(value)` rules (order matters):
      1. `value !== null && value < 0` → ignore (field falls back to `current`; also -0.001)
@@ -42,6 +43,8 @@ Base: main 880d0e0, branch agent/issue-71. Scope: `src/components/recipe/Portion
      - typing current value `'4'` → onChange not called
      - multiplier mode (AC4): factor 1, `''` → '1'; `'0'` → '1'; factor 1.5, `'-2'` → '1.5'; factor 1.5, `''` → '1'
      - valid value still works: portions `'6'` → field '6', onChange 1.5 (existing test covers the call)
+   - Split layout (added in code review 1): two instances (`part="input"` + `part="steppers"`) sharing one factor; type 7 without blur, click "Mehr" → box '5'; "Weniger" → '4' (draft not revived); "Mehr", blur → '5', no commit of the stale 7.
+   - Enter test also blurs afterwards and asserts exactly one commit.
    - No tests for `'-'` / `'abc'` (jsdom turns them into `''`, same as empty).
    - Existing test cases stay unchanged (only the stale helper comment changes); they must still pass, incl. "clearing resets to factor 1".
 3. Verify: `npm run build`, `npm test -- --passWithNoTests`, `npm run format`. Visual check: try Chrome MCP / any available browser against `VITE_MOCK=1 npm run dev`; if none is available in this container (QA notes Chrome doesn't start), say so explicitly in the PR body and rely on the controlled-value tests.
@@ -56,5 +59,6 @@ Base: main 880d0e0, branch agent/issue-71. Scope: `src/components/recipe/Portion
 No `Co-Authored-By` or any AI trailer (CLAUDE.md overrides harness defaults).
 0. `docs: Plan für #71 (Portionsfeld zeigt nach Verlassen den angewendeten Wert)`
 1. `PortionScaler: Feld zeigt nach Commit immer den angewendeten Wert (#71)` — component + tests together (small change, tests prove it).
-(Optional follow-up commit only for format fixes.)
+2. `PortionScaler: Stepper-Änderung verwirft eine offene Eingabe im Feld (#71)` — code review 1 fix (draft keyed to the value it was typed over).
+3. `docs: Plan für #71 an den finalen Code angepasst` — code review 2.
 

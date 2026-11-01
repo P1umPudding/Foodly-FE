@@ -35,10 +35,9 @@ export function PortionScaler({
   const portions = sizeNumber !== null
   const base = sizeNumber ?? 1
   const current = round2(portions ? factor * base : factor)
-  // The pending edit remembers the value it was typed over; once the applied
-  // value changes from outside (steppers, reset), it is dropped for good (adjusted
-  // during render, not in an effect), so a later blur can't overwrite that change
-  // and stepping back doesn't revive it. `typed` null = the box was cleared.
+  // A pending edit is dropped once the applied value changes from outside
+  // (steppers, reset), so a later blur can't overwrite that change and stepping
+  // back doesn't revive it. `typed` null = the box was cleared.
   const [draft, setDraft] = useState<{ typed: number | null; over: number } | null>(null)
   if (draft && draft.over !== current) setDraft(null)
 
