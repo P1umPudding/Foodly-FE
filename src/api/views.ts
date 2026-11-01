@@ -109,8 +109,8 @@ const UNICODE_FRACTIONS: Record<string, number> = {
 const DECIMAL = /^(\d+([.,]\d*)?|[.,]\d+)$/
 const SLASH_FRACTION = /^(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)$/
 const UNICODE_FRACTION = new RegExp(`^(?:(\\d+)\\s*)?([${Object.keys(UNICODE_FRACTIONS).join('')}])$`)
-// Lazy left side, so the separator keeps the input's spacing; no leading dash
-// (no negative amounts), so "-2" never matches.
+// Lazy left side, so the separator keeps the input's spacing. No negative
+// amounts: a leading dash leaves the left side empty, so "-2" is rejected.
 const RANGE = /^(.+?)(\s*[-–]\s*)(.+)$/
 
 function parseQuantity(s: string): number | null {

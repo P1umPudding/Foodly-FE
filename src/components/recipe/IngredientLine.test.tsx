@@ -21,7 +21,7 @@ describe('IngredientLine — "nicht skaliert" hint', () => {
   it('flags an amount it cannot scale when the factor is not 1', () => {
     renderLine('etwas', 2)
     expect(screen.getByText('etwas')).toBeTruthy()
-    expect(screen.getByText('nicht skaliert')).toBeTruthy()
+    expect(screen.getByText('nicht skaliert').textContent).toBe('Menge nicht skaliert')
   })
 
   it('shows no hint at factor 1', () => {
@@ -35,9 +35,8 @@ describe('IngredientLine — "nicht skaliert" hint', () => {
     expect(screen.queryByText('nicht skaliert')).toBeNull()
   })
 
-  it('shows no hint for a missing or blank amount', () => {
-    renderLine(null, 2)
-    renderLine('  ', 2)
+  it.each([null, '  '])('shows no hint for a missing or blank amount (%j)', (amount) => {
+    renderLine(amount, 2)
     expect(screen.queryByText('nicht skaliert')).toBeNull()
   })
 })
