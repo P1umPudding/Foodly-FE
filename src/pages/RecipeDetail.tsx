@@ -45,7 +45,7 @@ export function RecipeDetail() {
   const navigate = useNavigate()
   const [cloning, setCloning] = useState(false)
   const [cloneError, setCloneError] = useState<string | null>(null)
-  // Bumped on every recipe switch, so a clone of the previous recipe that fails late leaves the new one alone.
+  // Bumped per clone attempt and on every recipe switch, so a late failure of an outdated clone is ignored.
   const cloneAttempt = useRef(0)
 
   const onClone = async () => {
