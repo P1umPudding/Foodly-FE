@@ -210,8 +210,11 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     fireEvent.click(screen.getByText('elsewhere'))
     expect(await screen.findByText('List')).toBeTruthy()
 
-    act(() => puts[0].resolve())
-    await act(async () => {})
+    await act(async () => {
+      puts[0].resolve()
+      // Let the whole save -> flush -> finish() continuation chain run.
+      for (let i = 0; i < 10; i++) await Promise.resolve()
+    })
 
     expect(puts).toHaveLength(1) // the unmount flush doesn't re-send the value in flight
     expect(screen.getByText('List')).toBeTruthy()

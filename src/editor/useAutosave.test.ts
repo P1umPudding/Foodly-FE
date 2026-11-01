@@ -526,3 +526,61 @@ describe('useAutosave · flush', () => {
     expect(t.state).toBe('resolved')
   })
 })
+
+describe('useAutosave · follow-up saves', () => {
+  it('still runs a queued retry of the same value after a failed save, and flush settles on it', async () => {
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    let t!: ReturnType<typeof track>
+    act(() => {
+      t = track(result.current.flush())
+    })
+    act(() => result.current.retry()) // mid-flight: only queues
+
+    first.reject(new Error('offline'))
+    await settle()
+
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenLastCalledWith('b')
+    expect(t.state).toBe('resolved')
+  })
+
+  it('does not re-send the value in flight when unmounting', async () => {
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    unmount()
+
+    first.resolve()
+    await settle()
+
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports a failed in-flight save after unmount and still sends the newer value', async () => {
+    const onFlushError = vi.fn()
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onFlushError }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    rerender({ v: 'c' })
+    unmount()
+
+    first.reject(new Error('offline'))
+    await settle()
+
+    expect(onFlushError).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenLastCalledWith('c')
+  })
+})

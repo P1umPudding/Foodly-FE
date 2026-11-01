@@ -149,7 +149,7 @@ export function useAutosave<T>(
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => {
       timer.current = null
-      // flush() may already have saved this value before the effect armed the timer.
+      // flush() or a follow-up may have persisted this value by the time the debounce fires.
       if (dirty()) run()
     }, delay)
 

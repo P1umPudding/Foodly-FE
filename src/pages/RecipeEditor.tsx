@@ -200,8 +200,8 @@ export function RecipeEditor() {
           ) : (
             <>
               <SaveStatusIndicator status={saveStatus} onRetry={retry} />
-              <Button className="gap-1.5" onClick={finish} disabled={finishing} aria-busy={finishing}>
-                {finishing && <Loader2 className="h-4 w-4 animate-spin" />}
+              <Button onClick={finish} disabled={finishing} aria-busy={finishing}>
+                {finishing && <Loader2 className="animate-spin" />}
                 Fertig
               </Button>
             </>
