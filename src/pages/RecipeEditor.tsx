@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Alert, AlertDescription, AlertTitle, Button, Skeleton, toast } from '@postxl/ui-components'
-import { Loader2, Plus } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle, Button, Skeleton, Spinner, toast } from '@postxl/ui-components'
+import { Plus } from 'lucide-react'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { useCurrentUserId } from '../catalog/CatalogProvider'
@@ -70,7 +70,11 @@ export function RecipeEditor() {
   // "Fertig" waits for the save: the detail page re-fetches on mount, and a GET
   // that overtakes a still-running PUT would show the old recipe.
   const [finishing, setFinishing] = useState(false)
+  const finishingRef = useRef(false)
   const finish = async () => {
+    // aria-disabled (not disabled) keeps focus on the button, so clicks still arrive: drop repeats here.
+    if (finishingRef.current) return
+    finishingRef.current = true
     setFinishing(true)
     try {
       await flush()
@@ -79,6 +83,7 @@ export function RecipeEditor() {
     } catch {
       // The save status indicator already shows the error with a retry.
     } finally {
+      finishingRef.current = false
       if (alive.current) setFinishing(false)
     }
   }
@@ -200,8 +205,13 @@ export function RecipeEditor() {
           ) : (
             <>
               <SaveStatusIndicator status={saveStatus} onRetry={retry} />
-              <Button onClick={finish} disabled={finishing} aria-busy={finishing}>
-                {finishing && <Loader2 className="animate-spin" />}
+              <Button
+                onClick={finish}
+                aria-disabled={finishing}
+                aria-busy={finishing}
+                className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+              >
+                {finishing && <Spinner className="size-4" />}
                 Fertig
               </Button>
             </>

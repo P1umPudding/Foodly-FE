@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditorRoute } from '../App'
@@ -106,10 +106,23 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     return <p>Detail: {name ?? '…'}</p>
   }
 
+  // Every navigation gets a fresh location key, so this records each one — even
+  // a repeated push of the same path.
+  const visits: string[] = []
+  function VisitLog() {
+    const location = useLocation()
+    useEffect(() => {
+      visits.push(location.pathname)
+    }, [location.key])
+    return null
+  }
+
   function renderEditor() {
+    visits.length = 0
     render(
       <TooltipProvider>
         <MemoryRouter initialEntries={['/recipes/5/edit']}>
+          <VisitLog />
           <Link to="/recipes">elsewhere</Link>
           <Routes>
             <Route path="/recipes" element={<p>List</p>} />
@@ -138,8 +151,10 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
     await waitFor(() => expect(updateRecipe).toHaveBeenCalledTimes(1))
     expect(puts[0].title).toBe('Pasta neu')
-    expect(fertig().disabled).toBe(true)
+    expect(fertig().getAttribute('aria-disabled')).toBe('true')
     expect(fertig().getAttribute('aria-busy')).toBe('true')
+    // Not `disabled`: browsers drop focus to <body> from a disabled button (jsdom doesn't, hence this check).
+    expect(fertig().disabled).toBe(false)
     expect(screen.queryByText(/Detail:/)).toBeNull()
     expect(getRecipe).toHaveBeenCalledTimes(1) // only the editor's own load
 
@@ -173,13 +188,16 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     renderEditor()
     await openAndRename('Pasta neu')
 
+    fertig().focus()
     fireEvent.click(fertig())
     await waitFor(() => expect(puts).toHaveLength(1))
+    expect(document.activeElement).toBe(fertig())
     act(() => puts[0].reject(new Error('offline')))
 
     expect(await screen.findByText('Nicht gespeichert')).toBeTruthy()
     expect(screen.getByText('Erneut versuchen')).toBeTruthy()
-    await waitFor(() => expect(fertig().disabled).toBe(false))
+    await waitFor(() => expect(fertig().getAttribute('aria-disabled')).toBe('false'))
+    expect(document.activeElement).toBe(fertig()) // focus stays on Fertig through wait and failure
     expect(screen.queryByText(/Detail:/)).toBeNull()
 
     fireEvent.click(fertig())
@@ -187,6 +205,24 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     act(() => puts[1].resolve())
 
     expect(await screen.findByText('Detail: Pasta neu')).toBeTruthy()
+  })
+
+  it('ignores repeated clicks while waiting', async () => {
+    const { updateRecipe, puts } = server()
+    renderEditor()
+    await openAndRename('Pasta neu')
+
+    fireEvent.click(fertig())
+    await waitFor(() => expect(puts).toHaveLength(1))
+    fireEvent.click(fertig())
+    fireEvent.click(fertig())
+
+    act(() => puts[0].resolve())
+
+    expect(await screen.findByText('Detail: Pasta neu')).toBeTruthy()
+    await act(async () => {})
+    expect(updateRecipe).toHaveBeenCalledTimes(1)
+    expect(visits).toEqual(['/recipes/5/edit', '/recipes/5']) // navigated once, not three times
   })
 
   it('navigates straight away without unsaved changes', async () => {
