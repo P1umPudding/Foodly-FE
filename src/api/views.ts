@@ -86,20 +86,80 @@ export function ingredientParts(line: RecipeIngredient): { quantity: string; nam
   return { quantity, name }
 }
 
-// Scale the pure number in an ingredient `amount` by `factor` (Koch-Modus
-// portion scaling). The prefix/unit live in other fields, so this only ever sees
-// the bare number string. German comma out, max 2 decimals, trailing zeros
-// trimmed; comma OR dot accepted on input. `Number('')` is 0, so empty/whitespace
-// is treated as non-numeric explicitly and passed through.
+const UNICODE_FRACTIONS: Record<string, number> = {
+  '½': 1 / 2,
+  '⅓': 1 / 3,
+  '⅔': 2 / 3,
+  '¼': 1 / 4,
+  '¾': 3 / 4,
+  '⅕': 1 / 5,
+  '⅖': 2 / 5,
+  '⅗': 3 / 5,
+  '⅘': 4 / 5,
+  '⅙': 1 / 6,
+  '⅚': 5 / 6,
+  '⅐': 1 / 7,
+  '⅛': 1 / 8,
+  '⅜': 3 / 8,
+  '⅝': 5 / 8,
+  '⅞': 7 / 8,
+  '⅑': 1 / 9,
+  '⅒': 1 / 10,
+}
+const DECIMAL = /^(\d+([.,]\d*)?|[.,]\d+)$/
+const SLASH_FRACTION = /^(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)$/
+const UNICODE_FRACTION = new RegExp(`^(?:(\\d+)\\s*)?([${Object.keys(UNICODE_FRACTIONS).join('')}])$`)
+// Lazy left side, so the separator keeps the input's spacing. No negative
+// amounts: a leading dash leaves the left side empty, so "-2" is rejected.
+const RANGE = /^(.+?)(\s*[-–]\s*)(.+)$/
+
+function parseQuantity(s: string): number | null {
+  const t = s.trim()
+  if (DECIMAL.test(t)) return Number(t.replace(',', '.'))
+  const slash = SLASH_FRACTION.exec(t)
+  if (slash) {
+    const [, whole, num, den] = slash
+    if (Number(den) === 0) return null
+    return Number(whole ?? 0) + Number(num) / Number(den)
+  }
+  const unicode = UNICODE_FRACTION.exec(t)
+  if (unicode) return Number(unicode[1] ?? 0) + UNICODE_FRACTIONS[unicode[2]]
+  return null
+}
+
+type ParsedAmount = { values: [number] } | { values: [number, number]; separator: string }
+
+function parseAmount(amount: string): ParsedAmount | null {
+  const t = amount.trim()
+  const single = parseQuantity(t)
+  if (single !== null) return { values: [single] }
+  const range = RANGE.exec(t)
+  if (!range) return null
+  const from = parseQuantity(range[1])
+  const to = parseQuantity(range[3])
+  return from === null || to === null ? null : { values: [from, to], separator: range[2] }
+}
+
+function formatScaled(n: number): string {
+  return String(Math.round(n * 100) / 100).replace('.', ',')
+}
+
+// Whether `scaleAmount` can scale this amount. Callers use it to flag amounts
+// that stay as typed ("etwas") when the portion factor is not 1.
+export function isScalableAmount(amount: string | null): boolean {
+  return amount !== null && parseAmount(amount) !== null
+}
+
+// Scale an ingredient `amount` (number, fraction, mixed number or range) by
+// `factor` for portion scaling; prefix and unit live in other fields. The parser
+// is strict on purpose: anything it does not recognise comes back unchanged, and
+// factor 1 returns the input as typed (no reformatting of "½").
 export function scaleAmount(amount: string | null, factor: number): string | null {
-  if (amount === null) return null
-  if (factor === 1) return amount
-  const trimmed = amount.trim()
-  if (trimmed === '') return amount
-  const n = Number(trimmed.replace(',', '.'))
-  if (!Number.isFinite(n)) return amount
-  const rounded = Math.round(n * factor * 100) / 100
-  return String(rounded).replace('.', ',')
+  if (amount === null || factor === 1) return amount
+  const parsed = parseAmount(amount)
+  if (!parsed) return amount
+  const [from, to] = parsed.values.map((n) => formatScaled(n * factor))
+  return 'separator' in parsed ? `${from}${parsed.separator}${to}` : from
 }
 
 // No time/portion formatters here on purpose: `recipe.time` is shown as-is,
