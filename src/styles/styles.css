@@ -41,9 +41,8 @@
 /* Class-based dark mode (Tailwind v4 custom variant). */
 @custom-variant dark (&:where(.dark, .dark *)); /* NOSONAR - Tailwind v4 at-rule */
 
-/* The phone side of the shell breakpoint: must be the exact complement of SHELL_DESKTOP_QUERY
-   (src/hooks/useIsDesktop.ts), guarded by phoneVariant.test.ts. The old 760 px max-variant
-   compiled to `width < 760px`, so at exactly 760 px JS said phone but CSS said desktop (#66). */
+/* Phone side of the shell breakpoint: the exact complement of SHELL_DESKTOP_QUERY
+   (src/hooks/useIsDesktop.ts), so no width gets JS phone layout with desktop CSS (#66). */
 @custom-variant phone (@media (width < 761px)); /* NOSONAR - Tailwind v4 at-rule */
 
 /* Map semantic tokens -> Tailwind v4 utility namespaces. `inline` so var()
