@@ -31,6 +31,8 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       globals: true,
       setupFiles: ['./src/test/setup.ts'],
+      // Vitest blanks CSS imports, `?raw` included; focusRing.test.ts needs the real token values.
+      css: { include: [/src\/styles\/theme\.css\?raw$/] },
     },
   }
 })
