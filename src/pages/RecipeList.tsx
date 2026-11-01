@@ -42,7 +42,7 @@ function listIdentity(search: string): string {
 }
 
 export function RecipeList() {
-  const { state, set, clear } = useListState()
+  const { state, set, setSearch, clear } = useListState()
   const currentUserId = useCurrentUserId()
   const tags = useTags()
   const ingredients = useIngredients()
@@ -250,7 +250,7 @@ export function RecipeList() {
             <div ref={searchRowRef} className="mt-2.5 flex flex-col gap-3 sm:flex-row sm:items-center">
               <SearchInput
                 value={state.search}
-                onChange={(v) => set({ search: v })}
+                onChange={setSearch}
                 placeholder="Suchen…"
                 clearLabel="Suche leeren"
                 className="flex-1"
