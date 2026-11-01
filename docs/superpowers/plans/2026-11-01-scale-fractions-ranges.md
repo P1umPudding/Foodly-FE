@@ -25,7 +25,7 @@ Commit: "Portionieren: Brüche und Bereiche in scaleAmount skalieren (#72)", inc
 
 ## Step 2: "nicht skaliert" hint (src/components/recipe/IngredientLine.tsx)
 - `const unscaled = factor !== 1 && Boolean(line.amount?.trim()) && !isScalableAmount(line.amount)`.
-- In the name cell after `<TagText value={name} />`: `{unscaled && <span className="ml-2 text-xs text-subtle-foreground">nicht skaliert</span>}` (A1; plain text, so screen readers read it; dims with the row when ticked).
+- In the name cell after `<TagText value={name} />`: `{unscaled && <span className="ml-2 text-xs text-muted-foreground">nicht skaliert</span>}` (A1; plain text, so screen readers read it; dims with the row when ticked).
 - Test setup: only the `useTags` mock is needed (no `{tag}`s rendered), not the VITE_MOCK stub or fetch mocks from TagText.test.tsx.
 - No change to SectionBlock/RecipeDetail/PortionScaler (keeps clear of #71, which works on PortionScaler).
 
@@ -57,4 +57,4 @@ Commit: "Koch-Modus: nicht skalierbare Mengen als „nicht skaliert“ kennzeich
 
 ## Review log
 - Review pass 1 (fresh subagent): no blockers. Major: plan not in docs/superpowers/plans (fixed: committed with step 1); strict regex dropped '.5'/'5.' (fixed: regex widened, tests added, intentional drops stated). Minor: spaces around slash (fixed), mixed-number shape (fixed + tests), whitespace AC5 case (added), stale comment (fixed). Nits: formatScaled, no AI trailer, npm ci, PR notes (all applied).
-- Review pass 2 (fresh subagent, prototyped parser in node, all planned expectations verified): no blockers/majors. Minor: pinned edge tests '1 1 / 2' and '2 -1/2' (added); hint colour now text-subtle-foreground per design.md meta row (changed); exact regexes written out (added). Nits: U+2044 noted in A3; lean test setup noted; checkbox aria-label unchanged (fine).
+- Review pass 2 (fresh subagent, prototyped parser in node, all planned expectations verified): no blockers/majors. Minor: pinned edge tests '1 1 / 2' and '2 -1/2' (added); hint colour now text-muted-foreground per design.md meta row (changed); exact regexes written out (added). Nits: U+2044 noted in A3; lean test setup noted; checkbox aria-label unchanged (fine).

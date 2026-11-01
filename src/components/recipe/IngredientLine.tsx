@@ -44,7 +44,12 @@ export function IngredientLine({
       </td>
       <td className={cn('py-1 align-baseline', dim)}>
         <TagText value={name} />
-        {unscaled && <span className="ml-2 text-xs text-subtle-foreground">nicht skaliert</span>}
+        {/* muted, not the paler subtle meta token: small text needs the contrast. */}
+        {unscaled && (
+          <span className="ml-2 text-xs text-muted-foreground">
+            <span className="sr-only">Menge </span>nicht skaliert
+          </span>
+        )}
       </td>
     </tr>
   )
