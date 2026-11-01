@@ -30,7 +30,7 @@ Base: main 880d0e0, branch agent/issue-71. Scope: `src/components/recipe/Portion
    - Update the header comment (replace the now-inverted "a plain controlled NumberInput would snap the default back" note with 2–3 lines): the component buffers the edit itself (NumberInput + draft) so the field can be cleared while typing AND always shows the applied value after commit, even when the factor doesn't change (the library's DeferredNumberInput only re-syncs on prop change). Update the `commit` comment.
 2. `PortionScaler.test.tsx`
    - Add a `renderStateful(props)` helper: small wrapper component holding `factor` in `useState` and passing `setFactor` (plus a spy) as `onChange`, so the field re-renders as in RecipeDetail.
-   - Add `enter(value)` helper (`box().focus()`, change, keyDown Enter) next to `type` (fireEvent.focus does not move document.activeElement). `type()` stays as is, except its stale comment "DeferredNumberInput only commits on blur/Enter" → "The field commits on blur/Enter".
+   - The Enter test writes its steps inline (`act(() => input.focus())`, change, keyDown Enter): `fireEvent.focus` does not move document.activeElement. `type()` stays as is, except its stale comment "DeferredNumberInput only commits on blur/Enter" → "The field commits on blur/Enter".
    - `renderStateful` wraps in `TooltipProvider` like `renderScaler`; its onChange is `(f) => { spy(f); setFactor(f) }` so spy assertions see every commit. No `@testing-library/user-event` (not installed, don't add).
    - Use one `it.each` table for the snap-back cases (mode, factor, typed, expected field value, expected commit: number | null → `toHaveBeenLastCalledWith(n)` / `not.toHaveBeenCalled()`) to avoid repetition; separate `it`s only for Enter/focus, no-commit and stepper-after-commit.
    - New describe "PortionScaler — field shows the applied value":
@@ -60,5 +60,6 @@ No `Co-Authored-By` or any AI trailer (CLAUDE.md overrides harness defaults).
 0. `docs: Plan für #71 (Portionsfeld zeigt nach Verlassen den angewendeten Wert)`
 1. `PortionScaler: Feld zeigt nach Commit immer den angewendeten Wert (#71)` — component + tests together (small change, tests prove it).
 2. `PortionScaler: Stepper-Änderung verwirft eine offene Eingabe im Feld (#71)` — code review 1 fix (draft keyed to the value it was typed over).
-3. `docs: Plan für #71 an den finalen Code angepasst` — code review 2.
+3. `docs: Plan für #71 an den finalen Code angepasst, Draft-Kommentar gekürzt` — code review 2.
+4. `docs: Plan für #71: Enter-Test und Commit-Liste nachgezogen` — code review 3.
 
