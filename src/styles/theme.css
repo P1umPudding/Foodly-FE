@@ -51,7 +51,8 @@
   --border: oklch(0.91 0 0);
   --border-strong: oklch(0.8 0 0); /* hover border, checkbox outline */
   --input: oklch(0.91 0 0);
-  --ring: oklch(0.2 0 0 / 0.35);
+  /* ≥ 3:1 at full alpha on every surface (WCAG 1.4.11); postxl's ring-ring/50 halves it, see #77 */
+  --ring: oklch(0.2 0 0 / 0.5);
 
   /* sidebar (PostXL Sidebar/nav) */
   --sidebar: oklch(0.975 0 0);
@@ -61,7 +62,7 @@
   --sidebar-accent: oklch(0.93 0 0); /* active nav item */
   --sidebar-accent-foreground: oklch(0.2 0 0);
   --sidebar-border: oklch(0.92 0 0);
-  --sidebar-ring: oklch(0.2 0 0 / 0.35);
+  --sidebar-ring: oklch(0.2 0 0 / 0.5);
 
   /* category colour roles. Defaults = the neutral "no category" look; a
      category element overrides them inline with the values computed by the
@@ -120,7 +121,7 @@
   --border: oklch(0.29 0 0);
   --border-strong: oklch(0.4 0 0);
   --input: oklch(0.29 0 0);
-  --ring: oklch(0.95 0 0 / 0.35);
+  --ring: oklch(0.95 0 0 / 0.4);
 
   --sidebar: oklch(0.155 0 0);
   --sidebar-foreground: oklch(0.95 0 0);
@@ -129,7 +130,7 @@
   --sidebar-accent: oklch(0.26 0 0);
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(0.25 0 0);
-  --sidebar-ring: oklch(0.95 0 0 / 0.35);
+  --sidebar-ring: oklch(0.95 0 0 / 0.4);
 
   --cat-dot: oklch(0.7 0 0);
   --cat-soft: oklch(0.27 0 0);
