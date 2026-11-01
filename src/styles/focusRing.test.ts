@@ -1,4 +1,4 @@
-// WCAG 1.4.11: the focus ring tokens must reach 3:1 against every surface they can sit on, in both themes.
+// WCAG 1.4.11: the focus ring tokens must reach 3:1 against every theme surface, in both themes.
 // Only full-alpha usages are covered; postxl's `ring-ring/50` halves the alpha (known gap, #77).
 import { describe, it, expect } from 'vitest'
 import themeCss from './theme.css?raw'
@@ -15,9 +15,12 @@ function block(selector: ':root' | '.dark'): string {
 
 // Only greyscale `oklch(L 0 0[ / a])` and `#fff` exist today; anything else must fail loudly, not be skipped.
 function token(css: string, name: string): { hex: string; alpha: number } {
-  const value = css.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1].trim()
+  // CSS applies the last declaration, so a duplicate must not let the test check a stale one.
+  const values = [...css.matchAll(new RegExp(`--${name}:\\s*([^;]+);`, 'g'))].map((m) => m[1].trim())
+  if (values.length !== 1) throw new Error(`--${name}: expected one declaration, found ${values.length}`)
+  const value = values[0]
   if (value === '#fff') return { hex: '#ffffff', alpha: 1 }
-  const oklch = value?.match(/^oklch\(([\d.]+) 0 0(?: \/ ([\d.]+))?\)$/)
+  const oklch = value.match(/^oklch\(([\d.]+) 0 0(?: \/ ([\d.]+))?\)$/)
   if (!oklch) throw new Error(`--${name}: unsupported value ${value}`)
   return { hex: oklchToHex(Number(oklch[1]), 0, 0), alpha: oklch[2] ? Number(oklch[2]) : 1 }
 }
