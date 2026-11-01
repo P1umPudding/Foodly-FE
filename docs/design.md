@@ -47,6 +47,9 @@ gilt: nichts Neues im alten Stil bauen.
 Keine eigenen Grau- oder Hex-Werte in Komponenten (`text-gray-500`, `bg-[#…]`). Fehlt eine Rolle, kommt sie als Token
 hierher, nicht als Einzelwert in den Code.
 
+Fokus-Ring (`--ring`, `--sidebar-ring`): bei voller Token-Deckkraft ≥ 3:1 auf allen Flächen, hell und dunkel
+(WCAG 1.4.11), geprüft in `src/styles/focusRing.test.ts`; postxl-`ring-ring/50` halbiert die Deckkraft noch (~1,7:1, #77).
+
 ### Radien – genau drei
 
 | Klasse | px | Für |

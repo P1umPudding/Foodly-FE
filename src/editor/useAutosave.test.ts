@@ -278,3 +278,309 @@ describe('useAutosave', () => {
     expect(save).toHaveBeenCalledWith('loaded, then edited')
   })
 })
+
+function deferred() {
+  let resolve!: () => void
+  let reject!: (e: unknown) => void
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return { promise, resolve, reject }
+}
+
+// Tracks how a flush() promise ended without awaiting it, so tests can assert
+// "not settled yet" in between steps.
+function track(p: Promise<void>) {
+  const t: { state: 'pending' | 'resolved' | 'rejected'; error: unknown } = { state: 'pending', error: null }
+  p.then(
+    () => (t.state = 'resolved'),
+    (e) => {
+      t.state = 'rejected'
+      t.error = e
+    },
+  )
+  return t
+}
+
+const settle = () =>
+  act(async () => {
+    for (let i = 0; i < 5; i++) await Promise.resolve()
+  })
+
+describe('useAutosave · flush', () => {
+  it('resolves at once when nothing is pending', async () => {
+    const save = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useAutosave('a', save))
+
+    const t = track(result.current.flush())
+    await settle()
+
+    expect(t.state).toBe('resolved')
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('saves a pending debounce now and resolves only after the save lands', async () => {
+    const put = deferred()
+    const save = vi.fn().mockReturnValue(put.promise)
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    let t!: ReturnType<typeof track>
+    act(() => {
+      t = track(result.current.flush())
+    })
+
+    expect(save).toHaveBeenCalledWith('b')
+    await settle()
+    expect(t.state).toBe('pending')
+
+    put.resolve()
+    await settle()
+    expect(t.state).toBe('resolved')
+
+    // The debounce was consumed by the flush, so it must not save 'b' again.
+    act(() => vi.advanceTimersByTime(2000))
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+
+  it('waits for the follow-up save when a save is already in flight', async () => {
+    const first = deferred()
+    const second = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    rerender({ v: 'c' }) // debounce pending behind the flight
+
+    let t!: ReturnType<typeof track>
+    act(() => {
+      t = track(result.current.flush())
+    })
+    expect(save).toHaveBeenCalledTimes(1) // still single-flight
+
+    first.resolve()
+    await settle()
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenLastCalledWith('c')
+    expect(t.state).toBe('pending')
+
+    second.resolve()
+    await settle()
+    expect(t.state).toBe('resolved')
+  })
+
+  it('folds an edit typed while waiting into the same wait', async () => {
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    let t!: ReturnType<typeof track>
+    act(() => {
+      t = track(result.current.flush())
+    })
+    rerender({ v: 'bc' }) // arms a fresh debounce
+
+    first.resolve()
+    await settle()
+
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenLastCalledWith('bc')
+    expect(t.state).toBe('resolved')
+  })
+
+  it('rejects when the newest value fails, and a later flush retries', async () => {
+    const save = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    let t!: ReturnType<typeof track>
+    act(() => {
+      t = track(result.current.flush())
+    })
+    await settle()
+
+    expect(t.state).toBe('rejected')
+    expect((t.error as Error).message).toBe('offline')
+    expect(result.current.status.state).toBe('error')
+
+    let again!: ReturnType<typeof track>
+    act(() => {
+      again = track(result.current.flush())
+    })
+    await settle()
+
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenLastCalledWith('b')
+    expect(again.state).toBe('resolved')
+    expect(result.current.status.state).toBe('saved')
+  })
+
+  it('resolves when a failed save is followed by a successful follow-up', async () => {
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800))
+    rerender({ v: 'c' })
+    let t!: ReturnType<typeof track>
+    act(() => {
+      t = track(result.current.flush())
+    })
+
+    first.reject(new Error('offline'))
+    await settle()
+
+    expect(save).toHaveBeenLastCalledWith('c')
+    expect(t.state).toBe('resolved')
+  })
+
+  it('does not save after an edit is reverted to the persisted value', async () => {
+    const save = vi.fn().mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    rerender({ v: 'a' }) // back to baseline; the cleared debounce leaves a stale timer id behind
+
+    const t = track(result.current.flush())
+    await settle()
+
+    expect(t.state).toBe('resolved')
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('resolves without saving while disabled', async () => {
+    const save = vi.fn().mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save, { enabled: false }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    const t = track(result.current.flush())
+    await settle()
+
+    expect(t.state).toBe('resolved')
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('resolves without another save when autosave switches off while waiting', async () => {
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(({ v, enabled }) => useAutosave(v, save, { enabled }), {
+      initialProps: { v: 'a', enabled: true },
+    })
+
+    rerender({ v: 'b', enabled: true })
+    let t!: ReturnType<typeof track>
+    act(() => {
+      t = track(result.current.flush())
+    })
+    rerender({ v: 'c', enabled: true }) // edit typed during the flight
+    rerender({ v: 'c', enabled: false })
+
+    first.resolve()
+    await settle()
+
+    expect(t.state).toBe('resolved')
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+
+  it('settles under StrictMode', async () => {
+    const save = vi.fn().mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), {
+      initialProps: { v: 'a' },
+      wrapper: StrictMode,
+    })
+
+    rerender({ v: 'b' })
+    let t!: ReturnType<typeof track>
+    act(() => {
+      t = track(result.current.flush())
+    })
+    await settle()
+
+    expect(save).toHaveBeenCalledWith('b')
+    expect(t.state).toBe('resolved')
+  })
+
+  it('still settles a waiting caller after unmount', async () => {
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { result, rerender, unmount } = renderHook(({ v }) => useAutosave(v, save), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    let t!: ReturnType<typeof track>
+    act(() => {
+      t = track(result.current.flush())
+    })
+    unmount()
+
+    first.resolve()
+    await settle()
+
+    expect(t.state).toBe('resolved')
+  })
+})
+
+describe('useAutosave · follow-up saves', () => {
+  it('still runs a queued retry of the same value after a failed save, and flush settles on it', async () => {
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    let t!: ReturnType<typeof track>
+    act(() => {
+      t = track(result.current.flush())
+    })
+    act(() => result.current.retry()) // mid-flight: only queues
+
+    first.reject(new Error('offline'))
+    await settle()
+
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenLastCalledWith('b')
+    expect(t.state).toBe('resolved')
+  })
+
+  it('does not re-send the value in flight when unmounting', async () => {
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    unmount()
+
+    first.resolve()
+    await settle()
+
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports a failed in-flight save after unmount and still sends the newer value', async () => {
+    const onFlushError = vi.fn()
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onFlushError }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    rerender({ v: 'c' })
+    unmount()
+
+    first.reject(new Error('offline'))
+    await settle()
+
+    expect(onFlushError).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenLastCalledWith('c')
+  })
+})

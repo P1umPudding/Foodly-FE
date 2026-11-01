@@ -21,7 +21,7 @@ export function useAutosave<T>(
     delay = 800,
     onFlushError,
   }: { enabled?: boolean; delay?: number; onFlushError?: (error: unknown) => void } = {},
-): { status: SaveStatus; retry: () => void } {
+): { status: SaveStatus; retry: () => void; flush: () => Promise<void> } {
   const [status, setStatus] = useState<SaveStatus>(IDLE)
 
   // Refs, not state: these drive an imperative timer/flight machine and must not
@@ -41,6 +41,11 @@ export function useAutosave<T>(
   // Mirrors status.state for the beforeunload listener, which is registered once
   // and so can't close over `status` directly.
   const statusRef = useRef<SaveState>('idle')
+  // One shared deferred for every flush() caller: they all wait for the same chain.
+  const waiter = useRef<{ promise: Promise<void>; resolve: () => void; reject: (e: unknown) => void } | null>(null)
+  // The value the most recent save sent and how it ended, so settling can tell
+  // "this exact value failed" from "a newer edit still needs saving".
+  const lastAttempt = useRef<{ value: T; error: unknown } | null>(null)
 
   latest.current = value
   saveRef.current = save
@@ -67,9 +72,11 @@ export function useAutosave<T>(
       .current(pending)
       .then(() => {
         baseline.current = pending
+        lastAttempt.current = { value: pending, error: null }
         updateStatus({ state: 'saved', at: Date.now(), error: null })
       })
       .catch((error: unknown) => {
+        lastAttempt.current = { value: pending, error }
         // This fires asynchronously (after the await), so if unmount happened
         // in between, `mounted` is already false — route to the flush-error
         // callback instead of setting status on a component that's gone.
@@ -79,12 +86,39 @@ export function useAutosave<T>(
       .finally(() => {
         inFlight.current = false
         // Something changed while we were saving — fold it into one more save.
-        if (queued.current) {
-          queued.current = false
-          run()
-        }
+        // Skipped when the saved value is already the newest one (e.g. the
+        // unmount flush queued behind a save of that same value).
+        const followUp = queued.current && dirty()
+        queued.current = false
+        if (followUp) run()
+        else settleWaiter()
       })
   }, [])
+
+  // Runs after a flight with nothing queued. Also after unmount: a flush() caller
+  // may still be awaiting, and its promise must not be left hanging. Reads refs
+  // only, which is what makes calling it from the memoized `run` safe.
+  const settleWaiter = () => {
+    const w = waiter.current
+    if (!w) return
+    const done = (settle: () => void) => {
+      waiter.current = null
+      settle()
+    }
+    const attempt = lastAttempt.current
+    if (!enabledRef.current || !dirty()) done(w.resolve)
+    else if (attempt && attempt.error !== null && Object.is(attempt.value, latest.current))
+      done(() => w.reject(attempt.error))
+    else {
+      // A newer edit than the last attempt (typed while waiting): save it now
+      // instead of letting its debounce run.
+      if (timer.current) {
+        clearTimeout(timer.current)
+        timer.current = null
+      }
+      run()
+    }
+  }
 
   useEffect(() => {
     // While disabled (a new recipe, or one still loading) the value is tracked but
@@ -115,7 +149,8 @@ export function useAutosave<T>(
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => {
       timer.current = null
-      run()
+      // flush() or a follow-up may have persisted this value by the time the debounce fires.
+      if (dirty()) run()
     }, delay)
 
     return () => {
@@ -170,5 +205,30 @@ export function useAutosave<T>(
     run()
   }, [run])
 
-  return { status, retry }
+  // Saves whatever is pending right now and resolves once everything is persisted;
+  // rejects if the newest value failed to save. Callers that must not move on with
+  // a save outstanding (e.g. "Fertig" navigating to a page that re-fetches) await it.
+  const flush = useCallback((): Promise<void> => {
+    if (!enabledRef.current || (!inFlight.current && !dirty())) return Promise.resolve()
+    if (timer.current) {
+      clearTimeout(timer.current)
+      timer.current = null
+    }
+    if (!waiter.current) {
+      let resolve!: () => void
+      let reject!: (e: unknown) => void
+      const promise = new Promise<void>((res, rej) => {
+        resolve = res
+        reject = rej
+      })
+      waiter.current = { promise, resolve, reject }
+    }
+    const { promise } = waiter.current
+    // Invariant: a waiter only exists while a flight is running (run() sets
+    // inFlight synchronously), so that flight's .finally() is sure to settle it.
+    if (!inFlight.current) run()
+    return promise
+  }, [run])
+
+  return { status, retry, flush }
 }
