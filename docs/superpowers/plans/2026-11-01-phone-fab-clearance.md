@@ -26,7 +26,7 @@ Basis: spec.md incl. assumptions A1–A5. Smallest change: phone-only bottom pad
 ## Commits
 0. `Plan: Rezeptliste am Handy unter dem „+“-Knopf freihalten (#74)` (docs/superpowers/plans)
 1. `RecipeList: letzte Karte am Handy nicht mehr unter dem „+“-Knopf (#74)` (fix + test)
-2. `AppShell: Hinweis auf die Listen-Polsterung am „+“-Knopf (#74)` (comment only, from code review round 1)
+2. `AppShell: Hinweis auf die Listen-Polsterung am „+“-Knopf (#74)` (comment only, from code review round 1; refined in follow-up review commits)
 `npm run format` before the commit. No Co-Authored-By or other AI trailer.
 
 ## Review log
