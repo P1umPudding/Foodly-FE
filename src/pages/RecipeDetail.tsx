@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Clock, Copy, Info, ListChecks, Pencil } from 'lucide-react'
 import {
@@ -45,15 +45,19 @@ export function RecipeDetail() {
   const navigate = useNavigate()
   const [cloning, setCloning] = useState(false)
   const [cloneError, setCloneError] = useState<string | null>(null)
+  // Bumped per clone attempt and on every recipe switch, so a late failure of an outdated clone is ignored.
+  const cloneAttempt = useRef(0)
 
   const onClone = async () => {
     if (!recipe) return
+    const attempt = ++cloneAttempt.current
     setCloning(true)
     setCloneError(null)
     try {
       const copy = await foodly.copyRecipe(recipe.id)
       navigate(`/recipes/${copy.id}`)
     } catch (e) {
+      if (attempt !== cloneAttempt.current) return
       setCloneError((e as Error).message)
       setCloning(false)
     }
@@ -65,7 +69,8 @@ export function RecipeDetail() {
   const [ratedRecipe, setRatedRecipe] = useState<Recipe | null>(null)
 
   // Koch-Modus state is recipe-local and never persisted: switching recipes
-  // clears the factor, the check-off mode and all ticks.
+  // clears the factor, the check-off mode and all ticks. /recipes/:id keeps this
+  // instance across ids, so the clone state is reset here as well.
   const [factor, setFactor] = useState(1)
   const [checkable, setCheckable] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Set<RecipeIngredientId>>(new Set())
@@ -75,6 +80,9 @@ export function RecipeDetail() {
     setCheckable(false)
     setCheckedIds(new Set())
     setRatedRecipe(null)
+    setCloning(false)
+    setCloneError(null)
+    cloneAttempt.current++
   }, [recipeId])
 
   const toggleChecked = (id: RecipeIngredientId) =>
