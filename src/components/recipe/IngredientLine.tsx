@@ -46,7 +46,7 @@ export function IngredientLine({
         <TagText value={name} />
         {/* text-muted-foreground, not subtle: subtle at text-xs falls below 4.5:1. */}
         {unscaled && (
-          <span className="ml-2 text-xs text-muted-foreground">
+          <span className="ml-2 whitespace-nowrap text-xs text-muted-foreground">
             <span className="sr-only">Menge </span>nicht skaliert
           </span>
         )}
