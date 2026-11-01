@@ -1,21 +1,21 @@
 # Plan: #68 Listensuche ersetzt den Verlaufseintrag statt pro Tastendruck zu pushen
 
-Spec: `.git/agent-work/spec.md` (AC1–AC4, assumptions A1–A5).
+Spec: issue #68 (acceptance criteria AC1–AC4).
 
 ## Step 1 — `setSearch` in `useListState` (`src/list/useListState.ts`)
 
-- Move `set`'s body into a private helper `apply(patch, replace: boolean)` (`useCallback`): merge into `fromSearchParams(params)`, then `savePersisted`, then `setParams(next, { replace })`. `set(patch)` = `apply(patch, false)`. Its public signature and every caller stay untouched, so they keep pushing (A3). Persistence is unchanged (AC3/A4).
+- Move `set`'s body into a private helper `apply(patch, replace: boolean)` (`useCallback`): merge into `fromSearchParams(params)`, then `savePersisted`, then `setParams(next, { replace })`. `set(patch)` = `apply(patch, false)`. Its public signature and every caller stay untouched, so they keep pushing. Persistence is unchanged (AC3).
 - Stale `params` is not a risk: input changes are discrete events, so React 18 re-renders before the next keystroke. react-router-dom is ^6.26 without `v7_startTransition`. No refs needed.
 - New `setSearch(search: string)`, returned alongside `state/set/clear` (return type extended). It marks the history entry it creates via router location state `{ listSearch: true }` (constant `SEARCH_ENTRY_STATE` in the hook file). `useLocation()` is added to the hook. Decision:
-  - current entry is a search entry (`location.state?.listSearch === true`) → **replace**, keep the marker. This covers further keystrokes, clearing, and retyping after a clear. So clear + retype never piles up duplicates (pass-2 major).
-  - otherwise, next value blank (`search.trim() === ''`) → **replace** without a marker. The URL is identical anyway, since blank `q` is dropped by `toSearchParams`. This avoids pushing a no-op entry and never marks a filter entry as a search entry.
+  - current entry is a search entry (`location.state?.listSearch === true`) → **replace**, keep the marker. This covers further keystrokes, clearing, and retyping after a clear. So clear + retype never piles up duplicates.
+  - otherwise, next AND current search blank → **replace** without a marker. The URL is identical anyway, since blank `q` is dropped by `toSearchParams`. This avoids pushing a no-op entry and never marks a filter entry as a search entry. Clearing a linked, unmarked `?q=` pushes (with marker), so Back still reaches the linked search.
   - otherwise → **push** with the marker. This is the start of a search: exactly ONE new entry, even when the URL already has `q` from a deep link.
   - `apply` gets an optional `state` argument that is passed through to `setParams(next, { replace, state })`. Location state is safe: the only other reader is `isShellNav` (`nav.ts:58`), which checks `shellNav === true`. A replace drops shell-nav state just as every `set()` push already does.
   - Why-comment, 1–2 lines: Back after typing should land on the state before the search, not on each letter, and must not overwrite the preceding filter entry.
-  - Known trade-off (accepted, A1): clearing keeps the search entry, now showing the pre-search URL. So the stack holds that state twice, and one Back after clearing changes nothing visible. Retyping reuses that entry, so there is at most one such duplicate per search session. Mention this in the comment and in the PR.
+  - Known trade-off (accepted): clearing keeps the search entry, now showing the pre-search URL. So the stack holds that state twice, and one Back after clearing changes nothing visible. Retyping reuses that entry, so there is at most one such duplicate per search session. Mention this in the comment and in the PR.
 - Deps: `apply` `[params, currentUserId, setParams]`, `set` `[apply]`, `setSearch` `[location.state, apply]`, `clear` unchanged (`[params, set]`).
 - `clear()` unchanged (still pushes).
-- The policy lives in the hook, not in `SearchInput` (shared with tag/ingredient field searches, A2). It is testable without the page.
+- The policy lives in the hook, not in `SearchInput` (shared with tag/ingredient field searches). It is testable without the page.
 
 ## Step 2 — call site (`src/pages/RecipeList.tsx`)
 

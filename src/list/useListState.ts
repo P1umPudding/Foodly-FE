@@ -63,18 +63,16 @@ export function useListState(): {
 
   const set = useCallback((patch: Partial<ListState>) => apply(patch, false), [apply])
 
-  // A search gets ONE history entry: the first keystroke pushes, everything after (more letters, clearing,
-  // retyping) replaces it, so Back lands on the state before the search instead of walking back letter by
-  // letter, and the preceding filter entry is never overwritten. Trade-off: after clearing, that entry shows
-  // the same list as the one before it, so one Back changes nothing visible.
+  // A search gets ONE history entry: its first change pushes, later ones (more letters, clearing, retyping)
+  // replace it, so Back returns to the list before the search instead of walking back letter by letter.
   const setSearch = useCallback(
     (search: string) => {
       if (isSearchEntry(location.state)) apply({ search }, true, SEARCH_ENTRY_STATE)
-      // blank `q` is dropped from the URL, so this would only push a duplicate
-      else if (search.trim() === '') apply({ search }, true)
+      // blank → blank leaves the URL as is (blank `q` is dropped), so don't push a duplicate entry
+      else if (search.trim() === '' && state.search.trim() === '') apply({ search }, true)
       else apply({ search }, false, SEARCH_ENTRY_STATE)
     },
-    [location.state, apply],
+    [location.state, state.search, apply],
   )
 
   const clear = useCallback(() => set(clearedState(fromSearchParams(params))), [params, set])

@@ -23,7 +23,7 @@ const renderWithHistory = () =>
 type Harness = ReturnType<typeof renderWithHistory>['result']
 
 // Each keystroke reads the current callback: setSearch changes with every location.
-const type = (result: Harness, text: string) => {
+const typeSearch = (result: Harness, text: string) => {
   for (let i = 1; i <= text.length; i++) act(() => result.current.list.setSearch(text.slice(0, i)))
 }
 const back = (result: Harness) => act(() => result.current.navigate(-1))
@@ -63,7 +63,7 @@ describe('useListState', () => {
     it('gives a whole search one history entry, so Back returns to the state before it', () => {
       const { result } = renderWithHistory()
       act(() => result.current.list.set({ tags: ['Vegan'] }))
-      type(result, 'pasta')
+      typeSearch(result, 'pasta')
       expect(result.current.list.state.search).toBe('pasta')
 
       back(result)
@@ -85,11 +85,11 @@ describe('useListState', () => {
     it('reuses the search entry when clearing and retyping', () => {
       const { result } = renderWithHistory()
       act(() => result.current.list.set({ tags: ['Vegan'] }))
-      type(result, 'pasta')
+      typeSearch(result, 'pasta')
       act(() => result.current.list.setSearch(''))
       expect(result.current.type).toBe('REPLACE')
       expect(result.current.list.state.search).toBe('')
-      type(result, 'nudel')
+      typeSearch(result, 'nudel')
 
       back(result)
       expect(result.current.list.state).toMatchObject({ search: '', tags: ['Vegan'] })
@@ -100,13 +100,12 @@ describe('useListState', () => {
     it('leaves one entry showing the pre-search list after clearing (accepted trade-off)', () => {
       const { result } = renderWithHistory()
       act(() => result.current.list.set({ tags: ['Vegan'] }))
-      type(result, 'pasta')
+      typeSearch(result, 'pasta')
       act(() => result.current.list.setSearch(''))
+      const cleared = result.current.list.state
 
       back(result)
-      expect(result.current.list.state).toMatchObject({ search: '', tags: ['Vegan'] })
-      back(result)
-      expect(result.current.list.state.tags).toEqual([])
+      expect(result.current.list.state).toEqual(cleared)
     })
 
     it('adds no entry for a blank search and does not mark the filter entry as a search', () => {
@@ -125,6 +124,16 @@ describe('useListState', () => {
       expect(result.current.type).toBe('PUSH')
       act(() => result.current.list.setSearch('pasta'))
       expect(result.current.type).toBe('REPLACE')
+    })
+
+    it('keeps a linked search reachable with Back after clearing it', () => {
+      const { result } = renderHook(() => ({ list: useListState(), navigate: useNavigate() }), {
+        wrapper: wrapper(['/other', '/?q=pas'], 1),
+      })
+      act(() => result.current.list.setSearch(''))
+      expect(result.current.list.state.search).toBe('')
+      act(() => result.current.navigate(-1))
+      expect(result.current.list.state.search).toBe('pas')
     })
 
     it('keeps persisting the other list state', () => {
