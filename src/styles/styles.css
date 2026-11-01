@@ -42,7 +42,8 @@
 @custom-variant dark (&:where(.dark, .dark *)); /* NOSONAR - Tailwind v4 at-rule */
 
 /* Phone side of the shell breakpoint: the exact complement of SHELL_DESKTOP_QUERY
-   (src/hooks/useIsDesktop.ts), so no width gets JS phone layout with desktop CSS (#66). */
+   (src/hooks/useIsDesktop.ts), so no width gets JS phone layout with desktop CSS (#66).
+   Guarded by phoneVariant.test.ts. */
 @custom-variant phone (@media (width < 761px)); /* NOSONAR - Tailwind v4 at-rule */
 
 /* Map semantic tokens -> Tailwind v4 utility namespaces. `inline` so var()
