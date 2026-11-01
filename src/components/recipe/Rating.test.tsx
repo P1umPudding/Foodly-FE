@@ -173,7 +173,7 @@ describe('Rating', () => {
     render(<Rating recipe={recipe()} />)
     const trigger = screen.getByRole('button', { name: /Bewert/ })
     // Exact tokens: jsdom applies no CSS, and the prefixed classes contain the bare ones as substrings.
-    for (const token of ['px-1.5', 'py-0.5', 'max-[760px]:min-h-10', 'max-[760px]:-my-2']) {
+    for (const token of ['px-1.5', 'py-0.5', 'phone:min-h-10', 'phone:-my-2']) {
       expect(trigger.classList.contains(token)).toBe(true)
     }
     expect(trigger.classList.contains('min-h-10')).toBe(false)
@@ -230,8 +230,8 @@ describe('Rating on a phone', () => {
     // A different trigger component than on desktop (SheetTrigger), and the rated label.
     render(<Rating recipe={recipe({ rating: [{ user: 1, rating: 4 }] })} />)
     const trigger = screen.getByRole('button', { name: /Bewert/ })
-    expect(trigger.classList.contains('max-[760px]:min-h-10')).toBe(true)
-    expect(trigger.classList.contains('max-[760px]:-my-2')).toBe(true)
+    expect(trigger.classList.contains('phone:min-h-10')).toBe(true)
+    expect(trigger.classList.contains('phone:-my-2')).toBe(true)
   })
 
   it('gives the stars a 40 px tap target', async () => {
