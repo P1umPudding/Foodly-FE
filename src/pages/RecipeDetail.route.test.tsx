@@ -1,9 +1,12 @@
+import { StrictMode } from 'react'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
 import { Button, TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
 import { foodly } from '../api'
+import { mockData, mockRequest } from '../mocks'
+import { TimerProvider } from '../timers/TimerProvider'
 import type { Recipe } from '../api/protocol'
 
 // Real react-router here (unlike RecipeDetail.clone.test.tsx): /recipes/:id keeps one
@@ -114,5 +117,39 @@ describe('RecipeDetail clone · real route change', () => {
 
     expect(screen.queryByText('Alter Fehler 5')).toBeNull()
     expect(cloneButton().disabled).toBe(false)
+  })
+})
+
+// The preview runs StrictMode against the mock backend, so this chain goes through the real
+// mock handlers instead of fixed stubs: every new copy must be duplicable again without a reload.
+describe('RecipeDetail clone · StrictMode with the mock backend', () => {
+  it('duplicates a copy of a copy without a reload', async () => {
+    const original = mockData.recipes[0]
+    vi.spyOn(foodly, 'getRecipe').mockImplementation((id) => mockRequest('recipes.get', { id }) as Promise<Recipe>)
+    const copySpy = vi
+      .spyOn(foodly, 'copyRecipe')
+      .mockImplementation((id) => mockRequest('recipes.copy', { id }) as Promise<Recipe>)
+    render(
+      <StrictMode>
+        <TimerProvider>
+          <TooltipProvider>
+            <MemoryRouter initialEntries={[`/recipes/${original.id}`]}>
+              <Routes>
+                <Route path="/recipes/:id" element={<RecipeDetail />} />
+              </Routes>
+            </MemoryRouter>
+          </TooltipProvider>
+        </TimerProvider>
+      </StrictMode>,
+    )
+    await screen.findByRole('heading', { level: 1 })
+
+    for (let round = 1; round <= 3; round++) {
+      fireEvent.click(cloneButton())
+      expect(copySpy).toHaveBeenCalledTimes(round)
+      const copy = await copySpy.mock.results[round - 1].value
+      await vi.waitFor(() => expect(foodly.getRecipe).toHaveBeenCalledWith(copy.id))
+      await vi.waitFor(() => expect(cloneButton().disabled).toBe(false))
+    }
   })
 })
