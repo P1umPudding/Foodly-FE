@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
-import { Button, DeferredNumberInput, cn } from '@postxl/ui-components'
+import { Button, NumberInput, cn } from '@postxl/ui-components'
 import { TagText } from '../TagText'
 
 // The portion-scaling field in the recipe meta row. Two modes off one set of
@@ -8,10 +9,11 @@ import { TagText } from '../TagText'
 //     factor = desired / sizeNumber.
 //   • multiplier-mode (sizeNumber null): the box is the × factor itself, marked
 //     with a leading "×".
-// The factor lives in RecipeDetail. DeferredNumberInput buffers the edit locally
-// and commits on blur/Enter, so the field can be cleared while typing (a plain
-// controlled NumberInput would snap the default back). Steppers are our own —
-// the app hides native number spinners globally (styles.css).
+// The factor lives in RecipeDetail. The box buffers the edit in `draft` and
+// commits on blur/Enter, so it can be cleared while typing; afterwards it always
+// shows the applied value again, even when the factor didn't change (the lib's
+// DeferredNumberInput only re-syncs when its value prop changes, #71). Steppers
+// are our own — the app hides native number spinners globally (styles.css).
 //
 // `part` lets the caller split the pieces across two rows: portions-mode keeps
 // the box up in the meta row (`input`) and drops its steppers into the
@@ -30,6 +32,8 @@ export function PortionScaler({
   sizeText: string | null
   part?: 'full' | 'input' | 'steppers'
 }) {
+  // undefined = not editing; null = the box was cleared.
+  const [draft, setDraft] = useState<number | null | undefined>(undefined)
   const portions = sizeNumber !== null
   const base = sizeNumber ?? 1
   const current = round2(portions ? factor * base : factor)
@@ -37,11 +41,17 @@ export function PortionScaler({
   // Map a box value back to a factor: portions divide by the base, the
   // multiplier is the factor itself.
   const apply = (value: number) => onChange(portions ? value / base : value)
-  // Commit (blur/Enter): empty / 0 → reset to default; negative → ignore.
+  // Commit (blur/Enter): negative → ignore; empty / 0 → reset to default. A value
+  // that rounds to the shown one is ignored too, so 4.001 doesn't quietly rescale.
   const commit = (value: number | null) => {
-    if (value === null || value === 0) return onChange(1)
-    if (value < 0) return
+    if (value !== null && value < 0) return
+    if (value === null || round2(value) === 0) return onChange(1)
+    if (round2(value) === current) return
     apply(value)
+  }
+  const finishEdit = () => {
+    if (draft !== undefined) commit(draft)
+    setDraft(undefined)
   }
   // Portions step whole counts (floor 1). The multiplier steps 0.5 at/above ×1
   // and 0.25 below it (…0.25, 0.5, 0.75, 1, 1.5, 2…), floored at ×0.25.
@@ -74,9 +84,11 @@ export function PortionScaler({
   )
 
   const input = (
-    <DeferredNumberInput
-      value={current}
-      onCommit={commit}
+    <NumberInput
+      value={draft === undefined ? current : (draft ?? undefined)}
+      onChange={(value) => setDraft(value ?? null)}
+      onBlur={finishEdit}
+      onEnter={finishEdit}
       min={0}
       aria-label={portions ? 'Portionen' : 'Mengen-Faktor'}
       // Outline + shadow only on hover; the border width stays put (transparent

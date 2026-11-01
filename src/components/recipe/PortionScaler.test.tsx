@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { act, render, screen, fireEvent } from '@testing-library/react'
+import { useState } from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { TooltipProvider } from '@postxl/ui-components'
 import { PortionScaler } from './PortionScaler'
@@ -16,9 +17,35 @@ function renderScaler(props: Partial<Parameters<typeof PortionScaler>[0]> = {}) 
   return { onChange }
 }
 
+// Holds the factor like RecipeDetail does, so a commit re-renders the box.
+function renderStateful(props: Partial<Parameters<typeof PortionScaler>[0]> & { factor?: number } = {}) {
+  const onChange = vi.fn()
+  function Harness() {
+    const [factor, setFactor] = useState(props.factor ?? 1)
+    return (
+      <PortionScaler
+        sizeNumber={null}
+        sizeText={null}
+        {...props}
+        factor={factor}
+        onChange={(f) => {
+          onChange(f)
+          setFactor(f)
+        }}
+      />
+    )
+  }
+  render(
+    <TooltipProvider>
+      <Harness />
+    </TooltipProvider>,
+  )
+  return { onChange }
+}
+
 const box = () => screen.getByLabelText(/Portionen|Mengen-Faktor/) as HTMLInputElement
 
-// DeferredNumberInput only commits on blur/Enter.
+// The field commits on blur/Enter.
 function type(value: string) {
   const input = box()
   fireEvent.focus(input)
@@ -98,6 +125,62 @@ describe('PortionScaler — commit rules', () => {
     const { onChange } = renderScaler({ part: 'input', sizeNumber: 4, sizeText: 'Portionen', factor: 1.5 })
     type('')
     expect(onChange).toHaveBeenLastCalledWith(1)
+  })
+})
+
+// #71: after a commit the box shows the applied value, even when the factor didn't change.
+describe('PortionScaler — field shows the applied value', () => {
+  const portions = { part: 'input' as const, sizeNumber: 4, sizeText: 'Portionen' }
+  const multiplier = { part: 'full' as const, sizeNumber: null }
+
+  it.each([
+    ['portions, unscaled: cleared', portions, 1, '', '4', 1],
+    ['portions, unscaled: 0', portions, 1, '0', '4', 1],
+    ['portions, unscaled: negative', portions, 1, '-2', '4', null],
+    ['portions, scaled: negative', portions, 1.5, '-2', '6', null],
+    ['portions, scaled: cleared', portions, 1.5, '', '4', 1],
+    ['portions: rounds to 0', portions, 1, '0.001', '4', 1],
+    ['portions: rounds to the shown value', portions, 1, '4.001', '4', null],
+    ['portions: valid value', portions, 1, '6', '6', 1.5],
+    ['multiplier, unscaled: cleared', multiplier, 1, '', '1', 1],
+    ['multiplier, unscaled: 0', multiplier, 1, '0', '1', 1],
+    ['multiplier, scaled: negative', multiplier, 1.5, '-2', '1.5', null],
+    ['multiplier, scaled: cleared', multiplier, 1.5, '', '1', 1],
+  ])('%s', (_, props, factor, typed, shown, committed) => {
+    const { onChange } = renderStateful({ ...props, factor })
+    type(typed)
+    expect(box().value).toBe(shown)
+    if (committed === null) expect(onChange).not.toHaveBeenCalled()
+    else expect(onChange).toHaveBeenLastCalledWith(committed)
+  })
+
+  it('Enter commits like blur and keeps focus in the box', () => {
+    const { onChange } = renderStateful({ ...portions, factor: 1 })
+    const input = box()
+    act(() => input.focus())
+    fireEvent.change(input, { target: { value: '' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(box().value).toBe('4')
+    expect(onChange).toHaveBeenLastCalledWith(1)
+    // A remounting fix would drop focus here.
+    expect(document.activeElement).toBe(input)
+  })
+
+  it('typing the current value commits nothing', () => {
+    const { onChange } = renderStateful({ ...portions, factor: 1 })
+    type('4')
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['negative', '-2'],
+    ['cleared', ''],
+  ])('steppers still drive the box after a %s commit', (_, typed) => {
+    renderStateful({ ...multiplier, factor: 1 })
+    type(typed)
+    expect(box().value).toBe('1')
+    fireEvent.click(screen.getByLabelText('Mehr'))
+    expect(box().value).toBe('1.5')
   })
 })
 
