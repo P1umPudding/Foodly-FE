@@ -72,7 +72,7 @@ describe('postxl ring-ring/50 override', () => {
   ]
 
   it('lifts ring-ring/50 to the full --ring in an unlayered rule', () => {
-    // Column 0 = top level: inside @layer the rule would be indented (and lose to the utilities).
+    // Column 0 = top level: inside @layer prettier (format:check) indents it, and there it would lose to the utilities.
     const css = stylesCss.replace(/\/\*[\s\S]*?\*\//g, '')
     const rules = [...css.matchAll(/^([^\s@}][^{]*)\{([^}]*)\}/gm)].map(([, selectors, body]) => ({
       selectors: selectors.split(',').map((s) => s.trim()),
