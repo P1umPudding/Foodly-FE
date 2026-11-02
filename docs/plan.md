@@ -45,6 +45,10 @@ Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 Löschen, Bild-Platzhalter, Tag-Icons → Kategorien verwalten → Phase 5 → Teilen →
 Phase 6. Breakdown je Block über den Lead.
 
+**Stand 2026-11-02:** Stub-Basis + Rating (#35), Löschen (#36), Bild-Platzhalter
+(#37) und Tag-Icons (#38) sind gemergt, dazu QA-Fixes bis PR #84. Nächste
+Breakdowns: Kategorien verwalten und Rezeptliste (Redesign Schritt 4).
+
 Details je Phase in `phases/`.
 
 ---
@@ -123,11 +127,11 @@ Protokoll-Fragen").
 
 → Volle Spezifikation: `phases/phase-3-koch-modus.md`
 
-## Phase 4 — Rezepte bearbeiten  (teilweise erledigt)
+## Phase 4 — Rezepte bearbeiten  (größtenteils erledigt)
 
-Anlegen, Editieren (mit Autosave) und Kopieren laufen gegen das Backend.
-Offen für die Alpha: Löschen, Kategorien verwalten, Rating (Stub), Teilen (Stub),
-Tag-Picker. Siehe „Meilenstein Alpha“.
+Anlegen, Editieren (mit Autosave), Kopieren und Löschen (#36) laufen gegen das
+Backend, Rating als Stub (#35). Offen für die Alpha: Kategorien verwalten,
+Teilen (Stub), Tag-Picker. Siehe „Meilenstein Alpha“.
 
 - Formular für Rezept (Sections, Zutaten, Schritte).
 - Rezept duplizieren (Kopie, bei der man selbst owner wird).
@@ -144,15 +148,15 @@ Neues neutrales Design für die ganze App. Spec: `docs/design/redesign/README.md
 (PR #25), Kategorie-Farben: ADR [0002](decisions/0002-category-colors.md).
 Freigegeben von Kolja am 2026-10-29. Reihenfolge:
 
-1. Token-PR (Tokens, Inter, Text-Skala, Radien, `docs/design.md`), baut der Designer.
-2. Kategorie-Farb-Util **#26**, parallel zu 1.
-3. App-Shell **#27** (Start + Rezepte; Start ausgeblendet bis zum Dashboard).
+1. ✅ Token-PR #30 (Tokens, Inter, Text-Skala, Radien, `docs/design.md`).
+2. ✅ Kategorie-Farb-Util **#26** (PR #40).
+3. ✅ App-Shell **#27** (PR #41; Start ausgeblendet bis zum Dashboard).
 4. Rezeptliste (Filterleiste, Kacheln), Breakdown offen.
 5. Start/Dashboard = Phase 5 (ohne B4–B6-Blöcke), Breakdown offen.
 6. Detail, dann Koch-Modus.
 
-Parallel nach Token und Shell: Timer-Knopf + Zeit-Chips **#29**, Editor-Zusatz-Spalte
-**#28**. Trefferzahlen im Filter erst mit Backend #17 (B16).
+Parallel nach Token und Shell: ✅ Timer-Knopf + Zeit-Chips **#29** (PR #48),
+✅ Editor-Zusatz-Spalte **#28** (PR #44). Trefferzahlen im Filter erst mit Backend #17 (B16).
 
 ## Phase 5 — Dashboard / Startseite  (braucht Backend)
 
