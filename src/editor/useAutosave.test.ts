@@ -684,4 +684,26 @@ describe('useAutosave · onUnmountFlush', () => {
     renderHook(() => useAutosave('a', vi.fn(), { onUnmountFlush }), { wrapper: StrictMode })
     expect(onUnmountFlush).not.toHaveBeenCalled()
   })
+
+  it('does not re-send a failed in-flight save of the newest value, and reports it once', async () => {
+    const onFlushError = vi.fn()
+    const onUnmountFlush = vi.fn()
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onFlushError, onUnmountFlush }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // 'b' in flight, nothing newer
+    unmount()
+    const t = track(onUnmountFlush.mock.calls[0][0])
+
+    first.reject(new Error('offline'))
+    await settle()
+
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(onFlushError).toHaveBeenCalledTimes(1)
+    expect(t.state).toBe('resolved')
+  })
 })

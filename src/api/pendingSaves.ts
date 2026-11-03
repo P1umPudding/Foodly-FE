@@ -8,6 +8,8 @@
 import type { RecipeId } from './protocol'
 
 // A PUT that never settles (REST has no request timeout) must not keep pages loading forever.
+// Applied per registration, so a hung save drops out instead of delaying every later read
+// again. Trade-off: if it lands after that, it can overwrite an edit made meanwhile.
 const MAX_WAIT_MS = 10_000
 
 const pending = new Map<RecipeId, Promise<void>>()
@@ -16,8 +18,6 @@ const noop = () => {}
 
 // A failed save never fails a read: the read then shows the server state, the
 // editor already reported the failure (toast).
-// The cap applies per registration, so a hung save drops out of the registry after
-// MAX_WAIT_MS instead of delaying every later read again.
 export function trackPendingSave(id: RecipeId, done: Promise<unknown>): void {
   let timer: ReturnType<typeof setTimeout> | undefined
   const cap = new Promise<void>((resolve) => {

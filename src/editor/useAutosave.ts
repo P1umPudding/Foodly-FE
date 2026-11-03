@@ -38,6 +38,7 @@ export function useAutosave<T>(
   const saveRef = useRef(save)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inFlight = useRef(false)
+  const inFlightValue = useRef<T | null>(null)
   const queued = useRef(false)
   const baseline = useRef(value) // the last value known to be persisted
   const wasEnabled = useRef(false)
@@ -76,6 +77,7 @@ export function useAutosave<T>(
     }
     const pending = latest.current
     inFlight.current = true
+    inFlightValue.current = pending
     updateStatus({ state: 'saving', at: null, error: null })
 
     saveRef
@@ -204,10 +206,12 @@ export function useAutosave<T>(
       const chain = ensureWaiter()
       // A save already in flight can't be joined here — its .finally() is the
       // only place allowed to start the next one, so queue for it to pick up
-      // latest.current instead of firing a second overlapping save. A failure
+      // latest.current instead of firing a second overlapping save. Only a newer
+      // value is queued: re-sending the one in flight would, on failure, retry it
+      // (a second toast) and keep the next page's read waiting twice. A failure
       // after this point reaches onFlushError via run()'s catch (mounted is false).
-      if (inFlight.current) queued.current = true
-      else run()
+      if (!inFlight.current) run()
+      else if (!Object.is(latest.current, inFlightValue.current)) queued.current = true
       // Always handled, so a failed chain never leaks an unhandled rejection.
       const done = chain.catch(() => {})
       onUnmountFlushRef.current?.(done)
