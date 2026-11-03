@@ -217,6 +217,13 @@ div:has(> input[data-slot='input']):focus-within {
   --tw-ring-shadow: 0 0 #0000;
 }
 
+/* postxl's ring-ring/50 halves --ring to about 2:1 (#77); on focus use the full token. aria-invalid is
+   excluded so the destructive ring still wins. UNLAYERED to beat @layer utilities. */
+.focus-visible\:ring-ring\/50:focus-visible:not([aria-invalid='true']),
+.ring-ring\/50:focus-visible:not([aria-invalid='true']) {
+  --tw-ring-color: var(--ring);
+}
+
 /* Tailwind hardcodes `.rounded` to 0.25rem; override to follow --radius so the
    radius stays themeable from theme.css. */
 @layer utilities {
