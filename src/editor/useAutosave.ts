@@ -199,8 +199,7 @@ export function useAutosave<T>(
         timer.current = null
       }
       // A save in flight still counts even when nothing newer is dirty: a read
-      // started now could overtake it. (Disabled with a save in flight — e.g.
-      // access revoked mid-save — registers nothing; practically unreachable.)
+      // started now could overtake it.
       if (!enabledRef.current || (!inFlight.current && !dirty())) return
       const chain = ensureWaiter()
       // A save already in flight can't be joined here — its .finally() is the

@@ -5,7 +5,7 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditorRoute } from '../App'
 import { foodly } from '../api'
-import { resetPendingSaves } from '../api/pendingSaves'
+import { allPendingSaves, resetPendingSaves } from '../api/pendingSaves'
 import type { Recipe } from '../api/protocol'
 
 // The mode is read when the modules load, so pin REST before the imports run (vi.hoisted),
@@ -302,13 +302,15 @@ describe('RecipeEditorRoute · leaving another way', () => {
     return <p>Detail: {name ?? '…'}</p>
   }
 
-  function renderEditor() {
+  function renderEditor(path = '/recipes/5/edit') {
     render(
       <TooltipProvider>
-        <MemoryRouter initialEntries={['/recipes/5/edit']}>
+        <MemoryRouter initialEntries={[path]}>
           <Link to="/recipes/5">to detail</Link>
+          <Link to="/recipes/5/edit">to editor</Link>
           <Routes>
             <Route path="/recipes/:id" element={<DetailStub />} />
+            <Route path="/recipes/new" element={<RecipeEditorRoute />} />
             <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
           </Routes>
         </MemoryRouter>
@@ -350,6 +352,34 @@ describe('RecipeEditorRoute · leaving another way', () => {
     await waitFor(() => expect(puts).toHaveLength(1))
     act(() => puts[0].reject(new Error('offline')))
 
+    expect(await screen.findByText('Detail: Pasta 5')).toBeTruthy()
+  })
+
+  it('reopening the editor while the save is pending loads the saved state, not the old one', async () => {
+    const { puts } = server()
+    renderEditor()
+    await openAndRename('Pasta neu')
+
+    fireEvent.click(screen.getByText('to detail'))
+    await waitFor(() => expect(puts).toHaveLength(1))
+    fireEvent.click(screen.getByText('to editor'))
+    await act(async () => {})
+    // Still loading: an old draft here would become the autosave baseline and overwrite the edit.
+    expect(screen.queryByLabelText('Titel')).toBeNull()
+
+    act(() => puts[0].resolve())
+
+    await waitFor(() => expect(titleInput().value).toBe('Pasta neu'))
+  })
+
+  it('registers nothing when leaving a new, not yet created recipe', async () => {
+    server()
+    renderEditor('/recipes/new')
+    fireEvent.change(titleInput(), { target: { value: 'Entwurf' } })
+
+    fireEvent.click(screen.getByText('to detail'))
+
+    expect(allPendingSaves()).toBeNull()
     expect(await screen.findByText('Detail: Pasta 5')).toBeTruthy()
   })
 })

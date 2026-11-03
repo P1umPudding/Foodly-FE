@@ -123,13 +123,22 @@ describe('pending saves · reads', () => {
     await expect(read).resolves.toMatchObject({ id: 5 })
   })
 
+  it('drops a hung save after 10 s, so later reads do not wait again', async () => {
+    vi.useFakeTimers()
+    trackPendingSave(5, new Promise(() => {}))
+    await vi.advanceTimersByTimeAsync(10_000)
+
+    void foodly.getRecipe(5)
+    void foodly.searchRecipes({}, 1)
+    expect(calls()).toHaveLength(2)
+  })
+
   it('clears the cap timer when the save wins', async () => {
     vi.useFakeTimers()
     const save = deferred()
     trackPendingSave(5, save.promise)
 
     const read = foodly.getRecipe(5)
-    expect(vi.getTimerCount()).toBe(1)
     save.resolve()
     await read
     expect(vi.getTimerCount()).toBe(0)

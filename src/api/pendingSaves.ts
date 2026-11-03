@@ -1,7 +1,9 @@
 // Saves still in flight after the editor unmounted, per recipe. Reads of that
 // recipe (or any list) wait for them, so a GET can't overtake the PUT and show
 // the old state. The app uses <BrowserRouter> without a data router, so there is
-// no useBlocker to hold navigation instead.
+// no useBlocker to hold navigation instead. Readers must start their requests in
+// effects (not during render): the editor registers in its unmount cleanup, which
+// runs before the next page's effects.
 
 import type { RecipeId } from './protocol'
 
@@ -14,8 +16,14 @@ const noop = () => {}
 
 // A failed save never fails a read: the read then shows the server state, the
 // editor already reported the failure (toast).
+// The cap applies per registration, so a hung save drops out of the registry after
+// MAX_WAIT_MS instead of delaying every later read again.
 export function trackPendingSave(id: RecipeId, done: Promise<unknown>): void {
-  const settled = done.then(noop, noop)
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const cap = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, MAX_WAIT_MS)
+  })
+  const settled = Promise.race([done.then(noop, noop), cap]).finally(() => clearTimeout(timer))
   const previous = pending.get(id)
   const entry = previous ? Promise.all([previous, settled]).then(noop) : settled
   pending.set(id, entry)
@@ -36,14 +44,7 @@ export function allPendingSaves(): Promise<void> | null {
 // With nothing pending the read starts synchronously, so the common path keeps
 // its exact timing.
 export function afterSave<T>(wait: Promise<void> | null, read: () => Promise<T>): Promise<T> {
-  if (!wait) return read()
-  let timer: ReturnType<typeof setTimeout> | undefined
-  const cap = new Promise<void>((resolve) => {
-    timer = setTimeout(resolve, MAX_WAIT_MS)
-  })
-  return Promise.race([wait, cap])
-    .finally(() => clearTimeout(timer))
-    .then(read)
+  return wait ? wait.then(read) : read()
 }
 
 // Tests only: the registry is module state and would leak between cases.
