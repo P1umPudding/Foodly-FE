@@ -1,7 +1,9 @@
 // WCAG 1.4.11: the focus ring tokens must reach 3:1 against every theme surface, in both themes.
-// Only full-alpha usages are covered; postxl's `ring-ring/50` halves the alpha (known gap, #77).
+// postxl's `ring-ring/50` would halve the alpha; styles.css lifts it to the full token on focus (#77), pinned below.
 import { describe, it, expect } from 'vitest'
 import themeCss from './theme.css?raw'
+import stylesCss from './styles.css?raw'
+import postxlJs from '@postxl/ui-components?raw'
 import { contrastRatio, oklchToHex } from '../lib/categoryColor'
 
 const RINGS = ['ring', 'sidebar-ring']
@@ -59,6 +61,39 @@ describe('focus ring contrast', () => {
         expect(painted).toMatch(/^#[0-9a-f]{6}$/)
         expect(contrastRatio(painted, s.hex)).toBeGreaterThanOrEqual(3)
       },
+    )
+  })
+})
+
+describe('postxl ring-ring/50 override', () => {
+  const SELECTORS = [
+    ".focus-visible\\:ring-ring\\/50:focus-visible:not([aria-invalid='true'])",
+    ".ring-ring\\/50:focus-visible:not([aria-invalid='true'])",
+  ]
+
+  it('lifts ring-ring/50 to the full --ring in an unlayered rule', () => {
+    // Column 0 = top level: inside @layer prettier (format:check) indents it, and there it would lose to the utilities.
+    const css = stylesCss.replace(/\/\*[\s\S]*?\*\//g, '')
+    const rules = [...css.matchAll(/^([^\s@}][^{]*)\{([^}]*)\}/gm)].map(([, selectors, body]) => ({
+      selectors: selectors.split(',').map((s) => s.trim()),
+      body: body.trim(),
+    }))
+    const rule = rules.find((r) => SELECTORS.every((s) => r.selectors.includes(s)))
+    expect(rule, 'top-level rule with both selectors').toBeDefined()
+    expect(rule!.body).toMatch(/^--tw-ring-color:\s*var\(--ring\);?$/)
+  })
+
+  // A failure here means a postxl upgrade changed its ring-ring variants: check the override still covers them.
+  it('matches the ring-ring/* variants postxl ships', () => {
+    const classes = new Set(postxlJs.match(/[^\s"'`]*ring-ring\/[^\s"'`]+/g))
+    expect(classes).toEqual(
+      new Set([
+        'focus-visible:ring-ring/50',
+        'ring-ring/50', // Slider thumb
+        'focus-within:ring-ring/50', // NumberInput wrapper, ring zeroed in styles.css
+        'has-focus:ring-ring/50', // date picker, not used in the app
+        'group-data-[focused=true]/day:ring-ring/50', // date picker, not used in the app
+      ]),
     )
   })
 })
