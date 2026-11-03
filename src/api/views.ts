@@ -106,6 +106,9 @@ const UNICODE_FRACTIONS: Record<string, number> = {
   '⅑': 1 / 9,
   '⅒': 1 / 10,
 }
+// German thousands dot ("1.000", "12.500,5"), decision on #85. A leading 0 or a
+// group that is not exactly three digits stays decimal ("0.250", "1.0000").
+const THOUSANDS = /^[1-9]\d{0,2}(\.\d{3})+(,\d+)?$/
 const DECIMAL = /^(\d+([.,]\d*)?|[.,]\d+)$/
 const SLASH_FRACTION = /^(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)$/
 const UNICODE_FRACTION = new RegExp(`^(?:(\\d+)\\s*)?([${Object.keys(UNICODE_FRACTIONS).join('')}])$`)
@@ -115,6 +118,7 @@ const RANGE = /^(.+?)(\s*[-–]\s*)(.+)$/
 
 function parseQuantity(s: string): number | null {
   const t = s.trim()
+  if (THOUSANDS.test(t)) return Number(t.replace(/\./g, '').replace(',', '.'))
   if (DECIMAL.test(t)) return Number(t.replace(',', '.'))
   const slash = SLASH_FRACTION.exec(t)
   if (slash) {
@@ -127,21 +131,27 @@ function parseQuantity(s: string): number | null {
   return null
 }
 
-type ParsedAmount = { values: [number] } | { values: [number, number]; separator: string }
+// `grouped`: the amount was typed with a thousands dot, so the result keeps one.
+// Decided for the whole amount, so both ends of a range format alike.
+type ParsedAmount = ({ values: [number] } | { values: [number, number]; separator: string }) & { grouped: boolean }
 
 function parseAmount(amount: string): ParsedAmount | null {
   const t = amount.trim()
   const single = parseQuantity(t)
-  if (single !== null) return { values: [single] }
+  if (single !== null) return { values: [single], grouped: THOUSANDS.test(t) }
   const range = RANGE.exec(t)
   if (!range) return null
   const from = parseQuantity(range[1])
   const to = parseQuantity(range[3])
-  return from === null || to === null ? null : { values: [from, to], separator: range[2] }
+  if (from === null || to === null) return null
+  const grouped = THOUSANDS.test(range[1].trim()) || THOUSANDS.test(range[3].trim())
+  return { values: [from, to], separator: range[2], grouped }
 }
 
-function formatScaled(n: number): string {
-  return String(Math.round(n * 100) / 100).replace('.', ',')
+function formatScaled(n: number, grouped: boolean): string {
+  const [int, frac] = String(Math.round(n * 100) / 100).split('.')
+  const head = grouped ? int.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : int
+  return frac === undefined ? head : `${head},${frac}`
 }
 
 // Whether `scaleAmount` can scale this amount. Callers use it to flag amounts
@@ -158,7 +168,7 @@ export function scaleAmount(amount: string | null, factor: number): string | nul
   if (amount === null || factor === 1) return amount
   const parsed = parseAmount(amount)
   if (!parsed) return amount
-  const [from, to] = parsed.values.map((n) => formatScaled(n * factor))
+  const [from, to] = parsed.values.map((n) => formatScaled(n * factor, parsed.grouped))
   return 'separator' in parsed ? `${from}${parsed.separator}${to}` : from
 }
 
