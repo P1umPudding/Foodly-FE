@@ -10,14 +10,11 @@ import {
   PopoverTrigger,
   Separator,
   Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
   SheetTrigger,
   cn,
 } from '@postxl/ui-components'
 import { Stars } from './Stars'
+import { BottomSheet } from '../BottomSheet'
 import { DemoHint } from '../DemoHint'
 import { foodly } from '../../api'
 import { visibleRating, formatRating, ratingsByRole, collaborationState, type RatedRole } from '../../api/views'
@@ -244,19 +241,9 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
       ) : (
         // Modal, unlike TimerPanel's sheet: a short form gets the focus trap and focus return,
         // at the cost of timer toasts not being clickable while it is open.
-        <SheetContent
-          side="bottom"
-          className="flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pb-[env(safe-area-inset-bottom)]"
-        >
-          <div aria-hidden className="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-muted-foreground/30" />
-          <SheetHeader className="px-4 pb-3">
-            <SheetTitle>Bewertung</SheetTitle>
-            <SheetDescription className="sr-only">Eigene Bewertung abgeben</SheetDescription>
-          </SheetHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-            <RatingDetails recipe={recipe} value={value} layout="sheet" onChange={onChange} />
-          </div>
-        </SheetContent>
+        <BottomSheet title="Bewertung" description="Eigene Bewertung abgeben">
+          <RatingDetails recipe={recipe} value={value} layout="sheet" onChange={onChange} />
+        </BottomSheet>
       )}
     </Root>
   )
