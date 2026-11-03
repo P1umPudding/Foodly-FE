@@ -563,11 +563,12 @@ describe('useAutosave · follow-up saves', () => {
     expect(save).toHaveBeenCalledTimes(1)
   })
 
-  it('reports a failed in-flight save after unmount and still sends the newer value', async () => {
+  it('does not report a failed in-flight save after unmount when the newer follow-up succeeds', async () => {
     const onFlushError = vi.fn()
+    const onUnmountFlush = vi.fn()
     const first = deferred()
     const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
-    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onFlushError }), {
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onFlushError, onUnmountFlush }), {
       initialProps: { v: 'a' },
     })
 
@@ -575,13 +576,46 @@ describe('useAutosave · follow-up saves', () => {
     act(() => vi.advanceTimersByTime(800)) // 'b' in flight
     rerender({ v: 'c' })
     unmount()
+    const t = track(onUnmountFlush.mock.calls[0][0])
 
     first.reject(new Error('offline'))
     await settle()
 
-    expect(onFlushError).toHaveBeenCalledTimes(1)
+    expect(t.state).toBe('resolved') // the whole chain is done, so a report would have landed
+    expect(onFlushError).not.toHaveBeenCalled()
     expect(save).toHaveBeenCalledTimes(2)
     expect(save).toHaveBeenLastCalledWith('c')
+  })
+
+  it("reports only the follow-up's error when both saves after unmount fail", async () => {
+    const onFlushError = vi.fn()
+    const onUnmountFlush = vi.fn()
+    const first = deferred()
+    const second = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onFlushError, onUnmountFlush }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    rerender({ v: 'c' })
+    unmount()
+    const t = track(onUnmountFlush.mock.calls[0][0])
+
+    first.reject(new Error('offline: b'))
+    await settle()
+
+    expect(save).toHaveBeenLastCalledWith('c')
+    expect(onFlushError).not.toHaveBeenCalled() // 'c' may still land
+
+    second.reject(new Error('offline: c'))
+    await settle()
+
+    expect(onFlushError).toHaveBeenCalledTimes(1)
+    expect(onFlushError).toHaveBeenCalledWith(new Error('offline: c'))
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(t.state).toBe('resolved')
   })
 })
 

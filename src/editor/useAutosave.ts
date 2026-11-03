@@ -76,6 +76,8 @@ export function useAutosave<T>(
       return
     }
     const pending = latest.current
+    // Wrapped, since a rejection value may itself be undefined.
+    let unmountedFailure: { error: unknown } | null = null
     inFlight.current = true
     inFlightValue.current = pending
     updateStatus({ state: 'saving', at: null, error: null })
@@ -90,10 +92,11 @@ export function useAutosave<T>(
       .catch((error: unknown) => {
         lastAttempt.current = { value: pending, error }
         // This fires asynchronously (after the await), so if unmount happened
-        // in between, `mounted` is already false — route to the flush-error
-        // callback instead of setting status on a component that's gone.
+        // in between, `mounted` is already false and there's no status to set.
+        // Decided here, not in .finally: a failure while mounted already shows
+        // as status 'error' and must not also reach onFlushError.
         if (mounted.current) updateStatus({ state: 'error', at: null, error: error as Error })
-        else onFlushErrorRef.current?.(error)
+        else unmountedFailure = { error }
       })
       .finally(() => {
         inFlight.current = false
@@ -102,6 +105,10 @@ export function useAutosave<T>(
         // unmount flush queued behind a save of that same value).
         const followUp = queued.current && dirty()
         queued.current = false
+        // After unmount `latest` is frozen, so no follow-up means this was the
+        // chain's last save — only its failure means the newest value was lost.
+        // Reported before settling, so onUnmountFlush's promise ends after it.
+        if (unmountedFailure && !followUp) onFlushErrorRef.current?.(unmountedFailure.error)
         if (followUp) run()
         else settleWaiter()
       })
@@ -209,7 +216,8 @@ export function useAutosave<T>(
       // latest.current instead of firing a second overlapping save. Only a newer
       // value is queued: re-sending the one in flight would, on failure, retry it
       // (a second toast) and keep the next page's read waiting twice. A failure
-      // after this point reaches onFlushError via run()'s catch (mounted is false).
+      // after this point reaches onFlushError via run()'s finally (mounted is
+      // false), and only for the chain's last save.
       if (!inFlight.current) run()
       else if (!Object.is(latest.current, inFlightValue.current)) queued.current = true
       // Always handled, so a failed chain never leaks an unhandled rejection.
