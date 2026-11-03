@@ -69,6 +69,8 @@ There's no server code and no secrets in the repo.
     fixes at the API boundary (e.g. `previewToRecipe`). `views.ts` — derived
     values as pure functions. `assets.ts` — image/icon URLs; tag icons load as cached blobs
     (the route needs the bearer, `<img>` can't send it).
+  - `pendingSaves.ts` — editor saves still in flight after unmount; `getRecipe` /
+    `searchRecipes` wait for them (max. 10 s) so a GET can't overtake the PUT.
   - `socket.ts` — `SocketClient` (connect, auto-reconnect, request/response
     correlation, events), **reserved for future live editing** and never
     connected today. Its `{ id, type, payload }` envelope is unused today; the

@@ -84,7 +84,9 @@ werden hier nicht wiederholt.
 - Seiten mit seed-einmal-State per `key` auf die Route-Identität remounten
   (`RecipeEditorRoute` in `src/App.tsx`).
 - Kein Data Router (`createBrowserRouter`) → kein `useBlocker`; Verlassen-Schutz via
-  `beforeunload` + Flush bei Unmount. Migration nur mit Decision-Note.
+  `beforeunload` + Flush bei Unmount. Lesezugriffe (`getRecipe`, `searchRecipes`) warten auf den
+  noch laufenden Unmount-Save (`src/api/pendingSaves.ts`, max. 10 s); Requests deshalb in Effects
+  starten, nicht im Render. Migration nur mit Decision-Note.
 - Struktur (Phase 5 rev. 2, `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`;
   bei der Navigationsform hat das Redesign Vorrang, `docs/design/redesign/README.md` §1.6):
   `/recipes` Liste; `/` leitet bis zum Dashboard-Issue mit Query auf `/recipes` weiter

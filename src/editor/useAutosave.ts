@@ -20,7 +20,15 @@ export function useAutosave<T>(
     enabled = true,
     delay = 800,
     onFlushError,
-  }: { enabled?: boolean; delay?: number; onFlushError?: (error: unknown) => void } = {},
+    onUnmountFlush,
+  }: {
+    enabled?: boolean
+    delay?: number
+    onFlushError?: (error: unknown) => void
+    // Receives a promise that settles (never rejects) once the save chain started by
+    // unmount has finished, so reads elsewhere can wait for it.
+    onUnmountFlush?: (done: Promise<void>) => void
+  } = {},
 ): { status: SaveStatus; retry: () => void; flush: () => Promise<void> } {
   const [status, setStatus] = useState<SaveStatus>(IDLE)
 
@@ -30,11 +38,13 @@ export function useAutosave<T>(
   const saveRef = useRef(save)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inFlight = useRef(false)
+  const inFlightValue = useRef<T | null>(null) // only meaningful while inFlight is true
   const queued = useRef(false)
   const baseline = useRef(value) // the last value known to be persisted
   const wasEnabled = useRef(false)
   const enabledRef = useRef(enabled)
   const onFlushErrorRef = useRef(onFlushError)
+  const onUnmountFlushRef = useRef(onUnmountFlush)
   // Flips false in the unmount-flush cleanup so a rejection that resolves after
   // that point knows there's no component left to carry status on.
   const mounted = useRef(true)
@@ -51,6 +61,7 @@ export function useAutosave<T>(
   saveRef.current = save
   enabledRef.current = enabled
   onFlushErrorRef.current = onFlushError
+  onUnmountFlushRef.current = onUnmountFlush
 
   const dirty = () => !Object.is(latest.current, baseline.current)
 
@@ -66,6 +77,7 @@ export function useAutosave<T>(
     }
     const pending = latest.current
     inFlight.current = true
+    inFlightValue.current = pending
     updateStatus({ state: 'saving', at: null, error: null })
 
     saveRef
@@ -94,6 +106,19 @@ export function useAutosave<T>(
         else settleWaiter()
       })
   }, [])
+
+  const ensureWaiter = () => {
+    if (!waiter.current) {
+      let resolve!: () => void
+      let reject!: (e: unknown) => void
+      const promise = new Promise<void>((res, rej) => {
+        resolve = res
+        reject = rej
+      })
+      waiter.current = { promise, resolve, reject }
+    }
+    return waiter.current.promise
+  }
 
   // Runs after a flight with nothing queued. Also after unmount: a flush() caller
   // may still be awaiting, and its promise must not be left hanging. Reads refs
@@ -159,7 +184,11 @@ export function useAutosave<T>(
   }, [value, enabled, delay, run])
 
   // In-app navigation unmounts the editor; a pending debounce would silently drop
-  // the last keystrokes, so fire it now. The PUT outlives the component.
+  // the last keystrokes, so fire it now. The PUT outlives the component, and the
+  // page navigated to may already be fetching the same recipe: onUnmountFlush
+  // hands out the whole chain (in-flight save + follow-up) so that read can wait.
+  // This works because readers start their requests in effects, which run after
+  // this cleanup in the same commit.
   useEffect(() => {
     // Re-arm on (re)mount: StrictMode dev double-invoke runs setup->cleanup->setup
     // reusing this ref, so without this the first cleanup leaves mounted stuck
@@ -171,15 +200,21 @@ export function useAutosave<T>(
         clearTimeout(timer.current)
         timer.current = null
       }
-      if (!enabledRef.current || !dirty()) return
+      // A save in flight still counts even when nothing newer is dirty: a read
+      // started now could overtake it.
+      if (!enabledRef.current || (!inFlight.current && !dirty())) return
+      const chain = ensureWaiter()
       // A save already in flight can't be joined here — its .finally() is the
       // only place allowed to start the next one, so queue for it to pick up
-      // latest.current instead of firing a second overlapping save.
-      if (inFlight.current) queued.current = true
-      // On unmount the component is gone, so there's no status UI left to show
-      // an error — still catch it (no unhandled rejection) but forward it to
-      // onFlushError so the caller can surface it another way (e.g. a toast).
-      else saveRef.current(latest.current).catch((e) => onFlushErrorRef.current?.(e))
+      // latest.current instead of firing a second overlapping save. Only a newer
+      // value is queued: re-sending the one in flight would, on failure, retry it
+      // (a second toast) and keep the next page's read waiting twice. A failure
+      // after this point reaches onFlushError via run()'s catch (mounted is false).
+      if (!inFlight.current) run()
+      else if (!Object.is(latest.current, inFlightValue.current)) queued.current = true
+      // Always handled, so a failed chain never leaks an unhandled rejection.
+      const done = chain.catch(() => {})
+      onUnmountFlushRef.current?.(done)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -214,18 +249,10 @@ export function useAutosave<T>(
       clearTimeout(timer.current)
       timer.current = null
     }
-    if (!waiter.current) {
-      let resolve!: () => void
-      let reject!: (e: unknown) => void
-      const promise = new Promise<void>((res, rej) => {
-        resolve = res
-        reject = rej
-      })
-      waiter.current = { promise, resolve, reject }
-    }
-    const { promise } = waiter.current
-    // Invariant: a waiter only exists while a flight is running (run() sets
-    // inFlight synchronously), so that flight's .finally() is sure to settle it.
+    const promise = ensureWaiter()
+    // Invariant: a waiter only exists while a flight is running — here and in the
+    // unmount cleanup it is created right next to run() or a queued in-flight save
+    // (run() sets inFlight synchronously), so that flight's .finally() is sure to settle it.
     if (!inFlight.current) run()
     return promise
   }, [run])
