@@ -32,7 +32,7 @@ export const TimerToggle = forwardRef<HTMLSpanElement, HTMLAttributes<HTMLSpanEl
             aria-haspopup={hasPopup}
             aria-controls={controls}
             className={cn(
-              'gap-1.5 rounded-md focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+              'gap-1.5 rounded-md',
               // 40 px tap target on phones, same height with and without the countdown so the header doesn't jump.
               running ? 'phone:h-10' : 'phone:size-10',
               alarming ? 'text-destructive hover:text-destructive' : 'text-muted-foreground hover:text-foreground',
