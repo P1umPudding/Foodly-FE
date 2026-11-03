@@ -58,3 +58,18 @@ describe('RecipeDetail rating', () => {
     expect(foodly.getRecipe).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('RecipeDetail control row', () => {
+  it('gives „Abhaken“ a 40 px tap target on phones, desktop size unchanged', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe([]))
+
+    render(
+      <TooltipProvider>
+        <RecipeDetail />
+      </TooltipProvider>,
+    )
+    const toggle = await screen.findByRole('button', { name: 'Zutaten abhaken' })
+    expect(toggle.classList.contains('h-8')).toBe(true)
+    expect(toggle.classList.contains('phone:h-10')).toBe(true)
+  })
+})

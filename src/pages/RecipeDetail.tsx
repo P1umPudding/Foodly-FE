@@ -227,7 +227,7 @@ export function RecipeDetail() {
                       onPressedChange={setCheckable}
                       aria-label="Zutaten abhaken"
                       size="sm"
-                      className="gap-1.5 rounded-md text-muted-foreground data-[state=on]:text-primary"
+                      className="gap-1.5 rounded-md text-muted-foreground data-[state=on]:text-primary phone:h-10"
                     >
                       <ListChecks className="size-5" />
                       <span className="text-lg">Abhaken</span>
