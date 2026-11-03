@@ -1,14 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@postxl/ui-components'
+import { Popover, PopoverContent, PopoverTrigger, Sheet } from '@postxl/ui-components'
+import { BottomSheet } from '../components/BottomSheet'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { useTimers } from './TimerProvider'
 import { useTimerPanel } from './TimerPanelContext'
@@ -110,20 +102,16 @@ export function TimerPanel() {
     <>
       <TimerToggle ref={triggerRef} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(!open)} />
       <Sheet open={open} onOpenChange={setOpen} modal={false}>
-        <SheetContent
-          side="bottom"
+        <BottomSheet
+          title="Timer"
+          description="Küchen-Timer verwalten"
+          scroll={false}
           __e2e_test_id__="timer-sheet"
           onInteractOutside={onInteractOutside}
           onCloseAutoFocus={restoreFocus}
-          className="flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pb-[env(safe-area-inset-bottom)]"
         >
-          <div aria-hidden className="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-muted-foreground/30" />
-          <SheetHeader className="px-4 pb-3">
-            <SheetTitle>Timer</SheetTitle>
-            <SheetDescription className="sr-only">Küchen-Timer verwalten</SheetDescription>
-          </SheetHeader>
           {body}
-        </SheetContent>
+        </BottomSheet>
       </Sheet>
     </>
   )
