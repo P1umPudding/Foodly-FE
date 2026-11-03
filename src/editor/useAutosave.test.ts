@@ -706,4 +706,31 @@ describe('useAutosave · onUnmountFlush', () => {
     expect(onFlushError).toHaveBeenCalledTimes(1)
     expect(t.state).toBe('resolved')
   })
+
+  it('shares one wait between a Fertig flush and a following unmount', async () => {
+    const onFlushError = vi.fn()
+    const onUnmountFlush = vi.fn()
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { result, rerender, unmount } = renderHook(
+      ({ v }) => useAutosave(v, save, { onFlushError, onUnmountFlush }),
+      { initialProps: { v: 'a' } },
+    )
+
+    rerender({ v: 'b' })
+    let flushed!: ReturnType<typeof track>
+    act(() => {
+      flushed = track(result.current.flush()) // 'b' in flight
+    })
+    unmount() // left via the sidebar while Fertig was waiting
+    const registered = track(onUnmountFlush.mock.calls[0][0])
+
+    first.reject(new Error('offline'))
+    await settle()
+
+    expect(flushed.state).toBe('rejected')
+    expect(registered.state).toBe('resolved')
+    expect(onFlushError).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenCalledTimes(1)
+  })
 })

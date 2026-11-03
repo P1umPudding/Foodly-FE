@@ -38,7 +38,7 @@ export function useAutosave<T>(
   const saveRef = useRef(save)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inFlight = useRef(false)
-  const inFlightValue = useRef<T | null>(null)
+  const inFlightValue = useRef<T | null>(null) // only meaningful while inFlight is true
   const queued = useRef(false)
   const baseline = useRef(value) // the last value known to be persisted
   const wasEnabled = useRef(false)
