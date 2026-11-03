@@ -22,7 +22,7 @@ function MugIcon({ steam }: { steam: boolean }) {
   )
 }
 
-// Lives in the recipe detail control row (Koch-Modus); icon-only, label via tooltip.
+// Lives in the recipe detail control row (Koch-Modus), next to „Abhaken“.
 export function WakeLockToggle() {
   const { enabled, supported, toggle } = useWakeLock()
   if (!supported) return null
@@ -41,7 +41,7 @@ export function WakeLockToggle() {
             aria-pressed={enabled}
             aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
             className={cn(
-              'gap-1.5 rounded-md transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+              'gap-1.5 rounded-md transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none phone:h-10',
               enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
             )}
           >
