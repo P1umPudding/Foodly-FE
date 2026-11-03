@@ -65,7 +65,7 @@ describe('focus ring contrast', () => {
   })
 })
 
-// Column 0 = top level: inside @layer prettier (format:check) indents it, and there it would lose to the utilities.
+// Rules at column 0 are top-level; prettier indents anything inside @layer, where it would lose to the utilities.
 function topLevelRules(): { selector: string; body: string }[] {
   const css = stylesCss.replace(/\/\*[\s\S]*?\*\//g, '')
   return [...css.matchAll(/^([^\s@}][^{]*)\{([^}]*)\}/gm)].map(([, selector, body]) => ({
@@ -109,7 +109,7 @@ describe('postxl checkbox/select-trigger ring width (#90)', () => {
   const SELECTOR =
     ":is(input[type='checkbox'], [data-slot='select-trigger']).focus-visible\\:ring-ring\\/50:focus-visible:not([aria-invalid='true'])"
   const BODY =
-    '--tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);'
+    '--tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor); outline: 2px solid transparent;'
   const stripped = (s: string) => s.replace(/\s+/g, '')
 
   it('gives both controls a 3-px ring in an unlayered rule', () => {
@@ -119,9 +119,17 @@ describe('postxl checkbox/select-trigger ring width (#90)', () => {
     expect(rule!.body.replace(/\s+/g, ' ')).toBe(BODY)
   })
 
+  it('is the only top-level rule touching their ring shadow', () => {
+    const touching = topLevelRules().filter(
+      (r) => /checkbox|select-trigger/.test(r.selector) && r.body.includes('--tw-ring-shadow'),
+    )
+    expect(touching).toHaveLength(1)
+  })
+
   // A failure here means a postxl upgrade changed these controls: check the rule above still matches and is still needed.
   describe('postxl still ships them without a ring width', () => {
-    const hasRingWidth = (classes: string) => classes.split(/\s+/).some((c) => /(^|:)ring(-\d+|-\[[^\]]+\])?$/.test(c))
+    const hasRingWidth = (classes: string) =>
+      classes.split(/\s+/).some((c) => /(^|:)ring(-\d+|-\[[^\]]+\]|-\([^)]+\))?$/.test(c))
     const checkboxBase = postxlJs.match(/const checkboxVariants = cva\("([^"]*)"/)?.[1]
     const selectTrigger = postxlJs.match(
       /const selectTriggerVariants = cva\("([^"]*)"[\s\S]*?variant: \{\s*default: "([^"]*)",\s*simple: "([^"]*)"/,
@@ -130,7 +138,9 @@ describe('postxl checkbox/select-trigger ring width (#90)', () => {
     it('checkbox: a native input carrying the focus class', () => {
       expect(checkboxBase).toContain('focus-visible:ring-ring/50')
       expect(hasRingWidth(checkboxBase!)).toBe(false)
-      expect(postxlJs).toMatch(/type: "checkbox",\s*id: inputId,\s*className: cn\(checkboxVariants\(\{/)
+      expect(postxlJs).toMatch(/type: "checkbox"[\s\S]{0,80}checkboxVariants\(/)
+      // The rule's transparent outline replaces the native one; if postxl adds outline-none, it is no longer needed.
+      expect(checkboxBase).not.toMatch(/outline-(none|hidden)/)
     })
 
     it('select trigger: data-slot, focus class only on the default variant', () => {
