@@ -584,3 +584,153 @@ describe('useAutosave · follow-up saves', () => {
     expect(save).toHaveBeenLastCalledWith('c')
   })
 })
+
+describe('useAutosave · onUnmountFlush', () => {
+  it('hands out the unmount save and settles it once that save lands', async () => {
+    const pending = deferred()
+    const save = vi.fn().mockReturnValueOnce(pending.promise)
+    const onUnmountFlush = vi.fn()
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onUnmountFlush }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(200)) // debounce still pending
+    unmount()
+
+    expect(save).toHaveBeenCalledWith('b')
+    expect(onUnmountFlush).toHaveBeenCalledTimes(1)
+    const t = track(onUnmountFlush.mock.calls[0][0])
+    await settle()
+    expect(t.state).toBe('pending')
+
+    pending.resolve()
+    await settle()
+    expect(t.state).toBe('resolved')
+  })
+
+  it('settles only after the follow-up when a save is in flight and a newer edit is queued', async () => {
+    const first = deferred()
+    const second = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+    const onUnmountFlush = vi.fn()
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onUnmountFlush }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    rerender({ v: 'c' })
+    unmount()
+    const t = track(onUnmountFlush.mock.calls[0][0])
+
+    first.resolve()
+    await settle()
+    expect(save).toHaveBeenLastCalledWith('c')
+    expect(t.state).toBe('pending')
+
+    second.resolve()
+    await settle()
+    expect(t.state).toBe('resolved')
+  })
+
+  it('hands out an in-flight save of the newest value without sending it again', async () => {
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise)
+    const onUnmountFlush = vi.fn()
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onUnmountFlush }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // 'b' in flight, nothing newer
+    unmount()
+    expect(onUnmountFlush).toHaveBeenCalledTimes(1)
+    const t = track(onUnmountFlush.mock.calls[0][0])
+
+    first.resolve()
+    await settle()
+    expect(t.state).toBe('resolved')
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+
+  it('resolves (not rejects) a failed chain and still reports it via onFlushError', async () => {
+    const onFlushError = vi.fn()
+    const onUnmountFlush = vi.fn()
+    // Plain rejecting function: a vi.fn() result would get handlers attached that mask a leak.
+    const save = (v: string) => Promise.reject(new Error(`offline: ${v}`))
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onFlushError, onUnmountFlush }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    unmount()
+    const t = track(onUnmountFlush.mock.calls[0][0])
+    await settle()
+
+    expect(t.state).toBe('resolved')
+    expect(onFlushError).toHaveBeenCalledTimes(1)
+  })
+
+  it('hands out nothing when there is nothing to save', () => {
+    const onUnmountFlush = vi.fn()
+    const { unmount } = renderHook(() => useAutosave('a', vi.fn(), { onUnmountFlush }))
+    unmount()
+    expect(onUnmountFlush).not.toHaveBeenCalled()
+  })
+
+  it('hands out nothing for the StrictMode double-invoke', () => {
+    const onUnmountFlush = vi.fn()
+    renderHook(() => useAutosave('a', vi.fn(), { onUnmountFlush }), { wrapper: StrictMode })
+    expect(onUnmountFlush).not.toHaveBeenCalled()
+  })
+
+  it('does not re-send a failed in-flight save of the newest value, and reports it once', async () => {
+    const onFlushError = vi.fn()
+    const onUnmountFlush = vi.fn()
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save, { onFlushError, onUnmountFlush }), {
+      initialProps: { v: 'a' },
+    })
+
+    rerender({ v: 'b' })
+    act(() => vi.advanceTimersByTime(800)) // 'b' in flight, nothing newer
+    unmount()
+    const t = track(onUnmountFlush.mock.calls[0][0])
+
+    first.reject(new Error('offline'))
+    await settle()
+
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(onFlushError).toHaveBeenCalledTimes(1)
+    expect(t.state).toBe('resolved')
+  })
+
+  it('shares one wait between a Fertig flush and a following unmount', async () => {
+    const onFlushError = vi.fn()
+    const onUnmountFlush = vi.fn()
+    const first = deferred()
+    const save = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined)
+    const { result, rerender, unmount } = renderHook(
+      ({ v }) => useAutosave(v, save, { onFlushError, onUnmountFlush }),
+      { initialProps: { v: 'a' } },
+    )
+
+    rerender({ v: 'b' })
+    let flushed!: ReturnType<typeof track>
+    act(() => {
+      flushed = track(result.current.flush()) // 'b' in flight
+    })
+    unmount() // left via the sidebar while Fertig was waiting
+    const registered = track(onUnmountFlush.mock.calls[0][0])
+
+    first.reject(new Error('offline'))
+    await settle()
+
+    expect(flushed.state).toBe('rejected')
+    expect(registered.state).toBe('resolved')
+    expect(onFlushError).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+})

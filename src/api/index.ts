@@ -3,6 +3,7 @@ import { rest, collectPages } from './rest'
 import { previewToRecipe } from './adapters'
 import { isStubbed, mergeMyRating, setStubUser, sortByRating, writeMyRating } from './stubs'
 import { assertRating } from './views'
+import { afterSave, allPendingSaves, pendingSaveFor } from './pendingSaves'
 import { PAGE_SIZE } from '../list/query'
 import type {
   CreateRecipe,
@@ -59,18 +60,23 @@ export const foodly = {
       ? socket.request<UserCategory[]>('categories.list')
       : collectPages((page) => rest.get<PaginatedResponse<UserCategory>>(`/categories?page=${page}&limit=100`)),
 
+  // Reads wait for an editor save still in flight (see pendingSaves.ts).
   searchRecipes: (query: RecipeSearchQuery, page: number): Promise<PaginatedRecipes> =>
-    USE_MOCKS
-      ? socket.request<PaginatedRecipes>('recipes.search', { query, page })
-      : rest
-          .post<PaginatedResponse<RecipePreview>>(`/recipes/search?page=${page}&limit=${PAGE_SIZE}`, query)
-          .then((res) => ({ items: res.data.map(previewToRecipe), cursor: res.cursor ? Number(res.cursor) : null }))
-          .then((page) => (isStubbed('ratings') ? withStubRatings(page, query) : page)),
+    afterSave(allPendingSaves(), () =>
+      USE_MOCKS
+        ? socket.request<PaginatedRecipes>('recipes.search', { query, page })
+        : rest
+            .post<PaginatedResponse<RecipePreview>>(`/recipes/search?page=${page}&limit=${PAGE_SIZE}`, query)
+            .then((res) => ({ items: res.data.map(previewToRecipe), cursor: res.cursor ? Number(res.cursor) : null }))
+            .then((page) => (isStubbed('ratings') ? withStubRatings(page, query) : page)),
+    ),
 
   getRecipe: (id: RecipeId): Promise<Recipe> =>
-    USE_MOCKS
-      ? socket.request<Recipe>('recipes.get', { id })
-      : rest.get<Recipe>(`/recipes/${id}`).then((r) => (isStubbed('ratings') ? mergeMyRating(r) : r)),
+    afterSave(pendingSaveFor(id), () =>
+      USE_MOCKS
+        ? socket.request<Recipe>('recipes.get', { id })
+        : rest.get<Recipe>(`/recipes/${id}`).then((r) => (isStubbed('ratings') ? mergeMyRating(r) : r)),
+    ),
 
   // REST branch is a localStorage stub until Backend #11 routes ratings
   // (PUT|DELETE /recipes/{id}/ratings/me); it resolves to the re-merged recipe.
