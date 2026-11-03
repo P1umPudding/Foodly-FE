@@ -614,6 +614,7 @@ describe('useAutosave · follow-up saves', () => {
 
     expect(onFlushError).toHaveBeenCalledTimes(1)
     expect(onFlushError).toHaveBeenCalledWith(new Error('offline: c'))
+    expect(save).toHaveBeenCalledTimes(2)
     expect(t.state).toBe('resolved')
   })
 })
