@@ -65,6 +65,15 @@ describe('focus ring contrast', () => {
   })
 })
 
+// Rules at column 0 are top-level; prettier indents anything inside @layer, where it would lose to the utilities.
+function topLevelRules(): { selector: string; body: string }[] {
+  const css = stylesCss.replace(/\/\*[\s\S]*?\*\//g, '')
+  return [...css.matchAll(/^([^\s@}][^{]*)\{([^}]*)\}/gm)].map(([, selector, body]) => ({
+    selector: selector.trim(),
+    body: body.trim(),
+  }))
+}
+
 describe('postxl ring-ring/50 override', () => {
   const SELECTORS = [
     ".focus-visible\\:ring-ring\\/50:focus-visible:not([aria-invalid='true'])",
@@ -72,11 +81,9 @@ describe('postxl ring-ring/50 override', () => {
   ]
 
   it('lifts ring-ring/50 to the full --ring in an unlayered rule', () => {
-    // Column 0 = top level: inside @layer prettier (format:check) indents it, and there it would lose to the utilities.
-    const css = stylesCss.replace(/\/\*[\s\S]*?\*\//g, '')
-    const rules = [...css.matchAll(/^([^\s@}][^{]*)\{([^}]*)\}/gm)].map(([, selectors, body]) => ({
-      selectors: selectors.split(',').map((s) => s.trim()),
-      body: body.trim(),
+    const rules = topLevelRules().map(({ selector, body }) => ({
+      selectors: selector.split(',').map((s) => s.trim()),
+      body,
     }))
     const rule = rules.find((r) => SELECTORS.every((s) => r.selectors.includes(s)))
     expect(rule, 'top-level rule with both selectors').toBeDefined()
@@ -95,5 +102,53 @@ describe('postxl ring-ring/50 override', () => {
         'group-data-[focused=true]/day:ring-ring/50', // date picker, not used in the app
       ]),
     )
+  })
+})
+
+describe('postxl checkbox/select-trigger ring width (#90)', () => {
+  const SELECTOR =
+    ":is(input[type='checkbox'], [data-slot='select-trigger']).focus-visible\\:ring-ring\\/50:focus-visible:not([aria-invalid='true'])"
+  const BODY =
+    '--tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor); outline: 2px solid transparent;'
+  const stripped = (s: string) => s.replace(/\s+/g, '')
+
+  it('gives both controls a 3-px ring in an unlayered rule', () => {
+    // Prettier wraps the :not(...) across lines; the selector has no descendant combinator, so stripping is safe.
+    const rule = topLevelRules().find((r) => stripped(r.selector) === stripped(SELECTOR))
+    expect(rule, 'top-level rule with the checkbox/select-trigger selector').toBeDefined()
+    expect(rule!.body.replace(/\s+/g, ' ')).toBe(BODY)
+  })
+
+  it('is the only top-level rule touching their ring shadow', () => {
+    const touching = topLevelRules().filter(
+      (r) => /checkbox|select-trigger/.test(r.selector) && r.body.includes('--tw-ring-shadow'),
+    )
+    expect(touching).toHaveLength(1)
+  })
+
+  // A failure here means a postxl upgrade changed these controls: check the rule above still matches and is still needed.
+  describe('postxl still ships them without a ring width', () => {
+    const hasRingWidth = (classes: string) =>
+      classes.split(/\s+/).some((c) => /(^|:)ring(-\d+|-\[[^\]]+\]|-\([^)]+\))?$/.test(c))
+    const checkboxBase = postxlJs.match(/const checkboxVariants = cva\("([^"]*)"/)?.[1]
+    const selectTrigger = postxlJs.match(
+      /const selectTriggerVariants = cva\("([^"]*)"[\s\S]*?variant: \{\s*default: "([^"]*)",\s*simple: "([^"]*)"/,
+    )
+
+    it('checkbox: a native input carrying the focus class', () => {
+      expect(checkboxBase).toContain('focus-visible:ring-ring/50')
+      expect(hasRingWidth(checkboxBase!)).toBe(false)
+      expect(postxlJs).toMatch(/type: "checkbox"[\s\S]{0,80}checkboxVariants\(/)
+      // The rule's transparent outline replaces the native one; if postxl adds outline-none, it is no longer needed.
+      expect(checkboxBase).not.toMatch(/outline-(none|hidden)/)
+    })
+
+    it('select trigger: data-slot, focus class only on the default variant', () => {
+      expect(postxlJs).toContain('"data-slot": "select-trigger"')
+      const [, base, defaultVariant, simpleVariant] = selectTrigger!
+      expect(defaultVariant).toContain('focus-visible:ring-ring/50')
+      expect(simpleVariant).not.toContain('ring-ring/50')
+      expect(hasRingWidth(`${base} ${defaultVariant}`)).toBe(false)
+    })
   })
 })
