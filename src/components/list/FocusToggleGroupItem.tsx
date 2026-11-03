@@ -1,8 +1,8 @@
 import { forwardRef, type ComponentPropsWithoutRef, type ElementRef } from 'react'
 import { ToggleGroupItem, cn } from '@postxl/ui-components'
 
-// postxl ships focus-visible:ring-1; 3 px like Button/RadioGroup (#95). postxl's cn puts the caller className after
-// toggleVariants, so twMerge drops the ring-1. forwardRef so TooltipTrigger asChild can still reach the item.
+// postxl ships focus-visible:ring-1; 3 px like Button/RadioGroup (#95). postxl's ToggleGroupItem merges the caller
+// className after toggleVariants, so twMerge drops the ring-1. forwardRef so TooltipTrigger asChild can reach the item.
 export const FocusToggleGroupItem = forwardRef<
   ElementRef<typeof ToggleGroupItem>,
   ComponentPropsWithoutRef<typeof ToggleGroupItem>
