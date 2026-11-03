@@ -17,9 +17,13 @@ const timer: Timer = {
 }
 
 describe('TimerRow — tap targets', () => {
-  it('gives every action a 40 px square on phones, desktop size unchanged', () => {
+  it.each([
+    ['running', 'running' as const, false, 'Pause'],
+    ['paused', 'paused' as const, false, 'Fortsetzen'],
+    ['alarming', 'expired' as const, true, 'Stopp'],
+  ])('%s: every action is a 40 px square on phones, desktop size unchanged', (_, status, alarming, primary) => {
     vi.mocked(useTimers).mockReturnValue({
-      alarmingIds: new Set(),
+      alarmingIds: new Set(alarming ? [timer.id] : []),
       pause: vi.fn(),
       resume: vi.fn(),
       restart: vi.fn(),
@@ -28,10 +32,10 @@ describe('TimerRow — tap targets', () => {
     } as unknown as ReturnType<typeof useTimers>)
     render(
       <TooltipProvider>
-        <TimerRow timer={timer} />
+        <TimerRow timer={{ ...timer, status }} />
       </TooltipProvider>,
     )
-    for (const name of ['Pause', 'Neustart', 'Löschen']) {
+    for (const name of [primary, 'Neustart', 'Löschen']) {
       const button = screen.getByRole('button', { name })
       expect(button.classList.contains('size-9')).toBe(true)
       expect(button.classList.contains('phone:size-10')).toBe(true)

@@ -6,10 +6,8 @@ import { useTimers } from './TimerProvider'
 
 vi.mock('./TimerProvider', () => ({ useTimers: vi.fn() }))
 
-function renderToggle(nextRemainingMs: number | null) {
-  vi.mocked(useTimers).mockReturnValue({ nextRemainingMs, alarmingIds: new Set() } as unknown as ReturnType<
-    typeof useTimers
-  >)
+function renderToggle(nextRemainingMs: number | null, alarmingIds = new Set<string>()) {
+  vi.mocked(useTimers).mockReturnValue({ nextRemainingMs, alarmingIds } as unknown as ReturnType<typeof useTimers>)
   render(
     <TooltipProvider>
       <TimerToggle />
@@ -31,5 +29,10 @@ describe('TimerToggle — tap target', () => {
     expect(button.classList.contains('h-8')).toBe(true)
     expect(button.classList.contains('phone:h-10')).toBe(true)
     expect(button.classList.contains('phone:size-10')).toBe(false)
+  })
+
+  it('stays a 40 px square on phones while alarming without a countdown', () => {
+    const button = renderToggle(null, new Set(['t1']))
+    expect(button.classList.contains('phone:size-10')).toBe(true)
   })
 })
