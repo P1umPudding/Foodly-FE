@@ -11,7 +11,14 @@ function IconAction({ label, onClick, children }: { label: string; onClick: () =
           anchor to a host element — without it the tooltip never shows. */}
       <TooltipTrigger asChild>
         <span className="inline-flex">
-          <Button type="button" variant="ghost" size="icon" onClick={onClick} aria-label={label}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClick}
+            aria-label={label}
+            className="phone:size-10"
+          >
             {children}
           </Button>
         </span>
