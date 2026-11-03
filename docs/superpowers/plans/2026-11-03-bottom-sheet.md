@@ -28,7 +28,7 @@ Renders:
 <SheetContent side="bottom" {...props}
   className={cn('flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pb-[env(safe-area-inset-bottom)] [&>button:first-child]:hidden', className)}>
   <Button asChild variant="ghost" size="icon" className="absolute top-1 right-1 size-10" aria-label="Schließen">
-    <SheetClose><X className="size-4" /></SheetClose>
+    <SheetClose><X />   // size from the Button: [&_svg:not([class*=size-])]:size-4</SheetClose>
   </Button>
   <div aria-hidden className="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-muted-foreground/30" />
   <SheetHeader className="px-4 pb-3"><SheetTitle>{title}</SheetTitle><SheetDescription className="sr-only">{description}</SheetDescription></SheetHeader>
