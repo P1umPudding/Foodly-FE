@@ -152,3 +152,21 @@ describe('postxl checkbox/select-trigger ring width (#90)', () => {
     })
   })
 })
+
+// FocusToggleGroupItem (src/components/list) overrides the ring width through className; a failure here means a
+// postxl upgrade changed ToggleGroupItem: check the wrapper is still needed and still wins.
+describe('postxl toggle-group item ring width (#95)', () => {
+  it('toggleVariants still ships the 1-px ring in full --ring', () => {
+    const base = postxlJs.match(/const toggleVariants = cva\("([^"]*)"/)?.[1]
+    expect(base).toBeDefined()
+    const classes = base!.split(/\s+/)
+    expect(classes).toContain('focus-visible:ring-1')
+    expect(classes).toContain('focus-visible:ring-ring')
+  })
+
+  it('ToggleGroupItem still merges the caller className last', () => {
+    expect(postxlJs).toMatch(
+      /const ToggleGroupItem = [\s\S]{0,300}?className: cn\(toggleVariants\(\{[\s\S]{0,120}?\}\), className\)/,
+    )
+  })
+})
