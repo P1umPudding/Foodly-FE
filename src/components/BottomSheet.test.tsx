@@ -15,7 +15,7 @@ function renderSheet(props: { scroll?: boolean; onOpenChange?: (open: boolean) =
 }
 
 describe('BottomSheet', () => {
-  it('has a 40 px close button labelled "Schließen"', () => {
+  it('labels the close button "Schließen" and gives it the 40 px size class', () => {
     const sheet = renderSheet()
     const close = within(sheet).getByRole('button', { name: 'Schließen' })
     expect(close.className).toContain('size-10')

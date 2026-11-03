@@ -26,7 +26,7 @@ export function BottomSheet({ title, description, scroll = true, className, chil
       {/* Button wraps SheetClose, not the other way round: the postxl Button doesn't forwardRef. */}
       <Button asChild variant="ghost" size="icon" className="absolute top-1 right-1 size-10" aria-label="Schließen">
         <SheetClose>
-          <X className="size-4" />
+          <X />
         </SheetClose>
       </Button>
       <div aria-hidden className="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-muted-foreground/30" />
