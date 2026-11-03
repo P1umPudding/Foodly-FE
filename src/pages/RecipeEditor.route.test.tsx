@@ -2,10 +2,15 @@ import { useEffect, useState } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditorRoute } from '../App'
 import { foodly } from '../api'
+import { resetPendingSaves } from '../api/pendingSaves'
 import type { Recipe } from '../api/protocol'
+
+// The mode is read when the modules load, so pin REST before the imports run (vi.hoisted),
+// whatever the shell env or .env.local sets.
+vi.hoisted(() => vi.stubEnv('VITE_MOCK', ''))
 
 // Real react-router here (unlike RecipeEditor.test.tsx) so the key-based remount
 // on route change is actually exercised — a mocked router can't reproduce the
@@ -42,7 +47,11 @@ function recipe(over: Partial<Recipe> = {}): Recipe {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  // Tests that leave a PUT unsettled would otherwise make a later read of recipe 5 wait.
+  resetPendingSaves()
 })
+
+afterAll(() => vi.unstubAllEnvs())
 
 describe('RecipeEditorRoute · remount on route change', () => {
   it('resets to a blank new-recipe form when navigating edit -> new', async () => {
@@ -255,5 +264,92 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     expect(puts).toHaveLength(1) // the unmount flush doesn't re-send the value in flight
     expect(screen.getByText('List')).toBeTruthy()
     expect(screen.queryByText(/Detail:/)).toBeNull()
+  })
+})
+
+// Leaving without "Fertig" doesn't wait for the save; the next page's read waits
+// instead (#80). getRecipe is NOT spied here: the wait lives inside it, so the GET
+// goes through the real foodly.getRecipe to a fetch fake that answers at once.
+describe('RecipeEditorRoute · leaving another way', () => {
+  function server() {
+    let current = recipe()
+    const puts: { resolve: () => void; reject: (e: Error) => void }[] = []
+    const gets: string[] = []
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      gets.push(String(input))
+      return { ok: true, status: 200, json: async () => current } as unknown as Response
+    })
+    vi.spyOn(foodly, 'updateRecipe').mockImplementation(
+      (_id, body) =>
+        new Promise((resolve, reject) => {
+          puts.push({
+            resolve: () => {
+              current = { ...current, name: body.name }
+              resolve(current)
+            },
+            reject,
+          })
+        }),
+    )
+    return { puts, gets }
+  }
+
+  function DetailStub() {
+    const [name, setName] = useState<string | null>(null)
+    useEffect(() => {
+      foodly.getRecipe(5).then((r) => setName(r.name))
+    }, [])
+    return <p>Detail: {name ?? '…'}</p>
+  }
+
+  function renderEditor() {
+    render(
+      <TooltipProvider>
+        <MemoryRouter initialEntries={['/recipes/5/edit']}>
+          <Link to="/recipes/5">to detail</Link>
+          <Routes>
+            <Route path="/recipes/:id" element={<DetailStub />} />
+            <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
+          </Routes>
+        </MemoryRouter>
+      </TooltipProvider>,
+    )
+  }
+
+  const titleInput = () => screen.getByLabelText('Titel') as HTMLInputElement
+
+  async function openAndRename(title: string) {
+    await waitFor(() => expect(titleInput().value).toBe('Pasta 5'))
+    fireEvent.change(titleInput(), { target: { value: title } })
+  }
+
+  it('holds the detail GET until the unmount PUT landed, so it shows the new title', async () => {
+    const { puts, gets } = server()
+    renderEditor()
+    await openAndRename('Pasta neu')
+    const loadsBefore = gets.length // the editor's own load
+
+    fireEvent.click(screen.getByText('to detail')) // well within the 800 ms debounce
+    expect(await screen.findByText('Detail: …')).toBeTruthy()
+    expect(puts).toHaveLength(1)
+    await act(async () => {})
+    expect(gets).toHaveLength(loadsBefore)
+
+    act(() => puts[0].resolve())
+
+    expect(await screen.findByText('Detail: Pasta neu')).toBeTruthy()
+    expect(gets).toHaveLength(loadsBefore + 1)
+  })
+
+  it('shows the server state after a failed unmount PUT', async () => {
+    const { puts } = server()
+    renderEditor()
+    await openAndRename('Pasta neu')
+
+    fireEvent.click(screen.getByText('to detail'))
+    await waitFor(() => expect(puts).toHaveLength(1))
+    act(() => puts[0].reject(new Error('offline')))
+
+    expect(await screen.findByText('Detail: Pasta 5')).toBeTruthy()
   })
 })
