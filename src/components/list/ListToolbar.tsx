@@ -9,7 +9,6 @@ import {
   SelectItem,
   SelectTrigger,
   ToggleGroup,
-  ToggleGroupItem,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -30,6 +29,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import type { ListState, SortKey, SortDir, DetailView } from '../../list/state'
+import { FocusToggleGroupItem } from './FocusToggleGroupItem'
 
 type Criterion = { key: SortKey; label: string; Icon: LucideIcon }
 const SORT_CRITERIA: Criterion[] = [
@@ -85,13 +85,13 @@ function ViewToggle<T extends string>({
         return (
           <Tooltip key={o.value}>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
+              <FocusToggleGroupItem
                 value={o.value}
                 aria-label={o.label}
                 className={`px-2.5 ${selected ? 'bg-foreground/10 text-foreground' : ''}`}
               >
                 <o.Icon className="h-4 w-4" />
-              </ToggleGroupItem>
+              </FocusToggleGroupItem>
             </TooltipTrigger>
             <TooltipContent>{o.label}</TooltipContent>
           </Tooltip>

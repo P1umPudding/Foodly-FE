@@ -353,7 +353,8 @@ export function RecipeList() {
           the content (scrollbar starts at the content, not up in the spacer). */}
       <aside className="fixed top-(--site-nav-h) left-(--rail-left) hidden max-h-[calc(100vh-var(--site-nav-h)-1rem)] w-(--rail-width) flex-col lg:flex">
         <div className="h-(--list-search-offset,4.5rem) shrink-0" />
-        <div className="min-h-0 flex-1 overflow-y-auto pb-4">{filters}</div>
+        {/* -ml-1 pl-1: the scroll box clips sideways too, so give the toggles' 3-px focus ring room on the left. */}
+        <div className="-ml-1 min-h-0 flex-1 overflow-y-auto pb-4 pl-1">{filters}</div>
       </aside>
     </>
   )

@@ -7,7 +7,6 @@ import {
   Skeleton,
   Slider,
   ToggleGroup,
-  ToggleGroupItem,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -20,6 +19,7 @@ import type { Tag, Ingredient, UserCategory } from '../../api/protocol'
 import { CategorySidebar } from './CategorySidebar'
 import { SearchInput } from './SearchInput'
 import { TagIcon } from '../TagText'
+import { FocusToggleGroupItem } from './FocusToggleGroupItem'
 
 // Upper bound for the work-time slider (minutes). Beyond this we treat it as "no
 // limit" — the slider's max position clears durationMax rather than capping at it.
@@ -28,7 +28,13 @@ const DURATION_PRESETS = [15, 30, 60] as const
 
 // Neutral "selected" emphasis for filter chips/toggles — selection reads via fill +
 // ring + weight, not a brand hue (colour stays reserved for category/access meaning).
-const SELECTED_CHIP = 'bg-foreground/15 font-medium text-foreground ring-1 ring-inset ring-foreground/30'
+// Inset only at rest: a focused toggle draws its 3-px focus ring outside, like the unselected ones (#95).
+const SELECTED_CHIP =
+  'bg-foreground/15 font-medium text-foreground ring-1 not-focus-visible:ring-inset ring-foreground/30'
+
+// Impossible access combos: fade the content, not the item, so its focus ring stays at full strength (#95);
+// the hover fill is faded to match what opacity-40 on the item used to give.
+const GREYED = '*:opacity-40 hover:bg-muted/40'
 
 // Extra row gap below the "selected" chips so they read as their own block.
 const SELECTED_ROW = 'mb-2.5 flex flex-wrap gap-1'
@@ -167,14 +173,14 @@ function DurationFilter({ value, onChange }: { value: number | null; onChange: (
         onValueChange={(v) => onChange(v === '' ? null : Number(v))}
       >
         {DURATION_PRESETS.map((m) => (
-          <ToggleGroupItem
+          <FocusToggleGroupItem
             key={m}
             value={String(m)}
             aria-label={`≤ ${m} Minuten`}
             className={`h-7 flex-1 px-1.5 text-xs ${value === m ? SELECTED_CHIP : ''}`}
           >
             ≤ {m} Min
-          </ToggleGroupItem>
+          </FocusToggleGroupItem>
         ))}
       </ToggleGroup>
     </div>
@@ -333,14 +339,14 @@ export function FilterControls({
               return (
                 <Tooltip key={r}>
                   <TooltipTrigger asChild>
-                    <ToggleGroupItem
+                    <FocusToggleGroupItem
                       value={r}
-                      className={`flex h-auto min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${selected ? SELECTED_CHIP : ''} ${disabled ? 'opacity-40' : ''}`}
+                      className={`flex h-auto min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${selected ? SELECTED_CHIP : ''} ${disabled ? GREYED : ''}`}
                     >
                       {/* size-3.5 matches the row indicator icons (RoleCollabIndicator h-3.5 w-3.5) */}
                       <meta.Icon className="size-3.5 shrink-0" />
                       <span className="truncate">{meta.label}</span>
-                    </ToggleGroupItem>
+                    </FocusToggleGroupItem>
                   </TooltipTrigger>
                   <TooltipContent>
                     {disabled ? 'Passt nicht zur gewählten Freigabe – Klick setzt sie zurück' : meta.desc}
@@ -369,14 +375,14 @@ export function FilterControls({
               return (
                 <Tooltip key={c}>
                   <TooltipTrigger asChild>
-                    <ToggleGroupItem
+                    <FocusToggleGroupItem
                       value={c}
-                      className={`flex h-auto min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${selected ? SELECTED_CHIP : ''} ${disabled ? 'opacity-40' : ''}`}
+                      className={`flex h-auto min-w-0 flex-1 flex-col items-center gap-0.5 py-1.5 text-sm leading-tight ${selected ? SELECTED_CHIP : ''} ${disabled ? GREYED : ''}`}
                     >
                       {/* size-3.5 matches the row indicator icons (RoleCollabIndicator h-3.5 w-3.5) */}
                       <meta.Icon className="size-3.5 shrink-0" />
                       <span className="truncate">{meta.label}</span>
-                    </ToggleGroupItem>
+                    </FocusToggleGroupItem>
                   </TooltipTrigger>
                   <TooltipContent>
                     {disabled ? 'Passt nicht zur gewählten Rolle – Klick setzt sie zurück' : meta.desc}

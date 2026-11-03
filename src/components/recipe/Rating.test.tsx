@@ -201,7 +201,7 @@ describe('Rating on a phone', () => {
     fireEvent.click(trigger)
 
     const sheet = await screen.findByRole('dialog', { name: 'Bewertung' })
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Close' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Schließen' }))
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Bewertung' })).toBeNull())
     await waitFor(() => expect(document.activeElement).toBe(trigger))
   })
