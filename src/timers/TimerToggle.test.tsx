@@ -36,3 +36,19 @@ describe('TimerToggle — tap target', () => {
     expect(button.classList.contains('phone:size-10')).toBe(true)
   })
 })
+
+describe('TimerToggle — focus ring (#64)', () => {
+  // jsdom applies no CSS: assert the postxl Button's ring survives the className merge. It is gated by
+  // `focus-visible:` only, so a mouse click shows no ring.
+  it.each([
+    ['idle', null, new Set<string>()],
+    ['running', 65_000, new Set<string>()],
+    ['alarming', null, new Set(['t1'])],
+    ['running and alarming', 65_000, new Set(['t1'])],
+  ])('keeps the 3 px --ring focus ring while %s', (_state, nextRemainingMs, alarmingIds) => {
+    const button = renderToggle(nextRemainingMs, alarmingIds)
+    expect(button.classList.contains('focus-visible:ring-[3px]')).toBe(true)
+    expect(button.classList.contains('focus-visible:ring-ring/50')).toBe(true)
+    expect(button.classList.contains('focus-visible:ring-0')).toBe(false)
+  })
+})
