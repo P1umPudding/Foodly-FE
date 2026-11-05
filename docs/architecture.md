@@ -70,7 +70,8 @@ werden hier nicht wiederholt.
 - Paginierte Reads: `useRecipeSearch` (akkumuliert Seiten, reset bei Query-Wechsel).
 - Schreiben mit Autosave: `useAutosave` (Debounce, single-flight, Koaleszenz).
 - Jede datengetriebene Ansicht rendert **alle drei** Zustände:
-  - Laden → postxl `Loader`,
+  - Laden → Skelette in der Form des Inhalts (postxl `Skeleton`, Redesign §1.7; z. B.
+    Rezeptliste je Ansicht), postxl `Loader` nur für kleine Einzelbereiche,
   - Fehler → postxl `Alert` (Muster: `src/pages/RecipeDetail.tsx`),
   - Leer → expliziter Leer-Text, nie eine leere Fläche.
 - Einzelaktionen (Upload, Duplizieren) melden Fehler per `Toaster`-Toast.

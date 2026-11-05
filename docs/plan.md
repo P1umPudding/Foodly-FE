@@ -45,9 +45,10 @@ Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 Löschen, Bild-Platzhalter, Tag-Icons → Kategorien verwalten → Phase 5 → Teilen →
 Phase 6. Breakdown je Block über den Lead.
 
-**Stand 2026-11-02:** Stub-Basis + Rating (#35), Löschen (#36), Bild-Platzhalter
-(#37) und Tag-Icons (#38) sind gemergt, dazu QA-Fixes bis PR #84. Nächste
-Breakdowns: Kategorien verwalten und Rezeptliste (Redesign Schritt 4).
+**Stand 2026-11-05:** Stub-Basis + Rating (#35), Löschen (#36), Bild-Platzhalter
+(#37) und Tag-Icons (#38) sind gemergt, dazu QA-Fixes bis PR #101. Rezeptliste
+(Redesign Schritt 4) ist geschnitten (7 Issues, freigegeben von Daniel am 2026-11-05).
+Nächster Breakdown: Kategorien verwalten.
 
 Details je Phase in `phases/`.
 
@@ -151,7 +152,9 @@ Freigegeben von Kolja am 2026-10-29. Reihenfolge:
 1. ✅ Token-PR #30 (Tokens, Inter, Text-Skala, Radien, `docs/design.md`).
 2. ✅ Kategorie-Farb-Util **#26** (PR #40).
 3. ✅ App-Shell **#27** (PR #41; Start ausgeblendet bis zum Dashboard).
-4. Rezeptliste (Filterleiste, Kacheln), Breakdown offen.
+4. Rezeptliste (Filterleiste, Kacheln): Spec
+   `docs/superpowers/specs/2026-11-05-recipe-list-redesign-design.md`, 7 Issues #103–#109
+   (Label `redesign`), läuft. Kategorie-Seite gehört zu „Kategorien verwalten“.
 5. Start/Dashboard = Phase 5 (ohne B4–B6-Blöcke), Breakdown offen.
 6. Detail, dann Koch-Modus.
 
