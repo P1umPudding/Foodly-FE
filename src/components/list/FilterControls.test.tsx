@@ -26,6 +26,8 @@ it('role and sharing filter labels are rendered', () => {
   expect(screen.getByText('Freigabe')).toBeTruthy()
 })
 
+const classes = (el: HTMLElement) => el.className.split(/\s+/)
+
 function setup(state: ListState) {
   return renderControls(state)
 }
@@ -36,9 +38,9 @@ describe('Zugriff grey-out + relax', () => {
   it('greys impossible Freigabe options once a role is chosen', () => {
     setup({ ...DEFAULT_STATE, role: 'editor' })
     // editor → only Collaborative is valid; Privat + Geteilt greyed
-    expect(screen.getByRole('radio', { name: /Privat/i }).className).toContain('opacity-40')
-    expect(screen.getByRole('radio', { name: /Geteilt/i }).className).toContain('opacity-40')
-    expect(screen.getByRole('radio', { name: /Kollaborativ/i }).className).not.toContain('opacity-40')
+    expect(classes(screen.getByRole('radio', { name: /Privat/i }))).toContain('*:opacity-40')
+    expect(classes(screen.getByRole('radio', { name: /Geteilt/i }))).toContain('*:opacity-40')
+    expect(classes(screen.getByRole('radio', { name: /Kollaborativ/i }))).not.toContain('*:opacity-40')
   })
 
   it('relaxes the sister axis when an impossible option is clicked', () => {
@@ -61,5 +63,34 @@ describe('Zugriff selected indication', () => {
   it('applies the selected styling to the chosen Freigabe', () => {
     setup({ ...DEFAULT_STATE, collab: 'collaborative' })
     expect(screen.getByRole('radio', { name: /Kollaborativ/i }).className).toContain('bg-foreground/15')
+  })
+})
+
+describe('toggle focus ring (#95)', () => {
+  it('gives every toggle item the 3-px ring instead of postxl ring-1', () => {
+    setup(DEFAULT_STATE)
+    const items = screen.getAllByRole('radio')
+    // 3 work-time presets + 3 roles + 3 sharing options
+    expect(items).toHaveLength(9)
+    for (const item of items) {
+      expect(classes(item)).toContain('focus-visible:ring-[3px]')
+      expect(classes(item)).not.toContain('focus-visible:ring-1')
+    }
+  })
+
+  it('keeps a selected chip inset only at rest, so the focus ring is drawn outside', () => {
+    setup({ ...DEFAULT_STATE, role: 'owner' })
+    const owner = classes(screen.getByRole('radio', { name: /Besitzer/i }))
+    expect(owner).toContain('not-focus-visible:ring-inset')
+    expect(owner).not.toContain('ring-inset')
+  })
+
+  it('fades a greyed item through its content, not the item itself', () => {
+    setup({ ...DEFAULT_STATE, role: 'editor' })
+    const privat = classes(screen.getByRole('radio', { name: /Privat/i }))
+    expect(privat).toContain('*:opacity-40')
+    expect(privat).toContain('hover:bg-muted/40')
+    expect(privat).not.toContain('opacity-40')
+    expect(privat).not.toContain('hover:bg-muted')
   })
 })

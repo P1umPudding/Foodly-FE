@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -240,6 +240,47 @@ describe('Timer button in the header', () => {
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Timer' }))
     openTimers()
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+  })
+
+  // Radix registers the outside-pointer listener of a freshly opened layer only after a tick.
+  const openSheet = async () => {
+    setViewport(375)
+    renderAt('/recipes')
+    openTimers()
+    const panel = await screen.findByRole('dialog', { name: 'Timer' })
+    await act(() => new Promise((r) => setTimeout(r, 0)))
+    return panel
+  }
+
+  it('keeps the phone sheet non-modal', async () => {
+    await openSheet()
+    // A modal sheet would hide the page from the accessibility tree and switch off its pointer events.
+    screen.getByRole('button', { name: 'count 0' })
+    expect(document.body.style.pointerEvents).not.toBe('none')
+  })
+
+  it('keeps the phone sheet open for a press on a toast, but not elsewhere', async () => {
+    await openSheet()
+    const toaster = document.createElement('div')
+    toaster.setAttribute('data-sonner-toaster', '')
+    toaster.innerHTML = '<button type="button">Stopp</button>'
+    document.body.append(toaster)
+    try {
+      fireEvent.pointerDown(within(toaster).getByRole('button', { name: 'Stopp' }))
+      expect(screen.getByRole('dialog', { name: 'Timer' })).toBeTruthy()
+
+      fireEvent.pointerDown(document.body)
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    } finally {
+      toaster.remove()
+    }
+  })
+
+  it('closes the phone sheet from "Schließen" and returns focus to the header button', async () => {
+    const panel = await openSheet()
+    fireEvent.click(within(panel).getByRole('button', { name: 'Schließen' }))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
   })
 
   it('shows the countdown of a started timer', async () => {

@@ -148,18 +148,63 @@ describe('scaleAmount', () => {
     expect(scaleAmount('.5', 2)).toBe('1')
     expect(scaleAmount('5.', 2)).toBe('10')
   })
+  it('reads a dot followed by groups of three digits as a thousands separator', () => {
+    expect(scaleAmount('1.000', 2)).toBe('2.000')
+    expect(scaleAmount('1.500', 2)).toBe('3.000')
+    expect(scaleAmount('1.000', 0.5)).toBe('500')
+    expect(scaleAmount('12.500', 2)).toBe('25.000')
+    expect(scaleAmount('1.250', 2)).toBe('2.500')
+    expect(scaleAmount('1.000.000', 2)).toBe('2.000.000')
+    expect(scaleAmount('1.000,5', 2)).toBe('2.001')
+    expect(scaleAmount('1.000', 1)).toBe('1.000')
+  })
+  it('rounds before grouping and keeps the decimal comma for thousands', () => {
+    expect(scaleAmount('1.000,5', 1.5)).toBe('1.500,75')
+    expect(scaleAmount('1.000,5', 0.5)).toBe('500,25')
+    expect(scaleAmount('1.000', 1 / 3)).toBe('333,33')
+  })
+  it('keeps decimal readings that are not the thousands form', () => {
+    expect(scaleAmount('2.5', 2)).toBe('5')
+    expect(scaleAmount('0.250', 2)).toBe('0,5')
+    expect(scaleAmount('1,5', 2)).toBe('3')
+    expect(scaleAmount('1.0000', 2)).toBe('2')
+    expect(scaleAmount('01.000', 2)).toBe('2')
+    expect(scaleAmount('1234.567', 2)).toBe('2469,13')
+  })
+  it('groups both ends of a range when either end uses a thousands dot', () => {
+    expect(scaleAmount('1.000–1.500', 2)).toBe('2.000–3.000')
+    expect(scaleAmount('1.000-1.500', 2)).toBe('2.000-3.000')
+    expect(scaleAmount('1.000 - 1.500', 2)).toBe('2.000 - 3.000')
+    expect(scaleAmount('500–1.000', 2)).toBe('1.000–2.000')
+  })
   it('returns fractions and ranges unchanged at factor 1', () => {
     for (const amount of ['½', '1-2', '1 1/2', 'etwas']) expect(scaleAmount(amount, 1)).toBe(amount)
   })
   it('passes through amounts it does not recognise', () => {
-    for (const amount of ['1 Dose à 400', '-2', '1-', '1--2', '1/0', '1e2', '1—2', '1,5½', '½1', '1⁄2'])
+    for (const amount of [
+      '1 Dose à 400',
+      '-2',
+      '1-',
+      '1--2',
+      '1/0',
+      '1e2',
+      '1—2',
+      '1,5½',
+      '½1',
+      '1⁄2',
+      '1.000.',
+      '1.000,',
+      '1.00.000',
+      '1.000.5',
+    ])
       expect(scaleAmount(amount, 2)).toBe(amount)
   })
 })
 
 describe('isScalableAmount', () => {
   it('is true for numbers, fractions and ranges', () => {
-    for (const amount of ['2', '2,5', '½', '1 1/2', '1-2', '½–1']) expect(isScalableAmount(amount)).toBe(true)
+    for (const amount of ['2', '2,5', '½', '1 1/2', '1-2', '½–1', '1.000.000', '1.000,5'])
+      expect(isScalableAmount(amount)).toBe(true)
   })
   it('is false for empty, missing and unrecognised amounts', () => {
     for (const amount of [null, '', '  ', 'etwas', '1 Dose à 400', '-2', '1/0'])

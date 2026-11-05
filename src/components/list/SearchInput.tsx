@@ -32,7 +32,8 @@ export function SearchInput({
           size="icon"
           aria-label={clearLabel}
           onClick={() => onChange('')}
-          className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+          // Visibly 28 px so it fits inside the 36 px input; on phones the ::after widens the hit area to 40 px.
+          className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 phone:after:absolute phone:after:-inset-1.5"
         >
           <X className="h-4 w-4" />
         </Button>

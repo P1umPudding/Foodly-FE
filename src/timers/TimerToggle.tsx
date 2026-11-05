@@ -17,6 +17,7 @@ export const TimerToggle = forwardRef<HTMLSpanElement, HTMLAttributes<HTMLSpanEl
   const { nextRemainingMs, alarmingIds } = useTimers()
   const alarming = alarmingIds.size > 0
   const Icon = alarming ? AlarmClock : TimerIcon
+  const running = nextRemainingMs !== null
 
   return (
     <Tooltip>
@@ -25,18 +26,20 @@ export const TimerToggle = forwardRef<HTMLSpanElement, HTMLAttributes<HTMLSpanEl
           <Button
             type="button"
             variant="ghost"
-            size={nextRemainingMs !== null ? 'sm' : 'icon'}
+            size={running ? 'sm' : 'icon'}
             aria-label="Timer"
             aria-expanded={expanded}
             aria-haspopup={hasPopup}
             aria-controls={controls}
             className={cn(
-              'gap-1.5 rounded-md focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+              'gap-1.5 rounded-md',
+              // 40 px tap target on phones, same height with and without the countdown so the header doesn't jump.
+              running ? 'phone:h-10' : 'phone:size-10',
               alarming ? 'text-destructive hover:text-destructive' : 'text-muted-foreground hover:text-foreground',
             )}
           >
             <Icon className="size-4" />
-            {nextRemainingMs !== null && <span className="tabular-nums">{formatRemaining(nextRemainingMs)}</span>}
+            {running && <span className="tabular-nums">{formatRemaining(nextRemainingMs)}</span>}
           </Button>
         </span>
       </TooltipTrigger>

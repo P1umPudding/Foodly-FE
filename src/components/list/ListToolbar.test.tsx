@@ -31,3 +31,12 @@ it('exposes layout toggles (by-category / flat list)', () => {
   expect(screen.getByRole('radio', { name: 'Nach Kategorie' })).toBeTruthy()
   expect(screen.getByRole('radio', { name: 'Einfache Liste' })).toBeTruthy()
 })
+
+it('gives the view toggles the 3-px focus ring instead of postxl ring-1 (#95)', () => {
+  renderToolbar(base)
+  for (const name of ['Detailliert', 'Kompakt', 'Nach Kategorie', 'Einfache Liste']) {
+    const classes = screen.getByRole('radio', { name }).className.split(/\s+/)
+    expect(classes).toContain('focus-visible:ring-[3px]')
+    expect(classes).not.toContain('focus-visible:ring-1')
+  }
+})

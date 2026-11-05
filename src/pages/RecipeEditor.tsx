@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Alert, AlertDescription, AlertTitle, Button, Skeleton, Spinner, toast } from '@postxl/ui-components'
 import { Plus } from 'lucide-react'
 import { foodly } from '../api'
+import { trackPendingSave } from '../api/pendingSaves'
 import { useRequest } from '../hooks/useRequest'
 import { useCurrentUserId } from '../catalog/CatalogProvider'
 import { canEdit } from '../editor/access'
@@ -55,6 +56,11 @@ export function RecipeEditor() {
       // The unmount-flush save outlives the component that would have shown
       // its status, so a failure needs a channel that doesn't need one.
       onFlushError: () => toast.error('Änderungen konnten nicht gespeichert werden.'),
+      // Leaving any other way than "Fertig" doesn't wait for the save; the next page's
+      // read of this recipe waits instead.
+      onUnmountFlush: (done) => {
+        if (recipeId !== null) trackPendingSave(recipeId, done)
+      },
     },
   )
 
