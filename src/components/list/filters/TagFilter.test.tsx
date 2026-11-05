@@ -8,7 +8,6 @@ import type { Tag } from '../../../api/protocol'
 
 const tags: Tag[] = ['schnell', 'günstig', 'vegan', 'vegetarisch', 'scharf'].map((id) => ({ id, svg: null }) as Tag)
 
-
 function Stateful({ set }: { set: (patch: Partial<ListState>) => void }) {
   const [selected, setSelected] = useState<string[]>([])
   return (

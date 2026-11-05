@@ -21,7 +21,10 @@ export function TagFilter({
   const q = normalizeText(query.trim())
   // Tags have no display name; the id is what the user sees and searches.
   const matches = q === '' ? tags : tags.filter((t) => normalizeText(t.id).includes(q))
-  const ordered = [...matches.filter((t) => selected.includes(t.id)), ...matches.filter((t) => !selected.includes(t.id))]
+  const ordered = [
+    ...matches.filter((t) => selected.includes(t.id)),
+    ...matches.filter((t) => !selected.includes(t.id)),
+  ]
   return (
     <div className="flex flex-col gap-2">
       <SearchInput value={query} onChange={setQuery} placeholder="Tag suchen…" />

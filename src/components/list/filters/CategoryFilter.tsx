@@ -22,10 +22,7 @@ export function CategoryFilter({
     <div className="flex max-h-72 flex-col gap-0.5 overflow-y-auto">
       {/* No count: uncategorised recipes could only be counted over the loaded pages (B16).
           No data-cat, so the neutral --cat-* defaults colour its dot. */}
-      <FilterCheckRow
-        checked={selected.includes(UNCATEGORIZED_ID)}
-        onToggle={() => onToggle(UNCATEGORIZED_ID)}
-      >
+      <FilterCheckRow checked={selected.includes(UNCATEGORIZED_ID)} onToggle={() => onToggle(UNCATEGORIZED_ID)}>
         <CategoryLabel name="Ohne Kategorie" />
       </FilterCheckRow>
       {ordered.map((c) => (

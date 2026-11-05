@@ -38,11 +38,7 @@ describe('CategoryFilter', () => {
   it('lists "Ohne Kategorie" first and without a count, then categories by order', () => {
     render(<CategoryFilter categories={cats} selected={[]} set={() => {}} />)
     const labels = checkboxLabels()
-    expect(labels).toEqual([
-      'Ohne Kategorie',
-      'Favoriten1, 1 Rezepte',
-      'Suppen3, 3 Rezepte',
-    ])
+    expect(labels).toEqual(['Ohne Kategorie', 'Favoriten1, 1 Rezepte', 'Suppen3, 3 Rezepte'])
   })
 
   it('keeps "Ohne Kategorie" neutral and colours real categories', () => {
