@@ -74,6 +74,7 @@ export function RecipeList() {
     (r) => inSelectedCategory(r, state.categories, categories) && matchesSearch(r, state.search),
   )
 
+  const pending = search.status === 'ready' && search.hasMore
   const allLoaded = search.status === 'ready' && !search.hasMore
 
   // Count of accessible recipes in no category — drives the "Ohne Kategorie" filter.
@@ -307,7 +308,7 @@ export function RecipeList() {
 
             {/* Pages still to come may hold matches: hold the empty texts back until the list is exhausted.
               The sentinel below stays in view, so loading carries on by itself. */}
-            {search.status === 'ready' && search.hasMore && visible.length === 0 && (
+            {pending && visible.length === 0 && (
               <Skeleton data-testid="list-pending-skeleton" className="h-18 w-full rounded-lg" />
             )}
 

@@ -308,13 +308,19 @@ describe('RecipeList (result count and empty states)', () => {
       }
     }
     vi.stubGlobal('IntersectionObserver', FiringIO)
+    let resolvePage2: (page: Awaited<ReturnType<typeof foodly.searchRecipes>>) => void = () => {}
+    const page2 = new Promise<Awaited<ReturnType<typeof foodly.searchRecipes>>>((resolve) => (resolvePage2 = resolve))
     const searchSpy = vi
       .spyOn(foodly, 'searchRecipes')
       .mockResolvedValueOnce({ items: [rec(1, 'Pancakes')], cursor: 2 })
-      .mockResolvedValueOnce({ items: [rec(2, 'Zzz Suppe')], cursor: null })
+      .mockReturnValueOnce(page2)
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
 
     renderSearch('zzz')
+
+    await waitFor(() => expect(searchSpy).toHaveBeenCalledTimes(2))
+    screen.getByTestId('list-pending-skeleton')
+    await act(async () => resolvePage2({ items: [rec(2, 'Zzz Suppe')], cursor: null }))
 
     await waitFor(() => screen.getByText('Zzz Suppe'))
     expect(searchSpy).toHaveBeenCalledTimes(2)
