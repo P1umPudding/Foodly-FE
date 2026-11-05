@@ -403,6 +403,8 @@ describe('RecipeList (rows)', () => {
     )
 
     await waitFor(() => screen.getByText('Pancakes'))
+    // The filter is really applied: no Cat 2 group, whose row would list Cat 1.
+    expect(screen.queryByText('Kategorien: Cat 1')).toBeNull()
     expect(screen.getByText('Kategorien: Cat 2')).toBeTruthy()
   })
 })
