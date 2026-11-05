@@ -87,9 +87,10 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
           variant="ghost"
           size="sm"
           // The button disappears with the limit; hand focus to the field so keyboard users aren't dropped on <body>.
-          onClick={() => {
+          // Keyboard activation only (detail 0): on a tap, focusing the field would pop up the phone keyboard.
+          onClick={(e) => {
             onChange(null)
-            fieldRef.current?.focus()
+            if (e.detail === 0) fieldRef.current?.focus()
           }}
           className="h-7 gap-1 self-end px-2 text-muted-foreground hover:text-foreground phone:h-10"
         >

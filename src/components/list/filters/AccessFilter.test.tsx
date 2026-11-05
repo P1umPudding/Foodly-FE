@@ -125,4 +125,12 @@ describe('AccessFilter', () => {
     fireEvent.click(roleRadio(/Betrachter/))
     expect(set).toHaveBeenCalledWith({ role: 'viewer', collab: 'any' })
   })
+
+  it('clicking the label text of a greyed option picks it', () => {
+    const { set } = setup('owner', 'private')
+    const label = roleRadio(/Bearbeiter/).parentElement!.querySelector('label')!
+    fireEvent.pointerDown(label)
+    fireEvent.click(label)
+    expect(set).toHaveBeenCalledWith({ role: 'editor', collab: 'any' })
+  })
 })

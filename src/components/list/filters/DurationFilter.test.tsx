@@ -54,6 +54,12 @@ describe('DurationFilter', () => {
     expect(document.activeElement).toBe(field())
   })
 
+  it('a pointer click on Zurücksetzen leaves focus alone (no phone keyboard)', () => {
+    render(<Stateful initial={45} set={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Zurücksetzen' }), { detail: 1 })
+    expect(document.activeElement).not.toBe(field())
+  })
+
   it('no limit parks the knob at the far right with an empty field', () => {
     render(<DurationFilter value={null} set={() => {}} />)
     expect(slider().getAttribute('aria-valuenow')).toBe('180')
