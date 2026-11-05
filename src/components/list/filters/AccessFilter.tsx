@@ -114,7 +114,13 @@ function AccessGroup<V extends string>({
             </span>
           )
           return (
-            <div key={option} className="flex items-center gap-2 rounded-sm px-1 hover:bg-muted phone:min-h-10">
+            <div
+              key={option}
+              className={cn(
+                'flex items-center gap-2 rounded-sm px-1 phone:min-h-10',
+                greyed ? 'hover:bg-muted/40' : 'hover:bg-muted',
+              )}
+            >
               <RadioGroupItem value={option} id={id} aria-describedby={greyed ? reasonId : undefined} />
               {/* Overrides postxl Label's text-base/leading-none/font-medium, like FilterCheckRow. */}
               <Label
