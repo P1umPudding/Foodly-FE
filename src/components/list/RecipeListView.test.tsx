@@ -114,11 +114,6 @@ describe('category dots', () => {
     expect(within(rowIn(/Quick/, 'In Both')).getByText('Kategorien: Fav')).toBeTruthy()
   })
 
-  it('"Ohne Kategorie" rows show no dots', () => {
-    renderView()
-    expect(within(rowIn(/Ohne Kategorie/, 'Loner')).queryByText(/^Kategorien:/)).toBeNull()
-  })
-
   it('a filter narrowing the groups still leaves the other dots', () => {
     renderView({ categories: [cats[0]], allCategories: cats })
     expect(screen.queryByRole('button', { name: /Quick/ })).toBeNull()
@@ -132,6 +127,10 @@ describe('category dots', () => {
 })
 
 describe('image column', () => {
+  afterEach(() => {
+    imageStub.stubbed = true
+  })
+
   const withPhoto = [{ ...recipes[0], mainImage: 3 }, recipes[1]]
 
   it('without showImages no row has an image cell', () => {

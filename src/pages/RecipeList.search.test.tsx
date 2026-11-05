@@ -6,7 +6,16 @@ import { RecipeList } from './RecipeList'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { SHELL_NAV_STATE } from '../components/shell/nav'
+import type { StubFeature } from '../api/stubs'
 import type { Recipe, UserCategory } from '../api/protocol'
+
+// Only the images stub is toggled (default stubbed, as in REST); the real
+// showsRecipeImages decides whether the page shows an image column.
+const imageStub = vi.hoisted(() => ({ stubbed: true }))
+vi.mock('../api/stubs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../api/stubs')>()
+  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
+})
 
 function cat(id: number, recipes: number[]): UserCategory {
   return { id, user: 1, name: `Cat ${id}`, recipes, order: id, color: '#000000', colorLight: null, colorDark: null }
@@ -60,7 +69,10 @@ function renderList() {
   )
 }
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  imageStub.stubbed = true
+})
 
 describe('RecipeList (server-side search)', () => {
   it('renders recipes returned by searchRecipes', async () => {
@@ -351,5 +363,46 @@ describe('RecipeList (result count and empty states)', () => {
     renderList()
 
     await waitFor(() => screen.getByText('2+ Rezepte'))
+  })
+})
+
+describe('RecipeList (rows)', () => {
+  const withPhoto = { ...rec(1, 'Pancakes'), mainImage: 3 }
+
+  it('mock images: one photo gives every row an image cell', async () => {
+    imageStub.stubbed = false
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [withPhoto, rec(2, 'Waffles')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+
+    await waitFor(() => screen.getByText('Waffles'))
+    expect(screen.getAllByTestId('recipe-thumb')).toHaveLength(2)
+  })
+
+  it('stubbed images (REST): no image column even with a main image', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [withPhoto, rec(2, 'Waffles')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+
+    await waitFor(() => screen.getByText('Waffles'))
+    expect(screen.queryAllByTestId('recipe-thumb')).toHaveLength(0)
+  })
+
+  it("a category filter keeps the row's other category dots", async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [1]), cat(2, [1])])
+
+    render(
+      <MemoryRouter initialEntries={['/recipes?cat=1']}>
+        <TooltipProvider>
+          <RecipeList />
+        </TooltipProvider>
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => screen.getByText('Pancakes'))
+    expect(screen.getByText('Kategorien: Cat 2')).toBeTruthy()
   })
 })

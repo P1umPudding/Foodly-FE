@@ -11,8 +11,6 @@ const NONE_COLLAPSED: ReadonlySet<string> = new Set()
 
 type RowOptions = { compact: boolean; allCategories: UserCategory[]; showImages: boolean }
 
-// Inside a category group a row's dots leave out that category — the group line
-// already says it (`exceptCategoryId`).
 function Rows({
   recipes,
   compact,
