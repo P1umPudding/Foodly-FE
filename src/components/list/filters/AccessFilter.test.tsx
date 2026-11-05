@@ -102,4 +102,27 @@ describe('AccessFilter', () => {
     fireEvent.click(roleRadio(/Bearbeiter/))
     expect(set).toHaveBeenCalledWith({ role: 'editor', collab: 'any' })
   })
+
+  it('a greyed option is selectable again once the arrow key is released', async () => {
+    const { set } = setup('owner', 'private')
+    const owner = roleRadio(/Besitzer/)
+    owner.focus()
+    fireEvent.keyDown(owner, { key: 'ArrowDown' })
+    await waitFor(() => expect(document.activeElement).toBe(roleRadio(/Bearbeiter/)))
+    fireEvent.keyUp(roleRadio(/Bearbeiter/), { key: 'ArrowDown' })
+    fireEvent.click(roleRadio(/Bearbeiter/))
+    expect(set).toHaveBeenCalledWith({ role: 'editor', collab: 'any' })
+  })
+
+  it('a click is not swallowed when the arrow key was released outside the group', async () => {
+    const { set } = setup('owner', 'private')
+    const owner = roleRadio(/Besitzer/)
+    owner.focus()
+    fireEvent.keyDown(owner, { key: 'ArrowDown' })
+    await waitFor(() => expect(document.activeElement).toBe(roleRadio(/Bearbeiter/)))
+    fireEvent.keyUp(document.body, { key: 'ArrowDown' })
+    fireEvent.pointerDown(roleRadio(/Betrachter/))
+    fireEvent.click(roleRadio(/Betrachter/))
+    expect(set).toHaveBeenCalledWith({ role: 'viewer', collab: 'any' })
+  })
 })

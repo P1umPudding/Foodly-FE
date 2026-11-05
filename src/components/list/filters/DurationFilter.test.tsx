@@ -51,6 +51,7 @@ describe('DurationFilter', () => {
     expect(set).toHaveBeenLastCalledWith({ durationMax: null })
     expect(field().value).toBe('')
     expect(screen.queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
+    expect(document.activeElement).toBe(field())
   })
 
   it('no limit parks the knob at the far right with an empty field', () => {

@@ -83,8 +83,16 @@ function AccessGroup<V extends string>({
         onKeyDownCapture={(e) => {
           if (e.key.startsWith('Arrow')) arrowKeyDown.current = true
         }}
+        // Any of these ends the arrow press; a keyup outside the group (Tab away mid-press) must not leave the
+        // flag set, or a later click on a greyed option would be swallowed.
         onKeyUpCapture={() => {
           arrowKeyDown.current = false
+        }}
+        onPointerDownCapture={() => {
+          arrowKeyDown.current = false
+        }}
+        onBlurCapture={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget)) arrowKeyDown.current = false
         }}
         onValueChange={(v) => {
           const next = v as V | 'any'

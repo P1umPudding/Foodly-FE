@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Button, NumberInput, Slider, ToggleGroup } from '@postxl/ui-components'
 import { X } from 'lucide-react'
 import type { ListState } from '../../../list/state'
@@ -21,6 +22,7 @@ function clamp(v: number): number {
 // One value, three ways to set it (slider, field, presets); all follow each other immediately.
 export function DurationFilter({ value, set }: { value: number | null; set: (patch: Partial<ListState>) => void }) {
   const onChange = (durationMax: number | null) => set({ durationMax })
+  const fieldRef = useRef<HTMLInputElement>(null)
   const presetActive = (DURATION_PRESETS as readonly number[]).includes(value ?? -1)
   return (
     <div className="flex flex-col gap-2">
@@ -42,6 +44,7 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
           />
         </div>
         <NumberInput
+          ref={fieldRef}
           aria-label="Maximale Arbeitszeit in Minuten"
           value={value ?? undefined}
           onChange={(v) => onChange(v === undefined ? null : clamp(v))}
@@ -83,7 +86,11 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => onChange(null)}
+          // The button disappears with the limit; hand focus to the field so keyboard users aren't dropped on <body>.
+          onClick={() => {
+            onChange(null)
+            fieldRef.current?.focus()
+          }}
           className="h-7 gap-1 self-end px-2 text-muted-foreground hover:text-foreground phone:h-10"
         >
           <X className="h-3.5 w-3.5" />
