@@ -39,7 +39,11 @@ const base: Recipe = {
 
 function renderRow(
   recipe: Recipe,
-  { compact = false, showImages, categories }: { compact?: boolean; showImages?: boolean; categories?: UserCategory[] } = {},
+  {
+    compact = false,
+    showImages,
+    categories,
+  }: { compact?: boolean; showImages?: boolean; categories?: UserCategory[] } = {},
 ) {
   return render(
     <TooltipProvider>
