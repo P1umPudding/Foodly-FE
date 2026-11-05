@@ -19,6 +19,7 @@ export function TagFilter({
 }) {
   const [query, setQuery] = useState('')
   const q = normalizeText(query.trim())
+  // The search narrows selected items too (as before); they stay on top among the matches.
   // Tags have no display name; the id is what the user sees and searches.
   const matches = q === '' ? tags : tags.filter((t) => normalizeText(t.id).includes(q))
   const ordered = [

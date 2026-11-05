@@ -49,7 +49,7 @@ function CategoryLabel({ name, count }: { name: string; count?: number }) {
           <span aria-hidden className="ml-auto shrink-0 tabular-nums text-xs text-muted-foreground">
             {count}
           </span>
-          <span className="sr-only">{`, ${count} Rezepte`}</span>
+          <span className="sr-only">{`, ${count} ${count === 1 ? 'Rezept' : 'Rezepte'}`}</span>
         </>
       )}
     </span>

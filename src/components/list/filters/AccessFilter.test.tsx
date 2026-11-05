@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { TooltipProvider } from '@postxl/ui-components'
 import { AccessFilter } from './AccessFilter'
@@ -77,5 +77,29 @@ describe('AccessFilter', () => {
     setup('owner')
     expect(roleRadio(/Besitzer/).getAttribute('aria-checked')).toBe('true')
     expect(roleRadio(/Bearbeiter/).getAttribute('aria-checked')).toBe('false')
+  })
+
+  it('arrow keys pass over greyed options instead of relaxing the other axis', async () => {
+    const { set } = setup('owner', 'private')
+    const owner = roleRadio(/Besitzer/)
+    owner.focus()
+    fireEvent.keyDown(owner, { key: 'ArrowDown' })
+    // Radix moves focus on the next tick; Bearbeiter can't pair with Privat
+    await waitFor(() => expect(document.activeElement).toBe(roleRadio(/Bearbeiter/)))
+    expect(set).not.toHaveBeenCalled()
+  })
+
+  it('arrow keys still select a compatible option', async () => {
+    const { set } = setup('any', 'private')
+    const all = roleRadio(/Alle/)
+    all.focus()
+    fireEvent.keyDown(all, { key: 'ArrowDown' })
+    await waitFor(() => expect(set).toHaveBeenCalledWith({ role: 'owner', collab: 'private' }))
+  })
+
+  it('a click still picks a greyed option and relaxes the other axis', () => {
+    const { set } = setup('owner', 'private')
+    fireEvent.click(roleRadio(/Bearbeiter/))
+    expect(set).toHaveBeenCalledWith({ role: 'editor', collab: 'any' })
   })
 })

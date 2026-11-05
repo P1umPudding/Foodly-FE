@@ -1,4 +1,4 @@
-import { useId, type ComponentType } from 'react'
+import { useId, useRef, type ComponentType } from 'react'
 import { Label, RadioGroup, RadioGroupItem, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
 import { Crown, Pencil, Eye, Lock, Share2, Users } from 'lucide-react'
 import type { ListState, RoleFilter, CollabFilter } from '../../../list/state'
@@ -69,6 +69,9 @@ function AccessGroup<V extends string>({
   const baseId = useId()
   const titleId = `${baseId}-title`
   const options: (V | 'any')[] = ['any', ...(Object.keys(meta) as V[])]
+  // Radix selects a radio as soon as arrow keys focus it. On a greyed option that would silently relax the
+  // other axis, so arrowing only passes over greyed options; Space or a click still picks them.
+  const arrowKeyDown = useRef(false)
   return (
     <div className="flex flex-col gap-1.5">
       <span id={titleId} className="text-sm text-muted-foreground">
@@ -77,7 +80,17 @@ function AccessGroup<V extends string>({
       <RadioGroup
         aria-labelledby={titleId}
         value={value}
-        onValueChange={(v) => onChange(v as V | 'any')}
+        onKeyDownCapture={(e) => {
+          if (e.key.startsWith('Arrow')) arrowKeyDown.current = true
+        }}
+        onKeyUpCapture={() => {
+          arrowKeyDown.current = false
+        }}
+        onValueChange={(v) => {
+          const next = v as V | 'any'
+          if (arrowKeyDown.current && next !== 'any' && isGreyed(next)) return
+          onChange(next)
+        }}
         className="gap-0.5"
       >
         {options.map((option) => {
@@ -96,7 +109,10 @@ function AccessGroup<V extends string>({
             <div key={option} className="flex items-center gap-2 rounded-sm px-1 hover:bg-muted phone:min-h-10">
               <RadioGroupItem value={option} id={id} aria-describedby={greyed ? reasonId : undefined} />
               {/* Overrides postxl Label's text-base/leading-none/font-medium, like FilterCheckRow. */}
-              <Label htmlFor={id} className="min-w-0 flex-1 cursor-pointer py-1 text-sm leading-snug font-normal">
+              <Label
+                htmlFor={id}
+                className="min-w-0 flex-1 cursor-pointer self-stretch py-1 text-sm leading-snug font-normal"
+              >
                 {m ? (
                   // Trigger on a span: postxl Label can't take a ref, and the Radix item would lose its data-state.
                   <Tooltip>

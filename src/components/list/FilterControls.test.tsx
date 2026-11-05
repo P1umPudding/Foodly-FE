@@ -74,5 +74,7 @@ describe('FilterControls', () => {
   it('shows a skeleton instead of the categories while they load', () => {
     renderControls(DEFAULT_STATE, { categoriesLoading: true })
     expect(screen.queryByRole('checkbox', { name: /Favoriten/ })).toBeNull()
+    expect(screen.queryByRole('checkbox', { name: /Ohne Kategorie/ })).toBeNull()
+    expect(document.querySelectorAll('.animate-pulse')).toHaveLength(4)
   })
 })

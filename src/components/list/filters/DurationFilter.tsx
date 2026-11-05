@@ -69,19 +69,22 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
             key={m}
             value={String(m)}
             aria-label={`≤ ${m} Minuten`}
-            className={`h-7 flex-1 px-1.5 text-xs ${value === m ? SELECTED_CHIP : ''}`}
+            className={`h-7 flex-1 px-1.5 text-xs phone:h-10 ${value === m ? SELECTED_CHIP : ''}`}
           >
             ≤ {m} Min
           </FocusToggleGroupItem>
         ))}
       </ToggleGroup>
-      {value !== null && (
+      {/* A same-height placeholder while there is no limit, so the filter doesn't jump when it appears. */}
+      {value === null ? (
+        <span aria-hidden className="h-7 phone:h-10" />
+      ) : (
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={() => onChange(null)}
-          className="h-7 gap-1 self-end px-2 text-muted-foreground hover:text-foreground"
+          className="h-7 gap-1 self-end px-2 text-muted-foreground hover:text-foreground phone:h-10"
         >
           <X className="h-3.5 w-3.5" />
           Zurücksetzen

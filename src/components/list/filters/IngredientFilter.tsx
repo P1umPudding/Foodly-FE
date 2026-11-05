@@ -21,6 +21,7 @@ export function IngredientFilter({
 }) {
   const [query, setQuery] = useState('')
   const q = normalizeText(query.trim())
+  // The search narrows selected items too (as before); they stay on top among the matches.
   const sorted = [...ingredients].sort((a, b) => a.name.localeCompare(b.name, 'de'))
   const matches = q === '' ? sorted : sorted.filter((i) => normalizeText(i.name).includes(q))
   const picked = matches.filter((i) => selected.includes(i.id))
