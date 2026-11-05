@@ -3,17 +3,34 @@ import { ChevronDown } from 'lucide-react'
 import { RecipeRow } from '../recipe/RecipeRow'
 import { categoryColorVars, type CategoryColorInput } from '../../lib/categoryColor'
 import { deriveGroups } from '../../list/grouping'
-import type { Recipe, UserCategory } from '../../api/protocol'
+import { recipeCategories } from '../../list/rowData'
+import type { Recipe, UserCategory, UserCategoryId } from '../../api/protocol'
 import type { DetailView } from '../../list/state'
 
 const NONE_COLLAPSED: ReadonlySet<string> = new Set()
 
-function Rows({ recipes, compact }: { recipes: Recipe[]; compact: boolean }) {
+type RowOptions = { compact: boolean; allCategories: UserCategory[]; showImages: boolean }
+
+// Inside a category group a row's dots leave out that category — the group line
+// already says it (`exceptCategoryId`).
+function Rows({
+  recipes,
+  compact,
+  allCategories,
+  showImages,
+  exceptCategoryId = null,
+}: RowOptions & { recipes: Recipe[]; exceptCategoryId?: UserCategoryId | null }) {
   // Compact rows sit close together as one list; detailed rows are spaced cards.
   return (
     <div className={compact ? 'space-y-0.5' : 'space-y-2'}>
       {recipes.map((r) => (
-        <RecipeRow key={r.id} recipe={r} compact={compact} />
+        <RecipeRow
+          key={r.id}
+          recipe={r}
+          compact={compact}
+          categories={recipeCategories(r, allCategories, exceptCategoryId)}
+          showImages={showImages}
+        />
       ))}
     </div>
   )
@@ -21,17 +38,19 @@ function Rows({ recipes, compact }: { recipes: Recipe[]; compact: boolean }) {
 
 // `colors` null (uncategorised) → no data-cat, so the neutral --cat-* defaults apply.
 function CategoryGroup({
+  categoryId,
   name,
   colors,
   recipes,
-  compact,
+  rowOptions,
   open,
   onOpenChange,
 }: {
+  categoryId: UserCategoryId | null
   name: string
   colors: CategoryColorInput | null
   recipes: Recipe[]
-  compact: boolean
+  rowOptions: RowOptions
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
@@ -56,7 +75,7 @@ function CategoryGroup({
       <CollapseContent>
         {/* line nudged right (ml-[7px]) so the 2px rule centres under the chevron's bottom tip */}
         <div className="ml-[7px] border-l-2 border-cat-line pl-4">
-          <Rows recipes={recipes} compact={compact} />
+          <Rows recipes={recipes} exceptCategoryId={categoryId} {...rowOptions} />
         </div>
       </CollapseContent>
     </Collapse>
@@ -65,9 +84,14 @@ function CategoryGroup({
 
 // Collapse is controlled by the page (so the toolbar's collapse-all shares the
 // state). `collapsed` holds the keys that are closed; empty = all open.
+// `categories` drive the grouping and may be narrowed by the category filter;
+// `allCategories` (unfiltered) feed the rows' dots so a filter never hides them.
+// `showImages` is decided by the page from all loaded recipes.
 export function RecipeListView({
   recipes,
   categories,
+  allCategories = categories,
+  showImages = false,
   detail,
   grouped = true,
   collapsed = NONE_COLLAPSED,
@@ -75,15 +99,17 @@ export function RecipeListView({
 }: {
   recipes: Recipe[]
   categories: UserCategory[]
+  allCategories?: UserCategory[]
+  showImages?: boolean
   detail: DetailView
   grouped?: boolean
   collapsed?: ReadonlySet<string>
   onCollapsedChange?: (next: Set<string>) => void
 }) {
-  const compact = detail === 'compact'
+  const rowOptions: RowOptions = { compact: detail === 'compact', allCategories, showImages }
 
   // Flat list: one sorted sequence, no category headers or collapse.
-  if (!grouped) return <Rows recipes={recipes} compact={compact} />
+  if (!grouped) return <Rows recipes={recipes} {...rowOptions} />
 
   const groups = deriveGroups(recipes, categories)
 
@@ -100,10 +126,11 @@ export function RecipeListView({
       {groups.map((g) => (
         <CategoryGroup
           key={g.key}
+          categoryId={g.categoryId}
           name={g.name}
           colors={g.colors}
           recipes={g.recipes}
-          compact={compact}
+          rowOptions={rowOptions}
           open={!collapsed.has(g.key)}
           onOpenChange={(o) => setOpen(g.key, o)}
         />

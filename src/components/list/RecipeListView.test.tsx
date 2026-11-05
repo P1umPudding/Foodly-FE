@@ -1,9 +1,17 @@
-import { render, screen } from '@testing-library/react'
+import type { ComponentProps } from 'react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeListView } from './RecipeListView'
 import { categoryColors } from '../../lib/categoryColor'
+import type { StubFeature } from '../../api/stubs'
 import type { Recipe, UserCategory } from '../../api/protocol'
+
+const imageStub = vi.hoisted(() => ({ stubbed: true }))
+vi.mock('../../api/stubs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../api/stubs')>()
+  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
+})
 
 vi.mock('../../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1, useTags: () => ({ byId: {} }) }))
 
@@ -81,4 +89,64 @@ it('flat list (grouped=false): no category headers, every recipe once', () => {
   expect(screen.queryByText('Ohne Kategorie')).toBeNull()
   expect(screen.getAllByText('In Both').length).toBe(1) // no longer duplicated across categories
   expect(screen.getAllByText('Loner').length).toBe(1)
+})
+
+function renderView(props: Partial<ComponentProps<typeof RecipeListView>> = {}) {
+  return render(
+    <TooltipProvider>
+      <MemoryRouter>
+        <RecipeListView recipes={recipes} categories={cats} detail="detailed" {...props} />
+      </MemoryRouter>
+    </TooltipProvider>,
+  )
+}
+
+// The row link of a recipe inside the group headed by `group`.
+function rowIn(group: RegExp, name: string) {
+  const groupRoot = screen.getByRole('button', { name: group }).parentElement as HTMLElement
+  return within(groupRoot).getByRole('link', { name: new RegExp(name) })
+}
+
+describe('category dots', () => {
+  it('a row inside a category group shows only the other categories', () => {
+    renderView()
+    expect(within(rowIn(/Fav/, 'In Both')).getByText('Kategorien: Quick')).toBeTruthy()
+    expect(within(rowIn(/Quick/, 'In Both')).getByText('Kategorien: Fav')).toBeTruthy()
+  })
+
+  it('"Ohne Kategorie" rows show no dots', () => {
+    renderView()
+    expect(within(rowIn(/Ohne Kategorie/, 'Loner')).queryByText(/^Kategorien:/)).toBeNull()
+  })
+
+  it('a filter narrowing the groups still leaves the other dots', () => {
+    renderView({ categories: [cats[0]], allCategories: cats })
+    expect(screen.queryByRole('button', { name: /Quick/ })).toBeNull()
+    expect(within(rowIn(/Fav/, 'In Both')).getByText('Kategorien: Quick')).toBeTruthy()
+  })
+
+  it('the flat list shows all categories', () => {
+    renderView({ grouped: false })
+    expect(screen.getByText('Kategorien: Fav, Quick')).toBeTruthy()
+  })
+})
+
+describe('image column', () => {
+  const withPhoto = [{ ...recipes[0], mainImage: 3 }, recipes[1]]
+
+  it('without showImages no row has an image cell', () => {
+    imageStub.stubbed = false
+    renderView({ recipes: withPhoto, grouped: false })
+    expect(screen.queryAllByTestId('recipe-thumb')).toHaveLength(0)
+  })
+
+  it('with showImages every row has a 48 px cell, rows without photo the placeholder', () => {
+    imageStub.stubbed = false
+    const { container } = renderView({ recipes: withPhoto, grouped: false, showImages: true })
+    const thumbs = screen.getAllByTestId('recipe-thumb')
+    expect(thumbs).toHaveLength(2)
+    for (const t of thumbs) expect(t.className).toMatch(/\bh-12 w-12\b/)
+    expect(container.querySelectorAll('img')).toHaveLength(1)
+    expect(thumbs[1].querySelector('.lucide-utensils-crossed')).toBeTruthy()
+  })
 })
