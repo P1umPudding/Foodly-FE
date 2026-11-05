@@ -43,7 +43,7 @@ export function CategoryDots({ categories }: { categories: UserCategory[] }) {
       ))}
       {rest.length > 0 &&
         withTooltip(
-          <span aria-hidden className="cursor-default px-1 text-xs tabular-nums text-muted-foreground">
+          <span aria-hidden className="cursor-default p-1 text-xs tabular-nums text-muted-foreground">
             +{rest.length}
           </span>,
           rest.map((c) => c.name).join(', '),
