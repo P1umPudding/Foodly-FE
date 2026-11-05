@@ -35,17 +35,42 @@ const base: Recipe = {
 }
 
 describe('RoleCollabIndicator', () => {
-  it('labels owner + private', () => {
-    renderIndicator({ ...base, owner: 1 })
-    expect(screen.getByLabelText(/Besitzer/i)).toBeTruthy()
-    expect(screen.getByLabelText(/privat/i)).toBeTruthy()
+  it('renders nothing for an own private recipe', () => {
+    const { container } = renderIndicator({ ...base, owner: 1 })
+    expect(container.firstChild).toBeNull()
+  })
+
+  it('shows only the sharing icon for an own shared recipe', () => {
+    renderIndicator({ ...base, owner: 1, viewers: [2] })
+    expect(screen.getAllByRole('img')).toHaveLength(1)
+    expect(screen.getByLabelText(/geteilt/i)).toBeTruthy()
+  })
+
+  it('shows only the sharing icon for an own collaborative recipe', () => {
+    renderIndicator({ ...base, owner: 1, editors: [2] })
+    expect(screen.getAllByRole('img')).toHaveLength(1)
+    expect(screen.getByLabelText(/kollaborativ/i)).toBeTruthy()
+  })
+
+  it('labels viewer + shared', () => {
+    renderIndicator({ ...base, owner: 2, viewers: [1] })
+    expect(screen.getAllByRole('img')).toHaveLength(2)
+    expect(screen.getByLabelText(/Betrachter/i)).toBeTruthy()
+    expect(screen.getByLabelText(/geteilt/i)).toBeTruthy()
     // neutral grey at rest, no hover colour-reveal
-    const ownerClass = screen
-      .getByLabelText(/Besitzer/i)
+    const viewerClass = screen
+      .getByLabelText(/Betrachter/i)
       .querySelector('svg')
       ?.getAttribute('class')
-    expect(ownerClass).toContain('text-muted-foreground/70')
-    expect(ownerClass).not.toContain('group-hover:')
+    expect(viewerClass).toContain('text-muted-foreground/70')
+    expect(viewerClass).not.toContain('group-hover:')
+  })
+
+  it('labels editor + collaborative', () => {
+    renderIndicator({ ...base, owner: 2, editors: [1] })
+    expect(screen.getAllByRole('img')).toHaveLength(2)
+    expect(screen.getByLabelText(/Bearbeiter/i)).toBeTruthy()
+    expect(screen.getByLabelText(/kollaborativ/i)).toBeTruthy()
   })
 
   it('labels viewer + collaborative', () => {
