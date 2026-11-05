@@ -224,7 +224,7 @@ export function RecipeList() {
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-baseline gap-4">
                 <h1 className="sr-only">Rezepte</h1>
-                <ResultCount matching={visible.length} total={accessibleRecipes.length} />
+                <ResultCount count={visible.length} more={search.hasMore} />
               </div>
               {/* Mobile-only filter drawer trigger */}
               <Sheet>
