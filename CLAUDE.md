@@ -33,10 +33,12 @@ the Dispatcher, hands issues to worker agents and relays merge requests):
   [`docs/` conventions](#docs-conventions)).
 - **No `Co-Authored-By`** or other AI trailer — the rule above applies to
   pipeline commits too.
-- **CI** (`.github/workflows/ci.yml`, check `Build, test, format`) runs
-  `npm ci`, `npm run build`, `npm test -- --passWithNoTests` and
-  `npm run format:check` on every PR. Run the same commands locally before
-  pushing; a PR is only "ready" once that check is green.
+- **No GitHub Actions.** Never add `.github/workflows/` or any other
+  GitHub-hosted CI to this repo (owner decision, see
+  [`docs/decisions/0004-no-github-actions.md`](docs/decisions/0004-no-github-actions.md)).
+  Checks run locally instead: `npm ci`, `npm run build`,
+  `npm test -- --passWithNoTests`, `npm run format:check`. A PR is only
+  "ready" once all four pass locally and the PR description says so.
 
 ## Visual checks
 
