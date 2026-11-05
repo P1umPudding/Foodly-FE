@@ -20,6 +20,7 @@ import { CategorySidebar } from './CategorySidebar'
 import { SearchInput } from './SearchInput'
 import { TagIcon } from '../TagText'
 import { FocusToggleGroupItem } from './FocusToggleGroupItem'
+import { toggle } from './filters/toggle'
 
 // Upper bound for the work-time slider (minutes). Beyond this we treat it as "no
 // limit" — the slider's max position clears durationMax rather than capping at it.
@@ -39,10 +40,6 @@ const GREYED = '*:opacity-40 hover:bg-muted/40'
 // Extra row gap below the "selected" chips so they read as their own block.
 const SELECTED_ROW = 'mb-2.5 flex flex-wrap gap-1'
 const REST_ROW = 'flex flex-wrap gap-1'
-
-function toggle<T>(list: T[], value: T): T[] {
-  return list.includes(value) ? list.filter((x) => x !== value) : [...list, value]
-}
 
 // Reset link for a single facet — sits right-aligned next to the group heading,
 // only while that facet has a selection.
