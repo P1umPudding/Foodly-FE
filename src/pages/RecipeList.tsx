@@ -352,7 +352,7 @@ export function RecipeList() {
             <div ref={sentinelRef} aria-hidden className="h-1" />
             {search.loadingMore && visible.length > 0 && (
               <div className="space-y-3 pt-3">
-                <Skeleton className="h-18 w-full rounded-lg" />
+                <Skeleton data-testid="list-more-skeleton" className="h-18 w-full rounded-lg" />
               </div>
             )}
           </div>

@@ -320,6 +320,8 @@ describe('RecipeList (result count and empty states)', () => {
 
     await waitFor(() => expect(searchSpy).toHaveBeenCalledTimes(2))
     screen.getByTestId('list-pending-skeleton')
+    // Page 2 is loading, but with no visible row the pending skeleton is the only one.
+    expect(screen.queryByTestId('list-more-skeleton')).toBeNull()
     await act(async () => resolvePage2({ items: [rec(2, 'Zzz Suppe')], cursor: null }))
 
     await waitFor(() => screen.getByText('Zzz Suppe'))
