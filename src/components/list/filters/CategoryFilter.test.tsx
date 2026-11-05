@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
+import { checkboxLabels } from '../../../test/checkboxes'
 import { CategoryFilter } from './CategoryFilter'
 import { categoryColors } from '../../../lib/categoryColor'
 import type { ListState } from '../../../list/state'
@@ -33,15 +34,10 @@ function Stateful({ set }: { set: (patch: Partial<ListState>) => void }) {
   )
 }
 
-const labelText = (box: HTMLInputElement) =>
-  Array.from(box.labels ?? [])
-    .map((l) => l.textContent)
-    .join('')
-
 describe('CategoryFilter', () => {
   it('lists "Ohne Kategorie" first and without a count, then categories by order', () => {
     render(<CategoryFilter categories={cats} selected={[]} set={() => {}} />)
-    const labels = screen.getAllByRole<HTMLInputElement>('checkbox').map((b) => labelText(b))
+    const labels = checkboxLabels()
     expect(labels).toEqual([
       'Ohne Kategorie',
       'Favoriten1, 1 Rezepte',
