@@ -153,8 +153,8 @@ Freigegeben von Kolja am 2026-10-29. Reihenfolge:
 2. ✅ Kategorie-Farb-Util **#26** (PR #40).
 3. ✅ App-Shell **#27** (PR #41; Start ausgeblendet bis zum Dashboard).
 4. Rezeptliste (Filterleiste, Kacheln): Spec
-   `docs/superpowers/specs/2026-11-05-recipe-list-redesign-design.md`, 7 Issues (L1–L7,
-   Label `redesign`), läuft. Kategorie-Seite gehört zu „Kategorien verwalten“.
+   `docs/superpowers/specs/2026-11-05-recipe-list-redesign-design.md`, 7 Issues #103–#109
+   (Label `redesign`), läuft. Kategorie-Seite gehört zu „Kategorien verwalten“.
 5. Start/Dashboard = Phase 5 (ohne B4–B6-Blöcke), Breakdown offen.
 6. Detail, dann Koch-Modus.
 
