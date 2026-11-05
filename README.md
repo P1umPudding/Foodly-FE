@@ -141,11 +141,11 @@ under that sub-path and, since no backend is reachable from the preview, runs
 on the mock data unless `VITE_API_URL` or `VITE_MOCK` is set (process
 environment or a `.env*` file).
 
-## CI
+## Checks
 
-GitHub Actions runs `.github/workflows/ci.yml` on every pull request (any base
-branch) and on every push to `main`. One job, in this order — the first
-failing step stops the run:
+There is no GitHub Actions CI in this repo, on purpose
+(`docs/decisions/0004-no-github-actions.md`). Run the checks locally before
+pushing, in this order:
 
 1. `npm ci`
 2. `npm run build`
@@ -153,8 +153,7 @@ failing step stops the run:
 4. `npm run format:check`
 
 The Node version comes from `.nvmrc`. If `format:check` fails, run
-`npm run format` and commit. For branch protection, the required status check
-is `Build, test, format`.
+`npm run format` and commit.
 
 ## Deployment (static)
 
