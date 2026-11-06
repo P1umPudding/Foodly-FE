@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { Button, NumberInput, Slider, ToggleGroup } from '@postxl/ui-components'
 import { X } from 'lucide-react'
 import type { ListState } from '../../../list/state'
 import { FocusToggleGroupItem } from '../FocusToggleGroupItem'
 
 // Upper bound for the work-time slider and field (minutes). The knob's far-right position means "no limit"
-// (`null`); only the field can still set a real 180 — same knob position, the field shows the difference.
+// (`null`); only the field (or the URL) can still set a real 180 — same knob position, the field shows the difference.
 const DURATION_MAX = 180
 const NO_LIMIT = 'Keine Grenze'
 const DURATION_PRESETS = [15, 30, 60] as const
@@ -26,8 +26,9 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
   const fieldRef = useRef<HTMLInputElement>(null)
   const sliderBoxRef = useRef<HTMLDivElement>(null)
   // The postxl Slider neither exposes its (single) thumb nor forwards aria props to it, so the value text is
-  // set on the DOM node directly; Radix never manages aria-valuetext, so re-renders keep it.
-  useEffect(() => {
+  // set on the DOM node directly — before paint, so valuenow and valuetext never disagree for a frame. Radix
+  // never manages aria-valuetext, so re-renders keep it.
+  useLayoutEffect(() => {
     const thumb = sliderBoxRef.current?.querySelector('[role=slider]')
     if (value === null) thumb?.setAttribute('aria-valuetext', NO_LIMIT)
     else thumb?.removeAttribute('aria-valuetext')

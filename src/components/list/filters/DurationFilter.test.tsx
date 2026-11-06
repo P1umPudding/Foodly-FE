@@ -50,6 +50,7 @@ describe('DurationFilter', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Zurücksetzen' }))
     expect(set).toHaveBeenLastCalledWith({ durationMax: null })
     expect(field().value).toBe('')
+    expect(slider().getAttribute('aria-valuetext')).toBe('Keine Grenze')
     expect(screen.queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
     expect(document.activeElement).toBe(field())
   })
@@ -107,6 +108,9 @@ describe('DurationFilter', () => {
     const box = within(field().parentElement!)
     expect(box.getByText('≤')).toBeTruthy()
     expect(box.getByText('min')).toBeTruthy()
+    fireEvent.change(field(), { target: { value: '' } })
+    expect(document.activeElement).toBe(field())
+    expect(box.queryByText('≤')).toBeNull()
   })
 
   it('typing 180 sets a real 180; clearing the field removes the limit', () => {
