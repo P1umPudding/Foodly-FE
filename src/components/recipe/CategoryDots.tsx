@@ -81,7 +81,7 @@ export function CategoryLine({ categories }: { categories: UserCategory[] }) {
       className="-ml-1 flex min-w-0 items-center text-sm font-medium text-muted-foreground"
     >
       <CategoryDots categories={categories} tooltipSide="top" showMore={false} />
-      <span aria-hidden className="ml-0.5 min-w-0 truncate">
+      <span aria-hidden data-testid="category-line-name" className="ml-0.5 min-w-0 truncate">
         {first.name}
       </span>
       {others.length > 0 &&

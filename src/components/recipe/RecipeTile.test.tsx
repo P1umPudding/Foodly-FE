@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeTile } from './RecipeTile'
@@ -101,9 +101,8 @@ it('treats a photo it cannot display (REST, B1) as no photo', () => {
 
 it('names the first category and counts the others', () => {
   renderTile(base, [cat(1, 'Suppen'), cat(2, 'Schnell'), cat(3, 'Vegan')])
-  const line = screen.getByTestId('category-line')
-  expect(line.textContent).toContain('Suppen')
-  expect(line.textContent).toContain('+2')
+  expect(screen.getByTestId('category-line-name').textContent).toBe('Suppen')
+  expect(within(screen.getByTestId('category-line')).getByText('+2')).toBeTruthy()
   expect(screen.getAllByTestId('category-dot')).toHaveLength(3)
 })
 

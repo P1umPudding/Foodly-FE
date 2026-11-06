@@ -43,19 +43,24 @@ function listIdentity(search: string): string {
 }
 
 // Placeholders in the shape of the chosen view, so nothing jumps when the recipes arrive.
-function ListSkeleton({ detail, count, testId }: { detail: DetailView; count: number; testId?: string }) {
+function ListSkeleton({
+  detail,
+  count,
+  testId,
+  oneRow = false,
+}: {
+  detail: DetailView
+  count: number
+  testId?: string
+  oneRow?: boolean
+}) {
   const items = Array.from({ length: count }, (_, i) => i)
   if (detail === 'tiles') {
     return (
       <div data-testid={testId}>
-        <TileGrid>
+        <TileGrid oneRow={oneRow}>
           {items.map((i) => (
-            // About one row: phones show two columns.
-            <Skeleton
-              key={i}
-              data-testid="tile-skeleton"
-              className={`aspect-[4/3] w-full rounded-lg ${i >= 2 ? 'phone:hidden' : ''}`}
-            />
+            <Skeleton key={i} data-testid="tile-skeleton" className="aspect-[4/3] w-full rounded-lg" />
           ))}
         </TileGrid>
       </div>
@@ -83,7 +88,8 @@ function LoadMoreSkeleton({ detail, grouped }: { detail: DetailView; grouped: bo
       </div>
     )
   }
-  const tiles = <ListSkeleton detail="tiles" count={4} testId="list-more-skeleton" />
+  // One row, as many tiles as the grid has columns (the list column fits at most 4).
+  const tiles = <ListSkeleton detail="tiles" count={4} testId="list-more-skeleton" oneRow />
   // Grouped: indented like a group's grid, so the skeleton columns match the tiles above.
   return <div className="pt-7 phone:pt-5">{grouped ? <GroupIndent lineless>{tiles}</GroupIndent> : tiles}</div>
 }

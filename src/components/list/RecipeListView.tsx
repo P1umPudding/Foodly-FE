@@ -13,12 +13,14 @@ const NONE_COLLAPSED: ReadonlySet<string> = new Set()
 
 type RowOptions = { detail: DetailView; allCategories: UserCategory[]; showImages: boolean }
 
-// Also used by the page's loading skeletons, so they take the grid's exact shape.
-export function TileGrid({ children }: { children: ReactNode }) {
+// Also used by the page's loading skeletons, so they take the grid's exact shape. `oneRow`
+// clips to the first row (later rows get zero height), whatever the column count turns out to be.
+export function TileGrid({ oneRow = false, children }: { oneRow?: boolean; children: ReactNode }) {
+  const rows = oneRow ? 'auto-rows-[0] grid-rows-[auto] overflow-hidden' : 'gap-y-7 phone:gap-y-5'
   return (
     <div
       data-testid="tile-grid"
-      className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-x-5 gap-y-7 phone:grid-cols-2 phone:gap-x-3 phone:gap-y-5"
+      className={`grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-x-5 phone:grid-cols-2 phone:gap-x-3 ${rows}`}
     >
       {children}
     </div>

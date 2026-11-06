@@ -100,7 +100,7 @@ describe('RecipeList (server-side search)', () => {
       expect(screen.queryAllByTestId('tile-skeleton')).toHaveLength(0)
     })
 
-    it('tiles: loading more shows tile skeletons below the grid', async () => {
+    it('tiles: loading more shows one row of tile skeletons (flat)', async () => {
       let intersect: IntersectionObserverCallback | null = null
       class CapturingIO {
         constructor(cb: IntersectionObserverCallback) {
@@ -127,6 +127,37 @@ describe('RecipeList (server-side search)', () => {
 
       const more = await waitFor(() => screen.getByTestId('list-more-skeleton'))
       expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(4)
+      expect(within(more).getByTestId('tile-grid').className).toContain('auto-rows-[0]')
+    })
+
+    it('tiles: grouped, the load-more skeleton is indented like a group body', async () => {
+      let intersect: IntersectionObserverCallback | null = null
+      class CapturingIO {
+        constructor(cb: IntersectionObserverCallback) {
+          intersect = cb
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
+          return []
+        }
+      }
+      vi.stubGlobal('IntersectionObserver', CapturingIO)
+      vi.spyOn(foodly, 'searchRecipes')
+        .mockResolvedValueOnce({ items: [rec(1, 'Pancakes')], cursor: 2 })
+        .mockImplementationOnce(never)
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [1])])
+
+      renderList('/recipes?view=tiles')
+      await waitFor(() => screen.getByTestId('tile-type-name'))
+      await act(async () => {
+        intersect?.([{ isIntersecting: true } as IntersectionObserverEntry], null as unknown as IntersectionObserver)
+      })
+
+      const more = await waitFor(() => screen.getByTestId('list-more-skeleton'))
+      expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(4)
+      expect(more.parentElement?.className).toContain('border-transparent')
     })
 
     it('tiles: a pending search with nothing visible yet shows a tile skeleton', async () => {
