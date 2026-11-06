@@ -37,7 +37,7 @@ gilt: nichts Neues im alten Stil bauen.
 | `bg-accent` | Hover-Fläche von Zeilen und Ghost-Buttons |
 | `text-foreground` | Text, Titel, Icons in Aktionen |
 | `text-muted-foreground` | Sekundärtext (Untertitel, Beschreibungen) |
-| `text-subtle-foreground` | Meta: Zähler, Zeiten, Platzhalter, „x von y“ |
+| `text-subtle-foreground` | Meta: Zähler („14 Rezepte“), Zeiten, Platzhalter |
 | `border-border` (Standard) / `border-border-strong` | Haarlinie / Hover- und Checkbox-Rand |
 | `bg-sidebar`, `bg-sidebar-accent` | Seitenleiste, aktiver Navigationspunkt |
 | `bg-primary text-primary-foreground` | **eine** Hauptaktion pro Ansicht („Neues Rezept“, „Speichern“) |
@@ -137,8 +137,11 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 
 - **Liste (Rezepte, Kategorie):** volle Breite, keine Filter-Spalte. Zeile 1 Suche · Sortierung · Ansicht
   (Kompakt / Detailliert = Standard / Kacheln); Zeile 2 Filterleiste mit Facetten-Knöpfen (Wert im Knopf, eigenes ✕;
-  Desktop Popover, Handy Sheet); Zeile 3 „x von y Rezepte“ · „Alle Filter zurücksetzen“. Gruppiert nach Kategorie mit
+  Desktop Popover, Handy Sheet); Zeile 3 Trefferzahl · „Alle Filter zurücksetzen“. Gruppiert nach Kategorie mit
   2-px-`cat-line` und Sticky-Kopf; „Ohne Kategorie“ zuerst und eingeklappt.
+  **Trefferzahl nennt nur, was bekannt ist** (`ResultCount`): „N Rezepte“ = sichtbare Rezepte („1 Rezept“), solange
+  weitere Seiten ausstehen „N+ Rezepte“. Kein „x von y“, bis der Server eine Gesamtzahl liefert (B16). Beim Laden,
+  bei Fehler und bei „0 + weitere Seiten“ bleibt der Platz leer (unsichtbar, `aria-hidden`), damit der Kopf nicht springt.
   Kategorie-Punkte (Zeilen, Kacheln, überall) haben auf dem Desktop **je Punkt** einen postxl-`Tooltip` mit dem
   Kategorienamen, „+N“ nennt die übrigen; wie die Zugriffs-Icons daneben. Trefferfläche größer als der Punkt.
 - **Detail:** Desktop Bild links / Infos rechts, darunter Zutaten (2/5) und Schritte (3/5). Ohne Foto rückt der Text
@@ -156,7 +159,9 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
   Buttons während einer Aktion.
 - **Leer:** ein Satz, was fehlt, plus genau eine Aktion („Noch keine Rezepte. Neues Rezept“). Kein großes Icon,
   keine Illustration.
-- **Keine Treffer (Filter):** „Keine Rezepte für diese Filter.“ + „Filter zurücksetzen“.
+- **Keine Treffer (Filter):** „Keine Treffer für die aktuellen Filter.“ + „Filter zurücksetzen“ – erst, wenn keine
+  Seiten mehr ausstehen. Filtert der Client über geladene Seiten und es kommen noch welche, eine Skelett-Zeile statt
+  Leer-Text (`RecipeList.tsx`).
 - **Fehler:** postxl `Alert` inline mit der Meldung und „Erneut versuchen“. Aktion fehlgeschlagen: `toast`.
 - **Kein Zugriff / nicht gefunden:** eigene Seite mit Weg zurück (`NotFound.tsx`).
 
