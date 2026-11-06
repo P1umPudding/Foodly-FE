@@ -1,23 +1,45 @@
 import { Button, Collapse, CollapseContent, CollapseTrigger } from '@postxl/ui-components'
 import { ChevronDown } from 'lucide-react'
 import { RecipeRow } from '../recipe/RecipeRow'
+import { RecipeTile } from '../recipe/RecipeTile'
 import { categoryColorVars, type CategoryColorInput } from '../../lib/categoryColor'
 import { deriveGroups } from '../../list/grouping'
 import { recipeCategories } from '../../list/rowData'
+import type { ReactNode } from 'react'
 import type { Recipe, UserCategory, UserCategoryId } from '../../api/protocol'
 import type { DetailView } from '../../list/state'
 
 const NONE_COLLAPSED: ReadonlySet<string> = new Set()
 
-type RowOptions = { compact: boolean; allCategories: UserCategory[]; showImages: boolean }
+type RowOptions = { detail: DetailView; allCategories: UserCategory[]; showImages: boolean }
+
+// Also used by the page's loading skeletons, so they take the grid's exact shape.
+export function TileGrid({ children }: { children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-x-5 gap-y-7 phone:grid-cols-2 phone:gap-x-3 phone:gap-y-5">
+      {children}
+    </div>
+  )
+}
 
 function Rows({
   recipes,
-  compact,
+  detail,
   allCategories,
   showImages,
   exceptCategoryId = null,
 }: RowOptions & { recipes: Recipe[]; exceptCategoryId?: UserCategoryId | null }) {
+  if (detail === 'tiles') {
+    return (
+      <TileGrid>
+        {recipes.map((r) => (
+          <RecipeTile key={r.id} recipe={r} categories={recipeCategories(r, allCategories, exceptCategoryId)} />
+        ))}
+      </TileGrid>
+    )
+  }
+
+  const compact = detail === 'compact'
   // Compact rows sit close together as one list; detailed rows are spaced cards.
   return (
     <div className={compact ? 'space-y-0.5' : 'space-y-2'}>
@@ -104,9 +126,9 @@ export function RecipeListView({
   collapsed?: ReadonlySet<string>
   onCollapsedChange?: (next: Set<string>) => void
 }) {
-  const rowOptions: RowOptions = { compact: detail === 'compact', allCategories, showImages }
+  const rowOptions: RowOptions = { detail, allCategories, showImages }
 
-  // Flat list: one sorted sequence, no category headers or collapse.
+  // Flat list: one sorted sequence (or one grid), no category headers or collapse.
   if (!grouped) return <Rows recipes={recipes} {...rowOptions} />
 
   const groups = deriveGroups(recipes, categories)
