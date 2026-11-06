@@ -186,6 +186,8 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 - Deutsch, Du-Form, kurz, keine Ausrufezeichen, keine Emojis in UI-Texten (Kategorie-Symbole ausgenommen).
 - Buttons sagen, was passiert: „Speichern“, „Kopie erstellen“, nicht „OK“.
 - Zeiten „45 min“ / „1 h 30 min“, Bewertung mit Komma („4,5“), Mengen ohne unnötige Nullen („0,5“, nicht „0,50“).
+  Ausnahme Arbeitszeit-Filter: Grenze immer in Minuten („≤ 90 min“ im Feld und im Filterknopf), weil Regler und Feld
+  in Minuten arbeiten.
 - Rollen: „Besitzer“, „Bearbeiten“, „Ansehen“.
 
 ## 9. Do / Don't
