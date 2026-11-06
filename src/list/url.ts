@@ -5,14 +5,13 @@ import {
   type CollabFilter,
   type SortKey,
   type SortDir,
-  type DetailView,
+  DETAIL_VIEWS,
 } from './state'
 
 const ROLES: RoleFilter[] = ['any', 'owner', 'editor', 'viewer']
 const COLLABS: CollabFilter[] = ['any', 'private', 'shared', 'collaborative']
 const SORTS: SortKey[] = ['name', 'work', 'overall', 'rating']
 const DIRS: SortDir[] = ['asc', 'desc']
-const DETAILS: DetailView[] = ['detailed', 'compact']
 
 const oneOf = <T extends string>(allowed: T[], raw: string | null, fallback: T): T =>
   raw && (allowed as string[]).includes(raw) ? (raw as T) : fallback
@@ -52,7 +51,7 @@ export function fromSearchParams(p: URLSearchParams): ListState {
     search: p.get('q') ?? '',
     sortKey: oneOf(SORTS, p.get('sort'), DEFAULT_STATE.sortKey),
     sortDir: oneOf(DIRS, p.get('dir'), DEFAULT_STATE.sortDir),
-    detail: oneOf(DETAILS, p.get('view'), DEFAULT_STATE.detail),
+    detail: oneOf(DETAIL_VIEWS, p.get('view'), DEFAULT_STATE.detail),
     // absent → default (true); explicit '0' → flat list.
     grouped: p.has('group') ? p.get('group') !== '0' : DEFAULT_STATE.grouped,
   }

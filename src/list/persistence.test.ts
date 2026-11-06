@@ -22,6 +22,17 @@ describe('persistence', () => {
     localStorage.setItem('foodly:list-state:1', JSON.stringify({ version: 99, state: { tags: ['X'] } }))
     expect(loadPersisted(1)).toBeNull()
   })
+  it('keeps a stored tiles view', () => {
+    savePersisted(1, { ...DEFAULT_STATE, detail: 'tiles' })
+    expect(loadPersisted(1)?.detail).toBe('tiles')
+  })
+  it('replaces an unknown stored view with detailed and keeps the rest', () => {
+    localStorage.setItem(
+      'foodly:list-state:1',
+      JSON.stringify({ version: 1, state: { tags: ['X'], grouped: false, detail: 'nonsense' } }),
+    )
+    expect(loadPersisted(1)).toEqual({ tags: ['X'], grouped: false, detail: 'detailed' })
+  })
   it('discards unparseable data', () => {
     localStorage.setItem('foodly:list-state:1', '{not json')
     expect(loadPersisted(1)).toBeNull()
