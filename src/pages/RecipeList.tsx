@@ -60,7 +60,11 @@ function ListSkeleton({ detail, count, testId }: { detail: DetailView; count: nu
   return (
     <div data-testid={testId} className={compact ? 'space-y-0.5' : 'space-y-3'}>
       {items.map((i) => (
-        <Skeleton key={i} data-testid="row-skeleton" className={`w-full ${compact ? 'h-9 rounded-md' : 'h-18 rounded-lg'}`} />
+        <Skeleton
+          key={i}
+          data-testid="row-skeleton"
+          className={`w-full ${compact ? 'h-9 rounded-md' : 'h-18 rounded-lg'}`}
+        />
       ))}
     </div>
   )

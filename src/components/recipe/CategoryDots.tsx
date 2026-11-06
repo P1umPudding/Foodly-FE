@@ -76,7 +76,10 @@ export function CategoryLine({ categories }: { categories: UserCategory[] }) {
   const [first, ...others] = categories
   return (
     // -ml-1 lines the first dot up with the tile edge (the dots carry p-1 hit areas).
-    <span data-testid="category-line" className="-ml-1 flex min-w-0 items-center text-sm font-medium text-muted-foreground">
+    <span
+      data-testid="category-line"
+      className="-ml-1 flex min-w-0 items-center text-sm font-medium text-muted-foreground"
+    >
       <CategoryDots categories={categories} tooltipSide="top" showMore={false} />
       <span aria-hidden className="ml-0.5 min-w-0 truncate">
         {first.name}
