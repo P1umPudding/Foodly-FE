@@ -15,6 +15,7 @@ describe('deriveGroups', () => {
     const groups = deriveGroups(recipes, cats)
     expect(groups.map((g) => g.key)).toEqual(['uncat', 'cat-10', 'cat-20'])
     expect(groups[0].recipes.map((r) => r.id)).toEqual([3]) // recipe 3 is uncategorised
+    expect(groups.map((g) => g.categoryId)).toEqual([null, 10, 20])
   })
 
   it('drops categories with no matching recipes', () => {

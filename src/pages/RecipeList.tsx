@@ -18,6 +18,7 @@ import { useRecipeSearch } from '../hooks/useRecipeSearch'
 import { useCategories, useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
 import { useListState } from '../list/useListState'
 import { groupingCategories, inSelectedCategory } from '../list/filter'
+import { hasDisplayableImages } from '../list/rowData'
 import { buildSearchQuery } from '../list/query'
 import { matchesSearch } from '../list/search'
 import { usedIngredients } from '../list/counts'
@@ -85,6 +86,9 @@ export function RecipeList() {
   // persisted per user. Closed group keys; empty = all open. First visit (nothing
   // stored) starts with the "Ohne Kategorie" inbox folded.
   const groupingCats = groupingCategories(categories, state.categories)
+  // From every loaded (viewable) recipe, not the filtered view: loadMore only appends,
+  // so the column never vanishes while scrolling; a new query recomputes it.
+  const showImages = hasDisplayableImages(accessibleRecipes)
   const [collapsed, setCollapsedState] = useState<Set<string>>(() => new Set(loadCollapsed(currentUserId) ?? ['uncat']))
   const setCollapsed = (next: Set<string>) => {
     setCollapsedState(next)
@@ -341,6 +345,8 @@ export function RecipeList() {
               <RecipeListView
                 recipes={visible}
                 categories={groupingCats}
+                allCategories={categories}
+                showImages={showImages}
                 detail={state.detail}
                 grouped={state.grouped}
                 collapsed={collapsed}
