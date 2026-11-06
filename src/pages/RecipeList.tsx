@@ -18,6 +18,7 @@ import { useRecipeSearch } from '../hooks/useRecipeSearch'
 import { useCategories, useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
 import { useListState } from '../list/useListState'
 import { groupingCategories, inSelectedCategory } from '../list/filter'
+import { hasDisplayableImages } from '../list/rowData'
 import { buildSearchQuery } from '../list/query'
 import { matchesSearch } from '../list/search'
 import { usedIngredients } from '../list/counts'
@@ -74,6 +75,9 @@ export function RecipeList() {
     (r) => inSelectedCategory(r, state.categories, categories) && matchesSearch(r, state.search),
   )
 
+  const pending = search.status === 'ready' && search.hasMore
+  const allLoaded = search.status === 'ready' && !search.hasMore
+
   // Count of accessible recipes in no category — drives the "Ohne Kategorie" filter.
   const categorizedIds = new Set(categories.flatMap((c) => c.recipes))
   const uncategorizedCount = accessibleRecipes.filter((r) => !categorizedIds.has(r.id)).length
@@ -82,6 +86,9 @@ export function RecipeList() {
   // persisted per user. Closed group keys; empty = all open. First visit (nothing
   // stored) starts with the "Ohne Kategorie" inbox folded.
   const groupingCats = groupingCategories(categories, state.categories)
+  // From every loaded (viewable) recipe, not the filtered view: loadMore only appends,
+  // so the column never vanishes while scrolling; a new query recomputes it.
+  const showImages = hasDisplayableImages(accessibleRecipes)
   const [collapsed, setCollapsedState] = useState<Set<string>>(() => new Set(loadCollapsed(currentUserId) ?? ['uncat']))
   const setCollapsed = (next: Set<string>) => {
     setCollapsedState(next)
@@ -177,7 +184,9 @@ export function RecipeList() {
     }
   }, [search.status])
 
-  // Load the next page when a sentinel near the list end scrolls into view.
+  // Load the next page when a sentinel near the list end scrolls into view. The effect re-subscribes
+  // whenever loadMore changes (every page), and a fresh observer reports the sentinel's current state:
+  // a page that adds no visible row leaves the sentinel in view, so the next page loads by itself.
   const sentinelRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = sentinelRef.current
@@ -224,7 +233,11 @@ export function RecipeList() {
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-baseline gap-4">
                 <h1 className="sr-only">Rezepte</h1>
-                <ResultCount matching={visible.length} total={accessibleRecipes.length} />
+                {/* Loading or failed: count 0 + more is the hidden placeholder — no number we don't know. */}
+                <ResultCount
+                  count={search.status === 'ready' ? visible.length : 0}
+                  more={search.status !== 'ready' || search.hasMore}
+                />
               </div>
               {/* Mobile-only filter drawer trigger */}
               <Sheet>
@@ -297,14 +310,20 @@ export function RecipeList() {
               </Alert>
             )}
 
-            {search.status === 'ready' && accessibleRecipes.length === 0 && (
+            {/* Pages still to come may hold matches: hold the empty texts back until the list is exhausted.
+              The sentinel below stays in view, so loading carries on by itself. */}
+            {pending && visible.length === 0 && (
+              <Skeleton data-testid="list-pending-skeleton" className="h-18 w-full rounded-lg" />
+            )}
+
+            {allLoaded && accessibleRecipes.length === 0 && (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
                 <UtensilsCrossed className="h-10 w-10 text-muted-foreground/40" />
                 <p className="text-muted-foreground">Noch keine Rezepte.</p>
               </div>
             )}
 
-            {search.status === 'ready' && accessibleRecipes.length > 0 && visible.length === 0 && (
+            {allLoaded && accessibleRecipes.length > 0 && visible.length === 0 && (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
                 <SearchX className="h-10 w-10 text-muted-foreground/40" />
                 <p className="text-muted-foreground">Keine Treffer für die aktuellen Filter.</p>
@@ -326,6 +345,8 @@ export function RecipeList() {
               <RecipeListView
                 recipes={visible}
                 categories={groupingCats}
+                allCategories={categories}
+                showImages={showImages}
                 detail={state.detail}
                 grouped={state.grouped}
                 collapsed={collapsed}
@@ -335,9 +356,9 @@ export function RecipeList() {
 
             {/* Infinite-scroll trigger + more-pages spinner. */}
             <div ref={sentinelRef} aria-hidden className="h-1" />
-            {search.loadingMore && (
+            {search.loadingMore && visible.length > 0 && (
               <div className="space-y-3 pt-3">
-                <Skeleton className="h-18 w-full rounded-lg" />
+                <Skeleton data-testid="list-more-skeleton" className="h-18 w-full rounded-lg" />
               </div>
             )}
           </div>

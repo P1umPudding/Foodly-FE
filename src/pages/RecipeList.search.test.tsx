@@ -6,7 +6,16 @@ import { RecipeList } from './RecipeList'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { SHELL_NAV_STATE } from '../components/shell/nav'
+import type { StubFeature } from '../api/stubs'
 import type { Recipe, UserCategory } from '../api/protocol'
+
+// Only the images stub is toggled (default stubbed, as in REST); the real
+// showsRecipeImages decides whether the page shows an image column.
+const imageStub = vi.hoisted(() => ({ stubbed: true }))
+vi.mock('../api/stubs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../api/stubs')>()
+  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
+})
 
 function cat(id: number, recipes: number[]): UserCategory {
   return { id, user: 1, name: `Cat ${id}`, recipes, order: id, color: '#000000', colorLight: null, colorDark: null }
@@ -60,7 +69,10 @@ function renderList() {
   )
 }
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  imageStub.stubbed = true
+})
 
 describe('RecipeList (server-side search)', () => {
   it('renders recipes returned by searchRecipes', async () => {
@@ -259,5 +271,140 @@ describe('RecipeList (layout)', () => {
     if (!wrapper) throw new Error('list wrapper (.grid) not found')
     expect(wrapper.classList.contains('pb-10')).toBe(true)
     expect(wrapper.classList.contains('phone:pb-[calc(6rem+env(safe-area-inset-bottom))]')).toBe(true)
+  })
+})
+
+describe('RecipeList (result count and empty states)', () => {
+  // A free-text search narrows only the loaded pages on the client, so page 1 can hold no match while
+  // later pages still might.
+  function renderSearch(q: string) {
+    return render(
+      <MemoryRouter initialEntries={[`/recipes?group=0&q=${q}`]}>
+        <TooltipProvider>
+          <RecipeList />
+        </TooltipProvider>
+      </MemoryRouter>,
+    )
+  }
+
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('shows a skeleton instead of "Keine Treffer" while more pages may hold matches', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: 2 })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderSearch('zzz')
+
+    await waitFor(() => screen.getByTestId('list-pending-skeleton'))
+    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
+    expect(screen.queryByText('Filter zurücksetzen')).toBeNull()
+  })
+
+  it('keeps loading pages by itself while no row is visible', async () => {
+    // Reports the sentinel as in view right after observe(), like a real observer does.
+    class FiringIO {
+      private disconnected = false
+      constructor(private cb: IntersectionObserverCallback) {}
+      observe() {
+        queueMicrotask(() => {
+          if (!this.disconnected)
+            this.cb([{ isIntersecting: true } as IntersectionObserverEntry], this as unknown as IntersectionObserver)
+        })
+      }
+      unobserve() {}
+      disconnect() {
+        this.disconnected = true
+      }
+      takeRecords() {
+        return []
+      }
+    }
+    vi.stubGlobal('IntersectionObserver', FiringIO)
+    let resolvePage2: (page: Awaited<ReturnType<typeof foodly.searchRecipes>>) => void = () => {}
+    const page2 = new Promise<Awaited<ReturnType<typeof foodly.searchRecipes>>>((resolve) => (resolvePage2 = resolve))
+    const searchSpy = vi
+      .spyOn(foodly, 'searchRecipes')
+      .mockResolvedValueOnce({ items: [rec(1, 'Pancakes')], cursor: 2 })
+      .mockReturnValueOnce(page2)
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderSearch('zzz')
+
+    await waitFor(() => expect(searchSpy).toHaveBeenCalledTimes(2))
+    screen.getByTestId('list-pending-skeleton')
+    // Page 2 is loading, but with no visible row the pending skeleton is the only one.
+    expect(screen.queryByTestId('list-more-skeleton')).toBeNull()
+    await act(async () => resolvePage2({ items: [rec(2, 'Zzz Suppe')], cursor: null }))
+
+    await waitFor(() => screen.getByText('Zzz Suppe'))
+    expect(searchSpy).toHaveBeenCalledTimes(2)
+    screen.getByText('1 Rezept')
+    expect(screen.queryByTestId('list-pending-skeleton')).toBeNull()
+  })
+
+  it('says "Keine Treffer" once no more pages follow', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderSearch('zzz')
+
+    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+    screen.getByText('Filter zurücksetzen')
+    expect(screen.queryByTestId('list-pending-skeleton')).toBeNull()
+    const count = screen.getByText('0 Rezepte')
+    expect(count.getAttribute('aria-hidden')).toBeNull()
+    expect(count.classList.contains('invisible')).toBe(false)
+  })
+
+  it('marks the count with "+" while more pages may follow', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes'), rec(2, 'Waffles')], cursor: 2 })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+
+    await waitFor(() => screen.getByText('2+ Rezepte'))
+  })
+})
+
+describe('RecipeList (rows)', () => {
+  const withPhoto = { ...rec(1, 'Pancakes'), mainImage: 3 }
+
+  it('mock images: one photo gives every row an image cell', async () => {
+    imageStub.stubbed = false
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [withPhoto, rec(2, 'Waffles')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+
+    await waitFor(() => screen.getByText('Waffles'))
+    expect(screen.getAllByTestId('recipe-thumb')).toHaveLength(2)
+  })
+
+  it('stubbed images (REST): no image column even with a main image', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [withPhoto, rec(2, 'Waffles')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+
+    await waitFor(() => screen.getByText('Waffles'))
+    expect(screen.queryAllByTestId('recipe-thumb')).toHaveLength(0)
+  })
+
+  it("a category filter keeps the row's other category dots", async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [1]), cat(2, [1])])
+
+    render(
+      <MemoryRouter initialEntries={['/recipes?cat=1']}>
+        <TooltipProvider>
+          <RecipeList />
+        </TooltipProvider>
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => screen.getByText('Pancakes'))
+    // The filter is really applied: no Cat 2 group, whose row would list Cat 1.
+    expect(screen.queryByText('Kategorien: Cat 1')).toBeNull()
+    expect(screen.getByText('Kategorien: Cat 2')).toBeTruthy()
   })
 })

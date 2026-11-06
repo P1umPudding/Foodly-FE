@@ -1,8 +1,14 @@
-import type { Recipe, UserCategory } from '../api/protocol'
+import type { Recipe, UserCategory, UserCategoryId } from '../api/protocol'
 import type { CategoryColorInput } from '../lib/categoryColor'
 
-// `colors` is null for "Ohne Kategorie", which keeps the neutral theme defaults.
-export type RecipeGroup = { key: string; name: string; colors: CategoryColorInput | null; recipes: Recipe[] }
+// `categoryId` and `colors` are null for "Ohne Kategorie" (neutral theme defaults).
+export type RecipeGroup = {
+  key: string
+  categoryId: UserCategoryId | null
+  name: string
+  colors: CategoryColorInput | null
+  recipes: Recipe[]
+}
 
 // Split recipes into a leading "Ohne Kategorie" bucket (collapsed by default — an
 // inbox of recipes still to be sorted) followed by the ordered category groups.
@@ -16,13 +22,13 @@ export function deriveGroups(recipes: Recipe[], categories: UserCategory[]): Rec
   const groups: RecipeGroup[] = []
   const uncategorised = recipes.filter((r) => !inAnyCategory.has(r.id))
   if (uncategorised.length > 0) {
-    groups.push({ key: 'uncat', name: 'Ohne Kategorie', colors: null, recipes: uncategorised })
+    groups.push({ key: 'uncat', categoryId: null, name: 'Ohne Kategorie', colors: null, recipes: uncategorised })
   }
   for (const c of ordered) {
     const inThis = recipes.filter((r) => c.recipes.includes(r.id))
     if (inThis.length === 0) continue
     const colors = { color: c.color, colorLight: c.colorLight, colorDark: c.colorDark }
-    groups.push({ key: `cat-${c.id}`, name: c.name, colors, recipes: inThis })
+    groups.push({ key: `cat-${c.id}`, categoryId: c.id, name: c.name, colors, recipes: inThis })
   }
   return groups
 }
