@@ -14,8 +14,8 @@ import {
 import { BottomSheet } from '../BottomSheet'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 
-// The outline variant brings its own dark and hover backgrounds, which a plain bg-muted doesn't override.
-const ACTIVE = 'bg-muted font-medium hover:bg-muted/80 dark:bg-muted dark:hover:bg-muted/80'
+// The outline variant brings its own dark and hover colours, which a plain bg-muted doesn't override.
+const ACTIVE = 'bg-muted font-medium hover:bg-muted/80 hover:text-foreground dark:bg-muted dark:hover:bg-muted/80'
 
 // One button of the filter bar: shows "<Filter>: <Wert>" while active, with its own ✕ as a sibling
 // (a button can't nest in the trigger). Popover on desktop, bottom sheet on phones (docs/design.md §7).
@@ -52,7 +52,7 @@ export function FilterButton({
           id={triggerId}
           className={cn(
             buttonVariants({ variant: 'outline', size: 'sm' }),
-            'relative max-w-56 min-w-0 focus-visible:z-10 phone:h-10',
+            'relative max-w-56 focus-visible:z-10 phone:h-10',
             active ? cn(ACTIVE, 'rounded-r-none border-r-0') : 'font-normal',
           )}
         >
