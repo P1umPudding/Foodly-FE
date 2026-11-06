@@ -1,12 +1,13 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Button, NumberInput, Slider, ToggleGroup } from '@postxl/ui-components'
 import { X } from 'lucide-react'
 import type { ListState } from '../../../list/state'
 import { FocusToggleGroupItem } from '../FocusToggleGroupItem'
 
-// Upper bound for the work-time slider and field (minutes). `null` (no limit) parks the knob here, but
-// dragging there yields a real 180 — only "Zurücksetzen" clears the limit.
+// Upper bound for the work-time slider and field (minutes). The knob's far-right position means "no limit"
+// (`null`); only the field can still set a real 180 — same knob position, the field shows the difference.
 const DURATION_MAX = 180
+const NO_LIMIT = 'Keine Grenze'
 const DURATION_PRESETS = [15, 30, 60] as const
 
 // Neutral "selected" emphasis — selection reads via fill + ring + weight, not a brand hue (colour stays
@@ -23,13 +24,21 @@ function clamp(v: number): number {
 export function DurationFilter({ value, set }: { value: number | null; set: (patch: Partial<ListState>) => void }) {
   const onChange = (durationMax: number | null) => set({ durationMax })
   const fieldRef = useRef<HTMLInputElement>(null)
+  const sliderBoxRef = useRef<HTMLDivElement>(null)
+  // The postxl Slider neither exposes its (single) thumb nor forwards aria props to it, so the value text is
+  // set on the DOM node directly; Radix never manages aria-valuetext, so re-renders keep it.
+  useEffect(() => {
+    const thumb = sliderBoxRef.current?.querySelector('[role=slider]')
+    if (value === null) thumb?.setAttribute('aria-valuetext', NO_LIMIT)
+    else thumb?.removeAttribute('aria-valuetext')
+  }, [value])
   const presetActive = (DURATION_PRESETS as readonly number[]).includes(value ?? -1)
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
         {/* px gives the knob's hover ring room — a scrolling parent also clips horizontally, which would
             otherwise cut the ring at the ends. Needs ≥ half-thumb (8px) + ring (4px). */}
-        <div className="min-w-0 flex-1 px-4">
+        <div ref={sliderBoxRef} className="min-w-0 flex-1 px-4">
           <Slider
             aria-label="Maximale Arbeitszeit"
             // Neutral (not the brand purple): the built-in gray variant for the range, knob border + hover
@@ -39,7 +48,7 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
             max={DURATION_MAX}
             step={5}
             value={[value ?? DURATION_MAX]}
-            onValueChange={([v]) => onChange(v)}
+            onValueChange={([v]) => onChange(v === DURATION_MAX ? null : v)}
             className="w-full [&_[data-slot=slider-thumb]]:border-muted-foreground [&_[data-slot=slider-thumb]]:ring-muted-foreground/40"
           />
         </div>
@@ -51,13 +60,16 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
           min={0}
           max={DURATION_MAX}
           showSpinButtons={false}
-          prefix="≤"
-          suffix="min"
+          placeholder={NO_LIMIT}
+          // Without a limit the field reads just "Keine Grenze", not "≤ Keine Grenze min".
+          prefix={value === null ? undefined : '≤'}
+          suffix={value === null ? undefined : 'min'}
           // suffix is the wrapper's last child span → shrink just "min"
           wrapperClassName="min-h-8 phone:min-h-10 w-28 shrink-0 [&>span:last-child]:text-xs [&>span:first-child]:text-base"
           // dark:bg-transparent so the input area matches the wrapper (the lib leaves dark:bg-input/30 on the
-          // input, which otherwise differs from prefix/suffix).
-          className="bg-transparent text-right dark:bg-transparent"
+          // input, which otherwise differs from prefix/suffix). text-xs placeholder: "Keine Grenze" at the input's
+          // 14/16 px barely fits w-28.
+          className="bg-transparent text-right placeholder:text-xs dark:bg-transparent"
         />
       </div>
       {/* Selection is JS-driven so typing 60 lights ≤ 60. */}
