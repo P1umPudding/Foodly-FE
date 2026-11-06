@@ -189,7 +189,7 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 - Zeiten „45 min“ / „1 h 30 min“, Bewertung mit Komma („4,5“), Mengen ohne unnötige Nullen („0,5“, nicht „0,50“).
   Ausnahme Arbeitszeit-Filter: Grenze immer in Minuten („≤ 90 min“ im Feld und im Filterknopf), weil Regler und Feld
   in Minuten arbeiten.
-- Rollen: „Besitzer“, „Bearbeiten“, „Ansehen“.
+- Rollen: „Besitzer“, „Bearbeiter“, „Betrachter“ (Personenform, auch im Zugriff-Filter).
 
 ## 9. Do / Don't
 
