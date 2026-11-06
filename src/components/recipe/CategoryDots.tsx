@@ -86,7 +86,7 @@ export function CategoryLine({ categories }: { categories: UserCategory[] }) {
       </span>
       {others.length > 0 &&
         withTooltip(
-          <span aria-hidden className="shrink-0 cursor-default pl-1 tabular-nums text-muted-foreground/70">
+          <span aria-hidden className="shrink-0 cursor-default pl-1 tabular-nums">
             +{others.length}
           </span>,
           others.map((c) => c.name).join(', '),

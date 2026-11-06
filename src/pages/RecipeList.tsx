@@ -28,7 +28,7 @@ import { loadCollapsed, saveCollapsed } from '../list/persistence'
 import { ActiveFilters } from '../components/list/ActiveFilters'
 import { FilterControls } from '../components/list/FilterControls'
 import { ListToolbar } from '../components/list/ListToolbar'
-import { RecipeListView, TileGrid } from '../components/list/RecipeListView'
+import { GroupIndent, RecipeListView, TileGrid } from '../components/list/RecipeListView'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
 import { fromSearchParams, toSearchParams } from '../list/url'
@@ -50,7 +50,12 @@ function ListSkeleton({ detail, count, testId }: { detail: DetailView; count: nu
       <div data-testid={testId}>
         <TileGrid>
           {items.map((i) => (
-            <Skeleton key={i} data-testid="tile-skeleton" className="aspect-[4/3] w-full rounded-lg" />
+            // About one row: phones show two columns.
+            <Skeleton
+              key={i}
+              data-testid="tile-skeleton"
+              className={`aspect-[4/3] w-full rounded-lg ${i >= 2 ? 'phone:hidden' : ''}`}
+            />
           ))}
         </TileGrid>
       </div>
@@ -63,11 +68,24 @@ function ListSkeleton({ detail, count, testId }: { detail: DetailView; count: nu
         <Skeleton
           key={i}
           data-testid="row-skeleton"
-          className={`w-full ${compact ? 'h-9 rounded-md' : 'h-18 rounded-lg'}`}
+          className={`w-full ${compact ? 'h-8 rounded-md' : 'h-18 rounded-lg'}`}
         />
       ))}
     </div>
   )
+}
+
+function LoadMoreSkeleton({ detail, grouped }: { detail: DetailView; grouped: boolean }) {
+  if (detail !== 'tiles') {
+    return (
+      <div className="pt-3">
+        <ListSkeleton detail={detail} count={1} testId="list-more-skeleton" />
+      </div>
+    )
+  }
+  const tiles = <ListSkeleton detail="tiles" count={4} testId="list-more-skeleton" />
+  // Grouped: indented like a group's grid, so the skeleton columns match the tiles above.
+  return <div className="pt-7 phone:pt-5">{grouped ? <GroupIndent lineless>{tiles}</GroupIndent> : tiles}</div>
 }
 
 export function RecipeList() {
@@ -379,20 +397,7 @@ export function RecipeList() {
             {/* Infinite-scroll trigger + more-pages spinner. */}
             <div ref={sentinelRef} aria-hidden className="h-1" />
             {search.loadingMore && visible.length > 0 && (
-              // Grouped tiles: indented like a group's grid (line container), so the columns match.
-              <div
-                className={
-                  state.detail !== 'tiles'
-                    ? 'pt-3'
-                    : `pt-7 phone:pt-5 ${state.grouped ? 'ml-[7px] border-l-2 border-transparent pl-4' : ''}`
-                }
-              >
-                <ListSkeleton
-                  detail={state.detail}
-                  count={state.detail === 'tiles' ? 4 : 1}
-                  testId="list-more-skeleton"
-                />
-              </div>
+              <LoadMoreSkeleton detail={state.detail} grouped={state.grouped} />
             )}
           </div>
         </div>

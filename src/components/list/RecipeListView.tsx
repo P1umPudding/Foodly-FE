@@ -25,6 +25,15 @@ export function TileGrid({ children }: { children: ReactNode }) {
   )
 }
 
+// A group's indented body with its 2px category line. `lineless` keeps only the indent, for
+// placeholders that must line up with a group's content without belonging to one.
+export function GroupIndent({ lineless = false, children }: { lineless?: boolean; children: ReactNode }) {
+  return (
+    // line nudged right (ml-[7px]) so the 2px rule centres under the chevron's bottom tip
+    <div className={`ml-[7px] border-l-2 pl-4 ${lineless ? 'border-transparent' : 'border-cat-line'}`}>{children}</div>
+  )
+}
+
 function Rows({
   recipes,
   detail,
@@ -96,10 +105,9 @@ function CategoryGroup({
         </CollapseTrigger>
       </Button>
       <CollapseContent>
-        {/* line nudged right (ml-[7px]) so the 2px rule centres under the chevron's bottom tip */}
-        <div className="ml-[7px] border-l-2 border-cat-line pl-4">
+        <GroupIndent>
           <Rows recipes={recipes} exceptCategoryId={categoryId} {...rowOptions} />
-        </div>
+        </GroupIndent>
       </CollapseContent>
     </Collapse>
   )
