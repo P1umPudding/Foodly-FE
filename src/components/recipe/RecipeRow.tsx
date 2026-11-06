@@ -6,10 +6,11 @@ import { TagText } from '../TagText'
 import { TagChips } from './TagChips'
 import { StarMeter } from './Stars'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
+import { CategoryDots } from './CategoryDots'
 import { visibleRating, formatRating } from '../../api/views'
 import { recipeImageSrc, showsRecipeImages } from '../../api/assets'
 import { useCurrentUserId } from '../../catalog/CatalogProvider'
-import type { Recipe } from '../../api/protocol'
+import type { Recipe, UserCategory } from '../../api/protocol'
 
 function Rating({ value }: { value: number }) {
   return (
@@ -49,12 +50,31 @@ function CompactName({ name }: { name: string }) {
   )
 }
 
-export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact?: boolean }) {
+// `categories` are this recipe's categories to show as dots (already ordered, minus
+// the surrounding group). `showImages` is decided list-wide, so all rows line up.
+export function RecipeRow({
+  recipe,
+  compact = false,
+  categories = [],
+  showImages = false,
+}: {
+  recipe: Recipe
+  compact?: boolean
+  categories?: UserCategory[]
+  showImages?: boolean
+}) {
   const rating = visibleRating(recipe, useCurrentUserId())
   const indicator = <RoleCollabIndicator recipe={recipe} />
+  const dots = <CategoryDots categories={categories} />
+  // Tags are hidden on phones; no wrapper at all without tags, so no empty flex gap.
+  const tags = recipe.tags.length > 0 && (
+    <div className="phone:hidden">
+      <TagChips tags={recipe.tags} align="end" />
+    </div>
+  )
 
-  // Compact: one tight line — name · rating · time on the left, access + tags pinned
-  // right. Time gives up width first (shrink-[100]), then the name; the name keeps a
+  // Compact: one tight line — name · rating · time on the left, access + tags + dots
+  // pinned right. Time gives up width first (shrink-[100]), then the name; the name keeps a
   // tooltip only when it's actually clipped. No card box — a real list.
   if (compact) {
     return (
@@ -76,28 +96,34 @@ export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact
         </div>
         <div className="flex shrink-0 items-center gap-x-2">
           {indicator}
-          <TagChips tags={recipe.tags} align="end" />
+          {tags}
+          {dots}
         </div>
       </Link>
     )
   }
 
-  // Detailed: card whose height is set by the thumbnail (+ equal padding). The text
-  // columns stretch to that height and pin their two rows to the extremes — name &
-  // tags up top, rating/time & access icons at the bottom.
+  // Detailed: card with a 48 px content height (thumbnail when the list has photos,
+  // otherwise min-h-12 on the text column, so rows stay uniform either way). The
+  // columns pin their two rows to the extremes — name & tags up top, rating/time &
+  // access icons + dots at the bottom.
   return (
     <Link to={`/recipes/${recipe.id}`} className="group block">
       <Card className="flex items-stretch gap-3 p-2 transition-colors hover:bg-muted/50">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg">
-          {recipe.mainImage !== null && showsRecipeImages() ? (
-            <img src={recipeImageSrc(recipe.mainImage)} alt="" className="h-full w-full object-cover" />
-          ) : (
-            // No own background → the row's hover background shows through.
-            <UtensilsCrossed className="h-5 w-5 text-muted-foreground/40" />
-          )}
-        </div>
+        {showImages && (
+          <div
+            data-testid="recipe-thumb"
+            className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted"
+          >
+            {recipe.mainImage !== null && showsRecipeImages() ? (
+              <img src={recipeImageSrc(recipe.mainImage)} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <UtensilsCrossed className="h-5 w-5 text-muted-foreground/40" />
+            )}
+          </div>
+        )}
 
-        <div className="flex min-w-0 flex-1 flex-col justify-between gap-0.5">
+        <div className="flex min-h-12 min-w-0 flex-1 flex-col justify-between gap-0.5">
           {/* leading-tight: the inherited 1.6 line-height otherwise makes the name
               taller than the thumbnail and unbalances the box's top/bottom padding.
               pb-0.5 (paired with the smaller gap above) keeps room inside the
@@ -118,8 +144,12 @@ export function RecipeRow({ recipe, compact = false }: { recipe: Recipe; compact
         </div>
 
         <div className="flex shrink-0 flex-col items-end justify-between gap-1">
-          <TagChips tags={recipe.tags} align="end" />
-          {indicator}
+          {tags}
+          {/* mt-auto keeps this row at the bottom when there are no (visible) tags */}
+          <div className="mt-auto flex items-center gap-2">
+            {indicator}
+            {dots}
+          </div>
         </div>
       </Card>
     </Link>
