@@ -76,9 +76,8 @@ dem Shell-/Detail-Issue (Override von `--text-base` unter 761 px), weil die heut
 | `text-xl font-display` | 18 / 650 | Wortmarke Seitenleiste |
 | `text-2xl font-display` | 26 / 650 | Seitentitel (genau einer pro Seite) |
 
-Zahlen, die sich vergleichen lassen (Zeiten, Mengen, Zähler), mit `tabular-nums`. Keine weiteren Größen; Ausnahmen sind
-der Koch-Modus (großer Schritttext, siehe Redesign-README) und die Kacheln (`RecipeTile`): Titel 17 px / 700
-(Handy `text-lg`), Name der Typo-Kachel 22 px / 750 (Handy 17 px), beide nur dort.
+Zahlen, die sich vergleichen lassen (Zeiten, Mengen, Zähler), mit `tabular-nums`. Keine weiteren Größen; Koch-Modus
+ist die einzige Ausnahme (großer Schritttext, siehe Redesign-README).
 
 ### Abstände
 
@@ -187,8 +186,6 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 - Deutsch, Du-Form, kurz, keine Ausrufezeichen, keine Emojis in UI-Texten (Kategorie-Symbole ausgenommen).
 - Buttons sagen, was passiert: „Speichern“, „Kopie erstellen“, nicht „OK“.
 - Zeiten „45 min“ / „1 h 30 min“, Bewertung mit Komma („4,5“), Mengen ohne unnötige Nullen („0,5“, nicht „0,50“).
-  Ausnahme Arbeitszeit-Filter: Grenze immer in Minuten („≤ 90 min“ im Feld und im Filterknopf), weil Regler und Feld
-  in Minuten arbeiten.
 - Rollen: „Besitzer“, „Bearbeiten“, „Ansehen“.
 
 ## 9. Do / Don't

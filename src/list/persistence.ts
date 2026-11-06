@@ -1,5 +1,5 @@
 import type { UserId } from '../api/protocol'
-import type { ListState } from './state'
+import { DETAIL_VIEWS, type ListState } from './state'
 
 const VERSION = 1
 const keyFor = (userId: UserId | null) => `foodly:list-state:${userId ?? 'anon'}`
@@ -13,6 +13,9 @@ export function loadPersisted(userId: UserId | null): Partial<ListState> | null 
     if (!raw) return null
     const parsed = JSON.parse(raw) as { version?: number; state?: Persisted }
     if (parsed.version !== VERSION || !parsed.state) return null
+    // An unknown view (another build, hand-edited storage) would otherwise leak into nav links as ?view=….
+    const { detail } = parsed.state
+    if (detail !== undefined && !DETAIL_VIEWS.includes(detail)) return { ...parsed.state, detail: 'detailed' }
     return parsed.state
   } catch {
     return null // corrupt/unavailable storage → fall back to defaults

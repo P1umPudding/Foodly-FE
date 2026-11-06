@@ -5,7 +5,8 @@ export type RoleFilter = 'any' | 'owner' | 'editor' | 'viewer'
 export type CollabFilter = 'any' | 'private' | 'shared' | 'collaborative'
 export type SortKey = 'name' | 'work' | 'overall' | 'rating'
 export type SortDir = 'asc' | 'desc'
-export type DetailView = 'detailed' | 'compact'
+export type DetailView = 'detailed' | 'compact' | 'tiles'
+export const DETAIL_VIEWS: DetailView[] = ['detailed', 'compact', 'tiles']
 
 export interface ListState {
   categories: number[] // OR within this facet
