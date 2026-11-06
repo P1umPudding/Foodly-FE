@@ -46,6 +46,7 @@ function rec(id: number, name: string): Recipe {
 // The catalog context the page reads from.
 vi.mock('../catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
+  useUser: () => undefined,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),
   // Goes through the real foodly.listCategories, so each test's spy decides the categories.
@@ -59,9 +60,9 @@ vi.mock('../catalog/CatalogProvider', () => ({
 // collapsed by default (see RecipeList's `loadCollapsed(...) ?? ['uncat']`),
 // which would unmount its rows entirely. Force the flat (ungrouped) view via the
 // URL so tests assert on rendered content, not on collapse defaults.
-function renderList() {
+function renderList(url = '/recipes?group=0') {
   return render(
-    <MemoryRouter initialEntries={['/recipes?group=0']}>
+    <MemoryRouter initialEntries={[url]}>
       <TooltipProvider>
         <RecipeList />
       </TooltipProvider>
@@ -75,6 +76,40 @@ afterEach(() => {
 })
 
 describe('RecipeList (server-side search)', () => {
+  describe('loading skeletons take the shape of the view', () => {
+    const never = () => new Promise<never>(() => {})
+
+    it('tiles: 4:3 tile skeletons', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockImplementation(never)
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList('/recipes?view=tiles&group=0')
+
+      await waitFor(() => expect(screen.getAllByTestId('tile-skeleton')).toHaveLength(4))
+      expect(screen.queryAllByTestId('row-skeleton')).toHaveLength(0)
+    })
+
+    it('rows: no tile skeletons', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockImplementation(never)
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList()
+
+      await waitFor(() => expect(screen.getAllByTestId('row-skeleton')).toHaveLength(4))
+      expect(screen.queryAllByTestId('tile-skeleton')).toHaveLength(0)
+    })
+
+    it('tiles: renders the recipes as tiles once loaded', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList('/recipes?view=tiles&group=0')
+
+      await waitFor(() => expect(screen.getByTestId('tile-type-name').textContent).toBe('Pancakes'))
+      expect(screen.queryAllByTestId('tile-skeleton')).toHaveLength(0)
+    })
+  })
+
   it('renders recipes returned by searchRecipes', async () => {
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
