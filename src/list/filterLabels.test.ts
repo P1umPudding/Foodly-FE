@@ -25,8 +25,14 @@ const catalogs: FilterCatalogs = {
 
 const labels = (patch: Partial<ListState>) => filterLabels({ ...DEFAULT_STATE, ...patch }, catalogs)
 
+// Reads like the button: first value plus " +n".
+const text = (patch: Partial<ListState>) =>
+  Object.fromEntries(
+    Object.entries(labels(patch)).map(([key, v]) => [key, v && (v.more > 0 ? `${v.first} +${v.more}` : v.first)]),
+  )
+
 it('returns null for every filter in the default state', () => {
-  expect(labels({})).toEqual({ category: null, tags: null, ingredients: null, duration: null, access: null })
+  expect(text({})).toEqual({ category: null, tags: null, ingredients: null, duration: null, access: null })
 })
 
 it('ignores search, sort and view', () => {
@@ -35,61 +41,66 @@ it('ignores search, sort and view', () => {
 
 describe('category', () => {
   it('shows a single category by name', () => {
-    expect(labels({ categories: [1] }).category).toBe('Favoriten')
+    expect(text({ categories: [1] }).category).toBe('Favoriten')
+  })
+
+  it('keeps the first name and the count of the rest apart', () => {
+    expect(labels({ categories: [1, 2, 3] }).category).toEqual({ first: 'Favoriten', more: 2 })
+    expect(labels({ categories: [1] }).category).toEqual({ first: 'Favoriten', more: 0 })
   })
 
   it('shows the first picked category plus the count of the rest', () => {
-    expect(labels({ categories: [1, 2, 3] }).category).toBe('Favoriten +2')
-    expect(labels({ categories: [3, 1] }).category).toBe('Suppen +1')
+    expect(text({ categories: [1, 2, 3] }).category).toBe('Favoriten +2')
+    expect(text({ categories: [3, 1] }).category).toBe('Suppen +1')
   })
 
   it('names the uncategorised entry "Ohne Kategorie"', () => {
-    expect(labels({ categories: [UNCATEGORIZED_ID] }).category).toBe('Ohne Kategorie')
-    expect(labels({ categories: [UNCATEGORIZED_ID, 2] }).category).toBe('Ohne Kategorie +1')
+    expect(text({ categories: [UNCATEGORIZED_ID] }).category).toBe('Ohne Kategorie')
+    expect(text({ categories: [UNCATEGORIZED_ID, 2] }).category).toBe('Ohne Kategorie +1')
   })
 
   it('falls back to #id for an unknown category', () => {
-    expect(labels({ categories: [99] }).category).toBe('#99')
+    expect(text({ categories: [99] }).category).toBe('#99')
   })
 })
 
 describe('tags', () => {
   it('shows one tag, or the first plus the count of the rest', () => {
-    expect(labels({ tags: ['Vegetarisch'] }).tags).toBe('Vegetarisch')
-    expect(labels({ tags: ['Vegetarisch', 'Schnell'] }).tags).toBe('Vegetarisch +1')
+    expect(text({ tags: ['Vegetarisch'] }).tags).toBe('Vegetarisch')
+    expect(text({ tags: ['Vegetarisch', 'Schnell'] }).tags).toBe('Vegetarisch +1')
   })
 })
 
 describe('ingredients', () => {
   it('shows one ingredient by name, or the first plus the count of the rest', () => {
-    expect(labels({ ingredients: [10] }).ingredients).toBe('Tomaten')
-    expect(labels({ ingredients: [10, 11, 12] }).ingredients).toBe('Tomaten +2')
+    expect(text({ ingredients: [10] }).ingredients).toBe('Tomaten')
+    expect(text({ ingredients: [10, 11, 12] }).ingredients).toBe('Tomaten +2')
   })
 
   it('falls back to #id for an unknown ingredient', () => {
-    expect(labels({ ingredients: [77, 10] }).ingredients).toBe('#77 +1')
+    expect(text({ ingredients: [77, 10] }).ingredients).toBe('#77 +1')
   })
 })
 
 describe('duration', () => {
   it('shows the limit in plain minutes', () => {
-    expect(labels({ durationMax: 30 }).duration).toBe('≤ 30 min')
-    expect(labels({ durationMax: 90 }).duration).toBe('≤ 90 min')
-    expect(labels({ durationMax: 0 }).duration).toBe('≤ 0 min')
+    expect(text({ durationMax: 30 }).duration).toBe('≤ 30 min')
+    expect(text({ durationMax: 90 }).duration).toBe('≤ 90 min')
+    expect(text({ durationMax: 0 }).duration).toBe('≤ 0 min')
   })
 })
 
 describe('access', () => {
   it('shows the role alone', () => {
-    expect(labels({ role: 'editor' }).access).toBe('Bearbeiter')
+    expect(text({ role: 'editor' }).access).toBe('Bearbeiter')
   })
 
   it('shows the sharing alone', () => {
-    expect(labels({ collab: 'shared' }).access).toBe('Geteilt')
+    expect(text({ collab: 'shared' }).access).toBe('Geteilt')
   })
 
   it('shows role before sharing when both are set', () => {
-    expect(labels({ role: 'editor', collab: 'shared' }).access).toBe('Bearbeiter · Geteilt')
-    expect(labels({ role: 'owner', collab: 'private' }).access).toBe('Besitzer · Privat')
+    expect(text({ role: 'editor', collab: 'shared' }).access).toBe('Bearbeiter · Geteilt')
+    expect(text({ role: 'owner', collab: 'private' }).access).toBe('Besitzer · Privat')
   })
 })

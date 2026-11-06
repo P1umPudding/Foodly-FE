@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { FilterButton } from './FilterButton'
+import type { FilterValue } from '../../list/filterLabels'
 
 const desktop = vi.hoisted(() => ({ value: true }))
 vi.mock('../../hooks/useIsDesktop', () => ({ useIsDesktop: () => desktop.value }))
@@ -11,7 +12,7 @@ beforeEach(() => {
 
 // Clears its own value, as the filter bar will.
 function Clearable({ onClear }: { onClear: () => void }) {
-  const [value, setValue] = useState<string | null>('Vegetarisch +1')
+  const [value, setValue] = useState<FilterValue | null>({ first: 'Vegetarisch', more: 1 })
   return (
     <FilterButton
       label="Tags"
@@ -39,7 +40,7 @@ describe('inactive / active', () => {
 
   it('shows "<Filter>: <Wert>" and a separate ✕ while active, both muted and 40 px on phones', () => {
     render(
-      <FilterButton label="Tags" value="Vegetarisch +1" onClear={() => {}}>
+      <FilterButton label="Tags" value={{ first: 'Vegetarisch', more: 1 }} onClear={() => {}}>
         <p>Tag-Liste</p>
       </FilterButton>,
     )
@@ -65,15 +66,30 @@ describe('inactive / active', () => {
     expect(document.activeElement).toBe(trigger)
   })
 
-  it('truncates a long value instead of widening the bar', () => {
+  it('truncates only the first name, never "<Filter>:" or "+n"', () => {
     render(
-      <FilterButton label="Kategorie" value="Sehr lange Kategoriebezeichnung +3" onClear={() => {}}>
+      <FilterButton label="Kategorie" value={{ first: 'Sehr lange Kategoriebezeichnung', more: 2 }} onClear={() => {}}>
         <p>Liste</p>
       </FilterButton>,
     )
-    const trigger = screen.getByRole('button', { name: 'Kategorie: Sehr lange Kategoriebezeichnung +3' })
+    const trigger = screen.getByRole('button', { name: 'Kategorie: Sehr lange Kategoriebezeichnung +2' })
     expect(trigger.className).toContain('max-w-56')
-    expect(trigger.querySelector('.truncate')?.textContent).toBe('Kategorie: Sehr lange Kategoriebezeichnung +3')
+    const truncated = trigger.querySelectorAll('.truncate')
+    expect(truncated).toHaveLength(1)
+    expect(truncated[0].textContent).toBe('Sehr lange Kategoriebezeichnung')
+    const more = within(trigger).getByText('+2')
+    expect(more.className).toContain('shrink-0')
+    expect(more.className).not.toContain('truncate')
+    expect(within(trigger).getByText('Kategorie:').className).toContain('shrink-0')
+  })
+
+  it('shows no "+n" when only one value is selected', () => {
+    render(
+      <FilterButton label="Arbeitszeit" value={{ first: '≤ 30 min', more: 0 }} onClear={() => {}}>
+        <p>Regler</p>
+      </FilterButton>,
+    )
+    expect(screen.getByRole('button', { name: 'Arbeitszeit: ≤ 30 min' })).toBeTruthy()
   })
 })
 

@@ -13,11 +13,12 @@ import {
 } from '@postxl/ui-components'
 import { BottomSheet } from '../BottomSheet'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
+import type { FilterValue } from '../../list/filterLabels'
 
 // The outline variant brings its own dark and hover colours, which a plain bg-muted doesn't override.
 const ACTIVE = 'bg-muted font-medium hover:bg-muted/80 hover:text-foreground dark:bg-muted dark:hover:bg-muted/80'
 
-// One button of the filter bar: shows "<Filter>: <Wert>" while active, with its own ✕ as a sibling
+// One button of the filter bar: shows "<Filter>: <Wert> +n" while active, with its own ✕ as a sibling
 // (a button can't nest in the trigger). Popover on desktop, bottom sheet on phones (docs/design.md §7).
 export function FilterButton({
   label,
@@ -26,7 +27,7 @@ export function FilterButton({
   children,
 }: {
   label: string
-  value: string | null
+  value: FilterValue | null
   onClear: () => void
   children: ReactNode
 }) {
@@ -47,7 +48,8 @@ export function FilterButton({
     <div className="inline-flex items-center">
       <Root>
         {/* The Radix trigger itself, styled as the Button: the postxl Button doesn't forwardRef, which Radix needs
-            for positioning and focus return. Long values truncate so the bar keeps its layout on phones. */}
+            for positioning and focus return. Only the first name truncates: "<Filter>:" and "+n" always stay visible.
+            The spaces between the spans keep the accessible name readable; flex drops them visually. */}
         <Trigger
           id={triggerId}
           className={cn(
@@ -56,7 +58,19 @@ export function FilterButton({
             active ? cn(ACTIVE, 'rounded-r-none border-r-0') : 'font-normal',
           )}
         >
-          <span className="truncate">{active ? `${label}: ${value}` : label}</span>
+          {active ? (
+            <>
+              <span className="shrink-0">{label}:</span> <span className="min-w-0 truncate">{value.first}</span>
+              {value.more > 0 && (
+                <>
+                  {' '}
+                  <span className="shrink-0">+{value.more}</span>
+                </>
+              )}
+            </>
+          ) : (
+            label
+          )}
           {!active && <ChevronDown aria-hidden />}
         </Trigger>
         {isDesktop ? (

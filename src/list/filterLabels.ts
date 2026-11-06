@@ -17,19 +17,21 @@ const COLLAB_LABELS: Record<Exclude<CollabFilter, 'any'>, string> = {
 // Tags need no catalog: a tag's id is its name.
 export type FilterCatalogs = { categories: UserCategory[]; ingredients: Ingredient[] }
 
-// Value text per filter-bar button, null while the filter is inactive.
+// First name (in state order, i.e. as picked) and how many more are selected. Kept apart so the button
+// can truncate the name without ever cutting off the "+n".
+export type FilterValue = { first: string; more: number }
+
+// Value per filter-bar button, null while the filter is inactive.
 export type FilterLabels = {
-  category: string | null
-  tags: string | null
-  ingredients: string | null
-  duration: string | null
-  access: string | null
+  category: FilterValue | null
+  tags: FilterValue | null
+  ingredients: FilterValue | null
+  duration: FilterValue | null
+  access: FilterValue | null
 }
 
-// First name (in state order, i.e. as picked) plus "+n" for the rest.
-function firstPlus(names: string[]): string | null {
-  if (names.length === 0) return null
-  return names.length === 1 ? names[0] : `${names[0]} +${names.length - 1}`
+function firstPlus(names: string[]): FilterValue | null {
+  return names.length === 0 ? null : { first: names[0], more: names.length - 1 }
 }
 
 export function filterLabels(state: ListState, { categories, ingredients }: FilterCatalogs): FilterLabels {
@@ -45,7 +47,7 @@ export function filterLabels(state: ListState, { categories, ingredients }: Filt
     category: firstPlus(state.categories.map(catName)),
     tags: firstPlus(state.tags),
     ingredients: firstPlus(state.ingredients.map(ingName)),
-    duration: state.durationMax === null ? null : `≤ ${state.durationMax} min`,
-    access: access.length > 0 ? access.join(' · ') : null,
+    duration: state.durationMax === null ? null : { first: `≤ ${state.durationMax} min`, more: 0 },
+    access: access.length > 0 ? { first: access.join(' · '), more: 0 } : null,
   }
 }
