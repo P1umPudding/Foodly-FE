@@ -134,4 +134,10 @@ function withStubRatings(page: PaginatedRecipes, query: RecipeSearchQuery): Pagi
   return { ...page, items: query.sort?.field === 'rating' ? sortByRating(items, query.sort.order) : items }
 }
 
+// listUsers is mock data in REST too, and real user ids are small numbers that could match a mock
+// user — so names like "von Mara" are only trustworthy where the whole app runs on mocks.
+export function knowsUserNames(): boolean {
+  return USE_MOCKS
+}
+
 export type { PaginatedRecipes } from './protocol'

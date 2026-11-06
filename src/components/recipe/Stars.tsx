@@ -75,6 +75,16 @@ function pct5(frac: number): keyof typeof METER_WIDTH {
 
 // A SINGLE star filled to value/max as a percentage (rounded to 5%). For the
 // compact list/detail rows that pair one star with the numeric rating.
+// Star meter plus the number (decimal comma), as rows and tiles show a rating.
+export function RatingMeta({ value }: { value: number }) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 tabular-nums">
+      <StarMeter value={value} size="sm" />
+      {formatRating(value)}
+    </span>
+  )
+}
+
 export function StarMeter({ value, max = 5, size = 'sm' }: { value: number; max?: number; size?: StarSize }) {
   const cls = STAR_SIZE[size]
   return (
