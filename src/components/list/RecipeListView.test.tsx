@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeListView } from './RecipeListView'
@@ -156,13 +156,15 @@ describe('image column', () => {
 
 describe('tiles view', () => {
   it('grouped: category headers, each group a grid of tiles', () => {
-    const { container } = renderView({ detail: 'tiles' })
+    renderView({ detail: 'tiles' })
     expect(screen.getByRole('button', { name: /Fav/ })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Ohne Kategorie/ })).toBeTruthy()
-    // Ohne Kategorie, Fav, Quick — one grid each, inside the group's line container.
-    const grids = container.querySelectorAll('.grid')
+    // Ohne Kategorie, Fav, Quick — one grid each, under its group header.
+    const grids = screen.getAllByTestId('tile-grid')
     expect(grids).toHaveLength(3)
-    for (const g of grids) expect(g.closest('.border-cat-line')).not.toBeNull()
+    expect(
+      within(screen.getByRole('button', { name: /Fav/ }).parentElement as HTMLElement).getByTestId('tile-grid'),
+    ).toBeTruthy()
     expect(screen.getAllByTestId('tile-type-name').map((t) => t.textContent)).toEqual(['Loner', 'In Both', 'In Both'])
   })
 
@@ -180,10 +182,17 @@ describe('tiles view', () => {
     expect(rowIn(/Quick/, 'In Both')).toBeTruthy()
   })
 
+  it('clicking a group header collapses it, as with rows', () => {
+    const onCollapsedChange = vi.fn()
+    renderView({ detail: 'tiles', onCollapsedChange })
+    fireEvent.click(screen.getByRole('button', { name: /Fav/ }))
+    expect(onCollapsedChange).toHaveBeenCalledWith(new Set(['cat-10']))
+  })
+
   it('flat: one grid, no headers', () => {
-    const { container } = renderView({ detail: 'tiles', grouped: false })
+    renderView({ detail: 'tiles', grouped: false })
     expect(screen.queryByRole('button', { name: /Fav/ })).toBeNull()
-    expect(container.querySelectorAll('.grid')).toHaveLength(1)
+    expect(screen.getAllByTestId('tile-grid')).toHaveLength(1)
     expect(screen.getAllByRole('link')).toHaveLength(2)
   })
 })

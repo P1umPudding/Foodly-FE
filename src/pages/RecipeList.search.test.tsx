@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -78,6 +78,7 @@ afterEach(() => {
 describe('RecipeList (server-side search)', () => {
   describe('loading skeletons take the shape of the view', () => {
     const never = () => new Promise<never>(() => {})
+    afterEach(() => vi.unstubAllGlobals())
 
     it('tiles: 4:3 tile skeletons', async () => {
       vi.spyOn(foodly, 'searchRecipes').mockImplementation(never)
@@ -97,6 +98,56 @@ describe('RecipeList (server-side search)', () => {
 
       await waitFor(() => expect(screen.getAllByTestId('row-skeleton')).toHaveLength(4))
       expect(screen.queryAllByTestId('tile-skeleton')).toHaveLength(0)
+    })
+
+    it('tiles: loading more shows tile skeletons below the grid', async () => {
+      let intersect: IntersectionObserverCallback | null = null
+      class CapturingIO {
+        constructor(cb: IntersectionObserverCallback) {
+          intersect = cb
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
+          return []
+        }
+      }
+      vi.stubGlobal('IntersectionObserver', CapturingIO)
+      vi.spyOn(foodly, 'searchRecipes')
+        .mockResolvedValueOnce({ items: [rec(1, 'Pancakes')], cursor: 2 })
+        .mockImplementationOnce(never)
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList('/recipes?view=tiles&group=0')
+      await waitFor(() => screen.getByTestId('tile-type-name'))
+      await act(async () => {
+        intersect?.([{ isIntersecting: true } as IntersectionObserverEntry], null as unknown as IntersectionObserver)
+      })
+
+      const more = await waitFor(() => screen.getByTestId('list-more-skeleton'))
+      expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(4)
+    })
+
+    it('tiles: a pending search with nothing visible yet shows a tile skeleton', async () => {
+      vi.stubGlobal(
+        'IntersectionObserver',
+        class {
+          observe() {}
+          unobserve() {}
+          disconnect() {}
+          takeRecords() {
+            return []
+          }
+        },
+      )
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: 2 })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList('/recipes?view=tiles&group=0&q=zzz')
+
+      const pending = await waitFor(() => screen.getByTestId('list-pending-skeleton'))
+      expect(within(pending).getAllByTestId('tile-skeleton')).toHaveLength(1)
     })
 
     it('tiles: renders the recipes as tiles once loaded', async () => {

@@ -37,7 +37,7 @@ export function RecipeTile({ recipe, categories = [] }: { recipe: Recipe; catego
           <div className="flex h-full items-end p-4 transition-colors group-hover:bg-foreground/5">
             <span
               data-testid="tile-type-name"
-              className="line-clamp-3 text-[22px] leading-[1.15] font-[750] tracking-[-0.02em] text-muted-foreground phone:text-[17px]"
+              className="line-clamp-3 break-words hyphens-auto text-[22px] leading-[1.15] font-[750] tracking-[-0.02em] text-muted-foreground phone:text-[17px]"
             >
               <TagText value={recipe.name} size="lg" />
             </span>
@@ -48,7 +48,7 @@ export function RecipeTile({ recipe, categories = [] }: { recipe: Recipe; catego
       {/* Title first in the DOM so the link reads name-first; the category line moves up visually. */}
       <div className="flex min-w-0 flex-col gap-0.5">
         {photo !== null && (
-          <span className="text-[17px] leading-tight font-bold tracking-[-0.015em] phone:text-lg">
+          <span className="line-clamp-2 break-words hyphens-auto text-[17px] leading-tight font-bold tracking-[-0.015em] phone:text-lg">
             <TagText value={recipe.name} size="lg" />
           </span>
         )}

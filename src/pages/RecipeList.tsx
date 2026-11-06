@@ -379,7 +379,14 @@ export function RecipeList() {
             {/* Infinite-scroll trigger + more-pages spinner. */}
             <div ref={sentinelRef} aria-hidden className="h-1" />
             {search.loadingMore && visible.length > 0 && (
-              <div className={state.detail === 'tiles' ? 'pt-7 phone:pt-5' : 'pt-3'}>
+              // Grouped tiles: indented like a group's grid (line container), so the columns match.
+              <div
+                className={
+                  state.detail !== 'tiles'
+                    ? 'pt-3'
+                    : `pt-7 phone:pt-5 ${state.grouped ? 'ml-[7px] border-l-2 border-transparent pl-4' : ''}`
+                }
+              >
                 <ListSkeleton
                   detail={state.detail}
                   count={state.detail === 'tiles' ? 4 : 1}

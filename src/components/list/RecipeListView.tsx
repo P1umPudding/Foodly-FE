@@ -16,7 +16,10 @@ type RowOptions = { detail: DetailView; allCategories: UserCategory[]; showImage
 // Also used by the page's loading skeletons, so they take the grid's exact shape.
 export function TileGrid({ children }: { children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-x-5 gap-y-7 phone:grid-cols-2 phone:gap-x-3 phone:gap-y-5">
+    <div
+      data-testid="tile-grid"
+      className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-x-5 gap-y-7 phone:grid-cols-2 phone:gap-x-3 phone:gap-y-5"
+    >
       {children}
     </div>
   )

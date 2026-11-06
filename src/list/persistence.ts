@@ -13,8 +13,9 @@ export function loadPersisted(userId: UserId | null): Partial<ListState> | null 
     if (!raw) return null
     const parsed = JSON.parse(raw) as { version?: number; state?: Persisted }
     if (parsed.version !== VERSION || !parsed.state) return null
-    // A view from another build (or hand-edited storage) would otherwise leak into nav links as ?view=….
-    if (!DETAIL_VIEWS.includes(parsed.state.detail)) return { ...parsed.state, detail: 'detailed' }
+    // An unknown view (another build, hand-edited storage) would otherwise leak into nav links as ?view=….
+    const { detail } = parsed.state
+    if (detail !== undefined && !DETAIL_VIEWS.includes(detail)) return { ...parsed.state, detail: 'detailed' }
     return parsed.state
   } catch {
     return null // corrupt/unavailable storage → fall back to defaults
