@@ -5,7 +5,8 @@ import type { ListState } from '../../../list/state'
 import { FocusToggleGroupItem } from '../FocusToggleGroupItem'
 
 // Upper bound for the work-time slider and field (minutes). The knob's far-right position means "no limit"
-// (`null`); only the field (or the URL) can still set a real 180 — same knob position, the field shows the difference.
+// (`null`); only the field (or the URL) can still set a real 180 — same knob position, the field shows the
+// difference.
 const DURATION_MAX = 180
 const NO_LIMIT = 'Keine Grenze'
 const DURATION_PRESETS = [15, 30, 60] as const
