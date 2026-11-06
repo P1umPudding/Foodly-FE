@@ -46,20 +46,21 @@ export function FilterButton({
   return (
     <div className="inline-flex items-center">
       <Root>
-        {/* The Radix trigger itself, styled as the Button: it needs its own ref for positioning and focus return. */}
+        {/* The Radix trigger itself, styled as the Button: the postxl Button doesn't forwardRef, which Radix needs
+            for positioning and focus return. Long values truncate so the bar keeps its layout on phones. */}
         <Trigger
           id={triggerId}
           className={cn(
             buttonVariants({ variant: 'outline', size: 'sm' }),
-            'relative focus-visible:z-10 phone:h-10',
+            'relative max-w-56 min-w-0 focus-visible:z-10 phone:h-10',
             active ? cn(ACTIVE, 'rounded-r-none border-r-0') : 'font-normal',
           )}
         >
-          {active ? `${label}: ${value}` : label}
+          <span className="truncate">{active ? `${label}: ${value}` : label}</span>
           {!active && <ChevronDown aria-hidden />}
         </Trigger>
         {isDesktop ? (
-          <PopoverContent align="start" className="w-72">
+          <PopoverContent align="start" aria-label={label}>
             {children}
           </PopoverContent>
         ) : (

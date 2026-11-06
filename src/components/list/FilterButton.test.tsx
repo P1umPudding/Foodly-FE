@@ -52,14 +52,28 @@ describe('inactive / active', () => {
     expect(clear.className).toContain('phone:size-10')
   })
 
-  it('✕ only clears: nothing opens and focus moves to the trigger', () => {
+  it.each([true, false])('✕ only clears: nothing opens and focus moves to the trigger (desktop: %s)', (isDesktop) => {
+    desktop.value = isDesktop
     const onClear = vi.fn()
     render(<Clearable onClear={onClear} />)
     fireEvent.click(screen.getByRole('button', { name: 'Tags entfernen' }))
     expect(onClear).toHaveBeenCalledTimes(1)
+    const trigger = screen.getByRole('button', { name: 'Tags' })
+    expect(trigger.getAttribute('aria-expanded')).toBe('false')
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Tags entfernen' })).toBeNull()
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Tags' }))
+    expect(document.activeElement).toBe(trigger)
+  })
+
+  it('truncates a long value instead of widening the bar', () => {
+    render(
+      <FilterButton label="Kategorie" value="Sehr lange Kategoriebezeichnung +3" onClear={() => {}}>
+        <p>Liste</p>
+      </FilterButton>,
+    )
+    const trigger = screen.getByRole('button', { name: 'Kategorie: Sehr lange Kategoriebezeichnung +3' })
+    expect(trigger.className).toContain('max-w-56')
+    expect(trigger.querySelector('.truncate')?.textContent).toBe('Kategorie: Sehr lange Kategoriebezeichnung +3')
   })
 })
 
@@ -72,10 +86,10 @@ describe('desktop', () => {
     )
     const trigger = screen.getByRole('button', { name: 'Tags' })
     fireEvent.click(trigger)
-    const popover = screen.getByRole('dialog')
+    const popover = screen.getByRole('dialog', { name: 'Tags' })
     expect(within(popover).getByText('Tag-Liste')).toBeTruthy()
 
-    fireEvent.keyDown(document.activeElement ?? popover, { key: 'Escape' })
+    fireEvent.keyDown(popover, { key: 'Escape' })
     expect(screen.queryByText('Tag-Liste')).toBeNull()
     // Radix restores focus on a timeout.
     await waitFor(() => expect(document.activeElement).toBe(trigger))
