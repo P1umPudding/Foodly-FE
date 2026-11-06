@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { DEFAULT_STATE } from '../../list/state'
+import { loadPersisted } from '../../list/persistence'
 import { NAV_DESTINATIONS, activeCategoryId, listHref, navPrefs, routeTitle, visibleDestinations } from './nav'
 
 const defaults = { sortKey: 'name', sortDir: 'asc', detail: 'detailed', grouped: true } as const
@@ -41,6 +42,22 @@ describe('navPrefs', () => {
       sortKey: 'rating',
     })
     expect(navPrefs('/recipes/5', new URLSearchParams(), null)).toEqual(defaults)
+  })
+})
+
+// useNavState feeds loadPersisted straight into navPrefs/listHref when the list isn't open.
+describe('nav links from the stored list state', () => {
+  beforeEach(() => localStorage.clear())
+  const storedHref = (detail: string) => {
+    localStorage.setItem('foodly:list-state:1', JSON.stringify({ version: 1, state: { detail } }))
+    return listHref([], navPrefs('/recipes/5', new URLSearchParams(), loadPersisted(1)))
+  }
+
+  it('carries a stored tiles view', () => {
+    expect(storedHref('tiles')).toBe('/recipes?view=tiles&group=1')
+  })
+  it('drops a stored unknown view', () => {
+    expect(storedHref('nonsense')).toBe('/recipes?group=1')
   })
 })
 
