@@ -76,8 +76,9 @@ dem Shell-/Detail-Issue (Override von `--text-base` unter 761 px), weil die heut
 | `text-xl font-display` | 18 / 650 | Wortmarke Seitenleiste |
 | `text-2xl font-display` | 26 / 650 | Seitentitel (genau einer pro Seite) |
 
-Zahlen, die sich vergleichen lassen (Zeiten, Mengen, Zähler), mit `tabular-nums`. Keine weiteren Größen; Koch-Modus
-ist die einzige Ausnahme (großer Schritttext, siehe Redesign-README).
+Zahlen, die sich vergleichen lassen (Zeiten, Mengen, Zähler), mit `tabular-nums`. Keine weiteren Größen; Ausnahmen sind
+der Koch-Modus (großer Schritttext, siehe Redesign-README) und die Kacheln (`RecipeTile`): Titel 17 px / 700
+(Handy `text-lg`), Name der Typo-Kachel 22 px / 750 (Handy 17 px), beide nur dort.
 
 ### Abstände
 
