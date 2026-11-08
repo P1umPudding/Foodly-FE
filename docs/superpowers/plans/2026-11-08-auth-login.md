@@ -16,10 +16,10 @@ Pflicht-Checks laut CLAUDE.md (lokal, ADR 0004).
 
 | # | Issue | Hängt ab von | Parallel möglich mit |
 |---|---|---|---|
-| A1 | Sitzung und Token-Refresh in `src/api` | – | A4 |
-| A2 | Anmelden- und Registrieren-Seite mit Routen-Schutz | A1 | A4 |
-| A3 | Abmelden und Ende der Sitzung | A2 | A4 |
-| A4 | Rezeptbilder anzeigen | ImageRef-Issue (Dispatcher, 2026-11-08) | A1–A3 |
+| A1 (#141) | Sitzung und Token-Refresh in `src/api` | – | A4 |
+| A2 (#142) | Anmelden- und Registrieren-Seite mit Routen-Schutz | A1 | A4 |
+| A3 (#143) | Abmelden und Ende der Sitzung | A2 | A4 |
+| A4 (#144) | Rezeptbilder anzeigen | #140 (ImageRef) | A1–A3 |
 
 A1–A3 gemeinsam nach dem Merge von #20 mergen, in der Reihenfolge A1 → A2 → A3. A1 allein
 gemergt lässt die App gegen ein #20-Backend ohne Login-Seite stehen; deshalb A1 und A2 möglichst
@@ -138,7 +138,7 @@ sauber zurück zur Anmeldung.
 
 ## A4 — Rezeptbilder anzeigen
 
-Labels: alpha, backend-blocked · Depends on: ImageRef-Issue
+Labels: alpha, backend-blocked · Depends on: #140
 
 ### Context
 B1 ist mit Backend-PR #19 gelöst (`mainImage`/`images` als `{ id, hash, name }`). Mit PR #20 wird
