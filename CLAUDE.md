@@ -37,8 +37,8 @@ the Dispatcher, hands issues to worker agents and relays merge requests):
   GitHub-hosted CI to this repo (owner decision, see
   [`docs/decisions/0004-no-github-actions.md`](docs/decisions/0004-no-github-actions.md)).
   Checks run locally instead: `npm ci`, `npm run build`,
-  `npm test -- --passWithNoTests`, `npm run format:check`. A PR is only
-  "ready" once all four pass locally and the PR description says so.
+  `npm test -- --passWithNoTests`, `npm run format:check`, `npm run lint`. A PR
+  is only "ready" once all five pass locally and the PR description says so.
 
 ## Visual checks
 
@@ -135,6 +135,7 @@ npm test             # vitest run (jsdom, src/test/setup.ts)
 npm run test:watch   # vitest in watch mode
 npm run format       # prettier --write . (Skaile config: prettier.config.cjs)
 npm run format:check # prettier --check . (no writes)
+npm run lint         # eslint . (exit 0 required; legacy violations sit in eslint-suppressions.json)
 ```
 
 ### Environment
@@ -187,6 +188,17 @@ nothing is fine.
 - `docs/superpowers/specs/` and `docs/superpowers/plans/` — design specs and
   implementation plans per feature (`YYYY-MM-DD-<slug>-design.md` /
   `YYYY-MM-DD-<slug>.md`).
+
+## Linting
+
+ESLint 9 (`eslint.config.js`) checks promise and hook bugs and the conventions
+that tooling can see (which rule enforces what: `docs/architecture.md` §6). All
+rules are `error`. Existing violations are counted in `eslint-suppressions.json`
+(bulk suppressions) — **never add to it** (`--suppress-all` / `--suppress-rule`
+are for the maintainer only). When you fix suppressed violations, run
+`npx eslint . --prune-suppressions` and commit the smaller file. A justified
+one-off exception is an `eslint-disable-next-line <rule> -- <reason>` comment on
+that line, never a folder-wide override.
 
 ## Comments
 
