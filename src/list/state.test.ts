@@ -10,6 +10,11 @@ describe('list state helpers', () => {
     expect(isFilterActive({ ...DEFAULT_STATE, role: 'owner' })).toBe(true)
     expect(isFilterActive({ ...DEFAULT_STATE, durationMax: 30 })).toBe(true)
   })
+  it('no work-time limit (slider at the far right) is not a filter (#119)', () => {
+    expect(isFilterActive({ ...DEFAULT_STATE, durationMax: null })).toBe(false)
+    expect(activeFacetCount({ ...DEFAULT_STATE, durationMax: null })).toBe(0)
+    expect(activeFacetCount({ ...DEFAULT_STATE, durationMax: 180 })).toBe(1)
+  })
   it('activeFacetCount counts panel facets, excludes search', () => {
     expect(activeFacetCount(DEFAULT_STATE)).toBe(0)
     expect(activeFacetCount({ ...DEFAULT_STATE, search: 'apf' })).toBe(0) // search not a panel facet
