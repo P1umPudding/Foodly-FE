@@ -99,31 +99,57 @@ das knappe Rate-Limit.
 Look nach `docs/design.md` und Redesign „Ruhig“. Nur `@postxl/ui-components` + Tailwind-Tokens
 (CLAUDE.md, Architektur §6). Design-Notiz vom Foodly Designer: siehe Review-Log unten.
 
+**Für beide Seiten** (Designer-Review 2026-11-08):
+- Seitenhintergrund grau wie in der App. Karte `bg-card` + Haarlinie (`border`), `rounded-lg`,
+  kein Schatten, `p-6`, max. ca. 24 rem breit, auf dem Handy volle Breite mit `px-4`.
+  Vertikal etwa im oberen Drittel, nicht mittig, damit die Handy-Tastatur sie nicht verdeckt.
+- Oben die Wortmarke „Foodly“ (`text-sm font-medium text-muted-foreground`), darunter die
+  Überschrift in Seitentitel-Größe. Kein Logo-Block, keine Illustration.
+- Labels über dem Feld, kein Placeholder als Label. Ein Primärknopf über die volle Kartenbreite;
+  darunter zentriert der Link-Satz in `text-sm text-muted-foreground`, nur der Link-Teil hervorgehoben.
+- Passwortfeld mit Icon-Button rechts im Feld (Auge / durchgestrichenes Auge, 40 × 40 Tippfläche,
+  `aria-label` und Tooltip „Passwort anzeigen“ / „Passwort verbergen“). Kein „Passwort wiederholen“.
+- Feldfehler wie `docs/design.md` §6: Prüfung beim Verlassen des Feldes, Text unter dem Feld in
+  `text-destructive`, `aria-invalid` + `aria-describedby`. Beim Absenden alle Felder prüfen, Fokus
+  aufs erste fehlerhafte Feld.
+- Fehler, die zu keinem Feld gehören (401, 429, Netzwerk/5xx), als postxl `Alert` über dem Knopf,
+  nicht als Toast.
+- `<title>`: „Anmelden · Foodly“ bzw. „Konto anlegen · Foodly“.
+- Kein „Passwort vergessen?“-Link (Backend hat keinen Endpunkt; kein toter Link).
+- Der Guard entscheidet synchron aus `localStorage` (Sitzung vorhanden oder nicht); es gibt also
+  kein Login-Flackern und keinen Vollbild-Spinner beim Start.
+
 **Anmelden (`/login`)**
-- Zentrierte Karte, max. ca. 24 rem breit; auf dem Handy volle Breite mit Seitenrand. Oben das
-  App-Logo bzw. der Name „Foodly“, Überschrift „Anmelden“.
-- Felder: „E-Mail“ (`type=email`, `autocomplete=email`, Autofokus) und „Passwort“
-  (`type=password`, `autocomplete=current-password`).
-- Primärknopf „Anmelden“, während des Requests deaktiviert mit Ladeanzeige. Enter schickt ab.
-- Darunter der Link „Noch kein Konto? Registrieren“ → `/register` (übernimmt `next`).
-- Fehler als Hinweis über dem Knopf, Fokus bleibt im Formular:
-  - 401: „E-Mail oder Passwort stimmt nicht.“
-  - 429: „Zu viele Versuche. Bitte warte eine Minute.“
+- Überschrift „Anmelden“. Felder „E-Mail“ (`type=email`, `autocomplete=email`, Autofokus) und
+  „Passwort“ (`autocomplete=current-password`). Enter schickt ab.
+- Knopf „Anmelden“, während des Requests deaktiviert mit Ladeanzeige.
+- Link-Satz „Noch kein Konto? Registrieren“ → `/register` (übernimmt `next`).
+- Fehler (`Alert`):
+  - 401: „E-Mail oder Passwort stimmt nicht.“ Die E-Mail bleibt stehen, das Passwort wird geleert
+    und bekommt den Fokus.
+  - 429: „Zu viele Versuche. Bitte warte kurz und versuch es dann noch einmal.“
   - Netzwerk/5xx: „Anmelden hat nicht geklappt. Bitte versuch es noch einmal.“
+- Sitzung abgelaufen (`expired`): neutraler `Alert` (nicht `destructive`) oben in der Karte,
+  „Deine Anmeldung ist abgelaufen. Bitte melde dich neu an.“; E-Mail vorausgefüllt, wenn bekannt
+  (aus der beendeten Sitzung oder `?email=`).
 
 **Registrieren (`/register`)**
-- Gleiche Karte, Überschrift „Konto anlegen“. Felder: „Name“ (`autocomplete=name`), „E-Mail“,
-  „Passwort“ (`autocomplete=new-password`, Hinweis „Mindestens 8 Zeichen“).
-- Clientseitige Prüfung vor dem Absenden: Name und E-Mail nicht leer, Passwort ≥ 8 Zeichen. Der
-  Fehler steht am Feld (`aria-invalid` + Text, `aria-describedby`).
-- Knopf „Konto anlegen“; Erfolg (201) meldet direkt an und führt zu `next` bzw. `/recipes`.
-- Fehler: 409 am E-Mail-Feld „Diese E-Mail ist schon registriert.“ mit Link „Anmelden“; 422 die
-  Backend-Meldung am Formular; 429 und Netzwerk wie beim Login.
-- Link „Schon ein Konto? Anmelden“.
+- Überschrift und Knopf „Konto anlegen“. Felder „Name“ (`autocomplete=name`), „E-Mail“,
+  „Passwort“ (`autocomplete=new-password`).
+- Hilfetext „Mindestens 8 Zeichen“ immer sichtbar unter dem Passwortfeld; bei einem Fehler ersetzt
+  der Fehlertext den Hilfetext.
+- Clientseitige Prüfung: Name und E-Mail nicht leer, Passwort ≥ 8 Zeichen.
+- Erfolg (201) meldet direkt an und führt zu `next` bzw. `/recipes`.
+- Fehler: 409 am E-Mail-Feld „Diese E-Mail ist schon registriert.“ mit Link „Anmelden“, der die
+  E-Mail mitnimmt (`/login?email=…`); 422 die Backend-Meldung als `Alert`; 429 wie beim Login;
+  Netzwerk/5xx „Registrieren hat nicht geklappt. Bitte versuch es noch einmal.“
+- Link-Satz „Schon ein Konto? Anmelden“.
 
 **Abmelden**
 - Im `ProfileMenu` unter dem Theme-Untermenü: Trenner, dann „Abmelden“. Nur im REST-Modus.
-- Sofort, ohne Rückfrage: `signOut`, dann `/login`. Andere Tabs folgen über das `storage`-Event.
+  Nicht rot; ein Icon nur, wenn die anderen Einträge Icons haben.
+- Sofort, ohne Rückfrage und ohne Toast: `signOut`, dann `/login`. Andere Tabs folgen über das
+  `storage`-Event.
 
 ## Tests (Architektur §7)
 
@@ -149,4 +175,10 @@ Look nach `docs/design.md` und Redesign „Ruhig“. Nur `@postxl/ui-components`
 
 ## Review-Log
 
-- 2026-11-08: Lead, aus Backend-PR #20 abgeleitet. Design-Review durch den Foodly Designer folgt.
+- 2026-11-08: Lead, aus Backend-PR #20 abgeleitet.
+- 2026-11-08: Foodly Designer. Übernommen: Karte nach design.md, Position oben, Labels über Feldern,
+  `Alert` für nicht feldbezogene Fehler, 401 leert nur das Passwort, neutraler Hinweis bei
+  abgelaufener Sitzung, Passwort-anzeigen-Knopf, Hilfetext statt zusätzlichem Fehlertext, 429 ohne
+  Zeitversprechen, `<title>`, kein toter „Passwort vergessen?“-Link. Der Designer nimmt die Regel
+  „Auth-Seiten“ nach dem Merge in `docs/design.md` auf. Offen als mögliches Follow-up (Produkt):
+  Passwort zurücksetzen, braucht zuerst Backend-Endpunkte.

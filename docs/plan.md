@@ -53,7 +53,9 @@ Nächster Breakdown: Kategorien verwalten.
 **Stand 2026-11-08:** Backend PR #19 (Bilder, B1) ist gemergt, PR #20 (Auth, B7) offen
 und geprüft (Befunde in `backend-questions.md`). Daraus folgen: Issue „ImageRef
 übernehmen“ (dringend, Speichern mit Bild bricht gegen `main`), danach Bilder anzeigen;
-Auth-Spec wird vorbereitet (Daniel, 2026-11-08), Produktfragen offen.
+Auth geschnitten (Daniel, 2026-11-08: offene Registrierung, Anmeldung bleibt 30 Tage in
+`localStorage`): Spec `superpowers/specs/2026-11-08-auth-login-design.md`, Issues A1–A4 in
+`superpowers/plans/2026-11-08-auth-login.md`, alle blockiert durch Backend-PR #20.
 
 Details je Phase in `phases/`.
 

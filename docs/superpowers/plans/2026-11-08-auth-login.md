@@ -90,9 +90,14 @@ zur ursprünglichen Seite.
       `/recipes/5` in der Adresse (Test).
 - [ ] `next=//evil.example` und `next=https://evil.example` führen zu `/recipes` (Test).
 - [ ] Ohne Sitzung startet kein Katalog-Request (`/users/me`, `/tags`, …) (Test).
-- [ ] Login-Fehler: 401, 429 und Netzwerkfehler zeigen die Texte der Spec (Test).
-- [ ] Register: Passwort mit 7 Zeichen wird am Feld abgelehnt, ohne Request; 409 zeigt den Hinweis
-      am E-Mail-Feld; 201 meldet an und navigiert (Test).
+- [ ] Login-Fehler: 401, 429 und Netzwerkfehler zeigen die Texte der Spec als `Alert`; bei 401
+      bleibt die E-Mail, das Passwort ist leer und fokussiert (Test).
+- [ ] Passwort-anzeigen-Knopf schaltet `type` zwischen `password` und `text`, mit passendem
+      `aria-label` (Test).
+- [ ] `<title>` ist „Anmelden · Foodly“ bzw. „Konto anlegen · Foodly“.
+- [ ] Register: Passwort mit 7 Zeichen wird am Feld abgelehnt (Fehler ersetzt den Hilfetext),
+      ohne Request; 409 zeigt den Hinweis am E-Mail-Feld mit Link `/login?email=…`; 201 meldet an
+      und navigiert (Test).
 - [ ] Angemeldet führt `/login` zu `/recipes`.
 - [ ] Mock-Modus: `/login` leitet auf `/recipes`, keine Seite ist geschützt.
 - [ ] Pflicht-Checks laut CLAUDE.md passen.
@@ -122,7 +127,8 @@ sauber zurück zur Anmeldung.
       `/login` (Test).
 - [ ] Ein `storage`-Event, das `foodly.auth` entfernt, führt in einem geöffneten Tab zu
       `/login?next=…` (Test).
-- [ ] Refresh mit 401 → `/login` mit dem Hinweis „Deine Anmeldung ist abgelaufen …“ (Test).
+- [ ] Refresh mit 401 → `/login` mit dem neutralen Hinweis „Deine Anmeldung ist abgelaufen …“ und
+      vorausgefüllter E-Mail, falls bekannt (Test).
 - [ ] Nach Abmelden und Anmelden als anderer Nutzer zeigt das Profilmenü den neuen Namen
       (`CatalogProvider` neu geladen) (Test).
 - [ ] Mock-Modus: kein „Abmelden“ im Menü.

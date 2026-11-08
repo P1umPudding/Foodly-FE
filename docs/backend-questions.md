@@ -163,8 +163,9 @@ Backend-Repo nicht kommentieren, Posten über Kolja/Daniel):
 
 **FE nach dem Merge:** Login (+ ggf. Register), Token-Speicher, genau ein Refresh
 gleichzeitig (auch über Tabs, wegen Rotation und Rate-Limit), 401 → Login, geschützte
-Routen, `DEV_TOKEN` aus `src/api/rest.ts` entfernen. Offene Produktfragen (2026-11-08
-an Kolja/Daniel): offene Registrierung? Token in localStorage oder sessionStorage?
+Routen, `DEV_TOKEN` aus `src/api/rest.ts` entfernen. Entschieden (Daniel, 2026-11-08):
+offene Registrierung, Tokens in `localStorage`. Spec:
+`superpowers/specs/2026-11-08-auth-login-design.md`.
 
 ---
 
