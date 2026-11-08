@@ -1,7 +1,7 @@
 # Foodly Frontend — Bau-Plan
 
 Lebendes Dokument. Die Phasen 0–3 sind mit Mock-Daten aus `src/mocks` entstanden.
-Seit dem REST-Wiring läuft die App gegen das echte Backend (`web-api`); was dort
+Seit dem REST-Wiring läuft die App gegen das echte Backend (`main`, früher `web-api`); was dort
 fehlt, wird gestubbt (ADR [0003](decisions/0003-backend-gap-stubs.md)).
 
 ## Leitplanken
@@ -32,7 +32,7 @@ Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 **Gestubbt (ADR 0003), später auf REST umstellen:**
 | Funktion | Stub | Backend |
 |---|---|---|
-| Rezeptbilder anzeigen | wie ohne Foto (Editor: Platzhalter) | #9 (B1) |
+| Rezeptbilder anzeigen | wie ohne Foto (Editor: Platzhalter) | #9 (B1) ✅ gelöst durch PR #19; FE-Umstellung auf `ImageRef` als Issue, Anzeige per `<img src>` nach PR #20 |
 | Namen von Owner/Editoren | Mock-Liste wie heute | #10 (B2) |
 | Rating abgeben | localStorage | #11 (B3) |
 | Teilen (Editoren/Viewer) | localStorage | #12 (B4) |
@@ -49,6 +49,11 @@ Phase 6. Breakdown je Block über den Lead.
 (#37) und Tag-Icons (#38) sind gemergt, dazu QA-Fixes bis PR #101. Rezeptliste
 (Redesign Schritt 4) ist geschnitten (7 Issues, freigegeben von Daniel am 2026-11-05).
 Nächster Breakdown: Kategorien verwalten.
+
+**Stand 2026-11-08:** Backend PR #19 (Bilder, B1) ist gemergt, PR #20 (Auth, B7) offen
+und geprüft (Befunde in `backend-questions.md`). Daraus folgen: Issue „ImageRef
+übernehmen“ (dringend, Speichern mit Bild bricht gegen `main`), danach Bilder anzeigen;
+Auth-Spec wird vorbereitet (Daniel, 2026-11-08), Produktfragen offen.
 
 Details je Phase in `phases/`.
 
