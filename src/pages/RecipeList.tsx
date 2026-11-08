@@ -23,12 +23,12 @@ import { buildSearchQuery } from '../list/query'
 import { matchesSearch } from '../list/search'
 import { usedIngredients } from '../list/counts'
 import { canViewRecipe } from '../api/views'
-import { activeFacetCount, isFilterActive } from '../list/state'
+import { activeFacetCount, isFilterActive, type DetailView } from '../list/state'
 import { loadCollapsed, saveCollapsed } from '../list/persistence'
 import { ActiveFilters } from '../components/list/ActiveFilters'
 import { FilterControls } from '../components/list/FilterControls'
 import { ListToolbar } from '../components/list/ListToolbar'
-import { RecipeListView } from '../components/list/RecipeListView'
+import { GroupIndent, RecipeListView, TileGrid } from '../components/list/RecipeListView'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
 import { fromSearchParams, toSearchParams } from '../list/url'
@@ -40,6 +40,58 @@ const SCROLL_KEY = 'recipeList:scroll'
 // (a nav link writes `group=1`, the list itself omits defaults).
 function listIdentity(search: string): string {
   return toSearchParams(fromSearchParams(new URLSearchParams(search))).toString()
+}
+
+// Placeholders in the shape of the chosen view, so nothing jumps when the recipes arrive.
+function ListSkeleton({
+  detail,
+  count,
+  testId,
+  oneRow = false,
+}: {
+  detail: DetailView
+  count: number
+  testId?: string
+  oneRow?: boolean
+}) {
+  const items = Array.from({ length: count }, (_, i) => i)
+  if (detail === 'tiles') {
+    return (
+      <div data-testid={testId}>
+        <TileGrid oneRow={oneRow}>
+          {items.map((i) => (
+            <Skeleton key={i} data-testid="tile-skeleton" className="aspect-[4/3] w-full rounded-lg" />
+          ))}
+        </TileGrid>
+      </div>
+    )
+  }
+  const compact = detail === 'compact'
+  return (
+    <div data-testid={testId} className={compact ? 'space-y-0.5' : 'space-y-3'}>
+      {items.map((i) => (
+        <Skeleton
+          key={i}
+          data-testid="row-skeleton"
+          className={`w-full ${compact ? 'h-8 rounded-md' : 'h-18 rounded-lg'}`}
+        />
+      ))}
+    </div>
+  )
+}
+
+function LoadMoreSkeleton({ detail, grouped }: { detail: DetailView; grouped: boolean }) {
+  if (detail !== 'tiles') {
+    return (
+      <div className="pt-3">
+        <ListSkeleton detail={detail} count={1} testId="list-more-skeleton" />
+      </div>
+    )
+  }
+  // One row, as many tiles as the grid has columns (the list column fits at most 4).
+  const tiles = <ListSkeleton detail="tiles" count={4} testId="list-more-skeleton" oneRow />
+  // Grouped: indented like a group's grid, so the skeleton columns match the tiles above.
+  return <div className="pt-7 phone:pt-5">{grouped ? <GroupIndent lineless>{tiles}</GroupIndent> : tiles}</div>
 }
 
 export function RecipeList() {
@@ -290,13 +342,7 @@ export function RecipeList() {
           </div>
 
           <div className="pt-1">
-            {search.status === 'loading' && (
-              <div className="space-y-3">
-                {[0, 1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-18 w-full rounded-lg" />
-                ))}
-              </div>
-            )}
+            {search.status === 'loading' && <ListSkeleton detail={state.detail} count={4} />}
 
             {search.status === 'error' && (
               <Alert variant="destructive">
@@ -313,7 +359,7 @@ export function RecipeList() {
             {/* Pages still to come may hold matches: hold the empty texts back until the list is exhausted.
               The sentinel below stays in view, so loading carries on by itself. */}
             {pending && visible.length === 0 && (
-              <Skeleton data-testid="list-pending-skeleton" className="h-18 w-full rounded-lg" />
+              <ListSkeleton detail={state.detail} count={1} testId="list-pending-skeleton" />
             )}
 
             {allLoaded && accessibleRecipes.length === 0 && (
@@ -357,9 +403,7 @@ export function RecipeList() {
             {/* Infinite-scroll trigger + more-pages spinner. */}
             <div ref={sentinelRef} aria-hidden className="h-1" />
             {search.loadingMore && visible.length > 0 && (
-              <div className="space-y-3 pt-3">
-                <Skeleton data-testid="list-more-skeleton" className="h-18 w-full rounded-lg" />
-              </div>
+              <LoadMoreSkeleton detail={state.detail} grouped={state.grouped} />
             )}
           </div>
         </div>
