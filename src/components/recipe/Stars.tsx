@@ -86,3 +86,12 @@ export function StarMeter({ value, max = 5, size = 'sm' }: { value: number; max?
     </span>
   )
 }
+
+export function RatingMeta({ value }: { value: number }) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 tabular-nums">
+      <StarMeter value={value} size="sm" />
+      {formatRating(value)}
+    </span>
+  )
+}
