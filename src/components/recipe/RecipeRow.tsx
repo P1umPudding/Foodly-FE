@@ -4,22 +4,13 @@ import { Clock, UtensilsCrossed } from 'lucide-react'
 import { Card, Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { TagText } from '../TagText'
 import { TagChips } from './TagChips'
-import { StarMeter } from './Stars'
+import { RatingMeta } from './Stars'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import { CategoryDots } from './CategoryDots'
-import { visibleRating, formatRating } from '../../api/views'
+import { visibleRating } from '../../api/views'
 import { recipeImageSrc, showsRecipeImages } from '../../api/assets'
 import { useCurrentUserId } from '../../catalog/CatalogProvider'
 import type { Recipe, UserCategory } from '../../api/protocol'
-
-function Rating({ value }: { value: number }) {
-  return (
-    <span className="inline-flex shrink-0 items-center gap-1 tabular-nums">
-      <StarMeter value={value} size="sm" />
-      {formatRating(value)}
-    </span>
-  )
-}
 
 // The compact name truncates; only attach a tooltip when it actually overflows
 // (measured), so non-truncated rows don't sprout a redundant tooltip.
@@ -84,7 +75,7 @@ export function RecipeRow({
       >
         <div className="flex min-w-0 flex-1 items-center gap-x-3 text-sm text-muted-foreground">
           <CompactName name={recipe.name} />
-          {rating !== null && <Rating value={rating} />}
+          {rating !== null && <RatingMeta value={rating} />}
           {recipe.time && (
             <span className="flex min-w-0 shrink-[100] items-center gap-1">
               <Clock className="h-4 w-4 shrink-0" />
@@ -133,7 +124,7 @@ export function RecipeRow({
           </span>
           {/* gap-x-6 gives rating and time clear breathing room */}
           <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground">
-            {rating !== null && <Rating value={rating} />}
+            {rating !== null && <RatingMeta value={rating} />}
             {recipe.time && (
               <span className="inline-flex items-center gap-1.5">
                 <Clock className="h-4 w-4 shrink-0" />

@@ -22,6 +22,11 @@ describe('url serialisation', () => {
     }
     expect(fromSearchParams(toSearchParams(s))).toEqual(s)
   })
+  it('reads view=tiles and falls back to detailed for an unknown view', () => {
+    expect(fromSearchParams(new URLSearchParams('view=tiles')).detail).toBe('tiles')
+    expect(toSearchParams({ ...DEFAULT_STATE, detail: 'tiles' }).toString()).toBe('view=tiles')
+    expect(fromSearchParams(new URLSearchParams('view=foo')).detail).toBe('detailed')
+  })
   it('ignores unknown/garbage values', () => {
     const p = new URLSearchParams('role=bogus&sort=nope&dmax=NaN')
     const out = fromSearchParams(p)

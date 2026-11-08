@@ -1,5 +1,5 @@
 // Toolbar next to the search bar: a sort control (direction toggle + criterion
-// picker) and two view toggles — density (detailed/compact) and layout
+// picker) and two view toggles — view (compact/detailed/tiles) and layout
 // (by-category/flat). The two toggles are separate segmented groups, spaced apart
 // from the sort control so it reads as "sort … | view".
 import {
@@ -23,6 +23,7 @@ import {
   ArrowUpNarrowWide,
   ArrowDownWideNarrow,
   LayoutList,
+  LayoutGrid,
   Menu,
   ListTree,
   List,
@@ -156,15 +157,16 @@ export function ListToolbar({ state, set }: { state: ListState; set: (patch: Par
         </Select>
       </div>
 
-      {/* View: density + layout, each its own segmented group, a gap apart. */}
+      {/* View: list style + layout, each its own segmented group, a gap apart. */}
       <div className="flex items-center gap-2.5">
         <ViewToggle
-          ariaLabel="Dichte"
+          ariaLabel="Ansicht"
           value={state.detail}
           onChange={(v: DetailView) => set({ detail: v })}
           options={[
-            { value: 'detailed', label: 'Detailliert', Icon: LayoutList },
             { value: 'compact', label: 'Kompakt', Icon: Menu },
+            { value: 'detailed', label: 'Detailliert', Icon: LayoutList },
+            { value: 'tiles', label: 'Kacheln', Icon: LayoutGrid },
           ]}
         />
         <ViewToggle
