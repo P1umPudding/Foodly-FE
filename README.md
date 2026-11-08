@@ -151,9 +151,11 @@ pushing, in this order:
 2. `npm run build`
 3. `npm test -- --passWithNoTests`
 4. `npm run format:check`
+5. `npm run lint`
 
 The Node version comes from `.nvmrc`. If `format:check` fails, run
-`npm run format` and commit.
+`npm run format` and commit. `npm run lint` must exit 0; known legacy violations
+are listed in `eslint-suppressions.json` (see CLAUDE.md, Linting).
 
 ## Deployment (static)
 
