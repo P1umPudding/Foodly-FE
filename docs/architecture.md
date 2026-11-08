@@ -110,6 +110,21 @@ Farbe, Rollen `dot/soft/ink/line` pro Theme aus `src/lib/categoryColor.ts`.
 Einzige Inline-Ausnahme: der eine Helper setzt `--cat-*`-Custom-Properties am
 Element, Komponenten nutzen nur `bg-cat-dot`, `bg-cat-soft`, `text-cat-ink`, `border-cat-line`.
 
+Maschinell geprüft (`npm run lint`, `eslint.config.js`, alle Regeln `error`,
+Altlasten in `eslint-suppressions.json`):
+
+| Regel | setzt durch |
+|---|---|
+| `react/forbid-elements` (`button`, `input`, `select`, `textarea`, `dialog`) | Controls nur aus `@postxl/ui-components` |
+| `react/forbid-dom-props` (`style`, `title`) | Tailwind statt Inline-Style; postxl `Tooltip` statt `title=""` (der `--cat-*`-Helper wird gespreizt und fällt nicht darunter) |
+| `no-restricted-syntax` gegen `as Error` | Fehlertexte nicht per Cast lesen |
+| `@typescript-eslint/no-floating-promises`, `no-misused-promises` | Promises behandeln (§4), keine async-Handler, deren Fehler verloren gehen |
+| `react-hooks/rules-of-hooks`, `exhaustive-deps` | Hook-Regeln |
+| `import-x/no-extraneous-dependencies` | jeder Import steht in `package.json`, devDependencies nur in Tests/Configs |
+
+Tests (`*.test.ts(x)`, `src/test/`) dürfen rohe Elemente und `style` nutzen.
+Begründete Einzelausnahme: `eslint-disable-next-line <regel> -- <grund>`.
+
 ## 7. Tests
 
 - Vitest + Testing Library, jsdom (`vite.config.ts`, Stubs in `src/test/setup.ts`).
@@ -119,7 +134,7 @@ Element, Komponenten nutzen nur `bg-cat-dot`, `bg-cat-soft`, `text-cat-ink`, `bo
   (Vorbild `src/pages/RecipeDetail.clone.test.tsx`, `RecipeEditor.test.tsx`).
 - REST-Client-Tests mocken `fetch` (`src/api/rest.test.ts`).
 - Visuelle Prüfung über Chrome MCP, nie Playwright ins Projekt.
-- Vor PR: `npm test`, `npm run build`, `npm run format`.
+- Vor PR: die fünf lokalen Checks aus `CLAUDE.md` (inkl. `npm run lint`).
 
 ## 8. Offene Architekturpunkte
 

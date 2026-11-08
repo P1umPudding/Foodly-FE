@@ -89,6 +89,7 @@ export function ImageManager({
         >
           <Upload className="h-5 w-5" />
         </Label>
+        {/* eslint-disable-next-line react/forbid-elements -- native file picker, @postxl/ui-components has no file input */}
         <input
           id="image-upload"
           type="file"

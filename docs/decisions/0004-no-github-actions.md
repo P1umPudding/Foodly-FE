@@ -18,6 +18,15 @@ GitHub Actions.
   das Ergebnis in der PR-Beschreibung. Der Dispatcher prüft vor der
   Merge-Anfrage die PR-Beschreibung, nicht `statusCheckRollup`.
 
+### Nachtrag 2026-11-08: Lint als fünfter Check
+
+Entschieden vom Lead auf Vorschlag des Maintainers (PR „ESLint lokal“): ESLint
+läuft lokal als `npm run lint` und ist ab dem Merge der fünfte Pflicht-Check
+(Exit 0). Die Reihe lautet damit `npm ci`, `npm run build`,
+`npm test -- --passWithNoTests`, `npm run format:check`, `npm run lint`. Auch
+dafür gibt es keine GitHub-hosted CI. Altlasten stehen gezählt in
+`eslint-suppressions.json` und werden über Issues pro Regel abgebaut.
+
 ## Konsequenzen
 
 - Kein automatischer Check auf GitHub. Ob die Checks grün sind, hängt an der
