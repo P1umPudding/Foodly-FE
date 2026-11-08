@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -46,6 +46,7 @@ function rec(id: number, name: string): Recipe {
 // The catalog context the page reads from.
 vi.mock('../catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
+  useUser: () => undefined,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),
   // Goes through the real foodly.listCategories, so each test's spy decides the categories.
@@ -59,9 +60,9 @@ vi.mock('../catalog/CatalogProvider', () => ({
 // collapsed by default (see RecipeList's `loadCollapsed(...) ?? ['uncat']`),
 // which would unmount its rows entirely. Force the flat (ungrouped) view via the
 // URL so tests assert on rendered content, not on collapse defaults.
-function renderList() {
+function renderList(url = '/recipes?group=0') {
   return render(
-    <MemoryRouter initialEntries={['/recipes?group=0']}>
+    <MemoryRouter initialEntries={[url]}>
       <TooltipProvider>
         <RecipeList />
       </TooltipProvider>
@@ -75,6 +76,122 @@ afterEach(() => {
 })
 
 describe('RecipeList (server-side search)', () => {
+  describe('loading skeletons take the shape of the view', () => {
+    const never = () => new Promise<never>(() => {})
+    afterEach(() => vi.unstubAllGlobals())
+
+    it('tiles: 4:3 tile skeletons', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockImplementation(never)
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList('/recipes?view=tiles&group=0')
+
+      await waitFor(() => expect(screen.getAllByTestId('tile-skeleton')).toHaveLength(4))
+      expect(screen.queryAllByTestId('row-skeleton')).toHaveLength(0)
+    })
+
+    it('rows: no tile skeletons', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockImplementation(never)
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList()
+
+      await waitFor(() => expect(screen.getAllByTestId('row-skeleton')).toHaveLength(4))
+      expect(screen.queryAllByTestId('tile-skeleton')).toHaveLength(0)
+    })
+
+    it('tiles: loading more shows one row of tile skeletons (flat)', async () => {
+      let intersect: IntersectionObserverCallback | null = null
+      class CapturingIO {
+        constructor(cb: IntersectionObserverCallback) {
+          intersect = cb
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
+          return []
+        }
+      }
+      vi.stubGlobal('IntersectionObserver', CapturingIO)
+      vi.spyOn(foodly, 'searchRecipes')
+        .mockResolvedValueOnce({ items: [rec(1, 'Pancakes')], cursor: 2 })
+        .mockImplementationOnce(never)
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList('/recipes?view=tiles&group=0')
+      await waitFor(() => screen.getByTestId('tile-type-name'))
+      await act(async () => {
+        intersect?.([{ isIntersecting: true } as IntersectionObserverEntry], null as unknown as IntersectionObserver)
+      })
+
+      const more = await waitFor(() => screen.getByTestId('list-more-skeleton'))
+      expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(4)
+      expect(within(more).getByTestId('tile-grid').className).toContain('auto-rows-[0]')
+    })
+
+    it('tiles: grouped, the load-more skeleton is indented like a group body', async () => {
+      let intersect: IntersectionObserverCallback | null = null
+      class CapturingIO {
+        constructor(cb: IntersectionObserverCallback) {
+          intersect = cb
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
+          return []
+        }
+      }
+      vi.stubGlobal('IntersectionObserver', CapturingIO)
+      vi.spyOn(foodly, 'searchRecipes')
+        .mockResolvedValueOnce({ items: [rec(1, 'Pancakes')], cursor: 2 })
+        .mockImplementationOnce(never)
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [1])])
+
+      renderList('/recipes?view=tiles')
+      await waitFor(() => screen.getByTestId('tile-type-name'))
+      await act(async () => {
+        intersect?.([{ isIntersecting: true } as IntersectionObserverEntry], null as unknown as IntersectionObserver)
+      })
+
+      const more = await waitFor(() => screen.getByTestId('list-more-skeleton'))
+      expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(4)
+      expect(more.parentElement?.className).toContain('border-transparent')
+    })
+
+    it('tiles: a pending search with nothing visible yet shows a tile skeleton', async () => {
+      vi.stubGlobal(
+        'IntersectionObserver',
+        class {
+          observe() {}
+          unobserve() {}
+          disconnect() {}
+          takeRecords() {
+            return []
+          }
+        },
+      )
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: 2 })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList('/recipes?view=tiles&group=0&q=zzz')
+
+      const pending = await waitFor(() => screen.getByTestId('list-pending-skeleton'))
+      expect(within(pending).getAllByTestId('tile-skeleton')).toHaveLength(1)
+    })
+
+    it('tiles: renders the recipes as tiles once loaded', async () => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList('/recipes?view=tiles&group=0')
+
+      await waitFor(() => expect(screen.getByTestId('tile-type-name').textContent).toBe('Pancakes'))
+      expect(screen.queryAllByTestId('tile-skeleton')).toHaveLength(0)
+    })
+  })
+
   it('renders recipes returned by searchRecipes', async () => {
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([])

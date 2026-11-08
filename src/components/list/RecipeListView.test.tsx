@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeListView } from './RecipeListView'
@@ -13,7 +13,11 @@ vi.mock('../../api/stubs', async (importOriginal) => {
   return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
 })
 
-vi.mock('../../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1, useTags: () => ({ byId: {} }) }))
+vi.mock('../../catalog/CatalogProvider', () => ({
+  useCurrentUserId: () => 1,
+  useUser: () => undefined,
+  useTags: () => ({ byId: {} }),
+}))
 
 const base: Recipe = {
   id: 0,
@@ -147,5 +151,48 @@ describe('image column', () => {
     for (const t of thumbs) expect(t.className).toMatch(/\bh-12 w-12\b/)
     expect(container.querySelectorAll('img')).toHaveLength(1)
     expect(thumbs[1].querySelector('.lucide-utensils-crossed')).toBeTruthy()
+  })
+})
+
+describe('tiles view', () => {
+  it('grouped: category headers, each group a grid of tiles', () => {
+    renderView({ detail: 'tiles' })
+    expect(screen.getByRole('button', { name: /Fav/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Ohne Kategorie/ })).toBeTruthy()
+    // Ohne Kategorie, Fav, Quick — one grid each, under its group header.
+    const grids = screen.getAllByTestId('tile-grid')
+    expect(grids).toHaveLength(3)
+    expect(
+      within(screen.getByRole('button', { name: /Fav/ }).parentElement as HTMLElement).getByTestId('tile-grid'),
+    ).toBeTruthy()
+    expect(screen.getAllByTestId('tile-type-name').map((t) => t.textContent)).toEqual(['Loner', 'In Both', 'In Both'])
+  })
+
+  it('a tile inside group X leaves out the dot of X', () => {
+    renderView({ detail: 'tiles' })
+    const tile = rowIn(/Fav/, 'In Both')
+    expect(within(tile).getByText('Kategorien: Quick')).toBeTruthy()
+    expect(within(tile).getAllByTestId('category-dot')).toHaveLength(1)
+  })
+
+  it('a collapsed group hides its tiles but keeps its header', () => {
+    renderView({ detail: 'tiles', collapsed: new Set(['cat-10']) })
+    const fav = screen.getByRole('button', { name: /Fav/ }).parentElement as HTMLElement
+    expect(within(fav).queryByRole('link')).toBeNull()
+    expect(rowIn(/Quick/, 'In Both')).toBeTruthy()
+  })
+
+  it('clicking a group header collapses it, as with rows', () => {
+    const onCollapsedChange = vi.fn()
+    renderView({ detail: 'tiles', onCollapsedChange })
+    fireEvent.click(screen.getByRole('button', { name: /Fav/ }))
+    expect(onCollapsedChange).toHaveBeenCalledWith(new Set(['cat-10']))
+  })
+
+  it('flat: one grid, no headers', () => {
+    renderView({ detail: 'tiles', grouped: false })
+    expect(screen.queryByRole('button', { name: /Fav/ })).toBeNull()
+    expect(screen.getAllByTestId('tile-grid')).toHaveLength(1)
+    expect(screen.getAllByRole('link')).toHaveLength(2)
   })
 })
