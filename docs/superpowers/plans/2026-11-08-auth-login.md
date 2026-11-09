@@ -6,7 +6,10 @@
 Spec: `docs/superpowers/specs/2026-11-08-auth-login-design.md`. Backend-Vertrag:
 `docs/backend-questions.md` B7.
 
-Labels für alle: `alpha`, `backend-blocked`. Blockiert durch
+**Stand 2026-11-09:** Backend-PR #20 ist auf `main` (097b69d), Vertrag unverändert gegenüber
+dieser Spec; `backend-blocked` ist von #141–#144 entfernt. Neu: A5 (#146).
+
+Ursprünglich: Labels `alpha`, `backend-blocked`. Blockiert durch
 [Backend-PR #20](https://github.com/klassenserver7b/Foodly-backend/pull/20). A1–A3 erst mergen,
 wenn #20 auf `main` ist; bauen kann man sie vorher (gemocktes `fetch`). A4 braucht #20 auch zum
 Testen von Hand.
@@ -19,11 +22,12 @@ Pflicht-Checks laut CLAUDE.md (lokal, ADR 0004).
 | A1 (#141) | Sitzung und Token-Refresh in `src/api` | – | A4 |
 | A2 (#142) | Anmelden- und Registrieren-Seite mit Routen-Schutz | A1 | A4 |
 | A3 (#143) | Abmelden und Ende der Sitzung | A2 | A4 |
-| A4 (#144) | Rezeptbilder anzeigen | #140 (ImageRef) | A1–A3 |
+| A4 (#144) | Rezeptbilder anzeigen (inkl. Profilbilder) | #140 (ImageRef) | A1–A3 |
+| A5 (#146) | Koch-Timer pro Nutzer speichern | A2 | A3, A4 |
 
-A1–A3 gemeinsam nach dem Merge von #20 mergen, in der Reihenfolge A1 → A2 → A3. A1 allein
-gemergt lässt die App gegen ein #20-Backend ohne Login-Seite stehen; deshalb A1 und A2 möglichst
-direkt hintereinander.
+#20 ist gemergt: Der REST-Modus läuft gegen Backend-`main` erst wieder mit A1 + A2. Deshalb A1
+und A2 direkt hintereinander mergen, dann A3. A1 ergänzt CLAUDE.md/README (`rest.ts`), A4 auch
+`userImageSrc` (Profilbilder echter Nutzer).
 
 ---
 
