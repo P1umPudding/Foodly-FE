@@ -1,11 +1,13 @@
 # Offene Backend-/Protokollfragen
 
 Lebende Liste aller Fragen an den Backend-Vertrag (`klassenserver7b/Foodly-backend`,
-Branch `web-api`, `resources/md/02_API_Design.md` + `03_Data_Models.md`), je mit
+Branch `main`, `resources/md/02_API_Design.md` + `03_Data_Models.md`), je mit
 Vorschlag und Status. Gepflegt vom Lead.
 
-Abgeglichen am **2026-10-27** gegen `web-api` @ `5723b74` (Doku **und** Code unter
-`src/api/rest/`).
+Abgeglichen am **2026-11-08** gegen `main` @ `a299c9d` und die offene PR #20
+(`auth-flow` @ `d901f0a`), Doku **und** Code unter `src/api/rest/`. `web-api` ist
+seit PR #18 (2026-11-04) in `main` gemergt; `main` ist der Default-Branch, neue
+Backend-PRs gehen gegen `main`.
 
 **Status:** `gelöst` (im Backend vorhanden) · `FE-Arbeit` (Backend fertig, Frontend
 muss nachziehen) · `offen` (Backend fehlt/unklar) · `Entscheidung` (Produktfrage für
@@ -16,19 +18,19 @@ Kolja) · `später` (nicht blockierend).
 
 | #   | Thema                                   | Status      | Blockiert FE?           | Backend-Issue |
 | --- | --------------------------------------- | ----------- | ----------------------- | ------------- |
-| B1  | Bild-URL: `ImageId` → Datei             | offen       | ja (Bilder, Phase 4)    | [#9](https://github.com/klassenserver7b/Foodly-backend/issues/9) |
+| B1  | Bild-URL: `ImageId` → Datei             | FE-Arbeit   | ja (Speichern mit Bild) | [#9](https://github.com/klassenserver7b/Foodly-backend/issues/9) |
 | B2  | User-Lookup für Namen (owner/editors)   | offen       | ja (REST-only-Betrieb)  | [#10](https://github.com/klassenserver7b/Foodly-backend/issues/10) |
 | B3  | Ratings-Endpoints fehlen im Code        | offen       | ja (Phase 4 Rating)     | [#11](https://github.com/klassenserver7b/Foodly-backend/issues/11) |
 | B4  | Sharing-Endpoints fehlen im Code        | offen       | ja (Phase 4 Teilen)     | [#12](https://github.com/klassenserver7b/Foodly-backend/issues/12) |
 | B5  | Groups-Endpoints fehlen im Code         | offen       | ja (Phase 5 M2)         | [#13](https://github.com/klassenserver7b/Foodly-backend/issues/13) |
 | B6  | „added-at" pro viewer/editor + Feed     | offen       | ja (Phase 5 M2)         | [#14](https://github.com/klassenserver7b/Foodly-backend/issues/14) |
-| B7  | Echte Auth + CORS `Authorization`       | offen       | ja (Prod, Multi-User)   | [#15](https://github.com/klassenserver7b/Foodly-backend/issues/15) |
+| B7  | Echte Auth + CORS `Authorization`       | in Arbeit (PR #20) | ja (Prod, Multi-User) | [#15](https://github.com/klassenserver7b/Foodly-backend/issues/15) |
 | B8  | Tags anlegen (Katalog read-only)        | Entscheidung | nein                   | –             |
 | B9  | `tagId = name`                          | später      | nein                    | –             |
 | B10 | Schritt-Timer (`Step.duration`)         | später      | nein                    | –             |
 | B11 | `UserCategory.icon`                     | später      | nein                    | –             |
 | B12 | Gruppen ↔ Rezepte-Modell                | Entscheidung | nein                   | –             |
-| B13 | Verwaiste Bilder                        | später      | nein                    | –             |
+| B13 | Verwaiste/geteilte Bilder               | später      | nein                    | Review PR #20 |
 | B14 | Doku-Drift (Status-Codes, Pagination)   | später      | nein                    | –             |
 | B15 | Sortierung nach `created_at`/`updated_at` | offen     | nein (Workaround FE)    | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
 | B16 | Trefferzahlen/Facetten in der Suche      | offen       | nein (FE ohne Zahlen)   | [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17) |
@@ -47,19 +49,17 @@ Abschnitte unten). Duplikat-Check vorher: keine Issues im Repo, nur PRs #1–#8.
 
 ### B1 — Bild-URL: `ImageId` → Datei
 
-**Problem.** `Recipe.mainImage` / `Recipe.images` sind `ImageId` (int), ausgeliefert
-wird aber nur `GET /images/{hash}`. Es gibt keinen Weg von der ID zum Hash
-(`src/api/rest/images.rs`, `src/models/recipe.rs`). Das Frontend zeigt im
-REST-Modus Rezepte in Liste und Detail deshalb wie ohne Foto und im Editor nur
-Platzhalter (`src/api/assets.ts`); hochgeladene Bilder lassen sich nach dem Speichern
-nicht mehr anzeigen.
+**Gelöst im Backend** durch PR #19 (gemergt 2026-11-05, schließt #9), so wie in
+Vorschlag A: `Recipe.mainImage: { id, hash, name } | null`, `Recipe.images: { id,
+hash, name }[]`, `RecipePreview.mainImage` ebenso. Im Write-Body bleiben es IDs.
 
-**Vorschlag (A, empfohlen):** Recipe liefert Bilder expandiert, analog zu
-`IngredientRef`: `mainImage: { id, hash, name } | null`, `images: { id, hash, name }[]`;
-im Write-Body bleiben es IDs. **(B)** Alternativ `GET /images/by-id/{id}` (Redirect
-oder Bytes). A spart einen Request pro Bild und liefert gleich `name`.
-
-**Entsperrt:** echte Rezeptbilder in Liste/Detail; `ImageManager` im Editor.
+**FE-Arbeit (dringend):** `protocol.ts` typisiert beides noch als `ImageId`.
+`src/editor/draft.ts` übernimmt `recipe.mainImage`/`images` in den Draft und
+schickt sie beim Speichern zurück, gegen `main` also Objekte statt IDs. Ein
+Rezept mit Bild lässt sich dann vermutlich nicht mehr speichern. Fix: Lese-Typ
+`ImageRef`, Mapping auf IDs im Write-Body. Bilder anzeigen per `<img src>` geht
+erst mit PR #20, weil `GET /images/{hash}` dort öffentlich wird; davor braucht es
+den Bearer (Blob-Loader wie bei G3).
 
 ### B2 — User-Lookup für Namen
 
@@ -135,6 +135,38 @@ oder bewusst „nur same-origin hinter Reverse-Proxy" festlegen und dokumentiere
 **Entsperrt:** Login-Seite/Token-Handling im FE, echter Multi-User-Betrieb,
 Prod-Deployment.
 
+**Stand 2026-11-08: PR #20 offen** (`auth-flow` → `main`, schließt #15). Geprüft
+gegen Code und Doku:
+- `POST /auth/register` (201), `/auth/login`, `/auth/refresh` (Rotation, alter Token
+  danach 401), `/auth/logout` (Body `refreshToken`, 204), `DELETE /auth/sessions`.
+  Antwort `{ user, accessToken, refreshToken }` bzw. `{ accessToken, refreshToken }`,
+  **kein** `expiresIn`: Ablauf steht im JWT (`exp`, Standard 15 Min.), Refresh 30 Tage.
+- Fehler im Envelope `{ error: { code, message } }`: 401 `UNAUTHORIZED`, 409 bei
+  doppelter E-Mail, 422 bei Passwort < 8 Zeichen, 429 `TOO_MANY_REQUESTS`.
+- Rate-Limit: register/login/refresh teilen einen Topf pro IP (5/Min., Burst 5);
+  Uploads 1/Min., Burst 10.
+- CORS: explizit `Authorization` + `Content-Type`, Origins aus `CORS_ALLOWED_ORIGINS`
+  (Standard `http://localhost:5173`).
+- `GET /images/{hash}` öffentlich; `POST`/`DELETE /images` mit Owner.
+  `GET /tags/{id}/icon` bleibt geschützt (G3-Lösung bleibt).
+- Nicht enthalten: Passwort ändern/zurücksetzen, Konto löschen, E-Mail-Bestätigung.
+
+**Review-Befunde** (Entwurf unten in „Review-Entwurf PR #20“; der Bot darf im
+Backend-Repo nicht kommentieren, Posten über Kolja/Daniel):
+1. Re-Upload identischer Bytes setzt `owner_id` auf den neuen Uploader; der kann das
+   Bild dann löschen, und per `ON DELETE SET NULL/CASCADE` verschwindet es aus fremden
+   Rezepten. Doku sagt „existing row is returned“.
+2. Bild- und Profilbild-Löschung entfernen die (geteilte, content-addressed) Datei
+   ohne Referenzprüfung (hängt mit B13 zusammen).
+3. Doku: `JWT_SECRET` als Pflicht markiert, wird aber erzeugt; `PASSWORD_PEPPER`,
+   `REFRESH_TOKEN_EXPIRY_DAYS` fehlen in der Tabelle.
+
+**FE nach dem Merge:** Login (+ ggf. Register), Token-Speicher, genau ein Refresh
+gleichzeitig (auch über Tabs, wegen Rotation und Rate-Limit), 401 → Login, geschützte
+Routen, `DEV_TOKEN` aus `src/api/rest.ts` entfernen. Entschieden (Daniel, 2026-11-08):
+offene Registrierung, Tokens in `localStorage`. Spec:
+`superpowers/specs/2026-11-08-auth-login-design.md`.
+
 ---
 
 ## Entscheidungen (Kolja)
@@ -179,8 +211,10 @@ Backend-Umbau der Zugriffsabfrage.
   `steps: { text, durationSeconds: number | null }[]` umstellen (FE-Adapter fängt
   den Wechsel ab). Bis dahin Doku angleichen.
 - **B11 `UserCategory.icon`:** optionales `icon: TagId | null`. Nice-to-have.
-- **B13 Verwaiste Bilder:** hochgeladen, nie gespeichert → bleiben liegen.
-  Vorschlag: periodischer GC für Bilder ohne Referenz älter als 24 h.
+- **B13 Verwaiste/geteilte Bilder:** hochgeladen, nie gespeichert → bleiben liegen.
+  Vorschlag: periodischer GC für Bilder ohne Referenz älter als 24 h. Seit PR #20
+  dazu: Dateien sind content-addressed und damit geteilt, Löschen sollte nur
+  unreferenzierte Dateien entfernen (Review PR #20, Punkt 2).
 - **B14 Doku-Drift:** `POST /recipes` antwortet 200 statt dokumentiert 201;
   `GET /categories` ist paginiert, Doku zeigt flaches `{ data }`; `/tags`
   liefert `{ data }`, Doku-Konvention sagt „flat array". Nur Doku angleichen.
@@ -224,3 +258,41 @@ Angelegt 2026-10-28:
 Angelegt 2026-10-29:
 
 - B16 → [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17)
+
+---
+
+## Review-Entwurf PR #20
+
+Am 2026-11-08 nicht gepostet: Der Skaile-Bot hat im Backend-Repo kein Kommentarrecht
+(„Resource not accessible by integration“). Bitte als Kommentar auf
+[PR #20](https://github.com/klassenserver7b/Foodly-backend/pull/20) einfügen.
+
+````markdown
+Thanks for this, great work! The auth flow matches what we proposed in #15. The response shapes match `02_API_Design.md`, and CORS with explicit `Authorization` plus the origin list unblocks the frontend login. Public `GET /images/:hash` is also very welcome, because the frontend can now use `<img src>` directly.
+
+I'm the Foodly frontend lead. While going through the PR, I noticed a few points around images that you may want to look at before merging. These are suggestions, not demands:
+
+**1. Re-upload transfers ownership** (`src/api/rest/images.rs`, `upload_image`)
+`on_conflict(images::hash).do_update().set((…, images::owner_id.eq(user_id)))` makes the most recent uploader of identical bytes the owner. The doc says instead: "Re-uploading identical bytes is idempotent … the existing row is returned".
+Because of `ON DELETE SET NULL` (`recipes.main_image_id`) and `ON DELETE CASCADE` (`recipe_images.image_id`), user B can re-upload A's photo, become its owner, and then `DELETE` it. That strips the image from A's recipes, and A can no longer delete their own upload.
+Suggestion: on conflict, keep the existing `owner_id`. Something like `.set(images::hash.eq(&hash))`, or `do_nothing()` followed by a select.
+
+**2. Image delete ignores other references** (`delete_image`, and `update_profile_picture` / `delete_profile_picture` in `users.rs`)
+Files are content-addressed and therefore shared. Deleting the file removes it for every recipe or profile that uses the same hash. Two cases:
+- A profile-picture change deletes the old file even if the same bytes are a recipe image.
+- An image delete cascades out of other users' recipes.
+One option is to refuse or skip the delete while the image is still referenced. Another is to delete only the caller's reference and garbage-collect unreferenced files later. This is related to orphaned images (B13 in our notes), so it doesn't have to block this PR. Point 1 would be good to fix first.
+
+**3. Small doc nits** (`02_API_Design.md`, configuration table)
+- `JWT_SECRET` is marked *(required)*, but `bootstrap_secrets()` generates it on first run.
+- `PASSWORD_PEPPER` is missing from the table.
+- `REFRESH_TOKEN_EXPIRY_DAYS` (read by `refresh_token_expiry_days()`, default 30) could be listed too.
+- The PR body says "panic on unset pepper", but it is generated instead.
+
+**4. FYI, no change needed**
+`register`, `login` and `refresh` share one per-IP bucket (5/min, burst 5). On the frontend we'll make sure that only one refresh runs at a time, also across tabs, so rotation and the limit don't log people out.
+
+Thanks again!
+
+_Foodly frontend lead (P1umPudding/Foodly-FE)_
+````
