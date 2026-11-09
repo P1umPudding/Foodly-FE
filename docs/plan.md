@@ -12,12 +12,14 @@ fehlt, wird gestubbt (ADR [0003](decisions/0003-backend-gap-stubs.md)).
   Fehlt ein Endpoint: Stub in `src/api`, in der UI mit Hinweis „Demo“ (ADR 0003).
 - UI ausschließlich mit `@postxl/ui-components` + Tailwind-Tokens, Look nach
   `docs/design.md`.
-- Kein Login: REST nutzt den statischen Dev-Token, Mocks `CURRENT_USER_ID = 1`.
-  Echte Auth kommt mit Backend #15 (B7).
+- Echte Nutzer: Seit Backend-PR #20 (gemergt 2026-11-09) nimmt das Backend nur noch echte
+  JWTs an. Der REST-Modus braucht Login (#141–#143); bis #142 gemergt ist, läuft er gegen
+  Backend-`main` nicht. Mocks (`VITE_MOCK=1`, Skaile-Vorschau) bleiben ohne Login, Nutzer 1.
 
 ## Meilenstein Alpha  (Ziel, Stand 2026-10-29)
 
-Bedienbare App gegen das echte Backend, ohne echte Nutzer (Daniel, 2026-10-29).
+Bedienbare App gegen das echte Backend (Daniel, 2026-10-29). Seit 2026-11-09 mit echten
+Nutzern und Login (Backend-PR #20).
 Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 
 **Echt gegen das Backend:**
@@ -32,14 +34,14 @@ Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 **Gestubbt (ADR 0003), später auf REST umstellen:**
 | Funktion | Stub | Backend |
 |---|---|---|
-| Rezeptbilder anzeigen | wie ohne Foto (Editor: Platzhalter) | #9 (B1) ✅ gelöst durch PR #19; FE-Umstellung auf `ImageRef` als Issue, Anzeige per `<img src>` nach PR #20 |
+| Rezeptbilder anzeigen | wie ohne Foto (Editor: Platzhalter) | #9 (B1) ✅ PR #19, `GET /images/{hash}` öffentlich ✅ PR #20 → FE: #140, #144 |
 | Namen von Owner/Editoren | Mock-Liste wie heute | #10 (B2) |
 | Rating abgeben | localStorage | #11 (B3) |
 | Teilen (Editoren/Viewer) | localStorage | #12 (B4) |
 | Gruppen-Kachel | localStorage | #13 (B5, Entscheidung B12) |
 | „Kürzlich hinzugefügt“ | ausgeblendet bis #14 | #14 (B6) |
 
-**Nach der Alpha:** Login (#15), Phase 7 (native App), Phase 8 (Offline), Phase 9.
+**Nach der Alpha:** Phase 7 (native App), Phase 8 (Offline), Phase 9.
 
 **Reihenfolge:** Redesign wie unten → parallel ab Shell: Stub-Basis + Rating,
 Löschen, Bild-Platzhalter, Tag-Icons → Kategorien verwalten → Phase 5 → Teilen →
@@ -56,6 +58,11 @@ und geprüft (Befunde in `backend-questions.md`). Daraus folgen: Issue #140 „I
 Auth geschnitten (Daniel, 2026-11-08: offene Registrierung, Anmeldung bleibt 30 Tage in
 `localStorage`): Spec `superpowers/specs/2026-11-08-auth-login-design.md`, Issues A1–A4 (#141–#144) in
 `superpowers/plans/2026-11-08-auth-login.md`, alle blockiert durch Backend-PR #20.
+
+**Stand 2026-11-09:** Backend-PR #20 (Auth, B7) ist auf `main`; alle Review-Befunde sind
+vor dem Merge behoben. #141–#144 entblockt, neu #146 (Timer pro Nutzer). Reihenfolge:
+#140 (dringend) und #141 parallel → #142 direkt danach → #143, #146; #144 nach #140.
+Danach weiter mit Kategorien verwalten.
 
 Details je Phase in `phases/`.
 
@@ -286,8 +293,6 @@ speichern — mit der Option, die erkannten Felder vor dem Speichern zu
 
 ## Offene Punkte (später)
 
-- Login-/Auth-Workflow (Voraussetzung für Phase 4 und echtes Multi-User).
-- Bilder: `image.hash` → echte Image-URL (Backend-abhängig).
 - Tag-SVGs (`tag.svg` Hash) rendern.
 
 ### Daten-/Protokoll-Fragen (mit Backend klären)
