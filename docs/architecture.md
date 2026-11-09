@@ -138,4 +138,6 @@ Begründete Einzelausnahme: `eslint-disable-next-line <regel> -- <grund>`.
 
 ## 8. Offene Architekturpunkte
 
-- Auth/Token-Handling fehlt (statischer `dev-token` in `rest.ts`), wartet auf B7.
+- Auth/Token-Handling: Backend fertig (B7, PR #20); FE baut es in #141–#143
+  (Spec `superpowers/specs/2026-11-08-auth-login-design.md`). Bis dahin statischer
+  `dev-token` in `rest.ts`, den das Backend ablehnt.
