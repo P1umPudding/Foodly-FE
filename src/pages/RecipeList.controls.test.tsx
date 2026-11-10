@@ -26,7 +26,9 @@ function renderList(url = '/recipes?group=0') {
   )
 }
 
-const searchField = () => screen.getByPlaceholderText('Suchen…')
+const searchField = () => screen.getByRole('textbox', { name: 'Rezepte suchen' })
+// The row holding the search (input → SearchInput wrapper → row) and the controls next to it.
+const searchRow = () => searchField().parentElement!.parentElement!
 
 beforeEach(() => {
   desktop.value = true
@@ -50,6 +52,12 @@ describe('RecipeList controls on desktop', () => {
     screen.getByRole('button', { name: /^Sortieren:/ })
     screen.getByRole('group', { name: 'Ansicht' })
     screen.getByRole('group', { name: 'Gliederung' })
+    // The only button next to the search is the sort menu: no separate direction button (the toggles are radios).
+    expect(
+      within(searchRow())
+        .getAllByRole('button')
+        .map((b) => b.getAttribute('aria-label')),
+    ).toEqual(['Sortieren: Name, A → Z'])
     expect(screen.queryByRole('button', { name: /Sortierrichtung/ })).toBeNull()
     expect(screen.queryByRole('combobox', { name: 'Sortierkriterium' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Sortieren & Ansicht' })).toBeNull()

@@ -42,9 +42,13 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-48">
         <DropdownMenuLabel>Sortieren nach</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={state.sortKey} onValueChange={(v) => set({ sortKey: v as SortKey })}>
+        <DropdownMenuRadioGroup
+          aria-label="Sortieren nach"
+          value={state.sortKey}
+          onValueChange={(v) => set({ sortKey: v as SortKey })}
+        >
           {SORT_CRITERIA.map((c) => (
-            <DropdownMenuRadioItem key={c.key} value={c.key} className="gap-2">
+            <DropdownMenuRadioItem key={c.key} value={c.key}>
               {c.label}
               <c.Icon aria-hidden className="ml-auto text-muted-foreground" />
             </DropdownMenuRadioItem>
@@ -52,7 +56,11 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Richtung</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={state.sortDir} onValueChange={(v) => set({ sortDir: v as SortDir })}>
+        <DropdownMenuRadioGroup
+          aria-label="Richtung"
+          value={state.sortDir}
+          onValueChange={(v) => set({ sortDir: v as SortDir })}
+        >
           {SORT_DIRS.map((dir) => (
             <DropdownMenuRadioItem key={dir} value={dir}>
               {dirLabel(state.sortKey, dir)}

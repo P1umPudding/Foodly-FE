@@ -29,6 +29,11 @@ describe('SearchInput — input', () => {
     expect(ref.current).toBe(screen.getByPlaceholderText('Suchen…'))
   })
 
+  it('takes an accessible name', () => {
+    render(<SearchInput value="" onChange={vi.fn()} placeholder="Suchen…" label="Rezepte suchen" />)
+    expect(screen.getByRole('textbox', { name: 'Rezepte suchen' })).toBe(screen.getByPlaceholderText('Suchen…'))
+  })
+
   it('is 40 px tall on phones', () => {
     render(<SearchInput value="" onChange={vi.fn()} placeholder="Suchen…" />)
     expect(screen.getByPlaceholderText('Suchen…').classList.contains('phone:h-10')).toBe(true)

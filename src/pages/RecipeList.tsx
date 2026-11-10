@@ -327,11 +327,12 @@ export function RecipeList() {
             </div>
 
             {/* Search with the sort menu and view toggles to its right; on phones they sit behind one button. */}
-            <div ref={searchRowRef} className={`mt-2.5 flex items-center ${isDesktop ? 'gap-4' : 'gap-3'}`}>
+            <div ref={searchRowRef} className="mt-2.5 flex items-center gap-4 phone:gap-3">
               <SearchInput
                 value={state.search}
                 onChange={setSearch}
                 placeholder="Suchen…"
+                label="Rezepte suchen"
                 clearLabel="Suche leeren"
                 className="min-w-0 flex-1"
                 inputRef={searchInputRef}

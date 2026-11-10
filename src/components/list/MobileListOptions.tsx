@@ -52,7 +52,7 @@ function OptionRadioGroup<T extends string>({
   )
 }
 
-function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+function Section({ id, title, children }: { id?: string; title: string; children: ReactNode }) {
   return (
     <section className="space-y-1.5">
       <h3 id={id} className="text-sm font-medium text-muted-foreground">
@@ -84,7 +84,8 @@ export function MobileListOptions({ state, set }: { state: ListState; set: (patc
       </SheetTrigger>
       <BottomSheet title={TITLE} description="Sortierung und Ansicht einstellen">
         <div className="space-y-5">
-          <Section id={`${ids}-sort`} title="Sortieren">
+          {/* Its two groups carry their own names (Kriterium, Richtung); the heading only titles the block. */}
+          <Section title="Sortieren">
             <OptionRadioGroup
               aria-label="Kriterium"
               value={state.sortKey}

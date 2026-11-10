@@ -43,6 +43,13 @@ it('sets sortKey work and sortDir desc via "Arbeitszeit" + "Längste zuerst"', a
   expect(trigger().getAttribute('aria-label')).toBe('Sortieren: Arbeitszeit, Längste zuerst')
 })
 
+it('names both radio groups', async () => {
+  render(<Harness />)
+  const menu = await openMenu()
+  within(menu).getByRole('group', { name: 'Sortieren nach' })
+  within(menu).getByRole('group', { name: 'Richtung' })
+})
+
 it('marks the current criterion and direction as checked', async () => {
   render(<Harness initial={{ ...DEFAULT_STATE, sortKey: 'overall', sortDir: 'desc' }} />)
   const menu = await openMenu()
@@ -61,6 +68,6 @@ it.each([
 ] as const)('words the direction for %s', async (sortKey, labels) => {
   render(<Harness initial={{ ...DEFAULT_STATE, sortKey }} />)
   const menu = await openMenu()
-  const dirs = within(within(menu).getAllByRole('group')[1]).getAllByRole('menuitemradio')
+  const dirs = within(within(menu).getByRole('group', { name: 'Richtung' })).getAllByRole('menuitemradio')
   expect(dirs.map((d) => d.textContent)).toEqual(labels)
 })

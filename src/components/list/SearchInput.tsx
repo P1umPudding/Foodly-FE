@@ -9,6 +9,7 @@ export function SearchInput({
   value,
   onChange,
   placeholder,
+  label,
   clearLabel = 'Leeren',
   className = '',
   inputRef,
@@ -16,6 +17,8 @@ export function SearchInput({
   value: string
   onChange: (value: string) => void
   placeholder?: string
+  // Accessible name; a placeholder alone disappears as you type and isn't a reliable label.
+  label?: string
   clearLabel?: string
   className?: string
   inputRef?: Ref<HTMLInputElement>
@@ -25,6 +28,7 @@ export function SearchInput({
       {/* 40 px on phones like every tap target there (docs/design.md §7). */}
       <Input
         ref={inputRef}
+        aria-label={label}
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
