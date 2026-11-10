@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Alert, AlertDescription, AlertTitle, Button, Skeleton, Spinner, toast } from '@postxl/ui-components'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { foodly } from '../api'
 import { trackPendingSave } from '../api/pendingSaves'
 import { useRequest } from '../hooks/useRequest'
+import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { useCurrentUserId, useRefreshCategories } from '../catalog/CatalogProvider'
 import { canEdit } from '../editor/access'
 import { emptyDraft, move, newSection, sizeNumberError, toCreateRecipe, toDraft } from '../editor/draft'
@@ -19,6 +20,7 @@ import type { RecipeId } from '../api/protocol'
 export function RecipeEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const currentUserId = useCurrentUserId()
   const refreshCategories = useRefreshCategories()
 
@@ -105,6 +107,16 @@ export function RecipeEditor() {
     }
   }, [])
 
+  // "Zurück" on the detail page walks back through history, so Fertig must not leave the editor behind the detail:
+  // otherwise Zurück -> editor -> Fertig -> detail -> Zurück would loop and never reach the list. `fromDetail` is
+  // set only by RecipeDetail's Bearbeiten link, so the entry right behind this one is that detail page.
+  const openedFromDetail = (location.state as { fromDetail?: unknown } | null)?.fromDetail === true
+  const hasAppHistory = useHasAppHistory()
+  const leaveToDetail = () => {
+    if (openedFromDetail && hasAppHistory()) navigate(-1)
+    else navigate(`/recipes/${recipeId}`, { replace: true })
+  }
+
   // "Fertig" waits for the save: the detail page re-fetches on mount, and a GET
   // that overtakes a still-running PUT would show the old recipe.
   const [finishing, setFinishing] = useState(false)
@@ -117,20 +129,29 @@ export function RecipeEditor() {
     try {
       await flush()
       // Left via another route meanwhile: don't pull the user back.
-      if (alive.current) navigate(`/recipes/${recipeId}`)
+      if (alive.current) {
+        leaveToDetail()
+        // Stay locked: going back unmounts only on popstate, and a repeat in between would step back twice.
+        return
+      }
     } catch {
       // The save status indicator already shows the error with a retry.
-    } finally {
-      finishingRef.current = false
-      if (alive.current) setFinishing(false)
     }
+    finishingRef.current = false
+    if (alive.current) setFinishing(false)
   }
 
+  // While the POST runs the form is locked (edits made meanwhile would not be in the POST), but the user may still leave
+  // via the sidebar or Back: the recipe is created anyway, without pulling them back into the editor.
   const [creating, setCreating] = useState(false)
+  const creatingRef = useRef(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  const cannotCreate = draft === null || draft.name.trim() === '' || sizeError !== null
 
   const create = async () => {
-    if (!draft) return
+    // aria-disabled keeps the button focusable, so Enter/Space still arrive here: guard everything again.
+    if (!draft || creatingRef.current || cannotCreate) return
+    creatingRef.current = true
     setCreating(true)
     setCreateError(null)
     try {
@@ -138,11 +159,13 @@ export function RecipeEditor() {
       // A new recipe can't be given a category yet, so this changes nothing today; keeps the sidebar right once it can.
       refreshCategories()
       setRecipeId(created.id)
-      navigate(`/recipes/${created.id}/edit`, { replace: true })
+      if (alive.current) navigate(`/recipes/${created.id}/edit`, { replace: true })
     } catch (e) {
-      setCreateError((e as Error).message)
+      if (alive.current) setCreateError((e as Error).message)
+      else toast.error('Rezept konnte nicht angelegt werden.')
     } finally {
-      setCreating(false)
+      creatingRef.current = false
+      if (alive.current) setCreating(false)
     }
   }
 
@@ -199,45 +222,64 @@ export function RecipeEditor() {
     <div className="mx-auto max-w-3xl px-6 py-10 pb-28">
       {heading}
 
-      <div className="flex flex-col gap-4">
-        <BasicsCard draft={draft} onChange={patch} />
+      {/* `contents`: the fieldset only disables its controls during Anlegen, it adds no box of its own. */}
+      <fieldset disabled={creating} className="contents">
+        <div className="flex flex-col gap-4">
+          <BasicsCard draft={draft} onChange={patch} />
 
-        {draft.sections.map((section, i) => (
-          <SectionEditor
-            key={section.key}
-            section={section}
-            index={i}
-            total={draft.sections.length}
-            onChange={(next) => patch({ sections: draft.sections.map((s) => (s.key === section.key ? next : s)) })}
-            onUp={() => patch({ sections: move(draft.sections, section.key, -1) })}
-            onDown={() => patch({ sections: move(draft.sections, section.key, 1) })}
-            onRemove={() => patch({ sections: draft.sections.filter((s) => s.key !== section.key) })}
-          />
-        ))}
+          {draft.sections.map((section, i) => (
+            <SectionEditor
+              key={section.key}
+              section={section}
+              index={i}
+              total={draft.sections.length}
+              onChange={(next) => patch({ sections: draft.sections.map((s) => (s.key === section.key ? next : s)) })}
+              onUp={() => patch({ sections: move(draft.sections, section.key, -1) })}
+              onDown={() => patch({ sections: move(draft.sections, section.key, 1) })}
+              onRemove={() => patch({ sections: draft.sections.filter((s) => s.key !== section.key) })}
+            />
+          ))}
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="self-start gap-1.5"
-          onClick={() => patch({ sections: [...draft.sections, newSection()] })}
-        >
-          <Plus className="h-4 w-4" />
-          Abschnitt hinzufügen
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="self-start gap-1.5"
+            onClick={() => patch({ sections: [...draft.sections, newSection()] })}
+          >
+            <Plus className="h-4 w-4" />
+            Abschnitt hinzufügen
+          </Button>
 
-        <ImageManager mainImage={draft.mainImage} images={draft.images} onChange={patch} />
-      </div>
+          <ImageManager mainImage={draft.mainImage} images={draft.images} onChange={patch} />
+        </div>
+      </fieldset>
 
       <div className="fixed right-0 bottom-[var(--shell-bottom,0px)] left-[var(--shell-left,0px)] border-t border-border bg-card">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-6 py-3">
           {isNew ? (
             <>
               <Button asChild variant="ghost">
-                <Link to="/recipes">Verwerfen</Link>
+                <Link
+                  to="/recipes"
+                  aria-disabled={creating || undefined}
+                  tabIndex={creating ? -1 : undefined}
+                  onClick={(e) => {
+                    if (creatingRef.current) e.preventDefault()
+                  }}
+                  className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
+                >
+                  Verwerfen
+                </Link>
               </Button>
               <div className="flex items-center gap-3">
                 {createError && <span className="text-destructive">{createError}</span>}
-                <Button onClick={create} disabled={creating || draft.name.trim() === '' || sizeError !== null}>
+                <Button
+                  onClick={create}
+                  aria-disabled={creating || cannotCreate}
+                  aria-busy={creating}
+                  className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+                >
+                  {creating && <Spinner className="size-4" />}
                   Anlegen
                 </Button>
               </div>
