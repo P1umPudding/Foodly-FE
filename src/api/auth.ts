@@ -99,11 +99,22 @@ function expiresAt(token: string): number | null {
   }
 }
 
-export async function getAccessToken(): Promise<string | null> {
+// Synchronous fast path: the stored token while it is valid for more than 30 s, null without a session,
+// undefined when a refresh is due. Lets rest.ts call fetch() before its first await, which pendingSaves
+// relies on (an unmount save goes out before the reads that follow it).
+export function currentAccessToken(): string | null | undefined {
   const current = readStored()
   if (!current) return null
   const expires = expiresAt(current.accessToken)
-  if (expires !== null && expires - Date.now() > EXPIRY_MARGIN_MS) return current.accessToken
+  return expires !== null && expires - Date.now() > EXPIRY_MARGIN_MS ? current.accessToken : undefined
+}
+
+export async function getAccessToken(): Promise<string | null> {
+  const known = currentAccessToken()
+  if (known !== undefined) return known
+  const current = readStored()
+  if (!current) return null
+  const expires = expiresAt(current.accessToken)
   try {
     return await refresh()
   } catch (error) {

@@ -3,10 +3,12 @@
 const base64url = (value: unknown) =>
   btoa(JSON.stringify(value)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 
-// An unsigned JWT that expires `secondsFromNow` from now (negative = already expired).
+let issued = 0
+
+// An unsigned, unique JWT that expires `secondsFromNow` from now (negative = already expired).
 export function jwt(secondsFromNow: number, claims: Record<string, unknown> = {}): string {
   const exp = Math.floor(Date.now() / 1000) + secondsFromNow
-  return `${base64url({ alg: 'HS256', typ: 'JWT' })}.${base64url({ sub: '1', exp, ...claims })}.sig`
+  return `${base64url({ alg: 'HS256', typ: 'JWT' })}.${base64url({ sub: '1', exp, jti: ++issued, ...claims })}.sig`
 }
 
 type Stored = { accessToken: string; refreshToken: string; userId: number }
