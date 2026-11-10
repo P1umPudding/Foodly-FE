@@ -284,6 +284,29 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     expect(screen.queryByLabelText('Titel')).toBeNull()
   })
 
+  it('opened from the detail page but first in history, Fertig replaces instead of leaving the app', async () => {
+    server()
+    window.history.replaceState({ usr: { fromDetail: true }, key: 'edit', idx: 0 }, '', '/recipes/5/edit')
+    const go = vi.spyOn(window.history, 'go')
+    render(
+      <TooltipProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/recipes/:id" element={<DetailStub />} />
+            <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>,
+    )
+    await waitFor(() => expect(titleInput().value).toBe('Pasta 5'))
+
+    fireEvent.click(fertig())
+
+    expect(await screen.findByText('Detail: Pasta 5')).toBeTruthy()
+    expect(go).not.toHaveBeenCalled()
+    expect(window.location.pathname).toBe('/recipes/5')
+  })
+
   it('a repeated Fertig while going back does not step back twice (browser history)', async () => {
     server()
     window.history.replaceState({ usr: { fromDetail: true }, key: 'edit', idx: 2 }, '', '/recipes/5/edit')

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Clock, Copy, Info, ListChecks, Pencil } from 'lucide-react'
 import {
   Alert,
@@ -16,6 +16,7 @@ import {
 } from '@postxl/ui-components'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
+import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { canEdit, isOwner } from '../editor/access'
 import { useCurrentUserId, useRefreshCategories, useTags } from '../catalog/CatalogProvider'
 import { TagText } from '../components/TagText'
@@ -36,13 +37,6 @@ function isUrl(s: string): boolean {
   return /^https?:\/\//i.test(s.trim())
 }
 
-// The sign-in redirect replaces the entry (non-default key) without adding one before it, so BrowserRouter's
-// history index (0 = first entry) decides too. MemoryRouter keeps no index there; then only the key counts.
-function hasAppHistory(locationKey: string): boolean {
-  const idx = (window.history.state as { idx?: unknown } | null)?.idx
-  return locationKey !== 'default' && (typeof idx !== 'number' || idx > 0)
-}
-
 export function RecipeDetail() {
   const { id } = useParams()
   const recipeId = Number(id)
@@ -52,7 +46,7 @@ export function RecipeDetail() {
 
   const navigate = useNavigate()
   const refreshCategories = useRefreshCategories()
-  const location = useLocation()
+  const hasAppHistory = useHasAppHistory()
   const [cloning, setCloning] = useState(false)
   const [cloneError, setCloneError] = useState<string | null>(null)
   // Bumped per clone attempt and on every recipe switch, so a late failure of an outdated clone is ignored.
@@ -108,7 +102,7 @@ export function RecipeDetail() {
   // and no extra history entry piles up. Otherwise (direct link) the plain link to /recipes applies.
   const onBack = (e: MouseEvent<HTMLAnchorElement>) => {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-    if (!hasAppHistory(location.key)) return
+    if (!hasAppHistory()) return
     e.preventDefault()
     navigate(-1)
   }

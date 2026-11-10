@@ -113,6 +113,7 @@ describe('RecipeDetail · Zurück', () => {
     // A push: forward has nowhere to go.
     fireEvent.click(screen.getByText('test-forward'))
     expect(screen.getByTestId('list')).toBeTruthy()
+    expect(screen.queryByText('Rezept 5')).toBeNull()
   })
 
   it('opens the list on a direct visit (browser history)', async () => {

@@ -5,6 +5,7 @@ import { AlertTriangle, Plus } from 'lucide-react'
 import { foodly } from '../api'
 import { trackPendingSave } from '../api/pendingSaves'
 import { useRequest } from '../hooks/useRequest'
+import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { useCurrentUserId, useRefreshCategories } from '../catalog/CatalogProvider'
 import { canEdit } from '../editor/access'
 import { emptyDraft, move, newSection, sizeNumberError, toCreateRecipe, toDraft } from '../editor/draft'
@@ -110,8 +111,9 @@ export function RecipeEditor() {
   // otherwise Zurück -> editor -> Fertig -> detail -> Zurück would loop and never reach the list. `fromDetail` is
   // set only by RecipeDetail's Bearbeiten link, so the entry right behind this one is that detail page.
   const openedFromDetail = (location.state as { fromDetail?: unknown } | null)?.fromDetail === true
+  const hasAppHistory = useHasAppHistory()
   const leaveToDetail = () => {
-    if (openedFromDetail) navigate(-1)
+    if (openedFromDetail && hasAppHistory()) navigate(-1)
     else navigate(`/recipes/${recipeId}`, { replace: true })
   }
 
@@ -139,7 +141,7 @@ export function RecipeEditor() {
     if (alive.current) setFinishing(false)
   }
 
-  // While the POST runs the form is locked (nothing typed meanwhile could be lost), but the user may still leave
+  // While the POST runs the form is locked (edits made meanwhile would not be in the POST), but the user may still leave
   // via the sidebar or Back: the recipe is created anyway, without pulling them back into the editor.
   const [creating, setCreating] = useState(false)
   const creatingRef = useRef(false)
