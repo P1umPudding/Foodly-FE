@@ -1,30 +1,9 @@
-import { forwardRef, useState, type ReactNode } from 'react'
+import { forwardRef, type ReactNode } from 'react'
 import { ImageOff } from 'lucide-react'
 import { cn } from '@postxl/ui-components'
 import { recipeImageSrc } from '../../api/assets'
 import type { ImageRef } from '../../api/protocol'
-
-// Failures are remembered per src for the session (a reload retries), shared by every image: paging back in
-// the Lightbox or opening it from a failed hero shows the placeholder right away instead of flashing a broken
-// image, and switching to another src shows it again without a reset effect.
-const failedSrcs = new Set<string>()
-
-export function useImageFailed(src: string | null) {
-  const [, rerender] = useState(0)
-  return {
-    failed: src !== null && failedSrcs.has(src),
-    onError: () => {
-      if (src === null) return
-      failedSrcs.add(src)
-      rerender((n) => n + 1)
-    },
-  }
-}
-
-// Tests only: module state would otherwise leak between cases.
-export function resetFailedImages(): void {
-  failedSrcs.clear()
-}
+import { useImageFailed } from './failedImages'
 
 // A recipe image that turns into a placeholder when it can't be loaded, instead of a broken image.
 // `className` styles the <img>; `fallbackClassName` sizes the default placeholder (the image's own size

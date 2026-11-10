@@ -57,6 +57,14 @@ describe('RecipeImage', () => {
     expect(container.querySelector('img')).toBeNull()
   })
 
+  it('retries failed images once the browser is back online', () => {
+    const first = render(<RecipeImage image={image} alt="" />)
+    fireEvent.error(first.container.querySelector('img')!)
+    window.dispatchEvent(new Event('online'))
+    const { container } = render(<RecipeImage image={image} alt="" />)
+    expect(container.querySelector('img')?.getAttribute('src')).toBe('/api/v1/images/ab12')
+  })
+
   it('keeps the click handler on the placeholder', () => {
     const onClick = vi.fn()
     const { container } = render(<RecipeImage image={image} alt="" onClick={onClick} />)

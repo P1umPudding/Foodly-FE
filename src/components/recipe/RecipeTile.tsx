@@ -8,7 +8,7 @@ import { knowsUserNames } from '../../api'
 import { visibleRating } from '../../api/views'
 import { recipeImageSrc } from '../../api/assets'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
-import { useImageFailed } from './RecipeImage'
+import { useImageFailed } from './failedImages'
 import type { Recipe, UserCategory } from '../../api/protocol'
 
 // One recipe in the "Kacheln" view. Without a displayable photo the tile is a quiet

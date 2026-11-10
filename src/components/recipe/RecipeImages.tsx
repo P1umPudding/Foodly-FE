@@ -37,7 +37,7 @@ export function RecipeImages({
         onClick={() => onOpen(0)}
         className={`h-full w-auto ${mainMaxW} cursor-zoom-in rounded-lg bg-foreground/5 object-contain dark:bg-muted`}
         // w-auto would collapse the placeholder, so it gets a photo-like 4:3 box under the same width cap.
-        fallbackClassName={`aspect-[4/3] h-full ${mainMaxW} cursor-zoom-in rounded-lg`}
+        fallbackClassName={`aspect-[4/3] h-full ${mainMaxW} cursor-zoom-in rounded-lg bg-foreground/5 dark:bg-muted`}
       />
 
       {/* One extra image → a single tile at full row height (≈ 2× a stacked tile). */}

@@ -26,7 +26,7 @@ Commit: `Bilder: REST-URLs statt Platzhalter-Stub (#144)`
 ## Schritt 2 — `RecipeImage` + `useImageFailed`
 
 - Neu `src/components/recipe/RecipeImage.tsx` (React 18.3 → `forwardRef<HTMLImageElement>`):
-  - `useImageFailed(src)` → `{ failed, onError }`; fehlgeschlagene `src` modulweit in einem `Set` gemerkt (für die Session, von allen Bildern geteilt: Lightbox zeigt ein schon fehlgeschlagenes Bild sofort als Platzhalter), `resetFailedImages()` für Tests (in `src/test/setup.ts`).
+  - `useImageFailed(src)` → `{ failed, onError }`; fehlgeschlagene `src` modulweit in einem `Set` gemerkt (von allen Bildern geteilt: Lightbox zeigt ein schon fehlgeschlagenes Bild sofort als Platzhalter; geleert beim `online`-Event). Liegt in `src/components/recipe/failedImages.ts` ohne App-Imports, damit `src/test/setup.ts` es per `resetFailedImages()` zurücksetzen kann, ohne `src/api` vorzeitig zu laden.
   - `RecipeImage` Props: `image: ImageRef`, `alt: string`, `className?` (nur `<img>`), `fallbackClassName?` (nur Default-Fallback), `fallback?: ReactNode` (ersetzt Default), `onClick?`, `onLoad?`.
   - Default-Fallback: `<div data-testid="image-fallback" onClick={onClick} className={cn('flex items-center justify-center bg-muted text-muted-foreground/40', fallbackClassName)}><ImageOff className="size-6" /></div>`; bei nicht-leerem `alt` zusätzlich `role="img" aria-label={alt}`, sonst `aria-hidden`. Theme-Tokens → hell/dunkel.
 - `RecipeImage.test.tsx`: rendert `<img src>`; `fireEvent.error` → Fallback (AC 3); eigener `fallback` wird genutzt; neues `image` zeigt wieder `<img>`; `onClick` feuert am Fallback.

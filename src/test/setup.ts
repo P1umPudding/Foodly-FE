@@ -1,4 +1,4 @@
-import { resetFailedImages } from '../components/recipe/RecipeImage'
+import { resetFailedImages } from '../components/recipe/failedImages'
 import { createMediaQueryList } from './viewport'
 
 // jsdom lacks ResizeObserver, which Radix primitives (e.g. Slider) touch on mount.
@@ -42,5 +42,5 @@ if (!window.matchMedia) {
   window.matchMedia = (query: string) => createMediaQueryList(query)
 }
 
-// Image load failures are remembered module-wide (RecipeImage); each test starts without them.
+// Image load failures are remembered module-wide (failedImages.ts); each test starts without them.
 afterEach(() => resetFailedImages())
