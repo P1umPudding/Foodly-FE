@@ -8,6 +8,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  buttonVariants,
+  cn,
 } from '@postxl/ui-components'
 import { describe, expect, it } from 'vitest'
 import { TriggerButton } from './TriggerButton'
@@ -29,10 +31,9 @@ describe('TriggerButton', () => {
         Los
       </TriggerButton>,
     )
-    const c = classes(screen.getByRole('button'))
-    expect(c).toEqual(
-      expect.arrayContaining(['border', 'h-8', 'focus-visible:ring-[3px]', 'focus-visible:ring-ring/50']),
-    )
+    const button = screen.getByRole('button')
+    expect(button.className).toBe(cn(buttonVariants({ variant: 'outline', size: 'sm' })))
+    expect(classes(button)).toEqual(expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-ring/50']))
   })
 
   it('bare: only the focus ring, no button styling; size is ignored and the caller className wins', () => {

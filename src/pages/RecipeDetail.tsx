@@ -162,6 +162,8 @@ export function RecipeDetail() {
             {canEdit(recipe, currentUserId) && (
               <Tooltip>
                 <TooltipTrigger asChild>
+                  {/* A Link styled via buttonVariants, not <Button asChild>: the postxl Button would drop the
+                      tooltip's ref. TriggerButton is a <button>, so it can't stand in for a link. */}
                   <Link
                     to={`/recipes/${recipe.id}/edit`}
                     state={{ fromDetail: true }}

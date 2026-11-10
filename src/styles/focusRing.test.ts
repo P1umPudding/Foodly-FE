@@ -184,13 +184,14 @@ describe('hand-written focus rings (#133)', () => {
     expect(FOCUS_RING.split(/\s+/)).toContain('focus-visible:ring-[3px]')
   })
 
-  // Only `focus-visible:` widths: the Lightbox thumbnail's selection ring (`ring-2 ring-white`) is not a focus ring.
+  // Only focus widths: the Lightbox thumbnail's selection ring (`ring-2 ring-white`) is not a focus ring.
   it.each([
     ['Rating', ratingTsx, 'TriggerButton'],
     ['Sidebar', sidebarTsx, 'FOCUS_RING'],
     ['Lightbox', lightboxTsx, 'FOCUS_RING'],
   ])('%s takes the shared width', (_name, source, marker) => {
     expect(source).toContain(marker)
-    expect(source).not.toMatch(/focus-visible:ring-[124]\b/)
+    const widths = source.match(/focus(?:-visible)?:ring-(?:\[\d+px\]|\d+)(?![\w/-])/g) ?? []
+    expect(widths.filter((w) => w !== 'focus-visible:ring-[3px]')).toEqual([])
   })
 })

@@ -1,6 +1,6 @@
 // A button that forwards its ref, for Radix triggers (Tooltip, Popover, DropdownMenu, AlertDialog … with
 // asChild): they anchor and return focus through the ref, and the postxl Button doesn't forward one.
-// Styled exactly like the postxl Button; `bare` drops the button styling and keeps only the focus ring.
+// Styled exactly like the postxl Button (minus its __e2e_test_id__ prop); `bare` drops the button styling and keeps only the focus ring.
 import { forwardRef } from 'react'
 import type { ComponentPropsWithoutRef } from 'react'
 import { buttonVariants, cn } from '@postxl/ui-components'
