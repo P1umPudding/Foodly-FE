@@ -240,9 +240,15 @@ describe('DurationFilter', () => {
     expect(set).toHaveBeenCalledWith({ durationMax: 30 })
   })
 
+  it('without a focused field, a preset press keeps its default (Radix roving focus)', () => {
+    render(<Stateful initial={60} set={() => {}} />)
+    expect(fireEvent.mouseDown(preset(30))).toBe(true)
+  })
+
   it('typing, then clicking Zurücksetzen is one edit', () => {
     const set = vi.fn()
     render(<Stateful initial={60} set={set} />)
+    act(() => field().focus())
     fireEvent.change(field(), { target: { value: '45' } })
     expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'Zurücksetzen' }))).toBe(false)
     fireEvent.click(screen.getByRole('button', { name: 'Zurücksetzen' }))
@@ -269,6 +275,7 @@ describe('DurationFilter', () => {
     expect(set).toHaveBeenCalledWith({ durationMax: 45 })
   })
 
+  // Leaving the knob flushes pending keys anyway; the second half drives the guard path (typing without a blur).
   it('typing after arrow keys cancels their pending commit', () => {
     vi.useFakeTimers()
     const set = vi.fn()

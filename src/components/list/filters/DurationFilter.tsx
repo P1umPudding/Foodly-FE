@@ -102,10 +102,16 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
   const onFieldBlur = (e: FocusEvent<HTMLInputElement>) => {
     if (!(e.relatedTarget instanceof Node && sliderBoxRef.current?.contains(e.relatedTarget))) flush()
   }
-  const keepFocus = (e: MouseEvent) => e.preventDefault()
-  // Typing or a drag supersedes pending arrow keys, or the timer would commit a half-finished value.
-  // (Not in edit(): for keys Radix calls onValueChange right after onValueCommit has started the timer.)
+  // Only while the field has focus: preventDefault also skips Radix's roving-focus update for the presets.
+  const keepFocus = (e: MouseEvent) => {
+    if (document.activeElement === fieldRef.current) e.preventDefault()
+  }
+  // Typing or a drag supersedes pending arrow keys, or the timer would commit a half-finished value. Leaving the
+  // knob already flushes them, so for typing this is a guard. (Not in edit(): for keys Radix calls onValueChange
+  // right after onValueCommit has started the timer.)
   const cancelKeyCommit = () => clearTimeout(keyTimer.current)
+  // A drag Radix sees as unchanged (a real 180 dragged to "no limit") fires no commit. This runs after Radix's own
+  // pointer-up, so after a normal commit there is nothing left to flush.
   const onSliderPointerUp = () => {
     pointerRef.current = false
     flush()
@@ -116,9 +122,7 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
       <div className="flex items-center gap-3">
         {/* px gives the knob's hover ring room — a scrolling parent also clips horizontally, which would
             otherwise cut the ring at the ends. Needs ≥ half-thumb (8px) + ring (4px).
-            onBlur: the thumb's own props aren't reachable through postxl.
-            onPointerUp: a drag Radix sees as unchanged (a real 180 dragged to "no limit") fires no commit. It runs
-            after Radix's own pointer-up, so after a normal commit there is nothing left to flush. */}
+            Blur and pointer-up sit here because the thumb's own props aren't reachable through postxl. */}
         <div
           ref={sliderBoxRef}
           className="min-w-0 flex-1 px-4"
