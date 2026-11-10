@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { SearchInput } from './SearchInput'
@@ -18,5 +19,23 @@ describe('SearchInput — clear button', () => {
     }
     fireEvent.click(clear)
     expect(onChange).toHaveBeenCalledWith('')
+  })
+})
+
+describe('SearchInput — input', () => {
+  it('hands the input to inputRef (the list focuses it on desktop)', () => {
+    const ref = createRef<HTMLInputElement>()
+    render(<SearchInput value="" onChange={vi.fn()} placeholder="Suchen…" inputRef={ref} />)
+    expect(ref.current).toBe(screen.getByPlaceholderText('Suchen…'))
+  })
+
+  it('takes an accessible name', () => {
+    render(<SearchInput value="" onChange={vi.fn()} placeholder="Suchen…" label="Rezepte suchen" />)
+    expect(screen.getByRole('textbox', { name: 'Rezepte suchen' })).toBe(screen.getByPlaceholderText('Suchen…'))
+  })
+
+  it('is 40 px tall on phones', () => {
+    render(<SearchInput value="" onChange={vi.fn()} placeholder="Suchen…" />)
+    expect(screen.getByPlaceholderText('Suchen…').classList.contains('phone:h-10')).toBe(true)
   })
 })
