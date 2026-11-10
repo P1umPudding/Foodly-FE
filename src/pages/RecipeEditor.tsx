@@ -51,8 +51,7 @@ export function RecipeEditor() {
 
   // Edits held back by an invalid count are lost when the editor is left: warn on tab close, toast on leaving.
   // Untouched old data (draft still the loaded one) and new recipes (never autosaved) have nothing to lose.
-  const unsavedInvalid =
-    recipeId !== null && sizeError !== null && draft !== savable && draft !== loadedDraft.current
+  const unsavedInvalid = recipeId !== null && sizeError !== null && draft !== savable && draft !== loadedDraft.current
   const unsavedInvalidRef = useRef(false)
   useEffect(() => {
     unsavedInvalidRef.current = unsavedInvalid
