@@ -57,6 +57,16 @@ describe('foodly.auth in REST mode', () => {
     expect(assets.peekTagIcon(vegan)).toBeUndefined()
   })
 
+  it('an expired session resets the caches too', async () => {
+    const { foodly, stubs, assets } = await signedInWithCaches()
+    vi.mocked(globalThis.fetch).mockImplementation(async () => jsonResponse(401, {}))
+
+    await expect(foodly.listTags()).rejects.toThrow()
+    expect(foodly.auth.session()).toBeNull()
+    expect(stubs.stubUserId()).toBeNull()
+    expect(assets.peekTagIcon(vegan)).toBeUndefined()
+  })
+
   it('signIn stores the session and reports it', async () => {
     const { foodly } = await load('rest')
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(

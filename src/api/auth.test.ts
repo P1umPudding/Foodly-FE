@@ -4,6 +4,8 @@ import { jwt, jsonResponse, seedSession, storedSession } from '../test/auth'
 type Auth = typeof import('./auth')
 
 let auth: Auth
+let unsubscribes: Array<() => void> = []
+const subscribe = (listener: Parameters<Auth['subscribe']>[0]) => unsubscribes.push(auth.subscribe(listener))
 
 beforeEach(async () => {
   vi.resetModules()
@@ -11,6 +13,8 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
+  unsubscribes.forEach((unsubscribe) => unsubscribe())
+  unsubscribes = []
   vi.restoreAllMocks()
   localStorage.clear()
   Reflect.deleteProperty(navigator, 'locks')
@@ -104,25 +108,39 @@ describe('getAccessToken', () => {
     expect(refreshCalls(spy)).toHaveLength(1)
   })
 
-  it('on a rate-limited refresh keeps a still-valid token and throws for an expired one', async () => {
+  it('on a failed refresh (429, network) keeps the session and sends the old token for the server to judge', async () => {
     const almost = jwt(10)
     seedSession({ accessToken: almost })
     const spy = mockRefresh(() => jsonResponse(429, { error: { code: 'TOO_MANY_REQUESTS', message: 'slow down' } }))
     await expect(auth.getAccessToken()).resolves.toBe(almost)
 
-    seedSession({ accessToken: jwt(-60) })
-    await expect(auth.getAccessToken()).rejects.toThrow('slow down')
+    // a skewed local clock can make a token the server still accepts look expired
+    const expired = jwt(-60)
+    seedSession({ accessToken: expired })
+    await expect(auth.getAccessToken()).resolves.toBe(expired)
     expect(auth.session()).not.toBeNull()
+
     // the failed refresh is not cached: the next call tries again
-    await expect(auth.getAccessToken()).rejects.toThrow('slow down')
+    spy.mockImplementation(() => Promise.reject(new TypeError('Failed to fetch')))
+    await expect(auth.getAccessToken()).resolves.toBe(expired)
     expect(refreshCalls(spy)).toHaveLength(3)
+  })
+
+  it("does not hand out another user's token signed in while the refresh ran", async () => {
+    seedSession({ accessToken: jwt(-60), refreshToken: 'r1', userId: 1 })
+    mockRefresh(() => {
+      seedSession({ refreshToken: 'r-other', userId: 2 })
+      return jsonResponse(200, { accessToken: jwt(900), refreshToken: 'r2' })
+    })
+    await expect(auth.getAccessToken()).resolves.toBeNull()
+    expect(storedSession()).toMatchObject({ refreshToken: 'r-other', userId: 2 })
   })
 
   it('ends the session as expired when the refresh token is rejected', async () => {
     seedSession({ accessToken: jwt(-60) })
     mockRefresh(() => jsonResponse(401, { error: { code: 'UNAUTHORIZED', message: 'expired' } }))
     const listener = vi.fn()
-    auth.subscribe(listener)
+    subscribe(listener)
     await expect(auth.getAccessToken()).resolves.toBeNull()
     expect(storedSession()).toBeNull()
     expect(listener).toHaveBeenCalledWith(null, { type: 'signed-out', reason: 'expired' })
@@ -189,6 +207,7 @@ describe('subscribe', () => {
   it('follows sign-in and sign-out in another tab', () => {
     const listener = vi.fn()
     const unsubscribe = auth.subscribe(listener)
+    unsubscribes.push(unsubscribe)
 
     seedSession({ userId: 2 })
     storageEvent()
@@ -207,7 +226,7 @@ describe('subscribe', () => {
   it('ignores other keys and token-only changes', () => {
     seedSession({ userId: 2, refreshToken: 'r1' })
     const listener = vi.fn()
-    auth.subscribe(listener)
+    subscribe(listener)
     window.dispatchEvent(new StorageEvent('storage', { key: 'foodly.stub.ratings' }))
     seedSession({ userId: 2, refreshToken: 'r2' })
     storageEvent()
@@ -224,7 +243,7 @@ describe('signIn / signUp / signOut', () => {
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(jsonResponse(200, { user, accessToken: token, refreshToken: 'r1' }))
     const listener = vi.fn()
-    auth.subscribe(listener)
+    subscribe(listener)
 
     await expect(auth.signIn('kim@example.com', 'password123')).resolves.toEqual({ userId: 7 })
     const [url, init] = spy.mock.calls[0]
@@ -258,7 +277,7 @@ describe('signIn / signUp / signOut', () => {
     seedSession({ accessToken: token, refreshToken: 'r1' })
     const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(204))
     const listener = vi.fn()
-    auth.subscribe(listener)
+    subscribe(listener)
 
     await auth.signOut()
     const [url, init] = spy.mock.calls[0]

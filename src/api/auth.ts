@@ -114,21 +114,20 @@ export async function getAccessToken(): Promise<string | null> {
   if (known !== undefined) return known
   const current = readStored()
   if (!current) return null
-  const expires = expiresAt(current.accessToken)
   try {
     return await refresh()
-  } catch (error) {
-    // Refresh failed (rate limit, network) but the token still works for a few seconds.
-    if (expires !== null && expires > Date.now()) return current.accessToken
-    throw error
+  } catch {
+    // Refresh failed (rate limit, network, timeout). Send the old token and let the server judge it: the
+    // local clock may be off, and a real expiry comes back as 401, which takes the retry path in rest.ts.
+    return current.accessToken
   }
 }
 
-// A request answered 401 with `sentAccessToken`. If the stored token changed meanwhile, someone already
-// refreshed, so only retry.
-export function refreshAfterUnauthorized(sentAccessToken: string): Promise<string | null> {
+// A request sent for `sentUserId` answered 401 with `sentAccessToken`. If the stored token changed
+// meanwhile, someone already refreshed, so only retry. Never retry as a different user.
+export function refreshAfterUnauthorized(sentAccessToken: string, sentUserId: UserId): Promise<string | null> {
   const current = readStored()
-  if (!current) return Promise.resolve(null)
+  if (current?.userId !== sentUserId) return Promise.resolve(null)
   if (current.accessToken !== sentAccessToken) return Promise.resolve(current.accessToken)
   return refresh()
 }
@@ -151,8 +150,9 @@ function refresh(): Promise<string | null> {
 }
 
 function refreshOnce(): Promise<string | null> {
-  const sent = readStored()?.refreshToken
-  if (sent === undefined) return Promise.resolve(null)
+  const stored = readStored()
+  if (!stored) return Promise.resolve(null)
+  const sent = { refreshToken: stored.refreshToken, userId: stored.userId }
   // jsdom and older browsers have no Web Locks; then only the in-tab single flight applies.
   const locks = 'locks' in navigator ? navigator.locks : undefined
   if (!locks) return refreshLocked(sent)
@@ -160,17 +160,20 @@ function refreshOnce(): Promise<string | null> {
   return locks.request(REFRESH_LOCK, () => refreshLocked(sent)).then((pending) => pending)
 }
 
-async function refreshLocked(sent: string): Promise<string | null> {
+// Someone else's token after a sign-in in another tab is no answer to this refresh.
+const tokenOf = (session: StoredSession | null, userId: UserId) =>
+  session?.userId === userId ? session.accessToken : null
+
+async function refreshLocked(sent: { refreshToken: string; userId: UserId }): Promise<string | null> {
   // Re-read after getting the lock: if another tab refreshed while we waited, use its token instead of
   // sending the now-invalid refresh token.
   const before = readStored()
-  if (!before) return null
-  if (before.refreshToken !== sent) return before.accessToken
+  if (before?.refreshToken !== sent.refreshToken) return tokenOf(before, sent.userId)
 
   const res = await fetch(apiUrl('/auth/refresh'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken: sent }),
+    body: JSON.stringify({ refreshToken: sent.refreshToken }),
     signal: AbortSignal.timeout(REFRESH_TIMEOUT_MS),
   })
 
@@ -178,7 +181,7 @@ async function refreshLocked(sent: string): Promise<string | null> {
     const { accessToken, refreshToken } = (await res.json()) as TokenPair
     // Signed out or in as someone else while the request ran: don't bring the old session back.
     const now = readStored()
-    if (now?.refreshToken !== sent) return now?.accessToken ?? null
+    if (now?.refreshToken !== sent.refreshToken) return tokenOf(now, sent.userId)
     writeStored({ accessToken, refreshToken, userId: now.userId })
     return accessToken
   }
@@ -186,7 +189,7 @@ async function refreshLocked(sent: string): Promise<string | null> {
   if (res.status === 401) {
     // A tab without Web Locks may have rotated the token first; then ours was just stale.
     const now = readStored()
-    if (now && now.refreshToken !== sent) return now.accessToken
+    if (now && now.refreshToken !== sent.refreshToken) return tokenOf(now, sent.userId)
     if (now) {
       writeStored(null)
       notify({ type: 'signed-out', reason: 'expired' })

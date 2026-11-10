@@ -13,7 +13,11 @@ function mockFetch(response: Partial<Response> & { jsonBody?: unknown }) {
   return vi.spyOn(globalThis, 'fetch').mockResolvedValue(res)
 }
 
+let unsubscribes: Array<() => void> = []
+
 afterEach(() => {
+  unsubscribes.forEach((unsubscribe) => unsubscribe())
+  unsubscribes = []
   vi.restoreAllMocks()
   localStorage.clear()
 })
@@ -119,14 +123,58 @@ describe('rest with a session', () => {
     seedSession()
     const spy = backend({ accepted: 'never', fresh: jwt(900) })
     const listener = vi.fn()
-    const unsubscribe = auth.subscribe(listener)
+    unsubscribes.push(auth.subscribe(listener))
 
     await expect(rest.get('/recipes/1')).rejects.toThrow('Unauthorized')
     expect(spy).toHaveBeenCalledTimes(3)
     expect(calls(spy).route).toHaveLength(2)
     expect(storedSession()).toBeNull()
     expect(listener).toHaveBeenCalledWith(null, { type: 'signed-out', reason: 'expired' })
-    unsubscribe()
+  })
+
+  it('keeps the session when the retry fails but another tab stored a new token meanwhile', async () => {
+    seedSession({ userId: 1 })
+    const otherTab = jwt(900)
+    const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      if (isRefresh(url)) return jsonResponse(200, { accessToken: jwt(900), refreshToken: 'r2' })
+      if (spy.mock.calls.length === 3) seedSession({ accessToken: otherTab, refreshToken: 'r3', userId: 1 })
+      return unauthorized()
+    })
+    await expect(rest.get('/recipes/1')).rejects.toThrow('Unauthorized')
+    expect(storedSession()?.accessToken).toBe(otherTab)
+  })
+
+  it('retries without a refresh when the stored token was already rotated', async () => {
+    const stale = seedSession({ userId: 1 }).accessToken
+    const rotated = jwt(900)
+    const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (_url, init) => {
+      if (bearerOf(init) === `Bearer ${rotated}`) return jsonResponse(200, { ok: true })
+      seedSession({ accessToken: rotated, refreshToken: 'r2', userId: 1 })
+      return unauthorized()
+    })
+    await expect(rest.get('/recipes/1')).resolves.toEqual({ ok: true })
+    expect(calls(spy)).toEqual({ refresh: 0, route: [`Bearer ${stale}`, `Bearer ${rotated}`] })
+  })
+
+  it('never retries as another user who signed in meanwhile', async () => {
+    seedSession({ userId: 1 })
+    const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+      seedSession({ accessToken: jwt(900), refreshToken: 'r-b', userId: 2 })
+      return unauthorized()
+    })
+    await expect(rest.put('/recipes/1', { name: 'x' })).rejects.toThrow('Unauthorized')
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(storedSession()?.userId).toBe(2)
+  })
+
+  it('a refresh that fails with a network error rejects the call and keeps the session', async () => {
+    seedSession()
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      if (isRefresh(url)) throw new TypeError('Failed to fetch')
+      return unauthorized()
+    })
+    await expect(rest.get('/recipes/1')).rejects.toThrow('Failed to fetch')
+    expect(storedSession()).not.toBeNull()
   })
 
   it('no retry when the refresh itself is rejected', async () => {

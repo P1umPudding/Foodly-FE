@@ -37,15 +37,17 @@ export async function bootstrap(): Promise<void> {
   socket.useMocks(mockRequest)
 }
 
-// Reads and writes go over REST; with VITE_MOCK=1 (opt-in; Skaile preview default)
-// everything goes through the socket's mock responder instead.
-//
-// `listUsers` stays mocked: the backend offers only typeahead /users/search
-// (no list-all, no /users/{id}), which can't back the bulk byId map that
-// CatalogProvider uses to resolve owner/editor names.
 // Mock mode is always signed in as the mock user (CURRENT_USER_ID in src/mocks, not imported because the
 // mocks load lazily). Constant, so session() keeps its identity like the REST snapshot.
 const MOCK_SESSION: AuthSession = { userId: 1 }
+
+// The next user must not inherit the last one's stub data or icons that failed with 401. Also on expiry
+// and on sign-out in another tab, which don't go through auth.signOut.
+function resetSessionCaches(): void {
+  resetTagIconCache()
+  setStubUser(null)
+}
+if (!USE_MOCKS) session.subscribe((_session, event) => event && resetSessionCaches())
 
 const auth = {
   session: (): AuthSession | null => (USE_MOCKS ? MOCK_SESSION : session.session()),
@@ -57,12 +59,17 @@ const auth = {
   // Caches go first, so listeners reacting to the sign-out already see them empty.
   signOut: (): Promise<void> => {
     if (USE_MOCKS) return Promise.resolve()
-    resetTagIconCache()
-    setStubUser(null)
+    resetSessionCaches()
     return session.signOut()
   },
 }
 
+// Reads and writes go over REST; with VITE_MOCK=1 (opt-in; Skaile preview default)
+// everything goes through the socket's mock responder instead.
+//
+// `listUsers` stays mocked: the backend offers only typeahead /users/search
+// (no list-all, no /users/{id}), which can't back the bulk byId map that
+// CatalogProvider uses to resolve owner/editor names.
 export const foodly = {
   auth,
   me: (): Promise<User> =>

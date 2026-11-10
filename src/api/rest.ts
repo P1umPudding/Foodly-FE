@@ -4,7 +4,7 @@
 // Mirrors SocketClient.request's contract: resolves the parsed body, throws Error
 // on failure, so useRequest/useRecipeSearch error handling is transport-agnostic.
 
-import { currentAccessToken, expireIfCurrent, getAccessToken, refreshAfterUnauthorized } from './auth'
+import { currentAccessToken, expireIfCurrent, getAccessToken, refreshAfterUnauthorized, session } from './auth'
 import { apiUrl, errorMessage } from './http'
 import type { PaginatedResponse } from './protocol'
 
@@ -18,12 +18,13 @@ const withBearer = (init: SendInit, token: string | null): RequestInit =>
 // The one path for all request kinds. /auth/* never refreshes or retries, so a rejected refresh can't loop.
 async function send(path: string, init: SendInit): Promise<Response> {
   if (path.startsWith('/auth/')) return fetch(apiUrl(path), init)
+  const sentFor = session()?.userId
   const known = currentAccessToken()
   const token = known !== undefined ? known : await getAccessToken()
   const res = await fetch(apiUrl(path), withBearer(init, token))
-  if (res.status !== 401 || token === null) return res
+  if (res.status !== 401 || token === null || sentFor === undefined) return res
 
-  const fresh = await refreshAfterUnauthorized(token)
+  const fresh = await refreshAfterUnauthorized(token, sentFor)
   if (fresh === null) return res
   const retried = await fetch(apiUrl(path), withBearer(init, fresh))
   // A fresh token that still gets 401 means the session is gone server-side.
