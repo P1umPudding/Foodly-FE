@@ -1,10 +1,11 @@
 import { Routes, Route, useParams } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
-import { AppShell } from './components/shell/AppShell'
+import { RedirectIfSignedIn, RequireAuth } from './components/shell/RequireAuth'
 import { RootRedirect } from './components/shell/RootRedirect'
 import { NotFound } from './pages/NotFound'
-import { CatalogProvider } from './catalog/CatalogProvider'
 import { TimerProvider } from './timers/TimerProvider'
+import { Login } from './pages/Login'
+import { Register } from './pages/Register'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
 import { RecipeEditor } from './pages/RecipeEditor'
@@ -21,22 +22,25 @@ export function RecipeEditorRoute() {
 export default function App() {
   return (
     <TooltipProvider>
-      {/* TimerProvider wraps the shell so timers survive navigation; the catalog sits above the shell
-          because the sidebar and profile menu need the categories and `me`. */}
+      {/* TimerProvider sits above the routes so timers survive navigation. The catalog and the shell live
+          inside RequireAuth: the sidebar and profile menu need the categories and `me`, which need a
+          session. */}
       <TimerProvider>
-        <CatalogProvider>
-          <AppShell>
-            <Routes>
-              <Route path="/" element={<RootRedirect />} />
-              <Route path="/recipes" element={<RecipeList />} />
-              {/* before /recipes/:id — otherwise "new" is parsed as an id */}
-              <Route path="/recipes/new" element={<RecipeEditorRoute />} />
-              <Route path="/recipes/:id" element={<RecipeDetail />} />
-              <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppShell>
-        </CatalogProvider>
+        <Routes>
+          <Route element={<RedirectIfSignedIn />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
+          <Route element={<RequireAuth />}>
+            <Route path="/" element={<RootRedirect />} />
+            <Route path="/recipes" element={<RecipeList />} />
+            {/* before /recipes/:id — otherwise "new" is parsed as an id */}
+            <Route path="/recipes/new" element={<RecipeEditorRoute />} />
+            <Route path="/recipes/:id" element={<RecipeDetail />} />
+            <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
       </TimerProvider>
     </TooltipProvider>
   )

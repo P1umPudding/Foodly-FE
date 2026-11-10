@@ -52,7 +52,8 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
 - `src/api/rest.ts` — the REST client (`fetch`). Base URL from `VITE_API_URL`,
   bearer token from the session in `src/api/auth.ts`; a 401 triggers one token
   refresh and one retry. On failure it throws `Error(message)` with the
-  backend's `error.message`, else `HTTP <status>`. `collectPages` drains small
+  backend's `error.message`, else `HTTP <status>` (sign-in and sign-up throw
+  `ApiError` with `status` and `code`). `collectPages` drains small
   cursor-paginated lists.
 - `src/api/auth.ts` — the session: access and refresh token in
   `localStorage["foodly.auth"]`, refreshed shortly before they expire, at most
