@@ -1,6 +1,6 @@
 import { useEffect, useState, type ComponentProps } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Link, MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Button, TooltipProvider, toast } from '@postxl/ui-components'
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditorRoute } from '../App'
@@ -48,6 +48,7 @@ function recipe(over: Partial<Recipe> = {}): Recipe {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  window.history.replaceState(null, '', '/')
   // Tests that leave a PUT unsettled would otherwise make a later read of recipe 5 wait.
   resetPendingSaves()
 })
@@ -255,13 +256,16 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
   })
 
   // Detail "Zurück" walks back through history (#132): Fertig must not leave the editor behind the detail page.
-  it('opened from the detail page, Fertig goes back to it, so Back then reaches the list', async () => {
-    server()
+  it('opened from the detail page, Fertig goes back to it after the save, so Back then reaches the list', async () => {
+    const { puts } = server()
     renderEditor(['/recipes', '/recipes/5', { pathname: '/recipes/5/edit', state: { fromDetail: true } }])
-    await waitFor(() => expect(titleInput().value).toBe('Pasta 5'))
+    await openAndRename('Pasta neu')
 
     fireEvent.click(fertig())
-    expect(await screen.findByText('Detail: Pasta 5')).toBeTruthy()
+    await waitFor(() => expect(puts).toHaveLength(1))
+    expect(screen.queryByText(/Detail:/)).toBeNull()
+    act(() => puts[0].resolve())
+    expect(await screen.findByText('Detail: Pasta neu')).toBeTruthy()
 
     fireEvent.click(screen.getByText('history-back'))
     expect(await screen.findByText('List')).toBeTruthy()
@@ -277,6 +281,32 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
     fireEvent.click(screen.getByText('history-back'))
     expect(await screen.findByText('List')).toBeTruthy()
+    expect(screen.queryByLabelText('Titel')).toBeNull()
+  })
+
+  it('a repeated Fertig while going back does not step back twice (browser history)', async () => {
+    server()
+    window.history.replaceState({ usr: { fromDetail: true }, key: 'edit', idx: 2 }, '', '/recipes/5/edit')
+    // In a browser the editor unmounts only on the later popstate; holding that back opens the window for a repeat.
+    const go = vi.spyOn(window.history, 'go').mockImplementation(() => {})
+    render(
+      <TooltipProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>,
+    )
+    await waitFor(() => expect(titleInput().value).toBe('Pasta 5'))
+
+    fireEvent.click(fertig())
+    await waitFor(() => expect(go).toHaveBeenCalledWith(-1))
+    fireEvent.click(fertig())
+    await act(async () => {})
+
+    expect(go).toHaveBeenCalledTimes(1)
+    expect(fertig().getAttribute('aria-busy')).toBe('true')
   })
 
   it('does not pull the user back when they left while Fertig was waiting', async () => {

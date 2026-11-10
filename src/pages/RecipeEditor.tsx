@@ -107,7 +107,8 @@ export function RecipeEditor() {
   }, [])
 
   // "Zurück" on the detail page walks back through history, so Fertig must not leave the editor behind the detail:
-  // otherwise Zurück -> editor -> Fertig -> detail -> Zurück would loop and never reach the list.
+  // otherwise Zurück -> editor -> Fertig -> detail -> Zurück would loop and never reach the list. `fromDetail` is
+  // set only by RecipeDetail's Bearbeiten link, so the entry right behind this one is that detail page.
   const openedFromDetail = (location.state as { fromDetail?: unknown } | null)?.fromDetail === true
   const leaveToDetail = () => {
     if (openedFromDetail) navigate(-1)
@@ -126,13 +127,16 @@ export function RecipeEditor() {
     try {
       await flush()
       // Left via another route meanwhile: don't pull the user back.
-      if (alive.current) leaveToDetail()
+      if (alive.current) {
+        leaveToDetail()
+        // Stay locked: going back unmounts only on popstate, and a repeat in between would step back twice.
+        return
+      }
     } catch {
       // The save status indicator already shows the error with a retry.
-    } finally {
-      finishingRef.current = false
-      if (alive.current) setFinishing(false)
     }
+    finishingRef.current = false
+    if (alive.current) setFinishing(false)
   }
 
   // While the POST runs the form is locked (nothing typed meanwhile could be lost), but the user may still leave
