@@ -8,8 +8,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-  buttonVariants,
-  cn,
+  Button,
 } from '@postxl/ui-components'
 import { describe, expect, it } from 'vitest'
 import { TriggerButton } from './TriggerButton'
@@ -32,7 +31,12 @@ describe('TriggerButton', () => {
       </TriggerButton>,
     )
     const button = screen.getByRole('button')
-    expect(button.className).toBe(cn(buttonVariants({ variant: 'outline', size: 'sm' })))
+    render(
+      <Button variant="outline" size="sm">
+        postxl
+      </Button>,
+    )
+    expect(button.className).toBe(screen.getByRole('button', { name: 'postxl' }).className)
     expect(classes(button)).toEqual(expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-ring/50']))
   })
 

@@ -184,14 +184,31 @@ describe('hand-written focus rings (#133)', () => {
     expect(FOCUS_RING.split(/\s+/)).toContain('focus-visible:ring-[3px]')
   })
 
+  // Any ring width behind a focus variant (also stacked, e.g. `focus-visible:dark:ring-2`); colours don't count.
   // Only focus widths: the Lightbox thumbnail's selection ring (`ring-2 ring-white`) is not a focus ring.
+  const focusWidths = (source: string) =>
+    (
+      source.match(/focus(?:-visible|-within)?:(?:[\w-]+:)*ring(?:-(?:\[[^\]]+\]|\d+(?:\.\d+)?))?(?=[\s'"`!]|$)/g) ?? []
+    ).filter((w) => !/ring-\[(?:#|color:|var\()/.test(w))
+
+  it.each([
+    ['focus-visible:ring-2', ['focus-visible:ring-2']],
+    ['focus-visible:ring', ['focus-visible:ring']],
+    ['focus-within:ring-2', ['focus-within:ring-2']],
+    ['focus-visible:dark:ring-[2px]', ['focus-visible:dark:ring-[2px]']],
+    ['focus:ring-1.5', ['focus:ring-1.5']],
+    ['focus-visible:ring-[3px] focus-visible:ring-ring ring-2 ring-white', ['focus-visible:ring-[3px]']],
+    ['focus-visible:ring-white/60 focus-visible:ring-sidebar-ring', []],
+  ])('the width finder reads %j', (source, expected) => {
+    expect(focusWidths(source)).toEqual(expected)
+  })
+
   it.each([
     ['Rating', ratingTsx, 'TriggerButton'],
     ['Sidebar', sidebarTsx, 'FOCUS_RING'],
     ['Lightbox', lightboxTsx, 'FOCUS_RING'],
   ])('%s takes the shared width', (_name, source, marker) => {
     expect(source).toContain(marker)
-    const widths = source.match(/focus(?:-visible)?:ring-(?:\[\d+px\]|\d+)(?![\w/-])/g) ?? []
-    expect(widths.filter((w) => w !== 'focus-visible:ring-[3px]')).toEqual([])
+    expect(focusWidths(source).filter((w) => w !== 'focus-visible:ring-[3px]')).toEqual([])
   })
 })

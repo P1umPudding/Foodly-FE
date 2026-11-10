@@ -9,6 +9,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  cn,
 } from '@postxl/ui-components'
 import { useMe } from '../../catalog/CatalogProvider'
 import { ThemeSubmenu } from '../ThemeMenu'
@@ -45,7 +46,8 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
           variant="ghost"
           size="icon"
           aria-label={LABEL}
-          className={variant === 'avatar' ? 'size-10 rounded-full' : navItemClass(false, true)}
+          // flex, not inline-flex: in the collapsed rail's block footer an inline box would gain the line's descender gap.
+          className={variant === 'avatar' ? 'size-10 rounded-full' : cn(navItemClass(false, true), 'flex')}
         >
           {avatar}
         </TriggerButton>
