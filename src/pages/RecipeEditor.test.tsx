@@ -95,6 +95,22 @@ describe('RecipeEditor · edit', () => {
     expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ name: 'Pasta bianca', time: '20 min' }))
   })
 
+  it('keeps the uploaded ref in the draft and saves only its id', async () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
+    vi.spyOn(foodly, 'uploadImage').mockResolvedValue({ id: 77, hash: 'h77', name: null })
+    const update = vi.spyOn(foodly, 'updateRecipe').mockResolvedValue(recipe())
+    view()
+
+    await waitFor(() => expect((screen.getByLabelText('Titel') as HTMLInputElement).value).toBe('Pasta'))
+    const file = new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })
+    fireEvent.change(screen.getByLabelText('Bild hochladen'), { target: { files: [file] } })
+
+    await waitFor(() => expect(screen.getByAltText('Hauptbild')).toBeTruthy())
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1), { timeout: 3000 })
+    expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ mainImage: 77, images: [] }))
+  })
+
   it('shows a retry when the save fails', async () => {
     params = { id: '5' }
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())

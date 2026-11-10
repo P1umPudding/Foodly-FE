@@ -6,6 +6,7 @@ import { RecipeListView } from './RecipeListView'
 import { categoryColors } from '../../lib/categoryColor'
 import type { StubFeature } from '../../api/stubs'
 import type { Recipe, UserCategory } from '../../api/protocol'
+import { ref } from '../../test/images'
 
 const imageStub = vi.hoisted(() => ({ stubbed: true }))
 vi.mock('../../api/stubs', async (importOriginal) => {
@@ -135,7 +136,7 @@ describe('image column', () => {
     imageStub.stubbed = true
   })
 
-  const withPhoto = [{ ...recipes[0], mainImage: 3 }, recipes[1]]
+  const withPhoto = [{ ...recipes[0], mainImage: ref(3) }, recipes[1]]
 
   it('without showImages no row has an image cell', () => {
     imageStub.stubbed = false

@@ -8,6 +8,7 @@ import { useRequest } from '../hooks/useRequest'
 import { SHELL_NAV_STATE } from '../components/shell/nav'
 import type { StubFeature } from '../api/stubs'
 import type { Recipe, UserCategory } from '../api/protocol'
+import { ref } from '../test/images'
 
 // Only the images stub is toggled (default stubbed, as in REST); the real
 // showsRecipeImages decides whether the page shows an image column.
@@ -484,7 +485,7 @@ describe('RecipeList (result count and empty states)', () => {
 })
 
 describe('RecipeList (rows)', () => {
-  const withPhoto = { ...rec(1, 'Pancakes'), mainImage: 3 }
+  const withPhoto = { ...rec(1, 'Pancakes'), mainImage: ref(3) }
 
   it('mock images: one photo gives every row an image cell', async () => {
     imageStub.stubbed = false
