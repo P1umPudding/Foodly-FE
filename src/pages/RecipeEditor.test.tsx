@@ -256,6 +256,7 @@ describe('RecipeEditor · portion count below 1', () => {
     fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Pasta bianca' } })
     await pastDebounce()
     expect(update).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Fertig' }).getAttribute('aria-disabled')).toBe('true')
 
     fireEvent.change(count(), { target: { value: '2' } })
     await pastDebounce()

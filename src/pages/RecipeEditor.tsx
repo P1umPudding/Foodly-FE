@@ -242,12 +242,13 @@ export function RecipeEditor() {
           ) : (
             <>
               <div className="flex items-center gap-3">
-                {/* A failed save of the last valid draft keeps its retry next to the hint. */}
-                {(sizeError === null || saveStatus.state === 'error') && (
+                {/* A save of the last valid draft still running, or failed with its retry, stays visible next to the hint. */}
+                {(sizeError === null || saveStatus.state === 'saving' || saveStatus.state === 'error') && (
                   <SaveStatusIndicator status={saveStatus} onRetry={retry} />
                 )}
-                {/* Polite, not an alert: it flips while typing; the field's own error text waits for blur. Always
-                    mounted, since screen readers often skip a live region that appears together with its text. */}
+                {/* Polite, not an alert: it flips while typing; the field's own error text waits for blur. Mounted
+                    with the footer, since screen readers often skip a live region that appears together with its
+                    text. (Old data invalid on load is the exception; there the field shows its error at once.) */}
                 <span role="status" className="flex items-center gap-2 text-destructive">
                   {sizeError !== null && (
                     <>
