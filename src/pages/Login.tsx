@@ -50,13 +50,14 @@ export function Login() {
     event.preventDefault()
     if (busy) return
     const found = validate(values)
-    // Rendered before focusing, so a screen reader announces the field together with its error.
-    flushSync(() => setErrors(found))
     const firstInvalid = (['email', 'password'] as const).find((f) => found[f])
     if (firstInvalid) {
+      // Rendered before focusing, so a screen reader announces the field together with its error.
+      flushSync(() => setErrors(found))
       refs[firstInvalid].current?.focus()
       return
     }
+    setErrors({})
     setBusy(true)
     setFailure(null)
     try {

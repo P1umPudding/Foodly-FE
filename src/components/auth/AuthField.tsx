@@ -36,7 +36,8 @@ export function AuthField({
   const [revealed, setRevealed] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
   // Focus moving to the show-password button in the same box is not leaving the field: no check mid-typing.
-  const blur = (e: FocusEvent<HTMLInputElement>) => {
+  // Tabbing on from the button does leave it, so the button checks too.
+  const blur = (e: FocusEvent<HTMLElement>) => {
     if (!boxRef.current?.contains(e.relatedTarget)) onBlur?.()
   }
   const note = error ?? hint
@@ -62,20 +63,24 @@ export function AuthField({
         />
         {revealable && (
           <Tooltip>
+            {/* span wrapper: postxl Button isn't forwardRef, so the tooltip can only anchor to a host
+                element. type="button": inside the form a plain button would submit it. */}
             <TooltipTrigger asChild>
-              {/* type="button": inside the form a plain button would submit it */}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute top-0 right-0 size-10"
-                aria-label={toggleLabel}
-                onClick={() => setRevealed((r) => !r)}
-                // Keeps the focus (and the caret) in the field, also where clicking a button doesn't focus it.
-                onMouseDown={(e) => e.preventDefault()}
-              >
-                {revealed ? <EyeOff /> : <Eye />}
-              </Button>
+              <span className="absolute top-0 right-0 inline-flex">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-10"
+                  aria-label={toggleLabel}
+                  onClick={() => setRevealed((r) => !r)}
+                  onBlur={blur}
+                  // Keeps the focus (and the caret) in the field, also where clicking a button doesn't focus it.
+                  onMouseDown={(e) => e.preventDefault()}
+                >
+                  {revealed ? <EyeOff /> : <Eye />}
+                </Button>
+              </span>
             </TooltipTrigger>
             <TooltipContent>{toggleLabel}</TooltipContent>
           </Tooltip>

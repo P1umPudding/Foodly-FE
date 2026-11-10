@@ -73,13 +73,14 @@ export function Register() {
     event.preventDefault()
     if (busy) return
     const found = validate(values)
-    // Rendered before focusing, so a screen reader announces the field together with its error.
-    flushSync(() => setErrors(found))
     const firstInvalid = FIELDS.find((f) => found[f])
     if (firstInvalid) {
+      // Rendered before focusing, so a screen reader announces the field together with its error.
+      flushSync(() => setErrors(found))
       refs[firstInvalid].current?.focus()
       return
     }
+    setErrors({})
     const email = values.email.trim()
     setBusy(true)
     setFailure(null)

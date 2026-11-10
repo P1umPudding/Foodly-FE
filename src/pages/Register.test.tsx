@@ -64,6 +64,15 @@ describe('Register', () => {
     expect(field('Passwort').getAttribute('aria-invalid')).toBeNull()
   })
 
+  it('checks the password when tabbing on from the show-password button', () => {
+    renderAuthRoutes('/register', { register: <Register /> })
+    const toggle = screen.getByRole('button', { name: 'Passwort anzeigen' })
+    fireEvent.change(field('Passwort'), { target: { value: 'short' } })
+    fireEvent.blur(field('Passwort'), { relatedTarget: toggle })
+    fireEvent.blur(toggle, { relatedTarget: screen.getByRole('button', { name: 'Konto anlegen' }) })
+    expect(field('Passwort').getAttribute('aria-invalid')).toBe('true')
+  })
+
   it('checks the password on leaving the field', () => {
     renderAuthRoutes('/register', { register: <Register /> })
     fireEvent.change(field('Passwort'), { target: { value: 'short' } })

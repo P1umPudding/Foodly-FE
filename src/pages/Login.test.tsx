@@ -124,6 +124,12 @@ describe('Login', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
+  it('shows the toggle tooltip on focus', async () => {
+    renderAuthRoutes('/login', { login: <Login /> })
+    act(() => screen.getByRole('button', { name: 'Passwort anzeigen' }).focus())
+    expect((await screen.findByRole('tooltip')).textContent).toBe('Passwort anzeigen')
+  })
+
   it('prefills the e-mail from ?email= and focuses the password', () => {
     renderAuthRoutes('/login?email=kim%40example.com', { login: <Login /> })
     expect(email().value).toBe('kim@example.com')
