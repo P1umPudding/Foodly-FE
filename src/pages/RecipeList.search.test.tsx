@@ -451,6 +451,16 @@ describe('RecipeList (result count and empty states)', () => {
     },
   )
 
+  it('says "Keine Treffer" for a client-side category filter over an empty result', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [])])
+
+    renderList('/recipes?group=0&cat=1')
+
+    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+  })
+
   it('says "Noch keine Rezepte" with a "Neues Rezept" link when no filter or search is active', async () => {
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([])

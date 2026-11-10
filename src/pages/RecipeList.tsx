@@ -133,6 +133,7 @@ export function RecipeList() {
 
   const pending = search.status === 'ready' && search.hasMore
   const allLoaded = search.status === 'ready' && !search.hasMore
+  const filterActive = isFilterActive(state)
 
   // Count of accessible recipes in no category — drives the "Ohne Kategorie" filter.
   const categorizedIds = new Set(categories.flatMap((c) => c.recipes))
@@ -383,7 +384,7 @@ export function RecipeList() {
 
             {/* Server-side facets already narrow the loaded set, so only the filter state can tell an empty
               collection from a filter without matches. */}
-            {allLoaded && visible.length === 0 && !isFilterActive(state) && (
+            {allLoaded && visible.length === 0 && !filterActive && (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
                 <UtensilsCrossed className="size-5 text-muted-foreground/40" />
                 <p className="text-muted-foreground">Noch keine Rezepte.</p>
@@ -393,7 +394,7 @@ export function RecipeList() {
               </div>
             )}
 
-            {allLoaded && visible.length === 0 && isFilterActive(state) && (
+            {allLoaded && visible.length === 0 && filterActive && (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
                 <SearchX className="size-5 text-muted-foreground/40" />
                 <p className="text-muted-foreground">Keine Treffer für die aktuellen Filter.</p>
