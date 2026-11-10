@@ -17,7 +17,9 @@ describe('useAutosave', () => {
     const save = vi.fn().mockResolvedValue(undefined)
     renderHook(() => useAutosave('a', save))
 
-    act(() => vi.advanceTimersByTime(2000))
+    act(() => {
+      vi.advanceTimersByTime(2000)
+    })
 
     expect(save).not.toHaveBeenCalled()
   })
@@ -27,11 +29,17 @@ describe('useAutosave', () => {
     const { rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
 
     rerender({ v: 'ab' })
-    act(() => vi.advanceTimersByTime(400))
+    act(() => {
+      vi.advanceTimersByTime(400)
+    })
     rerender({ v: 'abc' })
-    act(() => vi.advanceTimersByTime(400))
+    act(() => {
+      vi.advanceTimersByTime(400)
+    })
     rerender({ v: 'abcd' })
-    act(() => vi.advanceTimersByTime(800))
+    act(() => {
+      vi.advanceTimersByTime(800)
+    })
     await flushMicrotasks()
 
     expect(save).toHaveBeenCalledTimes(1)
@@ -44,7 +52,9 @@ describe('useAutosave', () => {
     const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800))
+    act(() => {
+      vi.advanceTimersByTime(800)
+    })
     expect(result.current.status.state).toBe('saving')
 
     await act(async () => {
@@ -63,12 +73,18 @@ describe('useAutosave', () => {
     const { rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800)) // first save is now in flight
+    act(() => {
+      vi.advanceTimersByTime(800) // first save is now in flight
+    })
 
     rerender({ v: 'c' })
-    act(() => vi.advanceTimersByTime(800))
+    act(() => {
+      vi.advanceTimersByTime(800)
+    })
     rerender({ v: 'd' })
-    act(() => vi.advanceTimersByTime(800))
+    act(() => {
+      vi.advanceTimersByTime(800)
+    })
     expect(save).toHaveBeenCalledTimes(1) // still single-flight
 
     await act(async () => {
@@ -125,7 +141,9 @@ describe('useAutosave', () => {
     const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(200)) // debounce still pending
+    act(() => {
+      vi.advanceTimersByTime(200) // debounce still pending
+    })
     unmount()
 
     expect(save).toHaveBeenCalledTimes(1)
@@ -141,7 +159,9 @@ describe('useAutosave', () => {
     const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800)) // save('b') now in flight
+    act(() => {
+      vi.advanceTimersByTime(800) // save('b') now in flight
+    })
 
     rerender({ v: 'c' }) // schedules a debounce timer that never gets to fire
     unmount() // must not drop 'c' — the in-flight save's finally() should pick it up
@@ -209,7 +229,9 @@ describe('useAutosave', () => {
     })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(200)) // debounce still pending, draft is dirty
+    act(() => {
+      vi.advanceTimersByTime(200) // debounce still pending, draft is dirty
+    })
     unmount() // fires the best-effort flush against the rejecting save
 
     await flushMicrotasks()
@@ -249,7 +271,9 @@ describe('useAutosave', () => {
     })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(2000))
+    act(() => {
+      vi.advanceTimersByTime(2000)
+    })
 
     expect(save).not.toHaveBeenCalled()
   })
@@ -340,7 +364,9 @@ describe('useAutosave · flush', () => {
     expect(t.state).toBe('resolved')
 
     // The debounce was consumed by the flush, so it must not save 'b' again.
-    act(() => vi.advanceTimersByTime(2000))
+    act(() => {
+      vi.advanceTimersByTime(2000)
+    })
     expect(save).toHaveBeenCalledTimes(1)
   })
 
@@ -351,7 +377,9 @@ describe('useAutosave · flush', () => {
     const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    act(() => {
+      vi.advanceTimersByTime(800) // 'b' in flight
+    })
     rerender({ v: 'c' }) // debounce pending behind the flight
 
     let t!: ReturnType<typeof track>
@@ -425,7 +453,9 @@ describe('useAutosave · flush', () => {
     const { result, rerender } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800))
+    act(() => {
+      vi.advanceTimersByTime(800)
+    })
     rerender({ v: 'c' })
     let t!: ReturnType<typeof track>
     act(() => {
@@ -555,7 +585,9 @@ describe('useAutosave · follow-up saves', () => {
     const { rerender, unmount } = renderHook(({ v }) => useAutosave(v, save), { initialProps: { v: 'a' } })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    act(() => {
+      vi.advanceTimersByTime(800) // 'b' in flight
+    })
     unmount()
 
     first.resolve()
@@ -574,7 +606,9 @@ describe('useAutosave · follow-up saves', () => {
     })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    act(() => {
+      vi.advanceTimersByTime(800) // 'b' in flight
+    })
     rerender({ v: 'c' })
     unmount()
     const t = track(onUnmountFlush.mock.calls[0][0])
@@ -599,7 +633,9 @@ describe('useAutosave · follow-up saves', () => {
     })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    act(() => {
+      vi.advanceTimersByTime(800) // 'b' in flight
+    })
     rerender({ v: 'c' })
     unmount()
     const t = track(onUnmountFlush.mock.calls[0][0])
@@ -630,7 +666,9 @@ describe('useAutosave · onUnmountFlush', () => {
     })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(200)) // debounce still pending
+    act(() => {
+      vi.advanceTimersByTime(200) // debounce still pending
+    })
     unmount()
 
     expect(save).toHaveBeenCalledWith('b')
@@ -654,7 +692,9 @@ describe('useAutosave · onUnmountFlush', () => {
     })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800)) // 'b' in flight
+    act(() => {
+      vi.advanceTimersByTime(800) // 'b' in flight
+    })
     rerender({ v: 'c' })
     unmount()
     const t = track(onUnmountFlush.mock.calls[0][0])
@@ -678,7 +718,9 @@ describe('useAutosave · onUnmountFlush', () => {
     })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800)) // 'b' in flight, nothing newer
+    act(() => {
+      vi.advanceTimersByTime(800) // 'b' in flight, nothing newer
+    })
     unmount()
     expect(onUnmountFlush).toHaveBeenCalledTimes(1)
     const t = track(onUnmountFlush.mock.calls[0][0])
@@ -730,7 +772,9 @@ describe('useAutosave · onUnmountFlush', () => {
     })
 
     rerender({ v: 'b' })
-    act(() => vi.advanceTimersByTime(800)) // 'b' in flight, nothing newer
+    act(() => {
+      vi.advanceTimersByTime(800) // 'b' in flight, nothing newer
+    })
     unmount()
     const t = track(onUnmountFlush.mock.calls[0][0])
 
