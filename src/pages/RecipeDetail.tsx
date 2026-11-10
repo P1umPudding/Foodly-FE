@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Clock, Copy, Info, ListChecks, Pencil } from 'lucide-react'
 import {
@@ -16,6 +16,7 @@ import {
 } from '@postxl/ui-components'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
+import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { canEdit, isOwner } from '../editor/access'
 import { useCurrentUserId, useRefreshCategories, useTags } from '../catalog/CatalogProvider'
 import { TagText } from '../components/TagText'
@@ -45,6 +46,7 @@ export function RecipeDetail() {
 
   const navigate = useNavigate()
   const refreshCategories = useRefreshCategories()
+  const hasAppHistory = useHasAppHistory()
   const [cloning, setCloning] = useState(false)
   const [cloneError, setCloneError] = useState<string | null>(null)
   // Bumped per clone attempt and on every recipe switch, so a late failure of an outdated clone is ignored.
@@ -96,6 +98,15 @@ export function RecipeDetail() {
       return next
     })
 
+  // Came from inside the app: go back like the browser does, so the list keeps its search, filters and scroll
+  // and no extra history entry piles up. Otherwise (direct link) the plain link to /recipes applies.
+  const onBack = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    if (!hasAppHistory()) return
+    e.preventDefault()
+    navigate(-1)
+  }
+
   // Timer labels are plain text, so tag tokens in the name become the tag's name.
   const plainName = recipe ? plainTagText(recipe.name, tags) : ''
   // All images of the recipe in viewer order: main first, then the gallery. Empty → no hero, no lightbox.
@@ -110,7 +121,9 @@ export function RecipeDetail() {
     <div className="mx-auto max-w-5xl px-6 py-10">
       <div className="mb-4 flex items-center justify-between gap-3">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/recipes">← Zurück</Link>
+          <Link to="/recipes" onClick={onBack}>
+            ← Zurück
+          </Link>
         </Button>
         {status === 'ready' && recipe && (
           <div className="flex items-center gap-2">
@@ -146,6 +159,7 @@ export function RecipeDetail() {
                 <TooltipTrigger asChild>
                   <Link
                     to={`/recipes/${recipe.id}/edit`}
+                    state={{ fromDetail: true }}
                     aria-label="Bearbeiten"
                     className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 phone:size-10')}
                   >

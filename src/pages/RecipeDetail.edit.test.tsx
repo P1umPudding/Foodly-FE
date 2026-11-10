@@ -6,6 +6,7 @@ import { foodly } from '../api'
 import type { Recipe } from '../api/protocol'
 
 vi.mock('react-router-dom', () => ({
+  useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),
   useNavigate: () => vi.fn(),
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a>,

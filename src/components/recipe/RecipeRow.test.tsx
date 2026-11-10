@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeRow } from './RecipeRow'
 import type { StubFeature } from '../../api/stubs'
-import type { Recipe, UserCategory } from '../../api/protocol'
+import type { Recipe, Tag, UserCategory } from '../../api/protocol'
 import { ref } from '../../test/images'
 
 // Only the images stub is toggled, so the real showsRecipeImages/recipeImageSrc decide what renders.
@@ -13,7 +13,8 @@ vi.mock('../../api/stubs', async (importOriginal) => {
   return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
 })
 
-vi.mock('../../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1, useTags: () => ({ byId: {} }) }))
+const tags = vi.hoisted(() => ({ byId: {} as Record<string, Tag> }))
+vi.mock('../../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1, useTags: () => tags }))
 
 const base: Recipe = {
   id: 1,
@@ -132,5 +133,24 @@ describe('category dots and tags', () => {
   it('no tags → no empty tag wrapper', () => {
     const { container } = renderRow(base, { compact: true })
     expect(container.querySelector('.phone\\:hidden')).toBeNull()
+  })
+})
+
+describe('RecipeRow · compact name tooltip', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    tags.byId = {}
+  })
+
+  it('shows tag names without braces when the name is truncated', async () => {
+    tags.byId = { Vegan: { id: 'Vegan', svg: null } }
+    // jsdom has no layout: fake an overflowing name so the tooltip attaches.
+    vi.spyOn(Element.prototype, 'scrollWidth', 'get').mockReturnValue(300)
+    vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(100)
+    renderRow({ ...base, name: 'Spaghetti {Vegan} Bolognese' }, { compact: true })
+
+    fireEvent.focus(screen.getByText('Spaghetti Vegan Bolognese'))
+    const tooltip = await screen.findByRole('tooltip')
+    expect(tooltip.textContent).toBe('Spaghetti Vegan Bolognese')
   })
 })

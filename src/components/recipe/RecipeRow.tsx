@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom'
 import { Clock, UtensilsCrossed } from 'lucide-react'
 import { Card, Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { TagText } from '../TagText'
+import { plainTagText } from '../tagTokens'
 import { TagChips } from './TagChips'
 import { RatingMeta } from './Stars'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import { CategoryDots } from './CategoryDots'
 import { visibleRating } from '../../api/views'
 import { recipeImageSrc, showsRecipeImages } from '../../api/assets'
-import { useCurrentUserId } from '../../catalog/CatalogProvider'
+import { useCurrentUserId, useTags } from '../../catalog/CatalogProvider'
 import type { Recipe, UserCategory } from '../../api/protocol'
 
 // The compact name truncates; only attach a tooltip when it actually overflows
@@ -17,6 +18,7 @@ import type { Recipe, UserCategory } from '../../api/protocol'
 function CompactName({ name }: { name: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const [truncated, setTruncated] = useState(false)
+  const { byId: tags } = useTags()
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -36,7 +38,8 @@ function CompactName({ name }: { name: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>{label}</TooltipTrigger>
-      <TooltipContent>{name}</TooltipContent>
+      {/* Plain text, not <TagText>: tag icons would sit on the tooltip's inverted background. */}
+      <TooltipContent>{plainTagText(name, tags)}</TooltipContent>
     </Tooltip>
   )
 }

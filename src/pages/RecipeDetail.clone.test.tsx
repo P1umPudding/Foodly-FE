@@ -7,6 +7,7 @@ import type { Recipe } from '../api/protocol'
 
 const navigate = vi.fn()
 vi.mock('react-router-dom', () => ({
+  useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),
   useNavigate: () => navigate,
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
