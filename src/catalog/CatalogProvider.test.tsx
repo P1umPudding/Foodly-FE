@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { CatalogProvider, useCategories, useIngredient, useMe, useRefreshCategories } from './CatalogProvider'
 
 vi.mock('../api', () => ({
@@ -133,8 +133,7 @@ it('keeps only the latest refresh when responses arrive out of order', async () 
   fireEvent.click(screen.getByText('refresh'))
   calls[2].resolve([category(1, [5, 6, 7])])
   await screen.findByText('cats:ready:1/3')
-  calls[1].resolve([category(1, [5, 6])])
-  await new Promise((r) => setTimeout(r, 0))
+  await act(async () => calls[1].resolve([category(1, [5, 6])]))
   screen.getByText('cats:ready:1/3')
 })
 
@@ -146,8 +145,7 @@ it('keeps the loaded categories when a refresh fails', async () => {
   await screen.findByText('cats:ready:1/1')
 
   fireEvent.click(screen.getByText('refresh'))
-  calls[1].reject(new Error('offline'))
-  await new Promise((r) => setTimeout(r, 0))
+  await act(async () => calls[1].reject(new Error('offline')))
   screen.getByText('cats:ready:1/1')
 })
 
@@ -185,4 +183,16 @@ it('shows an error with a retry instead of the app when /users/me fails', async 
   await screen.findByText(/me:Kolja/)
   expect(calls).toHaveBeenCalledTimes(2)
   expect(screen.queryByText('Konnte Profil nicht laden')).toBeNull()
+})
+
+it('keeps a successful first load when a refresh started meanwhile fails', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+
+  fireEvent.click(screen.getByText('refresh'))
+  await act(async () => calls[0].resolve([category(1, [5])]))
+  screen.getByText('cats:ready:1/1')
+  await act(async () => calls[1].reject(new Error('offline')))
+  screen.getByText('cats:ready:1/1')
 })

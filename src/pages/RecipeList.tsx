@@ -387,7 +387,7 @@ export function RecipeList() {
               <ListSkeleton
                 detail={state.detail}
                 count={4}
-                testId={awaitingCategories ? 'list-categories-skeleton' : undefined}
+                testId={search.status === 'ready' ? 'list-categories-skeleton' : undefined}
               />
             )}
 

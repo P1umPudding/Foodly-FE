@@ -34,10 +34,13 @@ function indexBy<T, K extends string | number>(rows: T[] | null, key: (t: T) => 
 // Shared by the shell's sidebar and the list, so it is fetched once at startup instead of on every list
 // mount. A recipe mutation that changes category membership (create, copy, delete) calls `refresh`, which
 // reloads in the background: the old list stays (status 'ready') until the new one arrives, and a failed
-// refresh keeps it. Only the first load and `retry` report 'loading'. The latest call wins.
+// refresh keeps it. Only the first load and `retry` report 'loading'. A response never replaces a newer one
+// that already arrived, and only the latest call's failure counts, so a refresh started during the first
+// load can't turn that load's success into an error.
 function useCategoriesState() {
   const [state, setState] = useState<CategoriesState>({ list: [], status: 'loading', error: null })
   const latest = useRef(0)
+  const applied = useRef(0)
 
   const load = useCallback((mode: 'initial' | 'background') => {
     const mine = ++latest.current
@@ -45,10 +48,12 @@ function useCategoriesState() {
     foodly
       .listCategories()
       .then((list) => {
-        if (mine === latest.current) setState({ list, status: 'ready', error: null })
+        if (mine <= applied.current) return
+        applied.current = mine
+        setState({ list, status: 'ready', error: null })
       })
       .catch((error: unknown) => {
-        if (mine !== latest.current) return
+        if (mine !== latest.current || mine <= applied.current) return
         setState((prev) =>
           mode === 'background' && prev.status === 'ready'
             ? prev
@@ -58,10 +63,11 @@ function useCategoriesState() {
   }, [])
 
   useEffect(() => {
+    const seen = applied
+    seen.current = latest.current // calls from before a (StrictMode) remount must not land
     load('initial')
-    const calls = latest
     return () => {
-      calls.current++ // drop whatever is still in flight
+      seen.current = Number.MAX_SAFE_INTEGER // unmounted: drop whatever is still in flight
     }
   }, [load])
 
@@ -94,9 +100,10 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   // Zugriff", per-user settings would be stored under no user), so the app waits for a retry instead.
   if (meReq.status === 'error') {
     return (
-      <div className="mx-auto max-w-md p-6">
+      <main className="mx-auto max-w-md p-6">
+        <h1 className="sr-only">Foodly</h1>
         <RetryAlert title="Konnte Profil nicht laden" message={meReq.error?.message} onRetry={meReq.reload} />
-      </div>
+      </main>
     )
   }
 
