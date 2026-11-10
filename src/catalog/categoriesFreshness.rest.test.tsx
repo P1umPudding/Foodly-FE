@@ -94,7 +94,9 @@ it('updates the sidebar count after deleting a recipe (REST)', async () => {
   )
 
   const categories = await screen.findByRole('navigation', { name: 'Kategorien' })
-  await within(categories).findByText('2')
+  const favouritesCount = async (count: string) =>
+    within(await within(categories).findByRole('link', { name: /Favoriten/ })).findByText(count)
+  await favouritesCount('2')
   await screen.findByRole('heading', { name: 'Linsensuppe' })
 
   fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
@@ -102,6 +104,6 @@ it('updates the sidebar count after deleting a recipe (REST)', async () => {
   fireEvent.click(dialog.getByRole('button', { name: 'Löschen' }))
 
   await screen.findByText('list page')
-  await within(categories).findByText('1')
+  await favouritesCount('1')
   expect(categoryRequests).toHaveLength(2)
 })

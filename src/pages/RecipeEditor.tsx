@@ -135,7 +135,7 @@ export function RecipeEditor() {
     setCreateError(null)
     try {
       const created = await foodly.createRecipe(toCreateRecipe(draft))
-      // No-op today (a new recipe can't be given a category yet); keeps the sidebar right once it can.
+      // A new recipe can't be given a category yet, so this changes nothing today; keeps the sidebar right once it can.
       refreshCategories()
       setRecipeId(created.id)
       navigate(`/recipes/${created.id}/edit`, { replace: true })
