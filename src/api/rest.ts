@@ -3,22 +3,12 @@
 // Mirrors SocketClient.request's contract: resolves the parsed body, throws Error
 // on failure, so useRequest/useRecipeSearch error handling is transport-agnostic.
 
+import { apiUrl, errorMessage } from './http'
 import type { PaginatedResponse } from './protocol'
 
-const BASE = import.meta.env.VITE_API_URL ?? '/api/v1'
+export { apiUrl }
+
 const DEV_TOKEN = 'dev-token'
-
-export const apiUrl = (path: string) => `${BASE}${path}`
-
-async function errorMessage(res: Response): Promise<string> {
-  try {
-    const parsed = (await res.json()) as { error?: { message?: string } }
-    if (parsed?.error?.message) return parsed.error.message
-  } catch {
-    // non-JSON error body — fall back to the status
-  }
-  return `HTTP ${res.status}`
-}
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await fetch(apiUrl(path), {
