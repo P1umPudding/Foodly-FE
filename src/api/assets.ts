@@ -100,6 +100,8 @@ export function imageName(image: ImageRef): string {
   return image.name ?? `Bild ${image.id}`
 }
 
+// Until the backend has a user list (B2), REST user data is the mock list, so its hashes 404 here; the
+// avatar then falls back to the initial.
 export function userImageSrc(hash: string): string {
   return USE_MOCKS ? publicUrl(`users/${hash}.svg`) : backendImageUrl(hash)
 }

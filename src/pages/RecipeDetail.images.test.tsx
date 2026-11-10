@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
 import { foodly } from '../api'
 import type { Recipe } from '../api/protocol'
@@ -48,6 +48,11 @@ function renderDetail() {
   )
 }
 
+beforeAll(() => {
+  // jsdom has no scrollTo; the Lightbox thumbnail strip scrolls on mount.
+  Element.prototype.scrollTo ??= vi.fn()
+})
+
 afterEach(() => vi.restoreAllMocks())
 
 describe('RecipeDetail images', () => {
@@ -62,7 +67,6 @@ describe('RecipeDetail images', () => {
   })
 
   it('a hero that fails to load shows the placeholder, which still opens the lightbox', async () => {
-    Element.prototype.scrollTo ??= vi.fn()
     renderDetail()
 
     await screen.findByRole('heading', { name: 'Pancakes' })

@@ -50,6 +50,13 @@ describe('RecipeImage', () => {
     expect(screen.getByTestId('image-fallback')).toBeTruthy()
   })
 
+  it('another instance of a failed image starts as the placeholder', () => {
+    const first = render(<RecipeImage image={image} alt="" />)
+    fireEvent.error(first.container.querySelector('img')!)
+    const { container } = render(<RecipeImage image={image} alt="" />)
+    expect(container.querySelector('img')).toBeNull()
+  })
+
   it('keeps the click handler on the placeholder', () => {
     const onClick = vi.fn()
     const { container } = render(<RecipeImage image={image} alt="" onClick={onClick} />)

@@ -14,7 +14,6 @@ import { ref } from './test/images'
 // that prefix. SKAILE_PREVIEW_BASE -> base -> BASE_URL is not covered here; it
 // was checked by hand with a preview build and the running Skaile preview.
 
-// Mock mode keeps the detail image, so its src can show the base-path prefix; REST shows none.
 vi.mock('./catalog/CatalogProvider', () => ({
   useRefreshCategories: () => () => {},
   useCurrentUserId: () => 1,
