@@ -8,7 +8,7 @@ import { DETAIL_OPTIONS, LAYOUT_OPTIONS, type ViewOption } from './listOptions'
 // Icon-only segmented toggle with a tooltip per option. Selection is styled via a
 // JS flag (not `data-[state=on]:`): the Tooltip wrapping each item overwrites
 // Radix's `data-state`, so a data-state variant would never match (same reason as
-// the access toggles in FilterControls).
+// the access toggles in filters/AccessFilter.tsx).
 function ViewToggle<T extends string>({
   value,
   onChange,
