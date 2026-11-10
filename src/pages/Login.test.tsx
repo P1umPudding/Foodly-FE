@@ -43,9 +43,12 @@ async function signIn(path: string, mail = 'kim@example.com', pw = 'password123'
 }
 
 describe('Login', () => {
-  it('sets the page title', () => {
-    renderAuthRoutes('/login', { login: <Login /> })
+  it('sets the page title and restores the previous one on leaving', () => {
+    document.title = 'Foodly'
+    const { unmount } = renderAuthRoutes('/login', { login: <Login /> })
     expect(document.title).toBe('Anmelden · Foodly')
+    unmount()
+    expect(document.title).toBe('Foodly')
   })
 
   it('goes to next after signing in', async () => {

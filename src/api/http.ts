@@ -12,6 +12,8 @@ export class ApiError extends Error {
     message: string,
     readonly status: number,
     readonly code?: string,
+    // false when the message is only the "HTTP <status>" fallback
+    readonly fromBody = false,
   ) {
     super(message)
     this.name = 'ApiError'
@@ -21,7 +23,7 @@ export class ApiError extends Error {
 export async function apiError(res: Response): Promise<ApiError> {
   try {
     const parsed = (await res.json()) as { error?: { code?: string; message?: string } }
-    if (parsed?.error?.message) return new ApiError(parsed.error.message, res.status, parsed.error.code)
+    if (parsed?.error?.message) return new ApiError(parsed.error.message, res.status, parsed.error.code, true)
   } catch {
     // non-JSON error body — fall back to the status
   }

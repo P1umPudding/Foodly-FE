@@ -1,6 +1,6 @@
 // Label above, help or error text below (the error replaces the help text), wired with aria-invalid and
 // aria-describedby. `revealable` adds the show-password button inside the field.
-import { useState, type ReactNode, type Ref } from 'react'
+import { useRef, useState, type FocusEvent, type ReactNode, type Ref } from 'react'
 import { Button, Input, Label, Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { Eye, EyeOff } from 'lucide-react'
 
@@ -34,6 +34,11 @@ export function AuthField({
   inputRef,
 }: Props) {
   const [revealed, setRevealed] = useState(false)
+  const boxRef = useRef<HTMLDivElement>(null)
+  // Focus moving to the show-password button in the same box is not leaving the field: no check mid-typing.
+  const blur = (e: FocusEvent<HTMLInputElement>) => {
+    if (!boxRef.current?.contains(e.relatedTarget)) onBlur?.()
+  }
   const note = error ?? hint
   const noteId = `${id}-note`
   const toggleLabel = revealed ? 'Passwort verbergen' : 'Passwort anzeigen'
@@ -41,14 +46,14 @@ export function AuthField({
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <div className="relative">
+      <div ref={boxRef} className="relative">
         <Input
           id={id}
           ref={inputRef}
           type={revealable && revealed ? 'text' : type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onBlur={onBlur}
+          onBlur={blur}
           autoComplete={autoComplete}
           autoFocus={autoFocus}
           aria-invalid={error ? true : undefined}
@@ -66,6 +71,8 @@ export function AuthField({
                 className="absolute top-0 right-0 size-10"
                 aria-label={toggleLabel}
                 onClick={() => setRevealed((r) => !r)}
+                // Keeps the focus (and the caret) in the field, also where clicking a button doesn't focus it.
+                onMouseDown={(e) => e.preventDefault()}
               >
                 {revealed ? <EyeOff /> : <Eye />}
               </Button>

@@ -318,6 +318,7 @@ describe('signIn / signUp / signOut', () => {
       status,
       code,
       message: 'nope',
+      fromBody: true,
     })
   })
 
@@ -327,7 +328,11 @@ describe('signIn / signUp / signOut', () => {
       status: 502,
       json: () => Promise.reject(new SyntaxError('not json')),
     } as unknown as Response)
-    await expect(auth.signIn('kim@example.com', 'pw')).rejects.toMatchObject({ status: 502, message: 'HTTP 502' })
+    await expect(auth.signIn('kim@example.com', 'pw')).rejects.toMatchObject({
+      status: 502,
+      message: 'HTTP 502',
+      fromBody: false,
+    })
   })
 
   it('signUp posts to /auth/register and signs in', async () => {

@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { Alert, AlertDescription, Button, Spinner } from '@postxl/ui-components'
 import { ApiError, foodly } from '../api'
@@ -28,10 +29,10 @@ function validate(values: Record<Field, string>): Errors {
 }
 
 // 422 carries the backend's validation message; the client checks should already prevent it. Without
-// a message in the body, ApiError falls back to "HTTP 422", which is no text for the user.
+// a message in the body, ApiError's "HTTP 422" is no text for the user.
 function errorText(err: unknown): string {
   if (err instanceof ApiError && err.status === 429) return TOO_MANY_ATTEMPTS
-  if (err instanceof ApiError && err.status === 422 && err.message !== `HTTP ${err.status}`) return err.message
+  if (err instanceof ApiError && err.status === 422 && err.fromBody) return err.message
   return GENERIC
 }
 
@@ -72,7 +73,8 @@ export function Register() {
     event.preventDefault()
     if (busy) return
     const found = validate(values)
-    setErrors(found)
+    // Rendered before focusing, so a screen reader announces the field together with its error.
+    flushSync(() => setErrors(found))
     const firstInvalid = FIELDS.find((f) => found[f])
     if (firstInvalid) {
       refs[firstInvalid].current?.focus()
@@ -86,13 +88,13 @@ export function Register() {
       // On success RedirectIfSignedIn leaves the page as soon as the session is stored.
       await foodly.auth.signUp(values.name.trim(), email, values.password)
     } catch (err) {
-      setBusy(false)
-      if (err instanceof ApiError && err.status === 409) {
-        setTakenEmail(email)
-        refs.email.current?.focus()
-      } else {
-        setFailure(errorText(err))
-      }
+      const taken = err instanceof ApiError && err.status === 409
+      flushSync(() => {
+        setBusy(false)
+        if (taken) setTakenEmail(email)
+        else setFailure(errorText(err))
+      })
+      if (taken) refs.email.current?.focus()
     }
   }
 

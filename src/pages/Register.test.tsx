@@ -56,6 +56,14 @@ describe('Register', () => {
     expect(document.activeElement).toBe(password)
   })
 
+  it('does not check the password when focus moves to the show-password button', () => {
+    renderAuthRoutes('/register', { register: <Register /> })
+    const toggle = screen.getByRole('button', { name: 'Passwort anzeigen' })
+    fireEvent.change(field('Passwort'), { target: { value: 'short' } })
+    fireEvent.blur(field('Passwort'), { relatedTarget: toggle })
+    expect(field('Passwort').getAttribute('aria-invalid')).toBeNull()
+  })
+
   it('checks the password on leaving the field', () => {
     renderAuthRoutes('/register', { register: <Register /> })
     fireEvent.change(field('Passwort'), { target: { value: 'short' } })

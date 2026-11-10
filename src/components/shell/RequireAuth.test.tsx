@@ -66,7 +66,7 @@ describe('RedirectIfSignedIn', () => {
     expect(await screen.findByText('app /recipes')).toBeTruthy()
   })
 
-  it('follows a valid next and ignores a foreign one', async () => {
+  it('follows a valid next', async () => {
     seedSession()
     spyCatalogs()
     renderAuthRoutes('/register?next=%2Frecipes%2F5')

@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { Alert, AlertDescription, Button, Spinner } from '@postxl/ui-components'
 import { ApiError, foodly } from '../api'
@@ -49,7 +50,8 @@ export function Login() {
     event.preventDefault()
     if (busy) return
     const found = validate(values)
-    setErrors(found)
+    // Rendered before focusing, so a screen reader announces the field together with its error.
+    flushSync(() => setErrors(found))
     const firstInvalid = (['email', 'password'] as const).find((f) => found[f])
     if (firstInvalid) {
       refs[firstInvalid].current?.focus()
@@ -61,14 +63,17 @@ export function Login() {
       // On success RedirectIfSignedIn leaves the page as soon as the session is stored.
       await foodly.auth.signIn(values.email.trim(), values.password)
     } catch (err) {
-      setBusy(false)
-      setFailure(errorText(err))
-      if (err instanceof ApiError && err.status === 401) {
-        setValues((v) => ({ ...v, password: '' }))
-        // Cleared by us, not by the user: leaving it empty must not show "Bitte gib dein Passwort ein."
-        setTouched((t) => ({ ...t, password: false }))
-        refs.password.current?.focus()
-      }
+      const unauthorized = err instanceof ApiError && err.status === 401
+      flushSync(() => {
+        setBusy(false)
+        setFailure(errorText(err))
+        if (unauthorized) {
+          setValues((v) => ({ ...v, password: '' }))
+          // Cleared by us, not by the user: leaving it empty must not show "Bitte gib dein Passwort ein."
+          setTouched((t) => ({ ...t, password: false }))
+        }
+      })
+      if (unauthorized) refs.password.current?.focus()
     }
   }
 

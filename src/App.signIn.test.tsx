@@ -23,7 +23,7 @@ afterEach(() => {
 })
 
 it('a signed-out visit to /recipes/5 ends on /recipes/5 after signing in', async () => {
-  vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
     jsonResponse(200, {
       user: { id: 1, name: 'Kim', profilePicture: null },
       accessToken: jwt(900),
