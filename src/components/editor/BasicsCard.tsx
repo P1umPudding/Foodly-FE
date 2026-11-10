@@ -4,7 +4,7 @@ import { RowActions } from './RowActions'
 import { SizeField } from './SizeField'
 import { TagPicker } from './TagPicker'
 import { TagText } from '../TagText'
-import { move, newNote } from '../../editor/draft'
+import { move, newNote, sizeNumberError } from '../../editor/draft'
 import type { Draft } from '../../editor/draft'
 
 // Minutes are plain number inputs: the existing DurationPicker is the timer's
@@ -83,7 +83,13 @@ export function BasicsCard({ draft, onChange }: { draft: Draft; onChange: (patch
           />
         </div>
 
-        <SizeField mode={draft.sizeMode} sizeNumber={draft.sizeNumber} sizeText={draft.sizeText} onChange={onChange} />
+        <SizeField
+          mode={draft.sizeMode}
+          sizeNumber={draft.sizeNumber}
+          sizeText={draft.sizeText}
+          error={sizeNumberError(draft)}
+          onChange={onChange}
+        />
 
         <div className="flex flex-col gap-2">
           <Label>Tags</Label>
