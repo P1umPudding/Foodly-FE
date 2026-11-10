@@ -3,16 +3,8 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
 import { foodly } from '../api'
-import type { StubFeature } from '../api/stubs'
 import type { Recipe } from '../api/protocol'
 import { ref } from '../test/images'
-
-// Only the images stub is toggled, so the real showsRecipeImages/recipeImageSrc decide what renders.
-const imageStub = vi.hoisted(() => ({ stubbed: true }))
-vi.mock('../api/stubs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../api/stubs')>()
-  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
-})
 
 vi.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default' }),
@@ -42,7 +34,7 @@ const recipe: Recipe = {
   sizeNumber: null,
   sizeText: null,
   notes: ['Warm servieren'],
-  mainImage: ref(3),
+  mainImage: { id: 3, hash: 'ab12', name: null },
   images: [ref(4), ref(5)],
   sections: [],
 }
@@ -59,22 +51,13 @@ function renderDetail() {
 afterEach(() => vi.restoreAllMocks())
 
 describe('RecipeDetail images', () => {
-  it('REST: a recipe with images looks like one without photos', async () => {
-    imageStub.stubbed = true
+  it('REST: serves hero and gallery from the backend by hash', async () => {
     const { container } = renderDetail()
 
     await screen.findByRole('heading', { name: 'Pancakes' })
     expect(screen.getByText('Warm servieren')).toBeTruthy()
-    expect(container.querySelector('img')).toBeNull()
-    expect(container.querySelector('.cursor-zoom-in')).toBeNull()
-  })
-
-  it('mock: shows the recipe images', async () => {
-    imageStub.stubbed = false
-    const { container } = renderDetail()
-
-    await screen.findByRole('heading', { name: 'Pancakes' })
     const srcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
-    expect(srcs.some((src) => src?.endsWith('/recipes/3.svg'))).toBe(true)
+    expect(srcs).toEqual(['/api/v1/images/ab12', '/api/v1/images/h4', '/api/v1/images/h5'])
+    expect(screen.getByAltText('Pancakes').getAttribute('src')).toBe('/api/v1/images/ab12')
   })
 })

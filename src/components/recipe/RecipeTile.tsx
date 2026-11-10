@@ -6,7 +6,7 @@ import { RoleCollabIndicator } from './RoleCollabIndicator'
 import { CategoryLine } from './CategoryDots'
 import { knowsUserNames } from '../../api'
 import { visibleRating } from '../../api/views'
-import { recipeImageSrc, showsRecipeImages } from '../../api/assets'
+import { recipeImageSrc } from '../../api/assets'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
 import type { Recipe, UserCategory } from '../../api/protocol'
 
@@ -17,7 +17,7 @@ export function RecipeTile({ recipe, categories = [] }: { recipe: Recipe; catego
   const me = useCurrentUserId()
   const owner = useUser(recipe.owner)
   const rating = visibleRating(recipe, me)
-  const photo = showsRecipeImages() ? recipe.mainImage : null
+  const photo = recipe.mainImage
   const ownerName = recipe.owner !== me && knowsUserNames() ? owner?.name : undefined
 
   return (

@@ -9,7 +9,7 @@ import { RatingMeta } from './Stars'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import { CategoryDots } from './CategoryDots'
 import { visibleRating } from '../../api/views'
-import { recipeImageSrc, showsRecipeImages } from '../../api/assets'
+import { recipeImageSrc } from '../../api/assets'
 import { useCurrentUserId, useTags } from '../../catalog/CatalogProvider'
 import type { Recipe, UserCategory } from '../../api/protocol'
 
@@ -109,7 +109,7 @@ export function RecipeRow({
             data-testid="recipe-thumb"
             className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted"
           >
-            {recipe.mainImage !== null && showsRecipeImages() ? (
+            {recipe.mainImage !== null ? (
               <img src={recipeImageSrc(recipe.mainImage)} alt="" className="h-full w-full object-cover" />
             ) : (
               <UtensilsCrossed className="h-5 w-5 text-muted-foreground/40" />
