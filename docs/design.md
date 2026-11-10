@@ -196,7 +196,7 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 | Do | Don't |
 |---|---|
 | Kategorie als Punkt/Chip/Linie (`bg-cat-dot`, `bg-cat-soft text-cat-ink`) | Kategoriefarbe als große Vollfläche oder Textfarbe auf Weiß |
-| Neutral für Bedienelemente (siehe Kommentar in `src/components/list/FilterControls.tsx`) | Lila oder eine andere Markenfarbe für Auswahl, Links, Fokus |
+| Neutral für Bedienelemente (siehe `SELECTED_CHIP` in `src/components/list/filters/DurationFilter.tsx`) | Lila oder eine andere Markenfarbe für Auswahl, Links, Fokus |
 | Eine `primary`-Aktion pro Ansicht, Rest `outline`/`ghost` | Mehrere schwarze Buttons nebeneinander |
 | `rounded-md` für Controls, `rounded-lg` für Karten | `rounded-xl`, `rounded-2xl`, Pillen-Buttons |
 | Haarlinie + `bg-card` | Schatten auf Karten |

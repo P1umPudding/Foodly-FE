@@ -385,10 +385,70 @@ describe('RecipeList (layout)', () => {
 
     // jsdom has no layout (and its width doesn't matter here), so the classes stand in for the geometry:
     // the FAB's top edge must stay below the last card when scrolled to the end (#74).
-    const wrapper = screen.getByRole('heading', { name: 'Rezepte' }).closest('.grid')
-    if (!wrapper) throw new Error('list wrapper (.grid) not found')
+    const wrapper = screen.getByTestId('recipe-list-page')
     expect(wrapper.classList.contains('pb-10')).toBe(true)
     expect(wrapper.classList.contains('phone:pb-[calc(6rem+env(safe-area-inset-bottom))]')).toBe(true)
+  })
+})
+
+describe('RecipeList (filter bar)', () => {
+  it('shows the five filter buttons in place of the filter rail; the list gets the full width', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+    await waitFor(() => screen.getByText('Pancakes'))
+
+    const bar = screen.getByRole('group', { name: 'Filter' })
+    for (const name of ['Kategorie', 'Tags', 'Zutaten', 'Arbeitszeit', 'Zugriff']) {
+      expect(within(bar).getByRole('button', { name })).toBeTruthy()
+    }
+    expect(document.querySelector('aside')).toBeNull()
+    // The phone filter sheet's trigger is gone too.
+    expect(screen.queryByRole('button', { name: 'Filter' })).toBeNull()
+    expect(screen.getByTestId('recipe-list-page').classList.contains('grid')).toBe(false)
+  })
+
+  it('offers "Alle Filter zurücksetzen" only while a filter or the search is active', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    const plain = renderList()
+    await waitFor(() => screen.getByText('Pancakes'))
+    expect(screen.queryByRole('button', { name: 'Alle Filter zurücksetzen' })).toBeNull()
+    plain.unmount()
+
+    for (const url of ['/recipes?group=0&tag=Vegan', '/recipes?group=0&q=pan']) {
+      const view = renderList(url)
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(screen.getByRole('button', { name: 'Alle Filter zurücksetzen' })).toBeTruthy()
+      view.unmount()
+    }
+  })
+
+  it('"Alle Filter zurücksetzen" clears every filter and the search, but keeps the sort', async () => {
+    const searchSpy = vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList('/recipes?group=0&sort=rating&tag=Vegan&dmax=30&q=pan')
+    await waitFor(() => screen.getByText('Pancakes'))
+    const bar = screen.getByRole('group', { name: 'Filter' })
+    expect(within(bar).getByRole('button', { name: 'Tags: Vegan' })).toBeTruthy()
+
+    // The page focused the search on open; start from the link, as a keyboard user would.
+    const reset = screen.getByRole('button', { name: 'Alle Filter zurücksetzen' })
+    reset.focus()
+    expect(document.activeElement).toBe(reset)
+    fireEvent.click(reset)
+
+    await waitFor(() => expect(searchSpy.mock.lastCall?.[0].filters).toBeUndefined())
+    expect(within(bar).getByRole('button', { name: 'Tags' })).toBeTruthy()
+    expect(within(bar).getByRole('button', { name: 'Arbeitszeit' })).toBeTruthy()
+    expect((screen.getByRole('textbox', { name: 'Rezepte suchen' }) as HTMLInputElement).value).toBe('')
+    expect(screen.queryByRole('button', { name: 'Alle Filter zurücksetzen' })).toBeNull()
+    // The link is gone, so focus moves to the search instead of falling to <body>.
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Rezepte suchen' }))
+    expect(screen.getByRole('button', { name: /^Sortieren: Bewertung/ })).toBeTruthy()
   })
 })
 

@@ -1,4 +1,4 @@
-import { DEFAULT_STATE, isFilterActive, activeFacetCount, clearedState } from './state'
+import { DEFAULT_STATE, isFilterActive, clearedState } from './state'
 
 describe('list state helpers', () => {
   it('DEFAULT_STATE has no active filters', () => {
@@ -12,15 +12,6 @@ describe('list state helpers', () => {
   })
   it('no work-time limit (slider at the far right) is not a filter (#119)', () => {
     expect(isFilterActive({ ...DEFAULT_STATE, durationMax: null })).toBe(false)
-    expect(activeFacetCount({ ...DEFAULT_STATE, durationMax: null })).toBe(0)
-    expect(activeFacetCount({ ...DEFAULT_STATE, durationMax: 180 })).toBe(1)
-  })
-  it('activeFacetCount counts panel facets, excludes search', () => {
-    expect(activeFacetCount(DEFAULT_STATE)).toBe(0)
-    expect(activeFacetCount({ ...DEFAULT_STATE, search: 'apf' })).toBe(0) // search not a panel facet
-    expect(
-      activeFacetCount({ ...DEFAULT_STATE, categories: [1, 2], tags: ['Vegan'], role: 'owner', durationMax: 30 }),
-    ).toBe(5)
   })
   it('sort/view changes are not "filters"', () => {
     expect(isFilterActive({ ...DEFAULT_STATE, sortKey: 'rating', detail: 'compact' })).toBe(false)
