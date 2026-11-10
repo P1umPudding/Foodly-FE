@@ -3,8 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 
 const failure = new Error('bootstrap failed')
 
-// Only `bootstrap` is mocked: importing the real `./api` would run its session
-// side effects.
+// Replaces all of `./api`: the real module runs session side effects on import.
 vi.mock('./api', () => ({ bootstrap: vi.fn(() => Promise.reject(failure)) }))
 vi.mock('./App', () => ({ default: () => <p>App rendered</p> }))
 
