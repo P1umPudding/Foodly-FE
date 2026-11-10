@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { seedSession } from '../test/auth'
 import { ref } from '../test/images'
 
 // STUBBED is fixed when stubs.ts loads, so each case sets the env first and
@@ -97,9 +98,11 @@ describe('tag icon loading', () => {
   afterEach(() => {
     URL.createObjectURL = originalCreateObjectURL
     vi.restoreAllMocks()
+    localStorage.clear()
   })
 
   it('loads the icon once with the bearer and caches the object URL', async () => {
+    const { accessToken } = seedSession()
     const spy = fetchBlob(new Blob(['<svg/>'], { type: 'image/svg+xml' }))
     const { loadTagIcon, peekTagIcon } = await loadAssets({ mock: false })
     expect(peekTagIcon(vegan)).toBeUndefined()
@@ -111,7 +114,7 @@ describe('tag icon loading', () => {
     expect(spy).toHaveBeenCalledTimes(1)
     const [url, init] = spy.mock.calls[0]
     expect(String(url)).toMatch(/\/tags\/vegan\/icon$/)
-    expect((init?.headers as Record<string, string>).Authorization).toMatch(/^Bearer /)
+    expect((init?.headers as Record<string, string>).Authorization).toBe(`Bearer ${accessToken}`)
   })
 
   it('caches a failed load as null without refetching', async () => {

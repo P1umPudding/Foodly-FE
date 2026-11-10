@@ -65,8 +65,16 @@ There's no server code and no secrets in the repo.
   - `index.ts` — the typed API surface (`foodly.*`). Each method except
     `listUsers` has a REST and a mock branch, chosen by the build-time
     `VITE_MOCK`.
-  - `rest.ts` — REST transport (`fetch`): base URL, static dev bearer token,
-    error contract (throws `Error(message)`), `collectPages` for cursor pages.
+  - `rest.ts` — REST transport (`fetch`): base URL, bearer from the session
+    (`auth.ts`) with one refresh + one retry on 401 (none for `/auth/*`), error
+    contract (throws `Error(message)`), `collectPages` for cursor pages.
+  - `auth.ts` — the session: the only code that reads/writes the tokens
+    (`localStorage["foodly.auth"]`) and sends `/auth/*`. `getAccessToken`
+    refreshes 30 s before `exp`; at most one refresh at a time, across tabs via
+    `navigator.locks` (the backend rotates refresh tokens and rate-limits
+    refresh). `subscribe` reports changes and `signed-out` (`expired` |
+    `signed-out`), also from other tabs. Components use `foodly.auth.*`; in
+    mock mode it is always signed in as user 1.
   - `protocol.ts` — wire types, 1:1 with the backend. `adapters.ts` — shape
     fixes at the API boundary (e.g. `previewToRecipe`). `views.ts` — derived
     values as pure functions. `assets.ts` — image/icon URLs; tag icons load as cached blobs
