@@ -40,7 +40,8 @@ const searchedLimits = () => search.mock.calls.slice(1).map(([q]) => q.filters?.
 beforeEach(() => {
   localStorage.clear()
   stubSliderPointer()
-  search = vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+  // Never settles: only the calls matter, and a settling search would update the harness outside act().
+  search = vi.spyOn(foodly, 'searchRecipes').mockReturnValue(new Promise(() => {}))
   render(
     <MemoryRouter initialEntries={['/other', '/recipes?dmax=60']} initialIndex={1}>
       <Harness />

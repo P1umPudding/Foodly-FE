@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type FocusEvent } from 'react'
 import { Button, NumberInput, Slider, ToggleGroup } from '@postxl/ui-components'
 import { X } from 'lucide-react'
 import type { ListState } from '../../../list/state'
@@ -37,11 +37,11 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
   const sliderBoxRef = useRef<HTMLDivElement>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   if (draft && draft.base !== value) setDraft(null)
-  const shown = draft && draft.base === value ? draft.v : value
+  const shown = draft ? draft.v : value
 
   // Deferred commits (timer, blur) run outside render, so they read the latest props through refs. valueRef is
-  // also moved ahead by commit(): an edit in the same event (field blur → knob grab) must start from the
-  // committed value, not the not-yet-rendered old one.
+  // also moved ahead by commit(), so an edit right after a commit, before the re-render, starts from the
+  // committed value. (With react-router's v7_startTransition the re-render could lag further; not enabled.)
   const valueRef = useRef(value)
   const setRef = useRef(set)
   const pendingRef = useRef<Draft | null>(null)
@@ -96,13 +96,20 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
     else thumb?.removeAttribute('aria-valuetext')
   }, [shown])
   const presetActive = (DURATION_PRESETS as readonly number[]).includes(shown ?? -1)
+  // Commit only when focus leaves the whole filter: moving on to a preset, Zurücksetzen or the knob is still the
+  // same edit, and committing on the way would leave a half-finished value in the history.
+  const onFilterBlur = (e: FocusEvent<HTMLDivElement>) => {
+    if (!(e.relatedTarget instanceof Node && e.currentTarget.contains(e.relatedTarget))) flush()
+  }
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" onBlur={onFilterBlur}>
       <div className="flex items-center gap-3">
         {/* px gives the knob's hover ring room — a scrolling parent also clips horizontally, which would
-            otherwise cut the ring at the ends. Needs ≥ half-thumb (8px) + ring (4px). */}
-        {/* onBlur here: the thumb's own props aren't reachable through postxl. */}
-        <div ref={sliderBoxRef} className="min-w-0 flex-1 px-4" onBlur={flush}>
+            otherwise cut the ring at the ends. Needs ≥ half-thumb (8px) + ring (4px).
+            onPointerUp: a drag Radix sees as unchanged (a real 180 dragged to "no limit") fires no commit. It runs
+            after Radix's own pointer-up, so after a normal commit there is nothing left to flush. */}
+        <div ref={sliderBoxRef} className="min-w-0 flex-1 px-4" onPointerUp={flush} onPointerCancel={flush}>
           <Slider
             aria-label="Maximale Arbeitszeit"
             // Neutral (not the brand purple): the built-in gray variant for the range, knob border + hover
@@ -137,7 +144,6 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
           value={shown ?? undefined}
           // Unclamped while typing (typing 200 on the way to 20 is fine); clamped on commit.
           onChange={(v) => edit(v === undefined ? null : v)}
-          onBlur={flush}
           onEnter={flush}
           min={0}
           max={DURATION_MAX}

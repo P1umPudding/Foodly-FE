@@ -225,6 +225,46 @@ describe('DurationFilter', () => {
     expect(set).toHaveBeenCalledWith({ durationMax: 55 })
   })
 
+  it('typing, then picking a preset is one edit: one history entry, with the preset', () => {
+    const set = vi.fn()
+    render(<Stateful initial={60} set={set} />)
+    fireEvent.change(field(), { target: { value: '45' } })
+    fireEvent.blur(field(), { relatedTarget: preset(30) })
+    fireEvent.click(preset(30))
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set).toHaveBeenCalledWith({ durationMax: 30 })
+  })
+
+  it('typing, then dragging the knob is one edit, committed on release', () => {
+    const set = vi.fn()
+    render(<Stateful initial={60} set={set} />)
+    fireEvent.change(field(), { target: { value: '45' } })
+    fireEvent.blur(field(), { relatedTarget: slider() })
+    drag(sliderRoot(), 100, 90)
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set).toHaveBeenCalledWith({ durationMax: 90 })
+  })
+
+  it('focus leaving the filter commits; moving within it does not', () => {
+    vi.useFakeTimers()
+    const set = vi.fn()
+    render(<Stateful initial={60} set={set} />)
+    fireEvent.change(field(), { target: { value: '45' } })
+    fireEvent.blur(field(), { relatedTarget: preset(15) })
+    expect(set).not.toHaveBeenCalled()
+    fireEvent.blur(preset(15), { relatedTarget: document.body })
+    expect(set).toHaveBeenCalledWith({ durationMax: 45 })
+  })
+
+  it('dragging a real 180 to the far right clears the limit (Radix sees no change)', () => {
+    const set = vi.fn()
+    render(<Stateful initial={180} set={set} />)
+    drag(sliderRoot(), 150, 180)
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set).toHaveBeenCalledWith({ durationMax: null })
+    expect(field().value).toBe('')
+  })
+
   it('a change from outside drops a pending edit', () => {
     vi.useFakeTimers()
     const set = vi.fn()

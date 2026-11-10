@@ -4,6 +4,7 @@ import { vi } from 'vitest'
 // jsdom has no layout and no pointer capture, which a Radix slider drag needs. A 180-px-wide box makes clientX
 // equal the slider value for a 0–180 slider.
 export function stubSliderPointer() {
+  // Left in place (not restorable like the spy): jsdom lacks these entirely, and Vitest isolates each file.
   Element.prototype.setPointerCapture ??= () => {}
   Element.prototype.releasePointerCapture ??= () => {}
   Element.prototype.hasPointerCapture ??= () => true
