@@ -37,8 +37,8 @@ export type Recipe = {
   sizeNumber: number | null // 3                       null
   sizeText: string | null //   {Portionen}             28 cm {Springform}
   notes: string[]
-  mainImage: ImageId | null // Hauptbild (Hero) für Liste-Thumbnail / Detail-Kopf; null = keins
-  images: ImageId[] // weitere Bilder (Galerie), ohne das Hauptbild
+  mainImage: ImageRef | null // Hauptbild (Hero) für Liste-Thumbnail / Detail-Kopf; null = keins
+  images: ImageRef[] // weitere Bilder (Galerie), ohne das Hauptbild
 
   sections: Section[]
 }
@@ -92,7 +92,8 @@ export type Tag = {
 // };
 
 export type ImageId = number
-export type Image = {
+// Reads expand images to refs since Backend #19; write bodies (CreateRecipe) still take bare ids.
+export type ImageRef = {
   id: ImageId
   hash: Hash
   name: string | null
@@ -155,6 +156,7 @@ export type CreateRecipe = {
   sizeNumber: number | null
   sizeText: string | null
   notes: string[]
+  // Bare ids, unlike the expanded ImageRefs on reads.
   mainImage: ImageId | null
   images: ImageId[]
   sections: CreateSection[]
@@ -177,4 +179,4 @@ export type CreateRecipeIngredient = {
   unit: string | null
 }
 
-export type UploadedImage = { id: ImageId; hash: Hash; name: string | null }
+export type UploadedImage = ImageRef

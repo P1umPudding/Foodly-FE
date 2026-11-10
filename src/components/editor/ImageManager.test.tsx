@@ -3,7 +3,9 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImageManager } from './ImageManager'
 import { foodly } from '../../api'
+import type { ImageRef } from '../../api/protocol'
 import type { StubFeature } from '../../api/stubs'
+import { ref } from '../../test/images'
 
 const imageStub = vi.hoisted(() => ({ stubbed: true }))
 vi.mock('../../api/stubs', async (importOriginal) => {
@@ -15,7 +17,7 @@ afterEach(() => vi.restoreAllMocks())
 
 const file = () => new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })
 
-function setup(onChange = vi.fn(), mainImage: number | null = 1, images: number[] = [2]) {
+function setup(onChange = vi.fn(), mainImage: ImageRef | null = ref(1), images: ImageRef[] = [ref(2)]) {
   render(
     <TooltipProvider>
       <ImageManager mainImage={mainImage} images={images} onChange={onChange} />
@@ -33,23 +35,24 @@ describe('ImageManager', () => {
     expect(screen.getByAltText('Hauptbild').getAttribute('src')).toMatch(/\/recipes\/placeholder\.svg$/)
   })
 
-  it('uploads a file and appends it to the gallery', async () => {
-    vi.spyOn(foodly, 'uploadImage').mockResolvedValue({ id: 9, hash: 'h', name: null })
+  it('uploads a file and appends the returned ref to the gallery', async () => {
+    const uploaded = { id: 9, hash: 'h9', name: 'Neu' }
+    vi.spyOn(foodly, 'uploadImage').mockResolvedValue(uploaded)
     const onChange = setup()
 
     fireEvent.change(screen.getByLabelText('Bild hochladen'), { target: { files: [file()] } })
 
     await waitFor(() => expect(foodly.uploadImage).toHaveBeenCalled())
-    await waitFor(() => expect(onChange).toHaveBeenCalledWith({ images: [2, 9] }))
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith({ images: [ref(2), uploaded] }))
   })
 
   it('makes the first image the main one when there is none', async () => {
-    vi.spyOn(foodly, 'uploadImage').mockResolvedValue({ id: 9, hash: 'h', name: null })
+    vi.spyOn(foodly, 'uploadImage').mockResolvedValue(ref(9))
     const onChange = setup(vi.fn(), null, [])
 
     fireEvent.change(screen.getByLabelText('Bild hochladen'), { target: { files: [file()] } })
 
-    await waitFor(() => expect(onChange).toHaveBeenCalledWith({ mainImage: 9, images: [] }))
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith({ mainImage: ref(9), images: [] }))
   })
 
   it('promotes a gallery image to main and demotes the old main', () => {
@@ -57,7 +60,7 @@ describe('ImageManager', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Als Hauptbild' }))
 
-    expect(onChange).toHaveBeenCalledWith({ mainImage: 2, images: [1] })
+    expect(onChange).toHaveBeenCalledWith({ mainImage: ref(2), images: [ref(1)] })
   })
 
   it('removes the main image', () => {
@@ -66,5 +69,19 @@ describe('ImageManager', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Hauptbild entfernen' }))
 
     expect(onChange).toHaveBeenCalledWith({ mainImage: null })
+  })
+
+  // Matching by id, not object identity: a fresh copy of the same ref must still be removed.
+  it('removes a gallery image by id', () => {
+    const onChange = vi.fn()
+    render(
+      <TooltipProvider>
+        <ImageManager mainImage={null} images={[ref(2), ref(3)]} onChange={onChange} />
+      </TooltipProvider>,
+    )
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Bild entfernen' })[0])
+
+    expect(onChange).toHaveBeenCalledWith({ images: [ref(3)] })
   })
 })
