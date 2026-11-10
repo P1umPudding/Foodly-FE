@@ -280,7 +280,7 @@ describe('signIn / signUp / signOut', () => {
     expect(String(url)).toMatch(/\/auth\/login$/)
     expect(init?.body).toBe(JSON.stringify({ email: 'kim@example.com', password: 'password123' }))
     expect(new Headers(init?.headers).get('Authorization')).toBeNull()
-    expect(storedSession()).toEqual({ accessToken: token, refreshToken: 'r1', userId: 7 })
+    expect(storedSession()).toEqual({ accessToken: token, refreshToken: 'r1', userId: 7, email: 'kim@example.com' })
     expect(listener).toHaveBeenCalledWith({ userId: 7 }, undefined)
   })
 
@@ -366,5 +366,54 @@ describe('signIn / signUp / signOut', () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'))
     await expect(auth.signOut()).resolves.toBeUndefined()
     expect(storedSession()).toBeNull()
+  })
+})
+
+describe('sessionEnd', () => {
+  const storageEvent = () => window.dispatchEvent(new StorageEvent('storage', { key: 'foodly.auth' }))
+  const user = { id: 7, name: 'Kim', profilePicture: null }
+
+  it('keeps the e-mail across a refresh', async () => {
+    seedSession({ accessToken: jwt(-60), refreshToken: 'r1', email: 'kim@example.com' })
+    mockRefresh(() => jsonResponse(200, { accessToken: jwt(900), refreshToken: 'r2' }))
+    await auth.getAccessToken()
+    expect(storedSession()).toMatchObject({ refreshToken: 'r2', email: 'kim@example.com' })
+  })
+
+  it('is expired with the e-mail when the refresh token is rejected', async () => {
+    seedSession({ accessToken: jwt(-60), email: 'kim@example.com' })
+    mockRefresh(() => jsonResponse(401, {}))
+    await auth.getAccessToken()
+    expect(auth.sessionEnd()).toEqual({ reason: 'expired', email: 'kim@example.com' })
+  })
+
+  it('is expired when a request is still rejected after the refresh', () => {
+    const { accessToken } = seedSession({ email: 'kim@example.com' })
+    auth.expireIfCurrent(accessToken)
+    expect(auth.sessionEnd()).toEqual({ reason: 'expired', email: 'kim@example.com' })
+  })
+
+  it('is signed-out after signOut and cleared by the next sign-in', async () => {
+    seedSession()
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(jsonResponse(204))
+      .mockResolvedValue(jsonResponse(200, { user, accessToken: jwt(900), refreshToken: 'r1' }))
+    await auth.signOut()
+    expect(auth.sessionEnd()).toEqual({ reason: 'signed-out' })
+    await auth.signIn('kim@example.com', 'password123')
+    expect(auth.sessionEnd()).toBeNull()
+  })
+
+  it('stays empty for a sign-out in another tab and clears on a sign-in there', async () => {
+    seedSession()
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(204))
+    subscribe(() => {})
+    await auth.signOut()
+    seedSession({ userId: 2 })
+    storageEvent()
+    expect(auth.sessionEnd()).toBeNull()
+    localStorage.removeItem('foodly.auth')
+    storageEvent()
+    expect(auth.sessionEnd()).toBeNull()
   })
 })

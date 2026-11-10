@@ -14,9 +14,11 @@ const EXPIRY_MARGIN_MS = 30_000
 // A hanging refresh would otherwise hold the cross-tab lock forever.
 const REFRESH_TIMEOUT_MS = 15_000
 
-type StoredSession = TokenPair & { userId: UserId }
+// The e-mail is only kept to prefill the sign-in page after an expiry; the backend's User has none.
+type StoredSession = TokenPair & { userId: UserId; email?: string }
 export type AuthSession = { userId: UserId }
 export type SignedOutReason = 'expired' | 'signed-out'
+export type SessionEnd = { reason: SignedOutReason; email?: string }
 export type AuthEvent = { type: 'signed-out'; reason: SignedOutReason }
 export type AuthListener = (session: AuthSession | null, event?: AuthEvent) => void
 
@@ -30,7 +32,10 @@ function readStored(): StoredSession | null {
       typeof value.refreshToken === 'string' &&
       typeof value.userId === 'number'
     ) {
-      return { accessToken: value.accessToken, refreshToken: value.refreshToken, userId: value.userId }
+      const { accessToken, refreshToken, userId, email } = value
+      return typeof email === 'string'
+        ? { accessToken, refreshToken, userId, email }
+        : { accessToken, refreshToken, userId }
     }
   } catch {
     // unreadable or corrupt storage counts as signed out
@@ -53,11 +58,27 @@ export function session(): AuthSession | null {
   return snapshot
 }
 
+// How this tab's last session ended, for the guard's redirect target and the sign-in page's hint. Set
+// before every notify, so a render triggered by it already sees the value. A sign-out in another tab
+// leaves it null: its reason isn't stored.
+let ended: SessionEnd | null = null
+
+export function sessionEnd(): SessionEnd | null {
+  return session() ? null : ended
+}
+
+function endSession(end: SessionEnd): void {
+  writeStored(null)
+  ended = end
+  notify({ type: 'signed-out', reason: end.reason })
+}
+
 const listeners = new Set<AuthListener>()
 let lastNotified: AuthSession | null = null
 
 function notify(event?: AuthEvent): void {
   const current = session()
+  if (current) ended = null
   if (!event && current === lastNotified) return
   lastNotified = current
   listeners.forEach((listener) => listener(current, event))
@@ -147,9 +168,9 @@ export function refreshAfterUnauthorized(
 
 // Compare-and-clear: another tab may have refreshed or signed in someone else since `accessToken` was sent.
 export function expireIfCurrent(accessToken: string): void {
-  if (readStored()?.accessToken !== accessToken) return
-  writeStored(null)
-  notify({ type: 'signed-out', reason: 'expired' })
+  const current = readStored()
+  if (current?.accessToken !== accessToken) return
+  endSession({ reason: 'expired', email: current.email })
 }
 
 type InflightRefresh = { refreshToken: string; promise: Promise<string | null> }
@@ -205,7 +226,7 @@ async function refreshLocked(sent: { refreshToken: string; userId: UserId }): Pr
       void logout({ accessToken, refreshToken })
       return tokenOf(now, sent.userId)
     }
-    writeStored({ accessToken, refreshToken, userId: now.userId })
+    writeStored({ ...now, accessToken, refreshToken })
     return accessToken
   }
 
@@ -213,17 +234,17 @@ async function refreshLocked(sent: { refreshToken: string; userId: UserId }): Pr
     // A tab without Web Locks may have rotated the token first; then ours was just stale.
     const now = readStored()
     if (now && now.refreshToken !== sent.refreshToken) return tokenOf(now, sent.userId)
-    if (now) {
-      writeStored(null)
-      notify({ type: 'signed-out', reason: 'expired' })
-    }
+    if (now) endSession({ reason: 'expired', email: now.email })
     return null
   }
 
   throw new Error(await errorMessage(res))
 }
 
-async function startSession(path: string, body: object): Promise<AuthSession> {
+async function startSession(
+  path: string,
+  body: { name?: string; email: string; password: string },
+): Promise<AuthSession> {
   const res = await fetch(apiUrl(path), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -232,7 +253,7 @@ async function startSession(path: string, body: object): Promise<AuthSession> {
   if (!res.ok) throw await apiError(res)
   const { accessToken, refreshToken, user } = (await res.json()) as AuthResponse
   const replaced = readStored()
-  writeStored({ accessToken, refreshToken, userId: user.id })
+  writeStored({ accessToken, refreshToken, userId: user.id, email: body.email })
   // Signed in over an existing session: revoke the old pair instead of leaving it valid for 30 days.
   if (replaced) void logout(replaced)
   notify()
@@ -253,8 +274,7 @@ export function signUp(name: string, email: string, password: string): Promise<A
 export function signOut(): Promise<void> {
   const current = readStored()
   if (!current) return Promise.resolve()
-  writeStored(null)
-  notify({ type: 'signed-out', reason: 'signed-out' })
+  endSession({ reason: 'signed-out' })
   return logout(current)
 }
 
