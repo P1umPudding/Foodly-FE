@@ -50,10 +50,15 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
 [`docs/decisions/0001-rest-transport.md`](docs/decisions/0001-rest-transport.md).
 
 - `src/api/rest.ts` — the REST client (`fetch`). Base URL from `VITE_API_URL`,
-  a static dev bearer token (`Authorization: Bearer dev-token`; the backend
-  maps any bearer to user 1). On failure it throws `Error(message)` with the
+  bearer token from the session in `src/api/auth.ts`; a 401 triggers one token
+  refresh and one retry. On failure it throws `Error(message)` with the
   backend's `error.message`, else `HTTP <status>`. `collectPages` drains small
   cursor-paginated lists.
+- `src/api/auth.ts` — the session: access and refresh token in
+  `localStorage["foodly.auth"]`, refreshed shortly before they expire, at most
+  one refresh at a time (also across tabs). Exposed as `foodly.auth`
+  (`signIn`, `signUp`, `signOut`, `session`, `subscribe`); with `VITE_MOCK=1`
+  you are always signed in as user 1.
 - `src/api/index.ts` — the typed API surface `foodly.*`. Each method except
   `listUsers` has a REST and a mock branch, chosen by the build-time
   `VITE_MOCK`; response wrappers (`{ data }`, cursors) are unwrapped here, so
