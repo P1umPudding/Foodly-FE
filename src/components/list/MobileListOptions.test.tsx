@@ -33,7 +33,9 @@ it('holds criterion, direction, view and layout', () => {
   render(<Harness />)
   const sheet = openSheet()
   const options = (name: string) =>
-    within(within(sheet).getByRole('radiogroup', { name })).getAllByRole('radio').map((r) => r.id)
+    within(within(sheet).getByRole('radiogroup', { name }))
+      .getAllByRole('radio')
+      .map((r) => r.id)
   const labels = (name: string) =>
     options(name).map((id) => within(sheet).getByText((_, el) => el?.getAttribute('for') === id).textContent)
 

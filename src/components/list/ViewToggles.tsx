@@ -54,7 +54,12 @@ function ViewToggle<T extends string>({
 export function ViewToggles({ state, set }: { state: ListState; set: (patch: Partial<ListState>) => void }) {
   return (
     <div className="flex items-center gap-2.5">
-      <ViewToggle ariaLabel="Ansicht" value={state.detail} onChange={(v) => set({ detail: v })} options={DETAIL_OPTIONS} />
+      <ViewToggle
+        ariaLabel="Ansicht"
+        value={state.detail}
+        onChange={(v) => set({ detail: v })}
+        options={DETAIL_OPTIONS}
+      />
       <ViewToggle
         ariaLabel="Gliederung"
         value={state.grouped ? 'grouped' : 'flat'}

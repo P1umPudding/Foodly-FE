@@ -6,7 +6,15 @@ import { ArrowUpDown } from 'lucide-react'
 import { Label, RadioGroup, RadioGroupItem, Sheet, SheetTrigger, buttonVariants, cn } from '@postxl/ui-components'
 import type { ListState } from '../../list/state'
 import { BottomSheet } from '../BottomSheet'
-import { DETAIL_OPTIONS, LAYOUT_OPTIONS, SORT_CRITERIA, SORT_DIRS, dirIcon, dirLabel, type ViewOption } from './listOptions'
+import {
+  DETAIL_OPTIONS,
+  LAYOUT_OPTIONS,
+  SORT_CRITERIA,
+  SORT_DIRS,
+  dirIcon,
+  dirLabel,
+  type ViewOption,
+} from './listOptions'
 
 const TITLE = 'Sortieren & Ansicht'
 
