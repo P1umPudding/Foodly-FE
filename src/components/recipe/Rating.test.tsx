@@ -179,6 +179,13 @@ describe('Rating', () => {
     expect(trigger.classList.contains('min-h-10')).toBe(false)
   })
 
+  it('gives the trigger the 3 px focus ring in full --ring (#90/#95)', () => {
+    render(<Rating recipe={recipe()} />)
+    const classes = screen.getByRole('button', { name: /Bewert/ }).className.split(/\s+/)
+    expect(classes).toEqual(expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-ring']))
+    expect(classes).not.toContain('focus-visible:ring-2')
+  })
+
   it('opens a popover with the compact stars on desktop', async () => {
     open(recipe())
     const panel = await screen.findByRole('dialog')

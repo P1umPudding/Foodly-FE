@@ -11,6 +11,7 @@ import { SHELL_NAV_STATE, currentFor, visibleDestinations } from './nav'
 import { navItemClass } from './navItem'
 import { ProfileMenu } from './ProfileMenu'
 import { TriggerButton } from '../TriggerButton'
+import { FOCUS_RING } from '../focusRing'
 import { useNavState } from './useNavState'
 
 const COLLAPSED_KEY = 'foodly:sidebar-collapsed'
@@ -77,7 +78,7 @@ export function Sidebar({
         {!collapsed && (
           <Link
             to="/"
-            className="-ml-1 rounded-md px-1 font-display text-xl focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-hidden"
+            className={cn('-ml-1 rounded-md px-1 font-display text-xl focus-visible:ring-sidebar-ring', FOCUS_RING)}
           >
             Foodly
           </Link>
