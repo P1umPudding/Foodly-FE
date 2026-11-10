@@ -2,8 +2,6 @@ import { useState } from 'react'
 import {
   Badge,
   Button,
-  buttonVariants,
-  cn,
   Command,
   CommandEmpty,
   CommandGroup,
@@ -18,6 +16,7 @@ import { Plus, X } from 'lucide-react'
 import { useTags } from '../../catalog/CatalogProvider'
 import { TagIcon } from '../TagText'
 import type { TagId } from '../../api/protocol'
+import { TriggerButton } from '../TriggerButton'
 
 // Selection only: the backend has no create-tag endpoint, and a recipe naming an
 // unknown tag is rejected with 422.
@@ -47,10 +46,11 @@ export function TagPicker({ value, onChange }: { value: TagId[]; onChange: (tags
       ))}
 
       <Popover open={open} onOpenChange={setOpen}>
-        {/* PopoverTrigger itself, styled as the Button: see IngredientPicker. */}
-        <PopoverTrigger role="combobox" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}>
-          <Plus className="h-3 w-3" />
-          Tag
+        <PopoverTrigger asChild>
+          <TriggerButton variant="outline" size="sm" role="combobox" className="gap-1.5">
+            <Plus className="h-3 w-3" />
+            Tag
+          </TriggerButton>
         </PopoverTrigger>
         <PopoverContent className="w-56 p-0" align="start">
           <Command>

@@ -9,12 +9,11 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  buttonVariants,
-  cn,
 } from '@postxl/ui-components'
 import { useMe } from '../../catalog/CatalogProvider'
 import { ThemeSubmenu } from '../ThemeMenu'
 import { navItemClass } from './navItem'
+import { TriggerButton } from '../TriggerButton'
 
 const LABEL = 'Profil & Einstellungen'
 
@@ -34,8 +33,6 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
     </Avatar>
   )
 
-  // DropdownMenuTrigger styled via buttonVariants rather than wrapping a postxl Button: Button isn't
-  // forwardRef, so Radix couldn't anchor the menu to it (same reason as in TimerToggle).
   const trigger =
     variant === 'row' ? (
       <DropdownMenuTrigger aria-label={`${name} – ${LABEL}`} className={navItemClass(false, false)}>
@@ -43,14 +40,15 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
         <span className="truncate">{name}</span>
       </DropdownMenuTrigger>
     ) : (
-      <DropdownMenuTrigger
-        aria-label={LABEL}
-        className={cn(
-          buttonVariants({ variant: 'ghost', size: 'icon' }),
-          variant === 'avatar' ? 'size-10 rounded-full' : navItemClass(false, true),
-        )}
-      >
-        {avatar}
+      <DropdownMenuTrigger asChild>
+        <TriggerButton
+          variant="ghost"
+          size="icon"
+          aria-label={LABEL}
+          className={variant === 'avatar' ? 'size-10 rounded-full' : navItemClass(false, true)}
+        >
+          {avatar}
+        </TriggerButton>
       </DropdownMenuTrigger>
     )
 
@@ -58,9 +56,7 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
     <DropdownMenu>
       {variant === 'icon' ? (
         <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex">{trigger}</span>
-          </TooltipTrigger>
+          <TooltipTrigger asChild>{trigger}</TooltipTrigger>
           <TooltipContent side="right">{LABEL}</TooltipContent>
         </Tooltip>
       ) : (

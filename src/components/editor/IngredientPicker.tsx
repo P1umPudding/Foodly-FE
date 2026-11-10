@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import {
-  buttonVariants,
   cn,
   Command,
   CommandEmpty,
@@ -15,6 +14,7 @@ import {
 import { ChevronsUpDown } from 'lucide-react'
 import { useIngredients } from '../../catalog/CatalogProvider'
 import type { IngredientId } from '../../api/protocol'
+import { TriggerButton } from '../TriggerButton'
 
 // The catalog is read-only (no create-ingredient endpoint), so anything not in it
 // has to survive as free text — which is exactly what RecipeIngredient.text is for.
@@ -40,19 +40,19 @@ export function IngredientPicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      {/* PopoverTrigger itself, styled as the outline Button: the @postxl Button doesn't
-          forwardRef, so as an asChild trigger Radix can't anchor the popover and it never shows.
-          cn() (tailwind-merge, as inside Button) lets justify-between beat the variant's justify-center.
-          min-w-40 + truncate: a long name is cut off instead of pushing the row actions onto a new line. */}
-      <PopoverTrigger
-        role="combobox"
-        aria-expanded={open}
-        className={cn(buttonVariants({ variant: 'outline' }), 'min-w-40 flex-1 justify-between font-normal')}
-      >
-        <span className={cn('truncate', label === '' && 'text-muted-foreground')}>
-          {label === '' ? 'Zutat …' : label}
-        </span>
-        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+      {/* min-w-40 + truncate: a long name is cut off instead of pushing the row actions onto a new line. */}
+      <PopoverTrigger asChild>
+        <TriggerButton
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="min-w-40 flex-1 justify-between font-normal"
+        >
+          <span className={cn('truncate', label === '' && 'text-muted-foreground')}>
+            {label === '' ? 'Zutat …' : label}
+          </span>
+          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+        </TriggerButton>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-0" align="start">
         <Command shouldFilter={false}>

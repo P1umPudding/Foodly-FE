@@ -1,5 +1,6 @@
 import { Pause, Play, RotateCcw, Square, Trash2 } from 'lucide-react'
-import { Button, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
+import { Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
+import { TriggerButton } from '../components/TriggerButton'
 import type { Timer } from './TimerProvider'
 import { useTimers } from './TimerProvider'
 import { formatRemaining } from './format'
@@ -7,21 +8,10 @@ import { formatRemaining } from './format'
 function IconAction({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
     <Tooltip>
-      {/* span wrapper: postxl Button isn't forwardRef, so the tooltip can only
-          anchor to a host element — without it the tooltip never shows. */}
       <TooltipTrigger asChild>
-        <span className="inline-flex">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onClick}
-            aria-label={label}
-            className="phone:size-10"
-          >
-            {children}
-          </Button>
-        </span>
+        <TriggerButton variant="ghost" size="icon" onClick={onClick} aria-label={label} className="phone:size-10">
+          {children}
+        </TriggerButton>
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>

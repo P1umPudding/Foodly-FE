@@ -29,6 +29,7 @@ import { WakeLockToggle } from '../components/WakeLockToggle'
 import { RecipeImages } from '../components/recipe/RecipeImages'
 import { DeleteRecipeButton } from '../components/recipe/DeleteRecipeButton'
 import { Lightbox } from '../components/recipe/Lightbox'
+import { TriggerButton } from '../components/TriggerButton'
 import { showsRecipeImages } from '../api/assets'
 import type { Recipe, RecipeIngredientId } from '../api/protocol'
 import { hasPortions } from '../api/views'
@@ -140,17 +141,20 @@ export function RecipeDetail() {
               />
             )}
             {/* On phones all three actions are icon-only 40×40 tap targets (design.md §7), labelled via
-                tooltip. The triggers are styled via buttonVariants: postxl Button isn't forwardRef, so the
-                tooltip couldn't anchor to it. */}
+                tooltip. */}
             <Tooltip>
-              <TooltipTrigger
-                aria-label="Duplizieren"
-                onClick={onClone}
-                disabled={cloning}
-                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 phone:size-10')}
-              >
-                <Copy className="h-4 w-4" />
-                <span className="phone:hidden">Duplizieren</span>
+              <TooltipTrigger asChild>
+                <TriggerButton
+                  variant="outline"
+                  size="sm"
+                  aria-label="Duplizieren"
+                  onClick={onClone}
+                  disabled={cloning}
+                  className="gap-1.5 phone:size-10"
+                >
+                  <Copy className="h-4 w-4" />
+                  <span className="phone:hidden">Duplizieren</span>
+                </TriggerButton>
               </TooltipTrigger>
               <TooltipContent>Rezept duplizieren</TooltipContent>
             </Tooltip>

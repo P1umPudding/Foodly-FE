@@ -1,4 +1,5 @@
-import { Button, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
+import { Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
+import { TriggerButton } from './TriggerButton'
 import { useWakeLock } from '../hooks/useWakeLock'
 
 const ICON = 'size-5'
@@ -29,26 +30,21 @@ export function WakeLockToggle() {
 
   return (
     <Tooltip>
-      {/* span wrapper: postxl Button isn't forwardRef, so the tooltip can only
-          anchor to a host element — without it the tooltip never shows. */}
       <TooltipTrigger asChild>
-        <span className="inline-flex">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={toggle}
-            aria-pressed={enabled}
-            aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
-            className={cn(
-              'gap-1.5 rounded-md transition-colors phone:h-10',
-              enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <MugIcon steam={enabled} />
-            <span className="text-lg">Wachhalten</span>
-          </Button>
-        </span>
+        <TriggerButton
+          variant="ghost"
+          size="sm"
+          onClick={toggle}
+          aria-pressed={enabled}
+          aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
+          className={cn(
+            'gap-1.5 rounded-md transition-colors phone:h-10',
+            enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          <MugIcon steam={enabled} />
+          <span className="text-lg">Wachhalten</span>
+        </TriggerButton>
       </TooltipTrigger>
       <TooltipContent>{enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}</TooltipContent>
     </Tooltip>

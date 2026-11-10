@@ -10,6 +10,7 @@ import { categoryColorVars } from '../../lib/categoryColor'
 import { SHELL_NAV_STATE, currentFor, visibleDestinations } from './nav'
 import { navItemClass } from './navItem'
 import { ProfileMenu } from './ProfileMenu'
+import { TriggerButton } from '../TriggerButton'
 import { useNavState } from './useNavState'
 
 const COLLAPSED_KEY = 'foodly:sidebar-collapsed'
@@ -83,19 +84,16 @@ export function Sidebar({
         )}
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="inline-flex">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={toggleLabel}
-                aria-expanded={!collapsed}
-                onClick={() => onCollapsedChange(!collapsed)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ToggleIcon className="size-4" />
-              </Button>
-            </span>
+            <TriggerButton
+              variant="ghost"
+              size="icon"
+              aria-label={toggleLabel}
+              aria-expanded={!collapsed}
+              onClick={() => onCollapsedChange(!collapsed)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ToggleIcon className="size-4" />
+            </TriggerButton>
           </TooltipTrigger>
           <TooltipContent side="right">{toggleLabel}</TooltipContent>
         </Tooltip>
