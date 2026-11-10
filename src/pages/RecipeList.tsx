@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useLocation, useNavigationType } from 'react-router-dom'
+import { Link, useLocation, useNavigationType } from 'react-router-dom'
 import {
   Alert,
   AlertDescription,
@@ -381,16 +381,21 @@ export function RecipeList() {
               <ListSkeleton detail={state.detail} count={1} testId="list-pending-skeleton" />
             )}
 
-            {allLoaded && accessibleRecipes.length === 0 && (
+            {/* Server-side facets already narrow the loaded set, so only the filter state can tell an empty
+              collection from a filter without matches. */}
+            {allLoaded && visible.length === 0 && !isFilterActive(state) && (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
-                <UtensilsCrossed className="h-10 w-10 text-muted-foreground/40" />
+                <UtensilsCrossed className="size-5 text-muted-foreground/40" />
                 <p className="text-muted-foreground">Noch keine Rezepte.</p>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/recipes/new">Neues Rezept</Link>
+                </Button>
               </div>
             )}
 
-            {allLoaded && accessibleRecipes.length > 0 && visible.length === 0 && (
+            {allLoaded && visible.length === 0 && isFilterActive(state) && (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
-                <SearchX className="h-10 w-10 text-muted-foreground/40" />
+                <SearchX className="size-5 text-muted-foreground/40" />
                 <p className="text-muted-foreground">Keine Treffer für die aktuellen Filter.</p>
                 {/* Search ignores ingredients on purpose — point users at the Zutaten filter. */}
                 {state.search.trim() !== '' && (
@@ -398,11 +403,9 @@ export function RecipeList() {
                     Die Suche durchsucht Name, Tags &amp; Abschnitte – nach Zutaten filterst du über den Zutaten-Filter.
                   </p>
                 )}
-                {isFilterActive(state) && (
-                  <Button variant="outline" size="sm" onClick={clear}>
-                    Filter zurücksetzen
-                  </Button>
-                )}
+                <Button variant="outline" size="sm" onClick={clear}>
+                  Filter zurücksetzen
+                </Button>
               </div>
             )}
 
