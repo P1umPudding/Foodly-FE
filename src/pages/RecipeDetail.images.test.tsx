@@ -5,6 +5,7 @@ import { RecipeDetail } from './RecipeDetail'
 import { foodly } from '../api'
 import type { StubFeature } from '../api/stubs'
 import type { Recipe } from '../api/protocol'
+import { ref } from '../test/images'
 
 // Only the images stub is toggled, so the real showsRecipeImages/recipeImageSrc decide what renders.
 const imageStub = vi.hoisted(() => ({ stubbed: true }))
@@ -39,8 +40,8 @@ const recipe: Recipe = {
   sizeNumber: null,
   sizeText: null,
   notes: ['Warm servieren'],
-  mainImage: 3,
-  images: [4, 5],
+  mainImage: ref(3),
+  images: [ref(4), ref(5)],
   sections: [],
 }
 

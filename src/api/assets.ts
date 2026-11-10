@@ -2,7 +2,7 @@
 // asset routes. Mock data maps to files served from /public.
 
 import { apiUrl, rest } from './rest'
-import type { ImageId, Tag } from './protocol'
+import type { ImageRef, Tag } from './protocol'
 import { isStubbed } from './stubs'
 
 const USE_MOCKS = import.meta.env.VITE_MOCK === '1'
@@ -81,7 +81,7 @@ export function resetTagIconCache(): void {
   tagIconResults.clear()
 }
 
-// Dev-only: map mock ImageIds → public asset URLs. Any raster/vector format
+// Dev-only: map mock image ids → public asset URLs. Any raster/vector format
 // works (the browser <img> doesn't care) — id 1 is a real .png, id 2 a .png.
 // In production this whole function is just the backend's image URL.
 const DEV_RECIPE_IMAGE: Record<number, string> = {
@@ -89,29 +89,22 @@ const DEV_RECIPE_IMAGE: Record<number, string> = {
   2: publicUrl('recipes/cake.png'), // transparent PNG — test fixture for the image backdrop (Schokokuchen)
 }
 
-// Backend #9 (B1) / ADR 0003 §5: without an image route, list and detail look as if there were no photo.
+// ADR 0003 §5: until REST display lands (FE #144, route public since Backend PR #20), list and detail look as if
+// there were no photo.
 export function showsRecipeImages(): boolean {
   return !isStubbed('images')
 }
 
-export function recipeImageSrc(id: ImageId): string {
-  // Backend #9 (B1): ImageId has no route yet, so in REST only the editor shows this neutral placeholder.
+export function recipeImageSrc(image: ImageRef): string {
+  // REST display is not wired yet (FE #144), so in REST only the editor shows this neutral placeholder.
   if (isStubbed('images')) return publicUrl('recipes/placeholder.svg')
-  return DEV_RECIPE_IMAGE[id] ?? publicUrl(`recipes/${id}.svg`)
+  return DEV_RECIPE_IMAGE[image.id] ?? publicUrl(`recipes/${image.id}.svg`)
 }
 
-// Dev-only image display names (the real `Image.name` comes from the backend).
-const DEV_IMAGE_NAME: Record<number, string> = {
-  1: 'Fertiger Teller',
-  2: 'Anschnitt',
-  3: 'Im Topf (Hochformat)',
-  4: 'Angerichtet (Querformat)',
-}
-
-export function imageName(id: ImageId): string {
-  // Mock names would caption the REST placeholder.
-  if (isStubbed('images')) return `Bild ${id}`
-  return DEV_IMAGE_NAME[id] ?? `Bild ${id}`
+export function imageName(image: ImageRef): string {
+  // A real name would caption the REST placeholder, so REST keeps the neutral label.
+  if (isStubbed('images')) return `Bild ${image.id}`
+  return image.name ?? `Bild ${image.id}`
 }
 
 export function userImageSrc(hash: string): string {

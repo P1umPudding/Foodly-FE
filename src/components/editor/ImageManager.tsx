@@ -3,28 +3,28 @@ import { Button, Label, toast } from '@postxl/ui-components'
 import { Star, Trash2, Upload } from 'lucide-react'
 import { foodly } from '../../api'
 import { recipeImageSrc } from '../../api/assets'
-import type { ImageId } from '../../api/protocol'
+import type { ImageRef } from '../../api/protocol'
 
-// Uploads land in the image store immediately (POST /images), and only the id is
-// held in the draft. An image whose recipe is never saved is simply orphaned —
+// Uploads land in the image store immediately (POST /images); the draft holds the
+// returned ref and only its id goes out on save. An image whose recipe is never saved is simply orphaned —
 // the backend has no cleanup, and that's an accepted gap.
 export function ImageManager({
   mainImage,
   images,
   onChange,
 }: {
-  mainImage: ImageId | null
-  images: ImageId[]
-  onChange: (patch: { mainImage?: ImageId | null; images?: ImageId[] }) => void
+  mainImage: ImageRef | null
+  images: ImageRef[]
+  onChange: (patch: { mainImage?: ImageRef | null; images?: ImageRef[] }) => void
 }) {
   const [uploading, setUploading] = useState(false)
 
   const upload = async (file: File) => {
     setUploading(true)
     try {
-      const { id } = await foodly.uploadImage(file)
-      if (mainImage === null) onChange({ mainImage: id, images })
-      else onChange({ images: [...images, id] })
+      const image = await foodly.uploadImage(file)
+      if (mainImage === null) onChange({ mainImage: image, images })
+      else onChange({ images: [...images, image] })
     } catch (e) {
       toast.error(`Bild konnte nicht hochgeladen werden: ${(e as Error).message}`)
     } finally {
@@ -54,9 +54,9 @@ export function ImageManager({
           </figure>
         )}
 
-        {images.map((id) => (
-          <figure key={id} className="flex flex-col items-center gap-1">
-            <img src={recipeImageSrc(id)} alt="" className="size-20 rounded-md object-cover" />
+        {images.map((image) => (
+          <figure key={image.id} className="flex flex-col items-center gap-1">
+            <img src={recipeImageSrc(image)} alt="" className="size-20 rounded-md object-cover" />
             <figcaption className="flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -64,8 +64,8 @@ export function ImageManager({
                 aria-label="Als Hauptbild"
                 onClick={() =>
                   onChange({
-                    mainImage: id,
-                    images: [...images.filter((i) => i !== id), ...(mainImage === null ? [] : [mainImage])],
+                    mainImage: image,
+                    images: [...images.filter((i) => i.id !== image.id), ...(mainImage === null ? [] : [mainImage])],
                   })
                 }
               >
@@ -75,7 +75,7 @@ export function ImageManager({
                 variant="ghost"
                 size="sm"
                 aria-label="Bild entfernen"
-                onClick={() => onChange({ images: images.filter((i) => i !== id) })}
+                onClick={() => onChange({ images: images.filter((i) => i.id !== image.id) })}
               >
                 <Trash2 className="h-3 w-3" />
               </Button>

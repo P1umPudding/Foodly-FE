@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mockData, mockRequest, CURRENT_USER_ID } from './index'
-import type { CreateRecipe, Recipe } from '../api/protocol'
+import type { CreateRecipe, ImageRef, Recipe } from '../api/protocol'
 
 const input: CreateRecipe = {
   name: 'Testrezept',
@@ -51,6 +51,18 @@ describe('mock writes', () => {
     const first = (await mockRequest('images.upload')) as { id: number }
     const second = (await mockRequest('images.upload')) as { id: number }
     expect(second.id).toBeGreaterThan(first.id)
+  })
+
+  it('expands image ids from upload into the refs the upload returned', async () => {
+    const main = (await mockRequest('images.upload')) as ImageRef
+    const extra = (await mockRequest('images.upload')) as ImageRef
+
+    const created = (await mockRequest('recipes.create', {
+      input: { ...input, mainImage: main.id, images: [extra.id] },
+    })) as Recipe
+
+    expect(created.mainImage).toEqual(main)
+    expect(created.images).toEqual([extra])
   })
 
   it('preserves editors/viewers/rating across a full-replace update', async () => {
@@ -110,5 +122,17 @@ describe('mock writes', () => {
 
   it('throws when deleting an unknown recipe', async () => {
     await expect(mockRequest('recipes.delete', { id: 999_999 })).rejects.toThrow('recipe 999999 not found')
+  })
+})
+
+describe('mock seed data', () => {
+  // recipes.json holds bare ids and is cast unchecked, so guard the expansion to refs here.
+  it('serves images as ImageRefs', () => {
+    const withImage = mockData.recipes.find((r) => r.mainImage?.id === 1)!
+
+    expect(withImage.mainImage).toEqual({ id: 1, hash: 'mock-1', name: 'Fertiger Teller' })
+    for (const r of mockData.recipes) {
+      for (const image of [r.mainImage, ...r.images]) if (image !== null) expect(typeof image).toBe('object')
+    }
   })
 })

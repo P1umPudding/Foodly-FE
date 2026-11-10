@@ -1,9 +1,10 @@
 // In-browser mock backend. bootstrap() lazy-loads it (own chunk) on every boot:
 // with VITE_MOCK=1 every request is routed here, in REST mode only listUsers.
 
-import type { CreateRecipe, Ingredient, Recipe, RecipeId, Tag, User, UserCategory } from '../api/protocol'
+import type { CreateRecipe, ImageId, Ingredient, Recipe, RecipeId, Tag, User, UserCategory } from '../api/protocol'
 import { applyQuery, PAGE_SIZE } from '../list/query'
 import { assertRating } from '../api/views'
+import { imageRef, withImageRefs } from './images'
 import type { PaginatedRecipes, RecipeSearchQuery } from '../api/protocol'
 
 import recipes from './data/recipes.json'
@@ -12,8 +13,10 @@ import tags from './data/tags.json'
 import ingredients from './data/ingredients.json'
 import categories from './data/categories.json'
 
+type RawRecipe = Omit<Recipe, 'mainImage' | 'images'> & { mainImage: ImageId | null; images: ImageId[] }
+
 export const mockData = {
-  recipes: recipes as Recipe[],
+  recipes: (recipes as RawRecipe[]).map((r): Recipe => ({ ...r, ...withImageRefs(r) })),
   users: users as User[],
   tags: tags as Tag[],
   ingredients: ingredients as Ingredient[],
@@ -46,8 +49,7 @@ function expand(input: CreateRecipe, id: RecipeId, owner: number): Recipe {
     sizeNumber: input.sizeNumber,
     sizeText: input.sizeText,
     notes: input.notes,
-    mainImage: input.mainImage,
-    images: input.images,
+    ...withImageRefs(input),
     sections: input.sections.map((section) => ({
       id: nextId++,
       name: section.name,
@@ -156,8 +158,7 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       return { ...recipe }
     }
     case 'images.upload': {
-      const imageId = nextId++
-      return { id: imageId, hash: `mock-${imageId}`, name: null }
+      return imageRef(nextId++)
     }
     default:
       throw new Error(`[mock] no handler for message type "${type}"`)

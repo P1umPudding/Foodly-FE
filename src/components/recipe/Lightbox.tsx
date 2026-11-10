@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@postxl/ui-components'
 import { recipeImageSrc, imageName } from '../../api/assets'
-import type { ImageId } from '../../api/protocol'
+import type { ImageRef } from '../../api/protocol'
 
 // Fullscreen image viewer. The overlay closes on click / Escape; clicks on the
 // image, caption, controls and thumbnail strip don't bubble up to it.
@@ -13,7 +13,7 @@ export function Lightbox({
   onIndexChange,
   onClose,
 }: {
-  images: ImageId[]
+  images: ImageRef[]
   index: number
   onIndexChange: (i: number) => void
   onClose: () => void
@@ -87,7 +87,7 @@ export function Lightbox({
     strip.scrollTo({ left: Math.max(0, Math.min(target, strip.scrollWidth - strip.clientWidth)), behavior: 'smooth' })
   }, [index])
 
-  const id = images[index]
+  const image = images[index]
   const stop = (e: React.MouseEvent) => e.stopPropagation()
   const ctrl =
     'flex h-14 w-14 items-center justify-center rounded-md bg-white/10 text-white hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white/60'
@@ -135,8 +135,8 @@ export function Lightbox({
         )}
         <img
           ref={imgRef}
-          src={recipeImageSrc(id)}
-          alt={imageName(id)}
+          src={recipeImageSrc(image)}
+          alt={imageName(image)}
           onLoad={computeFit}
           onClick={stop}
           className={`${imgFit} max-h-[64vh] max-w-[50vw] cursor-default rounded-lg object-contain`}
@@ -158,7 +158,7 @@ export function Lightbox({
       </div>
 
       <p onClick={stop} className="mt-10 cursor-default text-center text-xl text-white">
-        {imageName(id)}
+        {imageName(image)}
         {n > 1 && (
           <span className="ml-6 text-lg text-white/60">
             {index + 1} / {n}
@@ -172,17 +172,17 @@ export function Lightbox({
           onClick={stop}
           className="mt-12 flex max-w-[60vw] cursor-default gap-2 overflow-x-auto p-1 [scrollbar-width:none]"
         >
-          {images.map((imgId, i) => (
+          {images.map((thumb, i) => (
             <button
-              key={imgId}
+              key={thumb.id}
               type="button"
               onClick={() => onIndexChange(i)}
-              aria-label={imageName(imgId)}
+              aria-label={imageName(thumb)}
               className={`group relative h-20 w-20 shrink-0 cursor-pointer overflow-hidden rounded-md ${
                 i === index ? 'ring-2 ring-white' : ''
               }`}
             >
-              <img src={recipeImageSrc(imgId)} alt="" className="h-full w-full object-cover" />
+              <img src={recipeImageSrc(thumb)} alt="" className="h-full w-full object-cover" />
               {/* dim overlay (not the image's opacity); lifts on hover / when active */}
               {i !== index && (
                 <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-transparent" />

@@ -4,6 +4,7 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeTile } from './RecipeTile'
 import type { StubFeature } from '../../api/stubs'
 import type { Recipe, User, UserCategory } from '../../api/protocol'
+import { ref } from '../../test/images'
 
 // Only the images stub is toggled, so the real showsRecipeImages/recipeImageSrc decide what renders.
 const imageStub = vi.hoisted(() => ({ stubbed: true }))
@@ -79,7 +80,7 @@ it('links to the recipe detail', () => {
 
 it('with a photo shows the image and the title once', () => {
   imageStub.stubbed = false
-  const { container } = renderTile({ ...base, mainImage: 1 })
+  const { container } = renderTile({ ...base, mainImage: ref(1) })
   expect(container.querySelector('img')).not.toBeNull()
   expect(screen.getAllByText('Linsensuppe')).toHaveLength(1)
   expect(screen.queryByTestId('tile-type-name')).toBeNull()
@@ -92,9 +93,9 @@ it('without a photo shows the typographic tile and no second title', () => {
   expect(screen.getAllByText('Linsensuppe')).toHaveLength(1)
 })
 
-it('treats a photo it cannot display (REST, B1) as no photo', () => {
+it('treats a photo it cannot display (REST, FE #144) as no photo', () => {
   imageStub.stubbed = true
-  const { container } = renderTile({ ...base, mainImage: 1 })
+  const { container } = renderTile({ ...base, mainImage: ref(1) })
   expect(container.querySelector('img')).toBeNull()
   expect(screen.getByTestId('tile-type-name')).toBeTruthy()
 })
