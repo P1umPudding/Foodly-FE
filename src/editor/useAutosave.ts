@@ -7,6 +7,7 @@
 // newest value.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { toError } from '../lib/toError'
 
 export type SaveState = 'idle' | 'saving' | 'saved' | 'error'
 export type SaveStatus = { state: SaveState; at: number | null; error: Error | null }
@@ -95,7 +96,7 @@ export function useAutosave<T>(
         // in between, `mounted` is already false and there's no status to set.
         // Decided here, not in .finally: a failure while mounted already shows
         // as status 'error' and must not also reach onFlushError.
-        if (mounted.current) updateStatus({ state: 'error', at: null, error: error as Error })
+        if (mounted.current) updateStatus({ state: 'error', at: null, error: toError(error) })
         else unmountedFailure = { error }
       })
       .finally(() => {

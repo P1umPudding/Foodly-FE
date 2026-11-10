@@ -17,12 +17,12 @@ export function TimerPanel() {
   const open = shared?.open ?? localOpen
   const setOpen = (next: boolean) => (shared ? shared.setOpen(next) : setLocalOpen(next))
   const isDesktop = useIsDesktop()
-  const triggerRef = useRef<HTMLSpanElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const { timers } = useTimers()
 
-  // Radix would return focus to the trigger's span wrapper (not focusable) or, for the Sheet without a
-  // trigger, to the body. Send it back to the chip that opened the panel, else to the header button —
-  // unless the panel closed because the user clicked elsewhere: that click owns the focus now.
+  // Radix would return focus to its own trigger (not to a time chip that opened the panel) or, for the Sheet
+  // without a trigger, to the body. Send it back to the chip that opened the panel, else to the header
+  // button — unless the panel closed because the user clicked elsewhere: that click owns the focus now.
   const closedByOutsideClick = useRef(false)
   const onInteractOutside = (e: Event) => {
     keepOpenForToast(e)
@@ -41,7 +41,7 @@ export function TimerPanel() {
       closedByOutsideClick.current = false
       return
     }
-    ;(returnTo ?? triggerRef.current?.querySelector('button'))?.focus()
+    ;(returnTo ?? triggerRef.current)?.focus()
   }
 
   // Named timers first (the ephemeral unnamed ones sink below); within each

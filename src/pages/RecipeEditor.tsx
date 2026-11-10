@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Alert, AlertDescription, AlertTitle, Button, Skeleton, Spinner, toast } from '@postxl/ui-components'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { foodly } from '../api'
+import { errorMessage } from '../lib/errorMessage'
 import { trackPendingSave } from '../api/pendingSaves'
 import { useRequest } from '../hooks/useRequest'
 import { useHasAppHistory } from '../hooks/useHasAppHistory'
@@ -161,7 +162,7 @@ export function RecipeEditor() {
       setRecipeId(created.id)
       if (alive.current) navigate(`/recipes/${created.id}/edit`, { replace: true })
     } catch (e) {
-      if (alive.current) setCreateError((e as Error).message)
+      if (alive.current) setCreateError(errorMessage(e, 'Rezept konnte nicht angelegt werden'))
       else toast.error('Rezept konnte nicht angelegt werden.')
     } finally {
       creatingRef.current = false

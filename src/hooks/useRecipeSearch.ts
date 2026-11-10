@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { foodly } from '../api'
+import { toError } from '../lib/toError'
 import type { Recipe, RecipeSearchQuery } from '../api/protocol'
 
 type Status = 'loading' | 'ready' | 'error'
@@ -45,7 +46,7 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
       })
       .catch((e: unknown) => {
         if (mine !== epoch.current) return
-        setError(e as Error)
+        setError(toError(e))
         setStatus('error')
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps

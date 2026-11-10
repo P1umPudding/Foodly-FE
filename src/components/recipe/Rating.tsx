@@ -15,8 +15,10 @@ import {
 } from '@postxl/ui-components'
 import { Stars } from './Stars'
 import { BottomSheet } from '../BottomSheet'
+import { TriggerButton } from '../TriggerButton'
 import { DemoHint } from '../DemoHint'
 import { foodly } from '../../api'
+import { errorMessage } from '../../lib/errorMessage'
 import { visibleRating, formatRating, ratingsByRole, collaborationState, type RatedRole } from '../../api/views'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
 import { userImageSrc } from '../../api/assets'
@@ -101,7 +103,7 @@ function MyRatingInput({
     try {
       onChange?.(await write())
     } catch (e) {
-      setError((e as Error).message)
+      setError(errorMessage(e, 'Bewertung konnte nicht gespeichert werden'))
     } finally {
       setSaving(false)
     }
@@ -152,7 +154,11 @@ function MyRatingInput({
           Entfernen
         </Button>
       </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <p role="alert" className="text-xs text-destructive">
+          {error}
+        </p>
+      )}
       <DemoHint feature="ratings" />
     </div>
   )
@@ -221,18 +227,19 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
 
   return (
     <Root>
-      {/* Radix needs a ref-forwarding trigger (popover positioning, focus return); the
-          @postxl Button doesn't forwardRef. cursor-pointer is explicit until the lib
-          ships it for interactive elements. On phones the hit area grows to 40 px (docs/design.md §7);
-          the negative margin keeps the row height. */}
-      <Trigger
-        aria-label={value === null ? 'Bewerten' : `Bewertung ${formatRating(value)} von 5`}
-        className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none phone:-my-2 phone:min-h-10"
-      >
-        <span aria-hidden className="inline-flex">
-          <Stars value={value ?? 0} size="md" />
-        </span>
-        {value === null && <span className="text-sm text-muted-foreground">Bewerten</span>}
+      {/* cursor-pointer is explicit until the lib ships it for interactive elements. On phones the hit
+          area grows to 40 px (docs/design.md §7); the negative margin keeps the row height. */}
+      <Trigger asChild>
+        <TriggerButton
+          variant="bare"
+          aria-label={value === null ? 'Bewerten' : `Bewertung ${formatRating(value)} von 5`}
+          className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-ring phone:-my-2 phone:min-h-10"
+        >
+          <span aria-hidden className="inline-flex">
+            <Stars value={value ?? 0} size="md" />
+          </span>
+          {value === null && <span className="text-sm text-muted-foreground">Bewerten</span>}
+        </TriggerButton>
       </Trigger>
       {isDesktop ? (
         <PopoverContent className="max-h-[60vh] w-72 overflow-y-auto">
