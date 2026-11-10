@@ -18,7 +18,7 @@ Kolja) · `später` (nicht blockierend).
 
 | #   | Thema                                   | Status      | Blockiert FE?           | Backend-Issue |
 | --- | --------------------------------------- | ----------- | ----------------------- | ------------- |
-| B1  | Bild-URL: `ImageId` → Datei             | FE-Arbeit   | ja (Speichern mit Bild) | [#9](https://github.com/klassenserver7b/Foodly-backend/issues/9) |
+| B1  | Bild-URL: `ImageId` → Datei             | gelöst      | –                       | [#9](https://github.com/klassenserver7b/Foodly-backend/issues/9) |
 | B2  | User-Lookup für Namen (owner/editors)   | offen       | ja (REST-only-Betrieb)  | [#10](https://github.com/klassenserver7b/Foodly-backend/issues/10) |
 | B3  | Ratings-Endpoints fehlen im Code        | offen       | ja (Phase 4 Rating)     | [#11](https://github.com/klassenserver7b/Foodly-backend/issues/11) |
 | B4  | Sharing-Endpoints fehlen im Code        | offen       | ja (Phase 4 Teilen)     | [#12](https://github.com/klassenserver7b/Foodly-backend/issues/12) |
@@ -53,13 +53,11 @@ Abschnitte unten). Duplikat-Check vorher: keine Issues im Repo, nur PRs #1–#8.
 Vorschlag A: `Recipe.mainImage: { id, hash, name } | null`, `Recipe.images: { id,
 hash, name }[]`, `RecipePreview.mainImage` ebenso. Im Write-Body bleiben es IDs.
 
-**FE-Arbeit (dringend):** `protocol.ts` typisiert beides noch als `ImageId`.
-`src/editor/draft.ts` übernimmt `recipe.mainImage`/`images` in den Draft und
-schickt sie beim Speichern zurück, gegen `main` also Objekte statt IDs. Ein
-Rezept mit Bild lässt sich dann vermutlich nicht mehr speichern. Fix: Lese-Typ
-`ImageRef`, Mapping auf IDs im Write-Body. Bilder anzeigen per `<img src>` geht
-erst mit PR #20, weil `GET /images/{hash}` dort öffentlich wird; davor braucht es
-den Bearer (Blob-Loader wie bei G3).
+**Gelöst im FE** durch #140: `protocol.ts` liest `ImageRef = { id, hash, name }`,
+der Draft hält Refs, `toCreateRecipe` schickt nur IDs. Die Mocks expandieren die
+IDs aus `recipes.json` zu Refs. Echte Bildanzeige im REST-Modus per
+`<img src=/images/{hash}>` ist FE #144 (die Route ist seit Backend-PR #20
+öffentlich); bis dahin bleibt sie gestubbt (Platzhalter).
 
 ### B2 — User-Lookup für Namen
 

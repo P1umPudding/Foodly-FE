@@ -4,6 +4,7 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeRow } from './RecipeRow'
 import type { StubFeature } from '../../api/stubs'
 import type { Recipe, UserCategory } from '../../api/protocol'
+import { ref } from '../../test/images'
 
 // Only the images stub is toggled, so the real showsRecipeImages/recipeImageSrc decide what renders.
 const imageStub = vi.hoisted(() => ({ stubbed: true }))
@@ -76,7 +77,7 @@ it('collaborative recipe shows the average with a decimal comma', () => {
 describe('detailed thumbnail', () => {
   it('without showImages there is no image cell at all', () => {
     imageStub.stubbed = false
-    const { container } = renderRow({ ...base, mainImage: 3 })
+    const { container } = renderRow({ ...base, mainImage: ref(3) })
     expect(screen.queryByTestId('recipe-thumb')).toBeNull()
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('.lucide-utensils-crossed')).toBeNull()
@@ -84,7 +85,7 @@ describe('detailed thumbnail', () => {
 
   it('mock: a recipe with a main image shows it in a 48 px cell', () => {
     imageStub.stubbed = false
-    const { container } = renderRow({ ...base, mainImage: 3 }, { showImages: true })
+    const { container } = renderRow({ ...base, mainImage: ref(3) }, { showImages: true })
     expect(screen.getByTestId('recipe-thumb').className).toMatch(/\bh-12 w-12\b/)
     expect(container.querySelector('img')?.getAttribute('src')).toMatch(/\/recipes\/3\.svg$/)
     expect(container.querySelector('.lucide-utensils-crossed')).toBeNull()
@@ -100,7 +101,7 @@ describe('detailed thumbnail', () => {
 
   it('REST: a main image still falls back to the placeholder', () => {
     imageStub.stubbed = true
-    const { container } = renderRow({ ...base, mainImage: 3 }, { showImages: true })
+    const { container } = renderRow({ ...base, mainImage: ref(3) }, { showImages: true })
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('.lucide-utensils-crossed')).toBeTruthy()
   })

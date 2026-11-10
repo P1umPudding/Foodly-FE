@@ -1,5 +1,5 @@
 import { recipeImageSrc } from '../../api/assets'
-import type { ImageId } from '../../api/protocol'
+import type { ImageRef } from '../../api/protocol'
 
 // Image area for the recipe detail view: the main image and the right-edge
 // tiles sit next to each other as one group, centred in the row. The hardcoded
@@ -14,7 +14,7 @@ export function RecipeImages({
   alt,
   onOpen,
 }: {
-  images: ImageId[]
+  images: ImageRef[]
   alt: string
   onOpen: (index: number) => void
 }) {
@@ -39,15 +39,15 @@ export function RecipeImages({
       />
 
       {/* One extra image → a single tile at full row height (≈ 2× a stacked tile). */}
-      {extra === 1 && <Tile id={rest[0]} className="w-[392px] shrink-0" onClick={() => onOpen(1)} />}
+      {extra === 1 && <Tile image={rest[0]} className="w-[392px] shrink-0" onClick={() => onOpen(1)} />}
 
       {/* Two or more → two stacked half-height tiles; the second shows "+N" for
           any images beyond the two on display. */}
       {extra >= 2 && (
         <div className={`flex w-[196px] shrink-0 flex-col ${GAP}`}>
-          <Tile id={rest[0]} className="min-h-0 flex-1" onClick={() => onOpen(1)} />
+          <Tile image={rest[0]} className="min-h-0 flex-1" onClick={() => onOpen(1)} />
           <Tile
-            id={rest[1]}
+            image={rest[1]}
             className="min-h-0 flex-1"
             onClick={() => onOpen(2)}
             overlay={extra > 2 ? `+${extra - 2}` : undefined}
@@ -59,12 +59,12 @@ export function RecipeImages({
 }
 
 function Tile({
-  id,
+  image,
   className,
   onClick,
   overlay,
 }: {
-  id: ImageId
+  image: ImageRef
   className: string
   onClick: () => void
   overlay?: string
@@ -75,7 +75,7 @@ function Tile({
       onClick={onClick}
       className={`relative cursor-zoom-in overflow-hidden rounded-lg bg-foreground/5 dark:bg-muted ${className}`}
     >
-      <img src={recipeImageSrc(id)} alt="" className="h-full w-full object-cover" />
+      <img src={recipeImageSrc(image)} alt="" className="h-full w-full object-cover" />
       {overlay && (
         <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-2xl font-medium text-white">
           {overlay}

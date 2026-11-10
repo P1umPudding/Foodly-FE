@@ -16,7 +16,7 @@ export function recipeCategories(
 }
 
 // The page passes every loaded recipe, not just the visible ones, so the column doesn't
-// flicker while filtering. In REST (B1) no photo is displayable yet.
+// flicker while filtering. In REST no photo is displayable yet (FE #144).
 export function hasDisplayableImages(recipes: Recipe[]): boolean {
   return showsRecipeImages() && recipes.some((r) => r.mainImage !== null)
 }

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ref } from '../test/images'
 
 // STUBBED is fixed when stubs.ts loads, so each case sets the env first and
 // imports a fresh module graph.
@@ -22,17 +23,18 @@ describe('recipe images in REST mode', () => {
 
   it('serves the placeholder for every image id', async () => {
     const { recipeImageSrc } = await loadAssets({ mock: false })
-    for (const id of [1, 3, 999]) expect(recipeImageSrc(id)).toMatch(/\/recipes\/placeholder\.svg$/)
+    for (const id of [1, 3, 999]) expect(recipeImageSrc(ref(id))).toMatch(/\/recipes\/placeholder\.svg$/)
   })
 
   it('serves the placeholder under the base path', async () => {
     const { recipeImageSrc } = await loadAssets({ mock: false, base: '/foo/' })
-    expect(recipeImageSrc(3)).toBe('/foo/recipes/placeholder.svg')
+    expect(recipeImageSrc(ref(3))).toBe('/foo/recipes/placeholder.svg')
   })
 
-  it('does not show mock image names', async () => {
+  it('captions the placeholder neutrally, even when the image has a name', async () => {
     const { imageName } = await loadAssets({ mock: false })
-    expect(imageName(1)).toBe('Bild 1')
+    expect(imageName(ref(1))).toBe('Bild 1')
+    expect(imageName({ id: 1, hash: 'h1', name: 'Fertiger Teller' })).toBe('Bild 1')
   })
 })
 
@@ -44,14 +46,14 @@ describe('recipe images in mock mode', () => {
 
   it('keeps the mock asset URLs', async () => {
     const { recipeImageSrc } = await loadAssets({ mock: true })
-    expect(recipeImageSrc(1)).toMatch(/\/recipes\/1\.png$/)
-    expect(recipeImageSrc(3)).toMatch(/\/recipes\/3\.svg$/)
+    expect(recipeImageSrc(ref(1))).toMatch(/\/recipes\/1\.png$/)
+    expect(recipeImageSrc(ref(3))).toMatch(/\/recipes\/3\.svg$/)
   })
 
-  it('keeps the mock image names', async () => {
+  it('captions with the image name, falling back to the id', async () => {
     const { imageName } = await loadAssets({ mock: true })
-    expect(imageName(1)).toBe('Fertiger Teller')
-    expect(imageName(7)).toBe('Bild 7')
+    expect(imageName({ id: 1, hash: 'h1', name: 'Fertiger Teller' })).toBe('Fertiger Teller')
+    expect(imageName(ref(7))).toBe('Bild 7')
   })
 })
 

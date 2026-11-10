@@ -1,6 +1,7 @@
 import { hasDisplayableImages, recipeCategories } from './rowData'
 import type { StubFeature } from '../api/stubs'
 import type { Recipe, UserCategory } from '../api/protocol'
+import { ref } from '../test/images'
 
 const imageStub = vi.hoisted(() => ({ stubbed: true }))
 vi.mock('../api/stubs', async (importOriginal) => {
@@ -36,7 +37,7 @@ describe('recipeCategories', () => {
 })
 
 describe('hasDisplayableImages', () => {
-  const withPhoto = { ...recipe, id: 2, mainImage: 5 } as Recipe
+  const withPhoto = { ...recipe, id: 2, mainImage: ref(5) } as Recipe
 
   it('is false when no recipe has a photo', () => {
     imageStub.stubbed = false

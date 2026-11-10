@@ -8,6 +8,7 @@ import { foodly } from './api'
 import type { StubFeature } from './api/stubs'
 import { useRequest } from './hooks/useRequest'
 import type { Recipe } from './api/protocol'
+import { ref } from './test/images'
 
 // The Skaile preview serves the app under a sub-path: main.tsx sets the router
 // basename to BASE_URL. This checks that links and public-asset images pick up
@@ -49,7 +50,7 @@ const recipe: Recipe = {
   sizeNumber: null,
   sizeText: null,
   notes: [],
-  mainImage: 3,
+  mainImage: ref(3),
   images: [],
   sections: [],
 }
