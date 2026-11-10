@@ -18,6 +18,7 @@ import type { Recipe } from './api/protocol'
 // links carry the same words, but they are links, not titles, so the checks stay inside header and main.
 
 vi.mock('./catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useCurrentUserId: () => 1,
   useMe: () => ({ id: 1, name: 'Kolja', profilePicture: null }),
   useUser: () => undefined,
