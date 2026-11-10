@@ -9,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   buttonVariants,
-  cn,
 } from '@postxl/ui-components'
 import { useId } from 'react'
 import { ChevronDown } from 'lucide-react'
@@ -28,7 +27,7 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
           the menu (same as ProfileMenu). */}
       <DropdownMenuTrigger
         aria-label={`Sortieren: ${criterion.label}, ${dirLabel(state.sortKey, state.sortDir)}`}
-        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}
+        className={buttonVariants({ variant: 'outline', size: 'sm' })}
       >
         <DirIcon aria-hidden />
         {/* Width = the widest criterion (invisible sizers reserve it), so the button never resizes per
