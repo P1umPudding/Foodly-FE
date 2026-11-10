@@ -81,7 +81,7 @@ export function resetTagIconCache(): void {
   tagIconResults.clear()
 }
 
-// Dev-only: map mock ImageIds → public asset URLs. Any raster/vector format
+// Dev-only: map mock image ids → public asset URLs. Any raster/vector format
 // works (the browser <img> doesn't care) — id 1 is a real .png, id 2 a .png.
 // In production this whole function is just the backend's image URL.
 const DEV_RECIPE_IMAGE: Record<number, string> = {

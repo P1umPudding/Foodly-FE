@@ -71,8 +71,7 @@ describe('ImageManager', () => {
     expect(onChange).toHaveBeenCalledWith({ mainImage: null })
   })
 
-  // Matching by id, not object identity: a fresh copy of the same ref must still be removed.
-  it('removes a gallery image by id', () => {
+  it('removes a gallery image', () => {
     const onChange = vi.fn()
     render(
       <TooltipProvider>
