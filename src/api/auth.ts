@@ -130,11 +130,18 @@ export async function tokenForRequest(): Promise<{ token: string | null; refresh
 }
 
 // A request sent for `sentUserId` answered 401 with `sentAccessToken`. If the stored token changed
-// meanwhile, someone already refreshed, so only retry. Never retry as a different user.
-export function refreshAfterUnauthorized(sentAccessToken: string, sentUserId: UserId): Promise<string | null> {
+// meanwhile, someone already refreshed, so only retry. Never retry as a different user. With
+// `refreshError` (the refresh for this request just failed) a second refresh would hit the same rate
+// limit, so that error is thrown instead.
+export function refreshAfterUnauthorized(
+  sentAccessToken: string,
+  sentUserId: UserId,
+  refreshError?: unknown,
+): Promise<string | null> {
   const current = readStored()
   if (current?.userId !== sentUserId) return Promise.resolve(null)
   if (current.accessToken !== sentAccessToken) return Promise.resolve(current.accessToken)
+  if (refreshError !== undefined) return Promise.reject(refreshError)
   return refresh()
 }
 
@@ -145,20 +152,26 @@ export function expireIfCurrent(accessToken: string): void {
   notify({ type: 'signed-out', reason: 'expired' })
 }
 
-let inflight: Promise<string | null> | null = null
+type InflightRefresh = { refreshToken: string; promise: Promise<string | null> }
+let inflight: InflightRefresh | null = null
 
-// Assigned synchronously, so parallel callers in this tab always share one refresh.
+// Assigned synchronously, so parallel callers in this tab always share one refresh. Only for the same
+// refresh token: after a sign-in as someone else, the previous user's pending refresh is no answer.
 function refresh(): Promise<string | null> {
-  inflight ??= refreshOnce().finally(() => {
-    inflight = null
-  })
-  return inflight
-}
-
-function refreshOnce(): Promise<string | null> {
   const stored = readStored()
   if (!stored) return Promise.resolve(null)
-  const sent = { refreshToken: stored.refreshToken, userId: stored.userId }
+  if (inflight?.refreshToken === stored.refreshToken) return inflight.promise
+  const entry: InflightRefresh = {
+    refreshToken: stored.refreshToken,
+    promise: refreshOnce({ refreshToken: stored.refreshToken, userId: stored.userId }).finally(() => {
+      if (inflight === entry) inflight = null
+    }),
+  }
+  inflight = entry
+  return entry.promise
+}
+
+function refreshOnce(sent: { refreshToken: string; userId: UserId }): Promise<string | null> {
   // jsdom and older browsers have no Web Locks; then only the in-tab single flight applies.
   const locks = 'locks' in navigator ? navigator.locks : undefined
   if (!locks) return refreshLocked(sent)
@@ -218,7 +231,10 @@ async function startSession(path: string, body: object): Promise<AuthSession> {
   })
   if (!res.ok) throw new Error(await errorMessage(res))
   const { accessToken, refreshToken, user } = (await res.json()) as AuthResponse
+  const replaced = readStored()
   writeStored({ accessToken, refreshToken, userId: user.id })
+  // Signed in over an existing session: revoke the old pair instead of leaving it valid for 30 days.
+  if (replaced) void logout(replaced)
   notify()
   return session() ?? { userId: user.id }
 }

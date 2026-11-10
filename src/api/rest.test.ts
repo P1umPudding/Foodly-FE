@@ -181,6 +181,20 @@ describe('rest with a session', () => {
     expect(storedSession()).not.toBeNull()
   })
 
+  it('after a failed refresh still retries once with a token another tab rotated meanwhile', async () => {
+    const stale = seedSession({ accessToken: jwt(-60), userId: 1 }).accessToken
+    const rotated = jwt(900)
+    const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, init) => {
+      if (isRefresh(url)) {
+        seedSession({ accessToken: rotated, refreshToken: 'r-other', userId: 1 })
+        throw new DOMException('signal timed out', 'TimeoutError')
+      }
+      return bearerOf(init) === `Bearer ${rotated}` ? jsonResponse(200, { ok: true }) : unauthorized()
+    })
+    await expect(rest.get('/tags')).resolves.toEqual({ ok: true })
+    expect(calls(spy)).toEqual({ refresh: 1, route: [`Bearer ${stale}`, `Bearer ${rotated}`] })
+  })
+
   it('a refresh that fails with a network error rejects the call and keeps the session', async () => {
     seedSession()
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {

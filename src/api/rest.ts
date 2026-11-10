@@ -24,10 +24,8 @@ async function send(path: string, init: SendInit): Promise<Response> {
     known !== undefined ? { token: known, refreshError: undefined } : await tokenForRequest()
   const res = await fetch(apiUrl(path), withBearer(init, token))
   if (res.status !== 401 || token === null || sentFor === undefined) return res
-  // The refresh for this very request just failed; a second one would hit the same rate limit.
-  if (refreshError !== undefined) throw refreshError
 
-  const fresh = await refreshAfterUnauthorized(token, sentFor)
+  const fresh = await refreshAfterUnauthorized(token, sentFor, refreshError)
   if (fresh === null) return res
   const retried = await fetch(apiUrl(path), withBearer(init, fresh))
   // A fresh token that still gets 401 means the session is gone server-side.

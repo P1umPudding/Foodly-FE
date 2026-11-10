@@ -178,6 +178,30 @@ describe('getAccessToken', () => {
   })
 })
 
+describe('refresh across a user switch', () => {
+  it('does not join a pending refresh of the previous user', async () => {
+    seedSession({ accessToken: jwt(-60), refreshToken: 'r-a', userId: 1 })
+    const answers: Array<(res: Response) => void> = []
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => new Promise<Response>((resolve) => answers.push(resolve)))
+    const forA = auth.getAccessToken()
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+
+    seedSession({ accessToken: jwt(-60), refreshToken: 'r-b', userId: 2 })
+    const forB = auth.getAccessToken()
+    await vi.waitFor(() => expect(answers).toHaveLength(2))
+    expect(spy.mock.calls[1][1]?.body).toBe(JSON.stringify({ refreshToken: 'r-b' }))
+
+    const freshB = jwt(900)
+    answers[1](jsonResponse(200, { accessToken: freshB, refreshToken: 'r-b2' }))
+    await expect(forB).resolves.toBe(freshB)
+    answers[0](jsonResponse(200, { accessToken: jwt(900), refreshToken: 'r-a2' }))
+    await expect(forA).resolves.toBeNull()
+    expect(storedSession()).toMatchObject({ refreshToken: 'r-b2', userId: 2 })
+  })
+})
+
 describe('Web Locks across tabs', () => {
   it('uses the token another tab refreshed while this one waited for the lock', async () => {
     seedSession({ accessToken: jwt(-60), refreshToken: 'r1' })
@@ -258,6 +282,20 @@ describe('signIn / signUp / signOut', () => {
     expect(new Headers(init?.headers).get('Authorization')).toBeNull()
     expect(storedSession()).toEqual({ accessToken: token, refreshToken: 'r1', userId: 7 })
     expect(listener).toHaveBeenCalledWith({ userId: 7 }, undefined)
+  })
+
+  it('signIn over an existing session revokes the replaced pair', async () => {
+    const old = seedSession({ refreshToken: 'r-old', userId: 3 })
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(jsonResponse(200, { user, accessToken: jwt(900), refreshToken: 'r1' }))
+      .mockResolvedValue(jsonResponse(204))
+    await auth.signIn('kim@example.com', 'password123')
+    const [url, init] = spy.mock.calls[1]
+    expect(String(url)).toMatch(/\/auth\/logout$/)
+    expect(new Headers(init?.headers).get('Authorization')).toBe(`Bearer ${old.accessToken}`)
+    expect(init?.body).toBe(JSON.stringify({ refreshToken: 'r-old' }))
+    expect(storedSession()?.userId).toBe(7)
   })
 
   it('signIn throws the backend message and stores nothing', async () => {
