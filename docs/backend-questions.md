@@ -56,8 +56,8 @@ hash, name }[]`, `RecipePreview.mainImage` ebenso. Im Write-Body bleiben es IDs.
 **Gelöst im FE** durch #140: `protocol.ts` liest `ImageRef = { id, hash, name }`,
 der Draft hält Refs, `toCreateRecipe` schickt nur IDs. Die Mocks expandieren die
 IDs aus `recipes.json` zu Refs. Echte Bildanzeige im REST-Modus per
-`<img src=/images/{hash}>` ist FE #144 (die Route ist seit Backend-PR #20
-öffentlich); bis dahin bleibt sie gestubbt (Platzhalter).
+`<img src=/images/{hash}>` (die Route ist seit Backend-PR #20 öffentlich) ist
+umgesetzt in FE #144; Profilbilder laufen über dieselbe Route.
 
 ### B2 — User-Lookup für Namen
 
