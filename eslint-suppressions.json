@@ -14,16 +14,8 @@
       "count": 1
     }
   },
-  "src/components/editor/ImageManager.tsx": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "src/components/recipe/DeleteRecipeButton.tsx": {
     "@typescript-eslint/no-misused-promises": {
-      "count": 1
-    },
-    "no-restricted-syntax": {
       "count": 1
     }
   },
@@ -35,9 +27,6 @@
   "src/components/recipe/Rating.tsx": {
     "@typescript-eslint/no-misused-promises": {
       "count": 2
-    },
-    "no-restricted-syntax": {
-      "count": 1
     }
   },
   "src/components/recipe/RecipeImages.tsx": {
@@ -53,21 +42,10 @@
   "src/editor/useAutosave.test.ts": {
     "@typescript-eslint/no-floating-promises": {
       "count": 22
-    },
-    "no-restricted-syntax": {
-      "count": 1
     }
   },
   "src/editor/useAutosave.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    },
     "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
-  "src/hooks/useRecipeSearch.ts": {
-    "no-restricted-syntax": {
       "count": 1
     }
   },
@@ -78,9 +56,6 @@
   },
   "src/pages/RecipeDetail.tsx": {
     "@typescript-eslint/no-misused-promises": {
-      "count": 1
-    },
-    "no-restricted-syntax": {
       "count": 1
     }
   },
@@ -95,9 +70,6 @@
   "src/pages/RecipeEditor.tsx": {
     "@typescript-eslint/no-misused-promises": {
       "count": 2
-    },
-    "no-restricted-syntax": {
-      "count": 1
     }
   },
   "src/pages/RecipeList.tsx": {

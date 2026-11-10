@@ -15,6 +15,7 @@ import {
   cn,
 } from '@postxl/ui-components'
 import { foodly } from '../api'
+import { errorMessage } from '../lib/errorMessage'
 import { useRequest } from '../hooks/useRequest'
 import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { canEdit, isOwner } from '../editor/access'
@@ -64,7 +65,7 @@ export function RecipeDetail() {
       navigate(`/recipes/${copy.id}`)
     } catch (e) {
       if (attempt !== cloneAttempt.current) return
-      setCloneError((e as Error).message)
+      setCloneError(errorMessage(e, 'Duplizieren fehlgeschlagen'))
       setCloning(false)
     }
   }

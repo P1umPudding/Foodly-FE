@@ -18,6 +18,7 @@ import { BottomSheet } from '../BottomSheet'
 import { TriggerButton } from '../TriggerButton'
 import { DemoHint } from '../DemoHint'
 import { foodly } from '../../api'
+import { errorMessage } from '../../lib/errorMessage'
 import { visibleRating, formatRating, ratingsByRole, collaborationState, type RatedRole } from '../../api/views'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
 import { userImageSrc } from '../../api/assets'
@@ -102,7 +103,7 @@ function MyRatingInput({
     try {
       onChange?.(await write())
     } catch (e) {
-      setError((e as Error).message)
+      setError(errorMessage(e, 'Bewertung konnte nicht gespeichert werden'))
     } finally {
       setSaving(false)
     }
@@ -153,7 +154,11 @@ function MyRatingInput({
           Entfernen
         </Button>
       </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <p role="alert" className="text-xs text-destructive">
+          {error}
+        </p>
+      )}
       <DemoHint feature="ratings" />
     </div>
   )

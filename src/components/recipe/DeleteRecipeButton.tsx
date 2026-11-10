@@ -17,6 +17,7 @@ import {
 } from '@postxl/ui-components'
 import { TriggerButton } from '../TriggerButton'
 import { foodly } from '../../api'
+import { errorMessage } from '../../lib/errorMessage'
 import type { RecipeId } from '../../api/protocol'
 
 export function DeleteRecipeButton({
@@ -50,7 +51,7 @@ export function DeleteRecipeButton({
       await foodly.deleteRecipe(recipeId)
       onDeleted()
     } catch (e) {
-      setError((e as Error).message || 'Löschen fehlgeschlagen')
+      setError(errorMessage(e, 'Löschen fehlgeschlagen'))
       setPending(false)
       inFlight.current = false
     }

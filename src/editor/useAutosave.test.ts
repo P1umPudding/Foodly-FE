@@ -403,7 +403,8 @@ describe('useAutosave · flush', () => {
     await settle()
 
     expect(t.state).toBe('rejected')
-    expect((t.error as Error).message).toBe('offline')
+    expect(t.error).toBeInstanceOf(Error)
+    expect(t.error).toHaveProperty('message', 'offline')
     expect(result.current.status.state).toBe('error')
 
     let again!: ReturnType<typeof track>

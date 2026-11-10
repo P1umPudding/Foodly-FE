@@ -121,7 +121,17 @@ describe('Rating', () => {
     vi.mocked(foodly.setMyRating).mockRejectedValue(new Error('kaputt'))
     open(recipe())
     fireEvent.click(await screen.findByRole('button', { name: '2 von 5' }))
-    expect(await screen.findByText('kaputt')).toBeTruthy()
+    expect((await screen.findByRole('alert')).textContent).toBe('kaputt')
+  })
+
+  it.each([
+    ['an Error without message', new Error('')],
+    ['a non-Error rejection', { status: 500 }],
+  ])('announces a fallback for %s', async (_name, reason) => {
+    vi.mocked(foodly.setMyRating).mockRejectedValue(reason)
+    open(recipe())
+    fireEvent.click(await screen.findByRole('button', { name: '2 von 5' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('Bewertung konnte nicht gespeichert werden')
   })
 
   it('hides the demo hint when ratings are not stubbed', async () => {
