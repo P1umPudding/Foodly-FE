@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { TooltipProvider, toast } from '@postxl/ui-components'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditor } from './RecipeEditor'
 import { foodly } from '../api'
 import type { Recipe } from '../api/protocol'
@@ -189,12 +189,16 @@ describe('RecipeEditor · edit', () => {
   })
 })
 
-// Waits past the 800 ms autosave debounce.
-const pastDebounce = () => new Promise((resolve) => setTimeout(resolve, 1000))
+// Runs the 800 ms autosave debounce out (fake timers that still advance, so waitFor keeps working).
+const pastDebounce = () => act(() => vi.advanceTimersByTimeAsync(800))
 const count = () => screen.getByLabelText('Anzahl') as HTMLInputElement
 const HINT = 'Nicht gespeichert – Portionen prüfen'
 
 describe('RecipeEditor · portion count below 1', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+  })
+
   it('saves nothing while the count is invalid, then saves the fix with every edit made meanwhile', async () => {
     params = { id: '5' }
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
@@ -210,7 +214,11 @@ describe('RecipeEditor · portion count below 1', () => {
     expect(screen.getByText(HINT)).toBeTruthy()
     const done = screen.getByRole('button', { name: 'Fertig' })
     expect(done.getAttribute('aria-disabled')).toBe('true')
-    fireEvent.click(done)
+    // finish() is async: let it run out before checking it did not navigate.
+    await act(async () => {
+      fireEvent.click(done)
+      await vi.advanceTimersByTimeAsync(0)
+    })
     expect(navigate).not.toHaveBeenCalled()
 
     fireEvent.change(count(), { target: { value: '3' } })

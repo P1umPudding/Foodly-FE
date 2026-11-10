@@ -82,4 +82,20 @@ describe('useWakeLock', () => {
     unmount()
     expect(second.release).toHaveBeenCalledTimes(1)
   })
+
+  it('releases the earlier of two overlapping requests', async () => {
+    const { unmount } = renderHook(() => useWakeLock(true))
+    act(() => void document.dispatchEvent(new Event('visibilitychange')))
+    expect(request).toHaveBeenCalledTimes(2)
+
+    const first = sentinel()
+    const second = sentinel()
+    await resolveNext(first)
+    await resolveNext(second)
+
+    expect(first.release).toHaveBeenCalledTimes(1)
+    expect(second.release).not.toHaveBeenCalled()
+    unmount()
+    expect(second.release).toHaveBeenCalledTimes(1)
+  })
 })

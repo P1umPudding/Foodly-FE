@@ -44,7 +44,8 @@ export function RecipeEditor() {
   // An invalid portion count must never be saved, yet the field has to keep what was typed. So autosave gets
   // the last valid draft: while the count is invalid nothing new is sent, and the first valid draft after it
   // (carrying every edit made meanwhile) is. Adjusted during render, so a freshly loaded draft and autosave
-  // switching on still land in one commit (useAutosave's contract).
+  // switching on still land in one commit (useAutosave's contract). Old data loaded with an invalid count leaves
+  // `savable` null, so the autosave baseline is null and the first valid draft is saved.
   const sizeError = draft ? sizeNumberError(draft) : null
   const [savable, setSavable] = useState(draft)
   if (sizeError === null && savable !== draft) setSavable(draft)
@@ -246,7 +247,8 @@ export function RecipeEditor() {
                   <SaveStatusIndicator status={saveStatus} onRetry={retry} />
                 )}
                 {sizeError !== null && (
-                  <span role="alert" className="flex items-center gap-2 text-destructive">
+                  // Polite, not an alert: it flips while typing; the field's own error text waits for blur.
+                  <span role="status" className="flex items-center gap-2 text-destructive">
                     <AlertTriangle className="h-4 w-4" />
                     Nicht gespeichert – Portionen prüfen
                   </span>

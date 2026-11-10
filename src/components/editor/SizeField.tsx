@@ -21,7 +21,8 @@ export function SizeField({
   const errorId = useId()
   // The error shows once the field is left (docs/design.md §6), except for a value
   // that was already invalid when the editor opened (old data): that one shows at
-  // once, until it is fixed.
+  // once, until it is fixed. Read on mount, which works because the editor only
+  // renders this field once the recipe has loaded.
   const [touched, setTouched] = useState(false)
   const [invalidOnOpen, setInvalidOnOpen] = useState(error !== null)
   if (invalidOnOpen && error === null) setInvalidOnOpen(false)
