@@ -17,7 +17,15 @@ export function useWakeLock(initial = false) {
     const acquire = async () => {
       if (cancelled || document.visibilityState !== 'visible') return
       try {
-        sentinelRef.current = await navigator.wakeLock.request('screen')
+        const sentinel = await navigator.wakeLock.request('screen')
+        // The cleanup may have run while the request was pending; it had nothing to release then.
+        if (cancelled) {
+          sentinel.release().catch(() => {})
+          return
+        }
+        // A re-acquire (or an overlapping request) replaces the lock: drop the old one, or it is never released.
+        sentinelRef.current?.release().catch(() => {})
+        sentinelRef.current = sentinel
       } catch {
         // Request can reject (e.g. low battery, not focused) — give up quietly.
         if (!cancelled) setEnabled(false)

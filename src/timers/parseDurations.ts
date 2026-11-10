@@ -1,5 +1,5 @@
-// Finds time spans in recipe step text ("ca. 30 Minuten", "5–6 Min.", "1½ Stunden", "eine Viertelstunde") so
-// the step can offer them as timer chips. Pure and German-only, like the recipes.
+// Finds time spans in recipe step text ("ca. 30 Minuten", "5–6 Min.", "1½ Stunden", "½ Stunde",
+// "eine Viertelstunde") so the step can offer them as timer chips. Pure and German-only, like the recipes.
 //
 // A later `Step.duration` from the backend (B10) takes precedence over this regex: once a step carries its own
 // duration, use that and only fall back to parsing for steps without one.
@@ -31,8 +31,9 @@ const NUMBER_WORDS: Record<string, number> = {
 }
 const FRACTIONS: Record<string, number> = { '½': 0.5, '¼': 0.25, '¾': 0.75 }
 
-// Mixed fractions ("1 1/2") come first, or the parser would skip the whole number and time just "1/2".
-const DIGITS = String.raw`(?:\d+\s+)?\d+\/\d+|\d+(?:[.,]\d+)?(?:\s?[½¼¾])?`
+// Mixed fractions ("1 1/2") come first, or the parser would skip the whole number and time just "1/2". A bare
+// "½" comes last, so "1½" keeps its whole number.
+const DIGITS = String.raw`(?:\d+\s+)?\d+\/\d+|\d+(?:[.,]\d+)?(?:\s?[½¼¾])?|[½¼¾]`
 const WORD = 'einen|einer|eine|ein|zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn|elf|zwölf'
 // A plain hyphen only counts unspaced: "Stufe 2 - 5 Minuten" must not become a 2–5 range.
 const RANGE = String.raw`(?:\s*[–—]\s*|-|\s+bis\s+)`
@@ -41,7 +42,7 @@ const UNIT = String.raw`(stunden|stunde|std\.?|minuten|minute|min\.?|sekunden|se
 // Digits may touch the unit ("10min"); number words need a space, or "eins" would read as "ein s".
 const QUANTITY =
   String.raw`(?:(?:(${DIGITS})${RANGE})?(${DIGITS})\s?|(?:(${WORD})${RANGE})?(${WORD})\s+)${UNIT}` +
-  String.raw`|((?:eine\s+)?halbe\s+stunde|einer\s+halben\s+stunde|(?:eine[rn]?\s+)?viertelstunde)(?![\p{L}\d])`
+  String.raw`|((?:eine\s+)?halbe\s+stunde|einer\s+halben\s+stunde|(?:eine[rn]?\s+)?(?:drei)?viertelstunde)(?![\p{L}\d])`
 const PREFIX = String.raw`(?:(?:ca\.|etwa|gut)\s+)?`
 
 // No lookbehind for the left word boundary: Safari before 16.4 can't parse it (Vite's default target includes
@@ -77,7 +78,7 @@ function unitMs(unit: string): number {
 function quantity(groups: string[]): Quantity {
   const [, digits, , word, unit, special] = groups
   if (special !== undefined) {
-    const ms = /viertel/i.test(special) ? 15 * MINUTE : 30 * MINUTE
+    const ms = /dreiviertel/i.test(special) ? 45 * MINUTE : /viertel/i.test(special) ? 15 * MINUTE : 30 * MINUTE
     return { ms, unitMs: HOUR }
   }
   const u = unitMs(unit)

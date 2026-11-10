@@ -262,3 +262,18 @@ describe('PortionScaler — tap targets', () => {
     }
   })
 })
+
+// Old data can carry 0 or a negative count; dividing by it would show Infinity/NaN.
+describe('PortionScaler — portion count 0 or negative', () => {
+  it.each([0, -2])('falls back to multiplier mode for %s', (sizeNumber) => {
+    const { onChange } = renderScaler({ sizeNumber, sizeText: 'Portionen', factor: 1 })
+    expect(screen.getByLabelText('Mengen-Faktor')).toBeTruthy()
+    expect(screen.queryByLabelText('Portionen')).toBeNull()
+    expect(screen.getByText('×')).toBeTruthy()
+    expect(box().value).toBe('1')
+    fireEvent.click(screen.getByLabelText('Mehr'))
+    expect(onChange).toHaveBeenLastCalledWith(1.5)
+    fireEvent.click(screen.getByLabelText('Weniger'))
+    expect(onChange).toHaveBeenLastCalledWith(0.75)
+  })
+})

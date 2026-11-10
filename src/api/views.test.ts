@@ -8,6 +8,7 @@ import {
   scaleAmount,
   isScalableAmount,
   ingredientParts,
+  hasPortions,
 } from './views'
 import type { Recipe } from './protocol'
 
@@ -255,5 +256,15 @@ describe('formatRating', () => {
 
   it('rounds raw values to one decimal', () => {
     expect(formatRating(3.6666)).toBe('3,7')
+  })
+})
+
+describe('hasPortions', () => {
+  it('needs a positive portion count', () => {
+    expect(hasPortions(null)).toBe(false)
+    expect(hasPortions(0)).toBe(false)
+    expect(hasPortions(-2)).toBe(false)
+    expect(hasPortions(0.5)).toBe(true)
+    expect(hasPortions(4)).toBe(true)
   })
 })

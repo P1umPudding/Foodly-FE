@@ -116,6 +116,13 @@ export function toDraft(recipe: Recipe): Draft {
   }
 }
 
+// Empty stays allowed (no size given); text mode drops the number on save anyway.
+export function sizeNumberError(draft: Pick<Draft, 'sizeMode' | 'sizeNumber'>): string | null {
+  const n = draft.sizeNumber
+  if (draft.sizeMode !== 'portions' || n === null) return null
+  return !Number.isFinite(n) || n < 1 ? 'Mindestens 1 Portion.' : null
+}
+
 const orNull = (s: string): string | null => (s.trim() === '' ? null : s.trim())
 
 export function toCreateRecipe(draft: Draft): CreateRecipe {

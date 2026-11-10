@@ -30,6 +30,7 @@ import { DeleteRecipeButton } from '../components/recipe/DeleteRecipeButton'
 import { Lightbox } from '../components/recipe/Lightbox'
 import { showsRecipeImages } from '../api/assets'
 import type { Recipe, RecipeIngredientId } from '../api/protocol'
+import { hasPortions } from '../api/views'
 
 function isUrl(s: string): boolean {
   return /^https?:\/\//i.test(s.trim())
@@ -206,7 +207,7 @@ export function RecipeDetail() {
                 </div>
               </div>
               <div className="flex justify-center">
-                {recipe.sizeNumber !== null ? (
+                {hasPortions(recipe.sizeNumber) ? (
                   <PortionScaler
                     part="input"
                     factor={factor}
@@ -245,13 +246,13 @@ export function RecipeDetail() {
                   // for a deliberately asymmetric look. The portions steppers go
                   // further on both axes; the multiplier scaler only a little. On phones the
                   // portions steppers' 40 px hit area would reach into the box above, so less.
-                  recipe.sizeNumber !== null
+                  hasPortions(recipe.sizeNumber)
                     ? '-translate-y-3 translate-x-2 phone:-translate-y-2'
                     : '-translate-y-1.5 translate-x-1',
                 )}
               >
                 <PortionScaler
-                  part={recipe.sizeNumber !== null ? 'steppers' : 'full'}
+                  part={hasPortions(recipe.sizeNumber) ? 'steppers' : 'full'}
                   factor={factor}
                   onChange={setFactor}
                   sizeNumber={recipe.sizeNumber}
