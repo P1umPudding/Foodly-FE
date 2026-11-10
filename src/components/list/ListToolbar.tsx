@@ -10,44 +10,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@postxl/ui-components'
-import {
-  Type,
-  Clock,
-  Timer,
-  Star,
-  ArrowUpAZ,
-  ArrowDownZA,
-  ArrowUpNarrowWide,
-  ArrowDownWideNarrow,
-  type LucideIcon,
-} from 'lucide-react'
-import type { ListState, SortKey, SortDir } from '../../list/state'
+import type { ListState, SortKey } from '../../list/state'
 import { ViewToggles } from './ViewToggles'
-
-type Criterion = { key: SortKey; label: string; Icon: LucideIcon }
-const SORT_CRITERIA: Criterion[] = [
-  { key: 'name', label: 'Name', Icon: Type },
-  { key: 'work', label: 'Arbeitszeit', Icon: Clock },
-  { key: 'overall', label: 'Gesamtzeit', Icon: Timer },
-  { key: 'rating', label: 'Bewertung', Icon: Star },
-]
-
-// Direction glyph: the ARROW flips up (ascending) / down (descending). For name the
-// letters also swap (A→Z up vs Z→A down); for the numeric keys the bars go narrow→wide.
-function dirIcon(sortKey: SortKey, dir: SortDir): LucideIcon {
-  if (sortKey === 'name') return dir === 'asc' ? ArrowUpAZ : ArrowDownZA
-  return dir === 'asc' ? ArrowUpNarrowWide : ArrowDownWideNarrow
-}
-
-// Plain-language meaning of the current direction, per criterion (toggle tooltip).
-function dirLabel(sortKey: SortKey, dir: SortDir): string {
-  if (sortKey === 'name') return dir === 'asc' ? 'A → Z' : 'Z → A'
-  if (sortKey === 'rating') return dir === 'asc' ? 'Schlechteste zuerst' : 'Beste zuerst'
-  return dir === 'asc' ? 'Kürzeste zuerst' : 'Längste zuerst'
-}
+import { SORT_CRITERIA, criterionFor, dirIcon, dirLabel } from './listOptions'
 
 export function ListToolbar({ state, set }: { state: ListState; set: (patch: Partial<ListState>) => void }) {
-  const criterion = SORT_CRITERIA.find((c) => c.key === state.sortKey) ?? SORT_CRITERIA[0]
+  const criterion = criterionFor(state.sortKey)
   const DirIcon = dirIcon(state.sortKey, state.sortDir)
   const toggleDir = () => set({ sortDir: state.sortDir === 'asc' ? 'desc' : 'asc' })
 
