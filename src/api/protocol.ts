@@ -107,6 +107,11 @@ export type User = {
   // ...
 }
 
+// POST /auth/login and /auth/register answer AuthResponse, POST /auth/refresh a TokenPair. The refresh
+// token rotates: once used it is invalid.
+export type TokenPair = { accessToken: string; refreshToken: string }
+export type AuthResponse = TokenPair & { user: User }
+
 export type GroupId = number
 export type Group = {
   id: GroupId
