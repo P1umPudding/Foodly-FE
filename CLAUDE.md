@@ -67,7 +67,8 @@ There's no server code and no secrets in the repo.
     `VITE_MOCK`.
   - `rest.ts` — REST transport (`fetch`): base URL, bearer from the session
     (`auth.ts`) with one refresh + one retry on 401 (none for `/auth/*`), error
-    contract (throws `Error(message)`), `collectPages` for cursor pages.
+    contract (throws `Error(message)`; `ApiError` from `http.ts` for sign-in/up),
+    `collectPages` for cursor pages.
   - `auth.ts` — the session: the only code that reads/writes the tokens
     (`localStorage["foodly.auth"]`) and sends `/auth/*`. `getAccessToken`
     refreshes 30 s before `exp`; at most one refresh at a time, across tabs via
@@ -98,7 +99,9 @@ There's no server code and no secrets in the repo.
   is installed (it sets the socket to open) and does **not** reflect REST/backend health.
 - `src/components/` — shared UI, plus `editor/`, `list/`, `recipe/`, `shell/`
   (app shell and navigation);
-  `src/pages/` — `RecipeList`, `RecipeDetail`, `RecipeEditor`, `NotFound`.
+  `src/pages/` — `RecipeList`, `RecipeDetail`, `RecipeEditor`, `NotFound`,
+  `Login`, `Register` (outside the shell; every other route sits behind
+  `RequireAuth`, see `docs/architecture.md` §5).
 - `src/styles/theme.css` holds the design-token VALUES (direction "Ruhig":
   greyscale chrome, colour only from categories — rules in
   [`docs/design.md`](docs/design.md)). `src/styles/styles.css` holds the Tailwind v4
@@ -126,8 +129,9 @@ In short:
 - Missing backend endpoint in REST mode (Alpha): stub it inside `src/api`
   (localStorage, `src/api/stubs.ts`, "Demo" hint in the UI) — see
   [`docs/decisions/0003-backend-gap-stubs.md`](docs/decisions/0003-backend-gap-stubs.md).
-- Errors: the transport throws `Error(message)`; handle it via the hooks
-  (`useRequest` / `useRecipeSearch` surface it as an error state;
+- Errors: the transport throws `Error(message)` (sign-in and sign-up throw
+  `ApiError` with `status` and `code`, for the sign-in pages); handle it via
+  the hooks (`useRequest` / `useRecipeSearch` surface it as an error state;
   in `useRecipeSearch` only for the first page — a failed `loadMore` stops
   paging).
 - `socket.ts` is reserved for future live editing — don't build features on it.
