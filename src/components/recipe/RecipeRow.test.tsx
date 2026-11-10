@@ -82,6 +82,13 @@ describe('detailed thumbnail', () => {
     expect(container.querySelector('.lucide-utensils-crossed')).toBeNull()
   })
 
+  it('a photo that fails to load looks like no photo', () => {
+    const { container } = renderRow({ ...base, mainImage: ref(3) }, { showImages: true })
+    fireEvent.error(container.querySelector('img')!)
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('.lucide-utensils-crossed')).toBeTruthy()
+  })
+
   it('a recipe without a photo gets the grey placeholder', () => {
     const { container } = renderRow(base, { showImages: true })
     expect(screen.getByTestId('recipe-thumb').className).toContain('bg-muted')

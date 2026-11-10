@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeTile } from './RecipeTile'
@@ -73,6 +73,14 @@ it('with a photo shows the backend image and the title once', () => {
   expect(container.querySelector('img')?.getAttribute('src')).toBe('/api/v1/images/ab12')
   expect(screen.getAllByText('Linsensuppe')).toHaveLength(1)
   expect(screen.queryByTestId('tile-type-name')).toBeNull()
+})
+
+it('a photo that fails to load turns into the typographic tile', () => {
+  const { container } = renderTile({ ...base, mainImage: { id: 1, hash: 'ab12', name: null } })
+  fireEvent.error(container.querySelector('img')!)
+  expect(container.querySelector('img')).toBeNull()
+  expect(screen.getByTestId('tile-type-name').textContent).toBe('Linsensuppe')
+  expect(screen.getAllByText('Linsensuppe')).toHaveLength(1)
 })
 
 it('without a photo shows the typographic tile and no second title', () => {

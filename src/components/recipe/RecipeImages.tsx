@@ -1,4 +1,4 @@
-import { recipeImageSrc } from '../../api/assets'
+import { RecipeImage } from './RecipeImage'
 import type { ImageRef } from '../../api/protocol'
 
 // Image area for the recipe detail view: the main image and the right-edge
@@ -31,11 +31,13 @@ export function RecipeImages({
 
   return (
     <div className={`mt-6 flex justify-center ${GAP} ${ROW_H}`}>
-      <img
-        src={recipeImageSrc(hero)}
-        alt={alt}
+      <RecipeImage
+        image={hero}
+        alt={hero.name ?? alt}
         onClick={() => onOpen(0)}
         className={`h-full w-auto ${mainMaxW} cursor-zoom-in rounded-lg bg-foreground/5 object-contain dark:bg-muted`}
+        // w-auto would collapse the placeholder, so it gets a photo-like 4:3 box under the same width cap.
+        fallbackClassName={`aspect-[4/3] h-full ${mainMaxW} cursor-zoom-in rounded-lg`}
       />
 
       {/* One extra image → a single tile at full row height (≈ 2× a stacked tile). */}
@@ -75,7 +77,7 @@ function Tile({
       onClick={onClick}
       className={`relative cursor-zoom-in overflow-hidden rounded-lg bg-foreground/5 dark:bg-muted ${className}`}
     >
-      <img src={recipeImageSrc(image)} alt="" className="h-full w-full object-cover" />
+      <RecipeImage image={image} alt="" className="h-full w-full object-cover" fallbackClassName="h-full w-full" />
       {overlay && (
         <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-2xl font-medium text-white">
           {overlay}

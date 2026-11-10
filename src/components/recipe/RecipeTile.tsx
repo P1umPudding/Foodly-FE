@@ -8,6 +8,7 @@ import { knowsUserNames } from '../../api'
 import { visibleRating } from '../../api/views'
 import { recipeImageSrc } from '../../api/assets'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
+import { useImageFailed } from './RecipeImage'
 import type { Recipe, UserCategory } from '../../api/protocol'
 
 // One recipe in the "Kacheln" view. Without a displayable photo the tile is a quiet
@@ -17,7 +18,10 @@ export function RecipeTile({ recipe, categories = [] }: { recipe: Recipe; catego
   const me = useCurrentUserId()
   const owner = useUser(recipe.owner)
   const rating = visibleRating(recipe, me)
-  const photo = recipe.mainImage
+  const src = recipe.mainImage !== null ? recipeImageSrc(recipe.mainImage) : null
+  // A photo that fails to load turns the tile into the typographic one.
+  const { failed, onError } = useImageFailed(src)
+  const photo = failed ? null : src
   const ownerName = recipe.owner !== me && knowsUserNames() ? owner?.name : undefined
 
   return (
@@ -28,9 +32,10 @@ export function RecipeTile({ recipe, categories = [] }: { recipe: Recipe; catego
       <div className="aspect-[4/3] overflow-hidden rounded-lg bg-muted">
         {photo !== null ? (
           <img
-            src={recipeImageSrc(photo)}
+            src={photo}
             alt=""
             loading="lazy"
+            onError={onError}
             className="h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]"
           />
         ) : (

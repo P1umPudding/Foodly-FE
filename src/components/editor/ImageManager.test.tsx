@@ -34,9 +34,7 @@ describe('ImageManager', () => {
         mainImage: null,
         images: [],
       })
-      return (
-        <ImageManager {...draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} />
-      )
+      return <ImageManager {...draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} />
     }
     const { container } = render(
       <TooltipProvider>

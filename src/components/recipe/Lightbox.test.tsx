@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { Lightbox } from './Lightbox'
 import { ref } from '../../test/images'
@@ -18,4 +18,18 @@ describe('Lightbox controls', () => {
       expect(classes).not.toContain('focus-visible:ring-2')
     },
   )
+})
+
+describe('Lightbox image that fails to load', () => {
+  it('shows the placeholder, and clicking it keeps the lightbox open', () => {
+    const onClose = vi.fn()
+    render(<Lightbox images={[ref(1)]} index={0} onIndexChange={() => {}} onClose={onClose} />)
+
+    fireEvent.error(screen.getByAltText('Bild 1'))
+    const fallback = screen.getByRole('img', { name: 'Bild 1' })
+    expect(fallback.className).toContain('h-[64vh]')
+
+    fireEvent.click(fallback)
+    expect(onClose).not.toHaveBeenCalled()
+  })
 })

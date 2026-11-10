@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button, cn } from '@postxl/ui-components'
-import { recipeImageSrc, imageName } from '../../api/assets'
+import { imageName } from '../../api/assets'
+import { RecipeImage } from './RecipeImage'
 import type { ImageRef } from '../../api/protocol'
 import { FOCUS_RING } from '../focusRing'
 
@@ -136,13 +137,14 @@ export function Lightbox({
             <ChevronLeft className="size-8" />
           </Button>
         )}
-        <img
+        <RecipeImage
           ref={imgRef}
-          src={recipeImageSrc(image)}
+          image={image}
           alt={imageName(image)}
           onLoad={computeFit}
           onClick={stop}
           className={`${imgFit} max-h-[64vh] max-w-[50vw] cursor-default rounded-lg object-contain`}
+          fallbackClassName="h-[64vh] w-[50vw] cursor-default rounded-lg"
         />
         {n > 1 && (
           <Button
@@ -185,7 +187,12 @@ export function Lightbox({
                 i === index ? 'ring-2 ring-white' : ''
               }`}
             >
-              <img src={recipeImageSrc(thumb)} alt="" className="h-full w-full object-cover" />
+              <RecipeImage
+                image={thumb}
+                alt=""
+                className="h-full w-full object-cover"
+                fallbackClassName="h-full w-full"
+              />
               {/* dim overlay (not the image's opacity); lifts on hover / when active */}
               {i !== index && (
                 <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-transparent" />
