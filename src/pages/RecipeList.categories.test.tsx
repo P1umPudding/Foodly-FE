@@ -160,7 +160,10 @@ describe('RecipeList when the categories fail', () => {
     screen.getByText('Suppe')
     expect(screen.queryByText('Ohne Kategorie')).toBeNull()
     expect(screen.queryByText('#3')).toBeNull()
-    screen.getAllByText('Kategorien nicht verfügbar')
+    // The ignored selection leaves the Kategorie button empty; its popover says why there is nothing to pick.
+    fireEvent.click(screen.getByRole('button', { name: 'Kategorie' }))
+    screen.getByText('Kategorien nicht verfügbar')
+    fireEvent.keyDown(screen.getByRole('dialog', { name: 'Kategorie' }), { key: 'Escape' })
 
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
     expect(retry).toHaveBeenCalledTimes(1)
