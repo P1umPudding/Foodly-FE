@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Clock, Copy, Info, ListChecks, Pencil } from 'lucide-react'
 import {
   Alert,
@@ -36,6 +36,13 @@ function isUrl(s: string): boolean {
   return /^https?:\/\//i.test(s.trim())
 }
 
+// The sign-in redirect replaces the entry (non-default key) without adding one before it, so BrowserRouter's
+// history index (0 = first entry) decides too. MemoryRouter keeps no index there; then only the key counts.
+function hasAppHistory(locationKey: string): boolean {
+  const idx = (window.history.state as { idx?: unknown } | null)?.idx
+  return locationKey !== 'default' && (typeof idx !== 'number' || idx > 0)
+}
+
 export function RecipeDetail() {
   const { id } = useParams()
   const recipeId = Number(id)
@@ -45,6 +52,7 @@ export function RecipeDetail() {
 
   const navigate = useNavigate()
   const refreshCategories = useRefreshCategories()
+  const location = useLocation()
   const [cloning, setCloning] = useState(false)
   const [cloneError, setCloneError] = useState<string | null>(null)
   // Bumped per clone attempt and on every recipe switch, so a late failure of an outdated clone is ignored.
@@ -96,6 +104,15 @@ export function RecipeDetail() {
       return next
     })
 
+  // Came from inside the app: go back like the browser does, so the list keeps its search, filters and scroll
+  // and no extra history entry piles up. Otherwise (direct link) the plain link to /recipes applies.
+  const onBack = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    if (!hasAppHistory(location.key)) return
+    e.preventDefault()
+    navigate(-1)
+  }
+
   // Timer labels are plain text, so tag tokens in the name become the tag's name.
   const plainName = recipe ? plainTagText(recipe.name, tags) : ''
   // All images of the recipe in viewer order: main first, then the gallery. Empty → no hero, no lightbox.
@@ -110,7 +127,9 @@ export function RecipeDetail() {
     <div className="mx-auto max-w-5xl px-6 py-10">
       <div className="mb-4 flex items-center justify-between gap-3">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/recipes">← Zurück</Link>
+          <Link to="/recipes" onClick={onBack}>
+            ← Zurück
+          </Link>
         </Button>
         {status === 'ready' && recipe && (
           <div className="flex items-center gap-2">

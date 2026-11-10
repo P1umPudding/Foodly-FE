@@ -15,6 +15,7 @@ vi.mock('../api/stubs', async (importOriginal) => {
 })
 
 vi.mock('react-router-dom', () => ({
+  useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),
   useNavigate: () => vi.fn(),
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
