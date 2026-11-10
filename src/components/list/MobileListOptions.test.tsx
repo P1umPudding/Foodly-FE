@@ -32,14 +32,13 @@ it('is a 40 px icon button labelled "Sortieren & Ansicht"', () => {
 it('holds criterion, direction, view and layout', () => {
   render(<Harness />)
   const sheet = openSheet()
-  const options = (name: string) =>
+  // Label texts in order (the radios' accessible names; the icons are aria-hidden).
+  const labels = (name: string) =>
     within(within(sheet).getByRole('radiogroup', { name }))
       .getAllByRole('radio')
-      .map((r) => r.id)
-  const labels = (name: string) =>
-    options(name).map((id) => within(sheet).getByText((_, el) => el?.getAttribute('for') === id).textContent)
+      .map((r) => sheet.querySelector(`label[for="${r.id}"]`)?.textContent)
 
-  expect(labels('Kriterium')).toEqual(['Name', 'Arbeitszeit', 'Gesamtzeit', 'Bewertung'])
+  expect(labels('Sortieren nach')).toEqual(['Name', 'Arbeitszeit', 'Gesamtzeit', 'Bewertung'])
   expect(labels('Richtung')).toEqual(['A → Z', 'Z → A'])
   expect(labels('Ansicht')).toEqual(['Kompakt', 'Detailliert', 'Kacheln'])
   expect(labels('Gliederung')).toEqual(['Nach Kategorie', 'Einfache Liste'])
@@ -77,6 +76,6 @@ it('gives every option row a 40 px tap target', () => {
   const sheet = openSheet()
   // jsdom applies no CSS: check the row's token.
   for (const radio of within(sheet).getAllByRole('radio')) {
-    expect(radio.parentElement?.classList.contains('min-h-10')).toBe(true)
+    expect(radio.closest('.min-h-10')).not.toBeNull()
   }
 })

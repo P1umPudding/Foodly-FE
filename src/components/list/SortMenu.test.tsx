@@ -36,7 +36,7 @@ it('sets sortKey work and sortDir desc via "Arbeitszeit" + "Längste zuerst"', a
   const onSet = vi.fn()
   render(<Harness onSet={onSet} />)
 
-  fireEvent.click(within(await openMenu()).getByRole('menuitemradio', { name: /Arbeitszeit/ }))
+  fireEvent.click(within(await openMenu()).getByRole('menuitemradio', { name: 'Arbeitszeit' }))
   fireEvent.click(within(await openMenu()).getByRole('menuitemradio', { name: 'Längste zuerst' }))
 
   expect(onSet).toHaveBeenLastCalledWith(expect.objectContaining({ sortKey: 'work', sortDir: 'desc' }))
@@ -53,11 +53,7 @@ it('names both radio groups', async () => {
 it('marks the current criterion and direction as checked', async () => {
   render(<Harness initial={{ ...DEFAULT_STATE, sortKey: 'overall', sortDir: 'desc' }} />)
   const menu = await openMenu()
-  expect(
-    within(menu)
-      .getByRole('menuitemradio', { name: /Gesamtzeit/ })
-      .getAttribute('aria-checked'),
-  ).toBe('true')
+  expect(within(menu).getByRole('menuitemradio', { name: 'Gesamtzeit' }).getAttribute('aria-checked')).toBe('true')
   expect(within(menu).getByRole('menuitemradio', { name: 'Längste zuerst' }).getAttribute('aria-checked')).toBe('true')
 })
 

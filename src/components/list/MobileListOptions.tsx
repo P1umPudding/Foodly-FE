@@ -31,7 +31,7 @@ function OptionRadioGroup<T extends string>({
 } & ({ 'aria-label': string } | { 'aria-labelledby': string })) {
   const baseId = useId()
   return (
-    <RadioGroup value={value} onValueChange={(v) => onChange(v as T)} className="gap-0.5" {...labelling}>
+    <RadioGroup value={value} onValueChange={(v) => onChange(v as T)} className="gap-1" {...labelling}>
       {options.map((o) => {
         const id = `${baseId}-${o.value}`
         return (
@@ -54,7 +54,7 @@ function OptionRadioGroup<T extends string>({
 
 function Section({ id, title, children }: { id?: string; title: string; children: ReactNode }) {
   return (
-    <section className="space-y-1.5">
+    <section className="space-y-2">
       <h3 id={id} className="text-sm font-medium text-muted-foreground">
         {title}
       </h3>
@@ -83,16 +83,16 @@ export function MobileListOptions({ state, set }: { state: ListState; set: (patc
         <ArrowUpDown aria-hidden />
       </SheetTrigger>
       <BottomSheet title={TITLE} description="Sortierung und Ansicht einstellen">
-        <div className="space-y-5">
-          {/* Its two groups carry their own names (Kriterium, Richtung); the heading only titles the block. */}
+        <div className="space-y-6">
+          {/* Its two groups carry their own names (Sortieren nach, Richtung); the heading only titles the block. */}
           <Section title="Sortieren">
             <OptionRadioGroup
-              aria-label="Kriterium"
+              aria-label="Sortieren nach"
               value={state.sortKey}
               onChange={(sortKey) => set({ sortKey })}
               options={SORT_CRITERIA.map((c) => ({ value: c.key, label: c.label, Icon: c.Icon }))}
             />
-            <div className="border-t pt-1.5">
+            <div className="border-t pt-2">
               <OptionRadioGroup
                 aria-label="Richtung"
                 value={state.sortDir}

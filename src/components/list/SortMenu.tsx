@@ -11,6 +11,7 @@ import {
   buttonVariants,
   cn,
 } from '@postxl/ui-components'
+import { useId } from 'react'
 import { ChevronDown } from 'lucide-react'
 import type { ListState, SortDir, SortKey } from '../../list/state'
 import { SORT_CRITERIA, SORT_DIRS, criterionFor, dirIcon, dirLabel } from './listOptions'
@@ -18,6 +19,8 @@ import { SORT_CRITERIA, SORT_DIRS, criterionFor, dirIcon, dirLabel } from './lis
 export function SortMenu({ state, set }: { state: ListState; set: (patch: Partial<ListState>) => void }) {
   const criterion = criterionFor(state.sortKey)
   const DirIcon = dirIcon(state.sortKey, state.sortDir)
+  const keyLabelId = useId()
+  const dirLabelId = useId()
 
   return (
     <DropdownMenu>
@@ -41,9 +44,9 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
         <ChevronDown aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-48">
-        <DropdownMenuLabel>Sortieren nach</DropdownMenuLabel>
+        <DropdownMenuLabel id={keyLabelId}>Sortieren nach</DropdownMenuLabel>
         <DropdownMenuRadioGroup
-          aria-label="Sortieren nach"
+          aria-labelledby={keyLabelId}
           value={state.sortKey}
           onValueChange={(v) => set({ sortKey: v as SortKey })}
         >
@@ -55,9 +58,9 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
           ))}
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Richtung</DropdownMenuLabel>
+        <DropdownMenuLabel id={dirLabelId}>Richtung</DropdownMenuLabel>
         <DropdownMenuRadioGroup
-          aria-label="Richtung"
+          aria-labelledby={dirLabelId}
           value={state.sortDir}
           onValueChange={(v) => set({ sortDir: v as SortDir })}
         >

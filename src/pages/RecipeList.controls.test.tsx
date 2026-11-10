@@ -27,8 +27,7 @@ function renderList(url = '/recipes?group=0') {
 }
 
 const searchField = () => screen.getByRole('textbox', { name: 'Rezepte suchen' })
-// The row holding the search (input → SearchInput wrapper → row) and the controls next to it.
-const searchRow = () => searchField().parentElement!.parentElement!
+const searchRow = () => screen.getByTestId('search-row')
 
 beforeEach(() => {
   desktop.value = true
