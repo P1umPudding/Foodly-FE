@@ -188,8 +188,10 @@ describe('hand-written focus rings (#133)', () => {
   // Only focus widths: the Lightbox thumbnail's selection ring (`ring-2 ring-white`) is not a focus ring.
   const focusWidths = (source: string) =>
     (
-      source.match(/focus(?:-visible|-within)?:(?:[\w-]+:)*ring(?:-(?:\[[^\]]+\]|\d+(?:\.\d+)?))?(?=[\s'"`!]|$)/g) ?? []
-    ).filter((w) => !/ring-\[(?:#|color:|var\()/.test(w))
+      source.match(
+        /focus(?:-visible|-within)?:(?:[\w-]+:)*ring(?:-(?:\[[^\]]+\]|\([^)]+\)|\d+(?:\.\d+)?))?(?=[\s'"`!]|$)/g,
+      ) ?? []
+    ).filter((w) => !/ring-(?:\[(?:#|color:|var\(|oklch\()|\((?:color:|--))/.test(w))
 
   it.each([
     ['focus-visible:ring-2', ['focus-visible:ring-2']],
@@ -197,6 +199,8 @@ describe('hand-written focus rings (#133)', () => {
     ['focus-within:ring-2', ['focus-within:ring-2']],
     ['focus-visible:dark:ring-[2px]', ['focus-visible:dark:ring-[2px]']],
     ['focus:ring-1.5', ['focus:ring-1.5']],
+    ['focus-visible:ring-(length:--w)', ['focus-visible:ring-(length:--w)']],
+    ['focus-visible:ring-(--brand) focus-visible:ring-[oklch(0.5_0_0)]', []],
     ['focus-visible:ring-[3px] focus-visible:ring-ring ring-2 ring-white', ['focus-visible:ring-[3px]']],
     ['focus-visible:ring-white/60 focus-visible:ring-sidebar-ring', []],
   ])('the width finder reads %j', (source, expected) => {
@@ -204,7 +208,7 @@ describe('hand-written focus rings (#133)', () => {
   })
 
   it.each([
-    ['Rating', ratingTsx, 'TriggerButton'],
+    ['Rating', ratingTsx, 'variant="bare"'],
     ['Sidebar', sidebarTsx, 'FOCUS_RING'],
     ['Lightbox', lightboxTsx, 'FOCUS_RING'],
   ])('%s takes the shared width', (_name, source, marker) => {
