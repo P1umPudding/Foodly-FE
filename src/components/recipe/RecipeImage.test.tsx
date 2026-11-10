@@ -40,6 +40,16 @@ describe('RecipeImage', () => {
     expect(container.querySelector('img')?.getAttribute('src')).toBe('/api/v1/images/cd34')
   })
 
+  it('keeps showing the placeholder when going back to a failed image', () => {
+    const other = { id: 2, hash: 'cd34', name: null }
+    const { container, rerender } = render(<RecipeImage image={image} alt="" />)
+    fireEvent.error(container.querySelector('img')!)
+    rerender(<RecipeImage image={other} alt="" />)
+    rerender(<RecipeImage image={image} alt="" />)
+    expect(container.querySelector('img')).toBeNull()
+    expect(screen.getByTestId('image-fallback')).toBeTruthy()
+  })
+
   it('keeps the click handler on the placeholder', () => {
     const onClick = vi.fn()
     const { container } = render(<RecipeImage image={image} alt="" onClick={onClick} />)

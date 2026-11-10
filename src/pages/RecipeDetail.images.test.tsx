@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
@@ -59,5 +59,18 @@ describe('RecipeDetail images', () => {
     const srcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
     expect(srcs).toEqual(['/api/v1/images/ab12', '/api/v1/images/h4', '/api/v1/images/h5'])
     expect(screen.getByAltText('Pancakes').getAttribute('src')).toBe('/api/v1/images/ab12')
+  })
+
+  it('a hero that fails to load shows the placeholder, which still opens the lightbox', async () => {
+    Element.prototype.scrollTo ??= vi.fn()
+    renderDetail()
+
+    await screen.findByRole('heading', { name: 'Pancakes' })
+    fireEvent.error(screen.getByAltText('Pancakes'))
+    const fallback = screen.getByRole('img', { name: 'Pancakes' })
+    expect(fallback.className).toContain('aspect-[4/3]')
+
+    fireEvent.click(fallback)
+    expect(screen.getByRole('dialog')).toBeTruthy()
   })
 })

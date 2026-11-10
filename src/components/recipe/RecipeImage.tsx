@@ -4,10 +4,16 @@ import { cn } from '@postxl/ui-components'
 import { recipeImageSrc } from '../../api/assets'
 import type { ImageRef } from '../../api/protocol'
 
-// The failure is remembered per src, so switching to another image shows it again without a reset effect.
+// Failures are remembered per src: switching to another image shows it again without a reset effect, and
+// paging back to a failed one (Lightbox) doesn't retry it and flash a broken image.
 export function useImageFailed(src: string | null) {
-  const [failedSrc, setFailedSrc] = useState<string | null>(null)
-  return { failed: src !== null && failedSrc === src, onError: () => setFailedSrc(src) }
+  const [failedSrcs, setFailedSrcs] = useState<ReadonlySet<string>>(() => new Set())
+  return {
+    failed: src !== null && failedSrcs.has(src),
+    onError: () => {
+      if (src !== null) setFailedSrcs((prev) => new Set(prev).add(src))
+    },
+  }
 }
 
 // A recipe image that turns into a placeholder when it can't be loaded, instead of a broken image.
@@ -21,26 +27,16 @@ export const RecipeImage = forwardRef<
     className?: string
     fallbackClassName?: string
     fallback?: ReactNode
-    loading?: 'lazy' | 'eager'
     onClick?: (e: React.MouseEvent<HTMLElement>) => void
     onLoad?: () => void
   }
->(function RecipeImage({ image, alt, className, fallbackClassName, fallback, loading, onClick, onLoad }, ref) {
+>(function RecipeImage({ image, alt, className, fallbackClassName, fallback, onClick, onLoad }, ref) {
   const src = recipeImageSrc(image)
   const { failed, onError } = useImageFailed(src)
 
   if (!failed) {
     return (
-      <img
-        ref={ref}
-        src={src}
-        alt={alt}
-        loading={loading}
-        onClick={onClick}
-        onLoad={onLoad}
-        onError={onError}
-        className={className}
-      />
+      <img ref={ref} src={src} alt={alt} onClick={onClick} onLoad={onLoad} onError={onError} className={className} />
     )
   }
   if (fallback !== undefined) return <>{fallback}</>
