@@ -121,7 +121,17 @@ describe('Rating', () => {
     vi.mocked(foodly.setMyRating).mockRejectedValue(new Error('kaputt'))
     open(recipe())
     fireEvent.click(await screen.findByRole('button', { name: '2 von 5' }))
-    expect(await screen.findByText('kaputt')).toBeTruthy()
+    expect((await screen.findByRole('alert')).textContent).toBe('kaputt')
+  })
+
+  it.each([
+    ['an Error without message', new Error('')],
+    ['a non-Error rejection', { status: 500 }],
+  ])('announces a fallback for %s', async (_name, reason) => {
+    vi.mocked(foodly.setMyRating).mockRejectedValue(reason)
+    open(recipe())
+    fireEvent.click(await screen.findByRole('button', { name: '2 von 5' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('Bewertung konnte nicht gespeichert werden')
   })
 
   it('hides the demo hint when ratings are not stubbed', async () => {
@@ -177,6 +187,13 @@ describe('Rating', () => {
       expect(trigger.classList.contains(token)).toBe(true)
     }
     expect(trigger.classList.contains('min-h-10')).toBe(false)
+  })
+
+  it('gives the trigger the 3 px focus ring in full --ring (#90/#95)', () => {
+    render(<Rating recipe={recipe()} />)
+    const classes = screen.getByRole('button', { name: /Bewert/ }).className.split(/\s+/)
+    expect(classes).toEqual(expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-ring']))
+    expect(classes).not.toContain('focus-visible:ring-2')
   })
 
   it('opens a popover with the compact stars on desktop', async () => {

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@postxl/ui-components'
+import { Button, cn } from '@postxl/ui-components'
 import { recipeImageSrc, imageName } from '../../api/assets'
 import type { ImageRef } from '../../api/protocol'
+import { FOCUS_RING } from '../focusRing'
 
 // Fullscreen image viewer. The overlay closes on click / Escape; clicks on the
 // image, caption, controls and thumbnail strip don't bubble up to it.
@@ -89,8 +90,10 @@ export function Lightbox({
 
   const image = images[index]
   const stop = (e: React.MouseEvent) => e.stopPropagation()
-  const ctrl =
-    'flex h-14 w-14 items-center justify-center rounded-md bg-white/10 text-white hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white/60'
+  const ctrl = cn(
+    'flex h-14 w-14 items-center justify-center rounded-md bg-white/10 text-white hover:bg-white/20 hover:text-white focus-visible:ring-white/60',
+    FOCUS_RING,
+  )
   // Upscale small images too: force the limiting side to the box max, the other
   // follows the aspect ratio (so the element == the visible image, no letterbox).
   const imgFit = fit === 'w' ? 'w-[50vw] h-auto' : 'h-[64vh] w-auto'

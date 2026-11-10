@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, Label, toast } from '@postxl/ui-components'
 import { Star, Trash2, Upload } from 'lucide-react'
 import { foodly } from '../../api'
+import { errorMessage } from '../../lib/errorMessage'
 import { recipeImageSrc } from '../../api/assets'
 import type { ImageRef } from '../../api/protocol'
 
@@ -26,7 +27,7 @@ export function ImageManager({
       if (mainImage === null) onChange({ mainImage: image, images })
       else onChange({ images: [...images, image] })
     } catch (e) {
-      toast.error(`Bild konnte nicht hochgeladen werden: ${(e as Error).message}`)
+      toast.error(`Bild konnte nicht hochgeladen werden: ${errorMessage(e, 'unbekannter Fehler')}`)
     } finally {
       setUploading(false)
     }
