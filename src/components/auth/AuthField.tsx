@@ -19,7 +19,18 @@ type Props = {
   inputRef?: Ref<HTMLInputElement>
 }
 
-export function AuthField({ id, label, value, onChange, onBlur, type = 'text', error, hint, revealable, ...rest }: Props) {
+export function AuthField({
+  id,
+  label,
+  value,
+  onChange,
+  onBlur,
+  type = 'text',
+  error,
+  hint,
+  revealable,
+  ...rest
+}: Props) {
   const [revealed, setRevealed] = useState(false)
   const note = error ?? hint
   const noteId = `${id}-note`

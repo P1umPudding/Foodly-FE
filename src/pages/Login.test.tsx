@@ -26,7 +26,8 @@ function mockCatalogs() {
   vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
 }
 
-const loginReply = (reply: () => Response | Promise<Response>) => vi.spyOn(globalThis, 'fetch').mockImplementation(async () => reply())
+const loginReply = (reply: () => Response | Promise<Response>) =>
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async () => reply())
 const ok = () => jsonResponse(200, { user, accessToken: jwt(900), refreshToken: 'r1' })
 
 const email = () => screen.getByLabelText<HTMLInputElement>('E-Mail')
@@ -126,6 +127,8 @@ describe('Login', () => {
 
   it('links to /register and keeps next', () => {
     renderAuthRoutes('/login?next=%2Frecipes%2F5', { login: <Login /> })
-    expect(screen.getByRole('link', { name: 'Registrieren' }).getAttribute('href')).toBe('/register?next=%2Frecipes%2F5')
+    expect(screen.getByRole('link', { name: 'Registrieren' }).getAttribute('href')).toBe(
+      '/register?next=%2Frecipes%2F5',
+    )
   })
 })
