@@ -5,7 +5,7 @@
 // The backend rotates refresh tokens (a used one is invalid at once) and rate-limits /auth/refresh, so at
 // most one refresh runs at a time: one shared promise per tab, a Web Lock across tabs.
 
-import { apiUrl, errorMessage } from './http'
+import { apiError, apiUrl, errorMessage } from './http'
 import type { AuthResponse, TokenPair, UserId } from './protocol'
 
 const STORAGE_KEY = 'foodly.auth'
@@ -229,7 +229,7 @@ async function startSession(path: string, body: object): Promise<AuthSession> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await errorMessage(res))
+  if (!res.ok) throw await apiError(res)
   const { accessToken, refreshToken, user } = (await res.json()) as AuthResponse
   const replaced = readStored()
   writeStored({ accessToken, refreshToken, userId: user.id })

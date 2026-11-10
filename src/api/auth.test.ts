@@ -306,6 +306,30 @@ describe('signIn / signUp / signOut', () => {
     expect(storedSession()).toBeNull()
   })
 
+  it.each([
+    [401, 'UNAUTHORIZED'],
+    [409, 'CONFLICT'],
+    [422, 'VALIDATION_ERROR'],
+    [429, 'TOO_MANY_REQUESTS'],
+  ])('keeps status %i and the error code on a failed sign-in', async (status, code) => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(status, { error: { code, message: 'nope' } }))
+    await expect(auth.signUp('Kim', 'kim@example.com', 'password123')).rejects.toMatchObject({
+      name: 'ApiError',
+      status,
+      code,
+      message: 'nope',
+    })
+  })
+
+  it('falls back to the status when the error body is not JSON', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 502,
+      json: () => Promise.reject(new SyntaxError('not json')),
+    } as unknown as Response)
+    await expect(auth.signIn('kim@example.com', 'pw')).rejects.toMatchObject({ status: 502, message: 'HTTP 502' })
+  })
+
   it('signUp posts to /auth/register and signs in', async () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
