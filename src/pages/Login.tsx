@@ -35,6 +35,9 @@ export function Login() {
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({})
   const [errors, setErrors] = useState<Errors>({})
   const [failure, setFailure] = useState<string | null>(null)
+  // The expired hint gives way to the first real error and stays gone, so retries don't re-announce it.
+  const [hintDismissed, setHintDismissed] = useState(false)
+  const showHint = expired && !hintDismissed
   const [busy, setBusy] = useState(false)
   const refs = { email: useRef<HTMLInputElement>(null), password: useRef<HTMLInputElement>(null) }
 
@@ -70,6 +73,7 @@ export function Login() {
       flushSync(() => {
         setBusy(false)
         setFailure(errorText(err))
+        setHintDismissed(true)
         if (unauthorized) {
           setValues((v) => ({ ...v, password: '' }))
           // Cleared by us, not by the user: leaving it empty must not show "Bitte gib dein Passwort ein."
@@ -92,8 +96,7 @@ export function Login() {
       }
     >
       <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
-        {/* Gives way to the actual error once a sign-in failed. */}
-        {expired && !failure && (
+        {showHint && (
           <Alert>
             <AlertDescription id="login-expired">{SESSION_EXPIRED}</AlertDescription>
           </Alert>
@@ -104,7 +107,7 @@ export function Login() {
           type="email"
           autoComplete="email"
           autoFocus={!prefilledEmail}
-          describedBy={expired && !prefilledEmail ? 'login-expired' : undefined}
+          describedBy={showHint && !prefilledEmail ? 'login-expired' : undefined}
           value={values.email}
           onChange={change('email')}
           onBlur={blur('email')}
@@ -118,7 +121,7 @@ export function Login() {
           autoComplete="current-password"
           autoFocus={!!prefilledEmail}
           // Focus starts past the hint, so a screen reader reads it with the focused field.
-          describedBy={expired && prefilledEmail ? 'login-expired' : undefined}
+          describedBy={showHint && prefilledEmail ? 'login-expired' : undefined}
           revealable
           value={values.password}
           onChange={change('password')}

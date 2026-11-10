@@ -161,6 +161,15 @@ describe('Login', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }))
     })
     expect(screen.getByRole('alert').textContent).toBe('E-Mail oder Passwort stimmt nicht.')
+    expect(password().getAttribute('aria-describedby') ?? '').not.toContain('login-expired')
+
+    // A retry doesn't bring the hint back while the request runs.
+    loginReply(() => new Promise<Response>(() => {}))
+    fireEvent.change(password(), { target: { value: 'again' } })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }))
+    })
+    expect(screen.queryByText(/Anmeldung ist abgelaufen/)).toBeNull()
   })
 
   it('shows no hint without an expired session', () => {
