@@ -92,7 +92,8 @@ export function Login() {
       }
     >
       <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
-        {expired && (
+        {/* Gives way to the actual error once a sign-in failed. */}
+        {expired && !failure && (
           <Alert>
             <AlertDescription id="login-expired">{SESSION_EXPIRED}</AlertDescription>
           </Alert>
@@ -103,6 +104,7 @@ export function Login() {
           type="email"
           autoComplete="email"
           autoFocus={!prefilledEmail}
+          describedBy={expired && !prefilledEmail ? 'login-expired' : undefined}
           value={values.email}
           onChange={change('email')}
           onBlur={blur('email')}
@@ -115,8 +117,8 @@ export function Login() {
           type="password"
           autoComplete="current-password"
           autoFocus={!!prefilledEmail}
-          // Focus lands here, past the hint, so a screen reader reads it with the field.
-          describedBy={expired ? 'login-expired' : undefined}
+          // Focus starts past the hint, so a screen reader reads it with the focused field.
+          describedBy={expired && prefilledEmail ? 'login-expired' : undefined}
           revealable
           value={values.password}
           onChange={change('password')}

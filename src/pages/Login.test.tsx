@@ -147,6 +147,22 @@ describe('Login', () => {
     expect(password().getAttribute('aria-describedby')).toContain('login-expired')
   })
 
+  it('after an expired session without a known e-mail describes the focused e-mail field', () => {
+    renderAuthRoutes({ pathname: '/login', state: { expired: true } }, { login: <Login /> })
+    expect(document.activeElement).toBe(email())
+    expect(email().getAttribute('aria-describedby')).toContain('login-expired')
+  })
+
+  it('replaces the hint with the error after a failed sign-in', async () => {
+    loginReply(() => jsonResponse(401, { error: { code: 'UNAUTHORIZED', message: 'nope' } }))
+    renderAuthRoutes({ pathname: '/login', state: { expired: true, email: 'kim@example.com' } }, { login: <Login /> })
+    fireEvent.change(password(), { target: { value: 'wrong' } })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }))
+    })
+    expect(screen.getByRole('alert').textContent).toBe('E-Mail oder Passwort stimmt nicht.')
+  })
+
   it('shows no hint without an expired session', () => {
     renderAuthRoutes('/login', { login: <Login /> })
     expect(screen.queryByText(/Anmeldung ist abgelaufen/)).toBeNull()

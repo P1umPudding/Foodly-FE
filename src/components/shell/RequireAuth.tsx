@@ -3,10 +3,10 @@
 // nothing is guarded and /login forwards to the list.
 import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import { foodly } from '../../api'
-import type { LoginState } from '../auth/loginState'
 import { CatalogProvider } from '../../catalog/CatalogProvider'
 import { useAuthSession } from '../../hooks/useAuthSession'
 import { safeNext } from '../../lib/safeNext'
+import type { LoginState } from '../auth/loginState'
 import { AppShell } from './AppShell'
 
 export function RequireAuth() {
