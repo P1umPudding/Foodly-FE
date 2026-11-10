@@ -17,7 +17,7 @@ import {
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { canEdit, isOwner } from '../editor/access'
-import { useCurrentUserId, useTags } from '../catalog/CatalogProvider'
+import { useCurrentUserId, useRefreshCategories, useTags } from '../catalog/CatalogProvider'
 import { TagText } from '../components/TagText'
 import { plainTagText } from '../components/tagTokens'
 import { Rating } from '../components/recipe/Rating'
@@ -44,6 +44,7 @@ export function RecipeDetail() {
   const { byId: tags } = useTags()
 
   const navigate = useNavigate()
+  const refreshCategories = useRefreshCategories()
   const [cloning, setCloning] = useState(false)
   const [cloneError, setCloneError] = useState<string | null>(null)
   // Bumped per clone attempt and on every recipe switch, so a late failure of an outdated clone is ignored.
@@ -56,6 +57,7 @@ export function RecipeDetail() {
     setCloneError(null)
     try {
       const copy = await foodly.copyRecipe(recipe.id)
+      refreshCategories() // the copy joins the original's categories
       navigate(`/recipes/${copy.id}`)
     } catch (e) {
       if (attempt !== cloneAttempt.current) return
@@ -118,7 +120,10 @@ export function RecipeDetail() {
                 recipeId={recipe.id}
                 name={plainName}
                 // replace: Back must not lead to the deleted recipe's "not found" page.
-                onDeleted={() => navigate('/recipes', { replace: true })}
+                onDeleted={() => {
+                  refreshCategories()
+                  navigate('/recipes', { replace: true })
+                }}
               />
             )}
             {/* On phones all three actions are icon-only 40×40 tap targets (design.md §7), labelled via

@@ -23,6 +23,7 @@ vi.mock('./api/stubs', async (importOriginal) => {
 })
 
 vi.mock('./catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useCurrentUserId: () => 1,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),

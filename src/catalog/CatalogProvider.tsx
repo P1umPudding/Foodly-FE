@@ -1,10 +1,12 @@
-// Loads the app-wide lookup catalogs (tags, users, current user, categories) once at
+// Loads the app-wide lookup catalogs (tags, users, current user, categories) at
 // startup. Tag *images* are never bulk-loaded — Tag.svg is only a hash; the
 // image would be fetched lazily per tag when actually rendered.
-import { createContext, useContext, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Loader } from '@postxl/ui-components'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
+import { RetryAlert } from '../components/RetryAlert'
+import { toError } from '../lib/toError'
 import type { Ingredient, IngredientId, Tag, TagId, User, UserCategory, UserId } from '../api/protocol'
 
 export type CatalogStatus = 'ready' | 'error'
@@ -15,8 +17,11 @@ type Catalog = {
   users: { byId: Record<UserId, User>; status: CatalogStatus }
   me: User | null
   ingredients: { byId: Record<IngredientId, Ingredient>; status: CatalogStatus }
-  categories: { list: UserCategory[]; status: CategoriesStatus }
+  categories: { list: UserCategory[]; status: CategoriesStatus; error: Error | null; retry: () => void }
+  refreshCategories: () => void
 }
+
+type CategoriesState = { list: UserCategory[]; status: CategoriesStatus; error: Error | null }
 
 const CatalogContext = createContext<Catalog | null>(null)
 
@@ -26,15 +31,61 @@ function indexBy<T, K extends string | number>(rows: T[] | null, key: (t: T) => 
   return out
 }
 
+// Shared by the shell's sidebar and the list, so it is fetched once at startup instead of on every list
+// mount. A recipe mutation that changes category membership (create, copy, delete) calls `refresh`, which
+// reloads in the background: the old list stays (status 'ready') until the new one arrives, and a failed
+// refresh keeps it. Only the first load and `retry` report 'loading'. A response never replaces a newer one
+// that already arrived. A failure only counts once no other call is still in flight (that one may yet
+// succeed) and never replaces a loaded list.
+function useCategoriesState() {
+  const [state, setState] = useState<CategoriesState>({ list: [], status: 'loading', error: null })
+  const latest = useRef(0)
+  const applied = useRef(0)
+  const inFlight = useRef(new Set<number>())
+
+  const load = useCallback((mode: 'initial' | 'background') => {
+    const mine = ++latest.current
+    inFlight.current.add(mine)
+    if (mode === 'initial') setState({ list: [], status: 'loading', error: null })
+    foodly
+      .listCategories()
+      .then((list) => {
+        inFlight.current.delete(mine)
+        if (mine <= applied.current) return
+        applied.current = mine
+        setState({ list, status: 'ready', error: null })
+      })
+      .catch((error: unknown) => {
+        inFlight.current.delete(mine)
+        if (mine <= applied.current || inFlight.current.size > 0) return
+        setState((prev) => (prev.status === 'ready' ? prev : { list: [], status: 'error', error: toError(error) }))
+      })
+  }, [])
+
+  useEffect(() => {
+    // Calls from before a (StrictMode) remount must not land.
+    const seen = applied
+    const pending = inFlight.current
+    seen.current = latest.current
+    pending.clear()
+    load('initial')
+    return () => {
+      seen.current = Number.MAX_SAFE_INTEGER // unmounted: drop whatever is still in flight
+    }
+  }, [load])
+
+  const refresh = useCallback(() => load('background'), [load])
+  const retry = useCallback(() => load('initial'), [load])
+  return { ...state, refresh, retry }
+}
+
 export function CatalogProvider({ children }: { children: ReactNode }) {
   const tagsReq = useRequest(() => foodly.listTags(), [])
   const usersReq = useRequest(() => foodly.listUsers(), [])
   const meReq = useRequest(() => foodly.me(), [])
   const ingredientsReq = useRequest(() => foodly.listIngredients(), [])
-  // Shared by the shell's sidebar and the list, so it is fetched once per session instead of on every
-  // list mount. Not part of the settled gate below: both places show their own loading state. Once the
-  // FE can change categories, that change has to refresh this request.
-  const categoriesReq = useRequest(() => foodly.listCategories(), [])
+  // Not part of the settled gate below: the sidebar and the list show their own loading state.
+  const categories = useCategoriesState()
 
   // Graceful degrade: render children once every load has *settled* (ready or
   // error). A failed catalog just yields an empty map + 'error' status; the UI
@@ -48,6 +99,17 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  // Without the current user nothing below works (the list hides every recipe, the editor says "Kein
+  // Zugriff", per-user settings would be stored under no user), so the app waits for a retry instead.
+  if (meReq.status === 'error') {
+    return (
+      <main className="mx-auto max-w-md p-6">
+        <h1 className="sr-only">Foodly</h1>
+        <RetryAlert title="Konnte Profil nicht laden" message={meReq.error?.message} onRetry={meReq.reload} />
+      </main>
+    )
+  }
+
   const value: Catalog = {
     tags: { byId: indexBy(tagsReq.data, (t) => t.id), status: tagsReq.status === 'error' ? 'error' : 'ready' },
     users: { byId: indexBy(usersReq.data, (u) => u.id), status: usersReq.status === 'error' ? 'error' : 'ready' },
@@ -56,7 +118,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       byId: indexBy(ingredientsReq.data, (i) => i.id),
       status: ingredientsReq.status === 'error' ? 'error' : 'ready',
     },
-    categories: { list: categoriesReq.data ?? [], status: categoriesReq.status },
+    categories: { list: categories.list, status: categories.status, error: categories.error, retry: categories.retry },
+    refreshCategories: categories.refresh,
   }
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>
@@ -88,6 +151,9 @@ export function useMe(): User | null {
 }
 export function useCategories() {
   return useCatalog().categories
+}
+export function useRefreshCategories(): () => void {
+  return useCatalog().refreshCategories
 }
 export function useIngredients() {
   return useCatalog().ingredients

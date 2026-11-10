@@ -17,6 +17,7 @@ vi.hoisted(() => vi.stubEnv('VITE_MOCK', ''))
 // shared-fiber bug this guards against.
 
 vi.mock('../catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,

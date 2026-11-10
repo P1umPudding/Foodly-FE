@@ -74,6 +74,7 @@ export function FilterControls({
   set,
   categories,
   categoriesLoading = false,
+  categoriesFailed = false,
   tags,
   ingredients,
 }: {
@@ -81,6 +82,7 @@ export function FilterControls({
   set: (patch: Partial<ListState>) => void
   categories: UserCategory[]
   categoriesLoading?: boolean
+  categoriesFailed?: boolean
   onToggleCategory: (id: number) => void
   uncategorizedCount?: number
   tags: Tag[]
@@ -100,6 +102,9 @@ export function FilterControls({
               <Skeleton key={i} className="h-8 w-full rounded-md" />
             ))}
           </div>
+        ) : categoriesFailed ? (
+          // The list shows the error with its retry; offering a selection here would write a filter that is ignored.
+          <p className="text-sm text-muted-foreground">Kategorien nicht verfügbar</p>
         ) : (
           <CategoryFilter categories={categories} selected={state.categories} set={set} />
         )}

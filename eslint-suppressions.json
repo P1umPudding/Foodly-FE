@@ -71,11 +71,6 @@
       "count": 1
     }
   },
-  "src/hooks/useRequest.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "src/main.tsx": {
     "@typescript-eslint/no-floating-promises": {
       "count": 1

@@ -13,6 +13,7 @@ import type { Recipe } from '../api/protocol'
 // RecipeDetail instance across ids, and only a real route change reproduces stale clone state.
 
 vi.mock('../catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
 }))
