@@ -167,6 +167,20 @@ describe('rest with a session', () => {
     expect(storedSession()?.userId).toBe(2)
   })
 
+  it('a refresh that failed for this request is not repeated on the 401 that follows', async () => {
+    seedSession({ accessToken: jwt(-60) })
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async (url) =>
+        isRefresh(url)
+          ? jsonResponse(429, { error: { code: 'TOO_MANY_REQUESTS', message: 'slow down' } })
+          : unauthorized(),
+      )
+    await expect(Promise.all([rest.get('/tags'), rest.get('/ingredients')])).rejects.toThrow('slow down')
+    expect(calls(spy).refresh).toBe(1)
+    expect(storedSession()).not.toBeNull()
+  })
+
   it('a refresh that fails with a network error rejects the call and keeps the session', async () => {
     seedSession()
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {

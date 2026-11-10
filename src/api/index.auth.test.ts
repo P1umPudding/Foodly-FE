@@ -67,6 +67,17 @@ describe('foodly.auth in REST mode', () => {
     expect(assets.peekTagIcon(vegan)).toBeUndefined()
   })
 
+  it('switching straight to another user resets the caches', async () => {
+    const { foodly, stubs, assets } = await signedInWithCaches()
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      jsonResponse(200, { user: { id: 9, name: 'C', profilePicture: null }, accessToken: 'a', refreshToken: 'r' }),
+    )
+    await foodly.auth.signIn('user3@example.com', 'password123')
+    expect(foodly.auth.session()).toEqual({ userId: 9 })
+    expect(stubs.stubUserId()).toBeNull()
+    expect(assets.peekTagIcon(vegan)).toBeUndefined()
+  })
+
   it('signIn stores the session and reports it', async () => {
     const { foodly } = await load('rest')
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(

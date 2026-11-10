@@ -110,16 +110,22 @@ export function currentAccessToken(): string | null | undefined {
 }
 
 export async function getAccessToken(): Promise<string | null> {
+  return (await tokenForRequest()).token
+}
+
+// Like getAccessToken, plus the error of a refresh that just failed for this token, so rest.ts doesn't
+// try a second refresh on the 401 that follows (the backend rate-limits /auth/refresh).
+export async function tokenForRequest(): Promise<{ token: string | null; refreshError?: unknown }> {
   const known = currentAccessToken()
-  if (known !== undefined) return known
+  if (known !== undefined) return { token: known }
   const current = readStored()
-  if (!current) return null
+  if (!current) return { token: null }
   try {
-    return await refresh()
-  } catch {
+    return { token: await refresh() }
+  } catch (refreshError) {
     // Refresh failed (rate limit, network, timeout). Send the old token and let the server judge it: the
-    // local clock may be off, and a real expiry comes back as 401, which takes the retry path in rest.ts.
-    return current.accessToken
+    // local clock may be off, and a real expiry comes back as 401.
+    return { token: current.accessToken, refreshError }
   }
 }
 
@@ -181,7 +187,11 @@ async function refreshLocked(sent: { refreshToken: string; userId: UserId }): Pr
     const { accessToken, refreshToken } = (await res.json()) as TokenPair
     // Signed out or in as someone else while the request ran: don't bring the old session back.
     const now = readStored()
-    if (now?.refreshToken !== sent.refreshToken) return tokenOf(now, sent.userId)
+    if (now?.refreshToken !== sent.refreshToken) {
+      // The rotated pair is dropped; revoke it so it doesn't stay valid on the server for 30 days.
+      void logout({ accessToken, refreshToken })
+      return tokenOf(now, sent.userId)
+    }
     writeStored({ accessToken, refreshToken, userId: now.userId })
     return accessToken
   }
@@ -229,10 +239,15 @@ export function signOut(): Promise<void> {
   if (!current) return Promise.resolve()
   writeStored(null)
   notify({ type: 'signed-out', reason: 'signed-out' })
+  return logout(current)
+}
+
+// Best effort: the session is already gone locally either way.
+function logout({ accessToken, refreshToken }: TokenPair): Promise<void> {
   return fetch(apiUrl('/auth/logout'), {
     method: 'POST',
-    headers: { Authorization: `Bearer ${current.accessToken}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken: current.refreshToken }),
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
   }).then(
     () => undefined,
     () => undefined,

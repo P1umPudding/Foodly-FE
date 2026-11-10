@@ -166,9 +166,15 @@ describe('getAccessToken', () => {
     const pending = auth.getAccessToken()
     await vi.waitFor(() => expect(globalThis.fetch).toHaveBeenCalled())
     void auth.signOut()
-    answer(jsonResponse(200, { accessToken: jwt(900), refreshToken: 'r2' }))
+    const dropped = jwt(900)
+    answer(jsonResponse(200, { accessToken: dropped, refreshToken: 'r2' }))
     await expect(pending).resolves.toBeNull()
     expect(storedSession()).toBeNull()
+    // the dropped rotated pair is revoked, not left valid on the server
+    const revoke = vi.mocked(globalThis.fetch).mock.lastCall
+    expect(String(revoke?.[0])).toMatch(/\/auth\/logout$/)
+    expect(new Headers(revoke?.[1]?.headers).get('Authorization')).toBe(`Bearer ${dropped}`)
+    expect(revoke?.[1]?.body).toBe(JSON.stringify({ refreshToken: 'r2' }))
   })
 })
 

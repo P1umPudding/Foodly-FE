@@ -4,7 +4,7 @@
 // Mirrors SocketClient.request's contract: resolves the parsed body, throws Error
 // on failure, so useRequest/useRecipeSearch error handling is transport-agnostic.
 
-import { currentAccessToken, expireIfCurrent, getAccessToken, refreshAfterUnauthorized, session } from './auth'
+import { currentAccessToken, expireIfCurrent, refreshAfterUnauthorized, session, tokenForRequest } from './auth'
 import { apiUrl, errorMessage } from './http'
 import type { PaginatedResponse } from './protocol'
 
@@ -20,9 +20,12 @@ async function send(path: string, init: SendInit): Promise<Response> {
   if (path.startsWith('/auth/')) return fetch(apiUrl(path), init)
   const sentFor = session()?.userId
   const known = currentAccessToken()
-  const token = known !== undefined ? known : await getAccessToken()
+  const { token, refreshError } =
+    known !== undefined ? { token: known, refreshError: undefined } : await tokenForRequest()
   const res = await fetch(apiUrl(path), withBearer(init, token))
   if (res.status !== 401 || token === null || sentFor === undefined) return res
+  // The refresh for this very request just failed; a second one would hit the same rate limit.
+  if (refreshError !== undefined) throw refreshError
 
   const fresh = await refreshAfterUnauthorized(token, sentFor)
   if (fresh === null) return res

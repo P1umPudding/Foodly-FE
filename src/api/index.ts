@@ -41,13 +41,20 @@ export async function bootstrap(): Promise<void> {
 // mocks load lazily). Constant, so session() keeps its identity like the REST snapshot.
 const MOCK_SESSION: AuthSession = { userId: 1 }
 
-// The next user must not inherit the last one's stub data or icons that failed with 401. Also on expiry
-// and on sign-out in another tab, which don't go through auth.signOut.
+// The next user must not inherit the last one's stub data or icons that failed with 401. Also on expiry,
+// on sign-out in another tab and on a direct switch to another user, which don't go through auth.signOut.
 function resetSessionCaches(): void {
   resetTagIconCache()
   setStubUser(null)
 }
-if (!USE_MOCKS) session.subscribe((_session, event) => event && resetSessionCaches())
+if (!USE_MOCKS) {
+  let cachesFor = session.session()?.userId ?? null
+  session.subscribe((current, event) => {
+    const userId = current?.userId ?? null
+    if (event || userId !== cachesFor) resetSessionCaches()
+    cachesFor = userId
+  })
+}
 
 const auth = {
   session: (): AuthSession | null => (USE_MOCKS ? MOCK_SESSION : session.session()),
@@ -56,7 +63,8 @@ const auth = {
     USE_MOCKS ? Promise.resolve(MOCK_SESSION) : session.signIn(email, password),
   signUp: (name: string, email: string, password: string): Promise<AuthSession> =>
     USE_MOCKS ? Promise.resolve(MOCK_SESSION) : session.signUp(name, email, password),
-  // Caches go first, so listeners reacting to the sign-out already see them empty.
+  // Caches go first, so listeners reacting to the sign-out already see them empty (the subscription
+  // above resets them once more; harmless).
   signOut: (): Promise<void> => {
     if (USE_MOCKS) return Promise.resolve()
     resetSessionCaches()
