@@ -1,5 +1,8 @@
 import { SocketClient } from './socket'
 import { rest, collectPages } from './rest'
+import * as session from './auth'
+import type { AuthListener, AuthSession } from './auth'
+import { resetTagIconCache } from './assets'
 import { previewToRecipe } from './adapters'
 import { isStubbed, mergeMyRating, setStubUser, sortByRating, writeMyRating } from './stubs'
 import { assertRating } from './views'
@@ -40,7 +43,28 @@ export async function bootstrap(): Promise<void> {
 // `listUsers` stays mocked: the backend offers only typeahead /users/search
 // (no list-all, no /users/{id}), which can't back the bulk byId map that
 // CatalogProvider uses to resolve owner/editor names.
+// Mock mode is always signed in as the mock user (CURRENT_USER_ID in src/mocks, not imported because the
+// mocks load lazily). Constant, so session() keeps its identity like the REST snapshot.
+const MOCK_SESSION: AuthSession = { userId: 1 }
+
+const auth = {
+  session: (): AuthSession | null => (USE_MOCKS ? MOCK_SESSION : session.session()),
+  subscribe: (listener: AuthListener): (() => void) => (USE_MOCKS ? () => {} : session.subscribe(listener)),
+  signIn: (email: string, password: string): Promise<AuthSession> =>
+    USE_MOCKS ? Promise.resolve(MOCK_SESSION) : session.signIn(email, password),
+  signUp: (name: string, email: string, password: string): Promise<AuthSession> =>
+    USE_MOCKS ? Promise.resolve(MOCK_SESSION) : session.signUp(name, email, password),
+  // Caches go first, so listeners reacting to the sign-out already see them empty.
+  signOut: (): Promise<void> => {
+    if (USE_MOCKS) return Promise.resolve()
+    resetTagIconCache()
+    setStubUser(null)
+    return session.signOut()
+  },
+}
+
 export const foodly = {
+  auth,
   me: (): Promise<User> =>
     USE_MOCKS
       ? socket.request<User>('me')
@@ -141,3 +165,4 @@ export function knowsUserNames(): boolean {
 }
 
 export type { PaginatedRecipes } from './protocol'
+export type { AuthEvent, AuthListener, AuthSession, SignedOutReason } from './auth'

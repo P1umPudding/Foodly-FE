@@ -75,7 +75,7 @@ export function markTagIconBroken(tag: Tag): void {
   settleTagIcon(tagIconKey(tag), null)
 }
 
-// Tests only: the cache is module state and would leak between cases.
+// On sign-out (another user may follow) and in tests, where the module state would leak between cases.
 export function resetTagIconCache(): void {
   tagIconLoads.clear()
   tagIconResults.clear()
