@@ -25,5 +25,5 @@ export function drag(root: HTMLElement, ...xs: number[]) {
   const [first, ...rest] = xs
   fireEvent.pointerDown(root, { pointerId: 1, clientX: first, button: 0 })
   for (const x of rest) fireEvent.pointerMove(root, { pointerId: 1, clientX: x })
-  fireEvent.pointerUp(root, { pointerId: 1, clientX: xs.at(-1) })
+  fireEvent.pointerUp(root, { pointerId: 1, clientX: xs[xs.length - 1] })
 }

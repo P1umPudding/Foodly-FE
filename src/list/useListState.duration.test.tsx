@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
 import { DurationFilter } from '../components/list/filters/DurationFilter'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
 import { foodly } from '../api'
@@ -33,7 +33,7 @@ const field = () => screen.getByLabelText<HTMLInputElement>('Maximale Arbeitszei
 const sliderRoot = () => screen.getByLabelText('Maximale Arbeitszeit')
 const back = () => act(() => navigate(-1))
 
-let search: ReturnType<typeof vi.spyOn<typeof foodly, 'searchRecipes'>>
+let search: MockInstance<typeof foodly.searchRecipes>
 // Searches after the initial page load, as their maxWorkTime filters.
 const searchedLimits = () => search.mock.calls.slice(1).map(([q]) => q.filters?.maxWorkTime ?? null)
 
