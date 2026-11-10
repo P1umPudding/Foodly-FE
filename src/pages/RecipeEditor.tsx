@@ -246,13 +246,16 @@ export function RecipeEditor() {
                 {(sizeError === null || saveStatus.state === 'error') && (
                   <SaveStatusIndicator status={saveStatus} onRetry={retry} />
                 )}
-                {sizeError !== null && (
-                  // Polite, not an alert: it flips while typing; the field's own error text waits for blur.
-                  <span role="status" className="flex items-center gap-2 text-destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    Nicht gespeichert – Portionen prüfen
-                  </span>
-                )}
+                {/* Polite, not an alert: it flips while typing; the field's own error text waits for blur. Always
+                    mounted, since screen readers often skip a live region that appears together with its text. */}
+                <span role="status" className="flex items-center gap-2 text-destructive">
+                  {sizeError !== null && (
+                    <>
+                      <AlertTriangle className="h-4 w-4" />
+                      {saveStatus.state === 'error' ? 'Portionen prüfen' : 'Nicht gespeichert – Portionen prüfen'}
+                    </>
+                  )}
+                </span>
               </div>
               <Button
                 onClick={finish}

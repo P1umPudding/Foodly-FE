@@ -222,7 +222,8 @@ describe('RecipeEditor · portion count below 1', () => {
     expect(navigate).not.toHaveBeenCalled()
 
     fireEvent.change(count(), { target: { value: '3' } })
-    await waitFor(() => expect(update).toHaveBeenCalledTimes(1), { timeout: 3000 })
+    await pastDebounce()
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
     expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ name: 'Pasta bianca', sizeNumber: 3 }))
     expect(screen.queryByText(HINT)).toBeNull()
   })
@@ -236,8 +237,9 @@ describe('RecipeEditor · portion count below 1', () => {
 
     fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Pasta bianca' } })
     fireEvent.change(count(), { target: { value: '0' } })
+    await pastDebounce()
 
-    await waitFor(() => expect(update).toHaveBeenCalledTimes(1), { timeout: 3000 })
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
     expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ name: 'Pasta bianca', sizeNumber: 4 }))
     await pastDebounce()
     expect(update).toHaveBeenCalledTimes(1)
@@ -256,7 +258,8 @@ describe('RecipeEditor · portion count below 1', () => {
     expect(update).not.toHaveBeenCalled()
 
     fireEvent.change(count(), { target: { value: '2' } })
-    await waitFor(() => expect(update).toHaveBeenCalledTimes(1), { timeout: 3000 })
+    await pastDebounce()
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
     expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ name: 'Pasta bianca', sizeNumber: 2 }))
   })
 

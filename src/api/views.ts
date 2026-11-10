@@ -173,7 +173,8 @@ export function scaleAmount(amount: string | null, factor: number): string | nul
 }
 
 // Portions mode needs a positive base: old data can carry 0 or a negative count,
-// and scaling by it would show Infinity, NaN or negative amounts.
+// and scaling by it would show Infinity, NaN or negative amounts. Looser than the
+// editor's minimum of 1 on purpose: an existing 0.5 still scales correctly.
 export function hasPortions(sizeNumber: number | null): boolean {
   return sizeNumber !== null && sizeNumber > 0
 }
