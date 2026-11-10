@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type FocusEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type FocusEvent, type MouseEvent } from 'react'
 import { Button, NumberInput, Slider, ToggleGroup } from '@postxl/ui-components'
 import { X } from 'lucide-react'
 import type { ListState } from '../../../list/state'
@@ -96,20 +96,36 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
     else thumb?.removeAttribute('aria-valuetext')
   }, [shown])
   const presetActive = (DURATION_PRESETS as readonly number[]).includes(shown ?? -1)
-  // Commit only when focus leaves the whole filter: moving on to a preset, Zurücksetzen or the knob is still the
-  // same edit, and committing on the way would leave a half-finished value in the history.
-  const onFilterBlur = (e: FocusEvent<HTMLDivElement>) => {
-    if (!(e.relatedTarget instanceof Node && e.currentTarget.contains(e.relatedTarget))) flush()
+  // The field commits on blur, except into the knob: typing, then dragging is one edit. Presets and Zurücksetzen
+  // keep focus in the field on press (preventDefault) — some browsers (Safari) never focus a clicked button, so
+  // the blur would otherwise commit the half-finished value right before the click commits its own.
+  const onFieldBlur = (e: FocusEvent<HTMLInputElement>) => {
+    if (!(e.relatedTarget instanceof Node && sliderBoxRef.current?.contains(e.relatedTarget))) flush()
+  }
+  const keepFocus = (e: MouseEvent) => e.preventDefault()
+  // Typing or a drag supersedes pending arrow keys, or the timer would commit a half-finished value.
+  // (Not in edit(): for keys Radix calls onValueChange right after onValueCommit has started the timer.)
+  const cancelKeyCommit = () => clearTimeout(keyTimer.current)
+  const onSliderPointerUp = () => {
+    pointerRef.current = false
+    flush()
   }
 
   return (
-    <div className="flex flex-col gap-2" onBlur={onFilterBlur}>
+    <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
         {/* px gives the knob's hover ring room — a scrolling parent also clips horizontally, which would
             otherwise cut the ring at the ends. Needs ≥ half-thumb (8px) + ring (4px).
+            onBlur: the thumb's own props aren't reachable through postxl.
             onPointerUp: a drag Radix sees as unchanged (a real 180 dragged to "no limit") fires no commit. It runs
             after Radix's own pointer-up, so after a normal commit there is nothing left to flush. */}
-        <div ref={sliderBoxRef} className="min-w-0 flex-1 px-4" onPointerUp={flush} onPointerCancel={flush}>
+        <div
+          ref={sliderBoxRef}
+          className="min-w-0 flex-1 px-4"
+          onBlur={flush}
+          onPointerUp={onSliderPointerUp}
+          onPointerCancel={onSliderPointerUp}
+        >
           <Slider
             aria-label="Maximale Arbeitszeit"
             // Neutral (not the brand purple): the built-in gray variant for the range, knob border + hover
@@ -122,7 +138,10 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
             onValueChange={([v]) => edit(toLimit(v))}
             // Radix commits on pointer-up (only if the value changed) and on every key; keydown runs before
             // Radix's handler, so a click without a change can't leave the pointer flag set for the next key.
-            onPointerDown={() => (pointerRef.current = true)}
+            onPointerDown={() => {
+              pointerRef.current = true
+              cancelKeyCommit()
+            }}
             onKeyDown={() => (pointerRef.current = false)}
             onValueCommit={([v]) => {
               if (pointerRef.current) {
@@ -143,7 +162,11 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
           aria-label="Maximale Arbeitszeit in Minuten"
           value={shown ?? undefined}
           // Unclamped while typing (typing 200 on the way to 20 is fine); clamped on commit.
-          onChange={(v) => edit(v === undefined ? null : v)}
+          onChange={(v) => {
+            cancelKeyCommit()
+            edit(v === undefined ? null : v)
+          }}
+          onBlur={onFieldBlur}
           onEnter={flush}
           min={0}
           max={DURATION_MAX}
@@ -169,6 +192,7 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
       >
         {DURATION_PRESETS.map((m) => (
           <FocusToggleGroupItem
+            onMouseDown={keepFocus}
             key={m}
             value={String(m)}
             aria-label={`≤ ${m} Minuten`}
@@ -185,6 +209,7 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
         <Button
           type="button"
           variant="ghost"
+          onMouseDown={keepFocus}
           size="sm"
           // The button disappears with the limit; hand focus to the field so keyboard users aren't dropped on <body>.
           // Keyboard activation only (detail 0): on a tap, focusing the field would pop up the phone keyboard.

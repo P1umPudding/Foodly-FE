@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { act, render, screen, fireEvent, within } from '@testing-library/react'
-import { afterEach, beforeAll, describe, it, expect, vi } from 'vitest'
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
 import { DurationFilter } from './DurationFilter'
 import type { ListState } from '../../../list/state'
 import { drag, stubSliderPointer } from '../../../test/slider'
@@ -24,8 +24,11 @@ const sliderRoot = () => screen.getByLabelText('Maximale Arbeitszeit')
 const field = () => screen.getByLabelText<HTMLInputElement>('Maximale Arbeitszeit in Minuten')
 const preset = (m: number) => screen.getByRole('radio', { name: `≤ ${m} Minuten` })
 
-beforeAll(stubSliderPointer)
-afterEach(() => vi.useRealTimers())
+beforeEach(stubSliderPointer)
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
 
 describe('DurationFilter', () => {
   it('a preset sets the value and every control follows', () => {
@@ -225,14 +228,26 @@ describe('DurationFilter', () => {
     expect(set).toHaveBeenCalledWith({ durationMax: 55 })
   })
 
-  it('typing, then picking a preset is one edit: one history entry, with the preset', () => {
+  it('typing, then clicking a preset is one edit: one history entry, with the preset', () => {
     const set = vi.fn()
     render(<Stateful initial={60} set={set} />)
+    act(() => field().focus())
     fireEvent.change(field(), { target: { value: '45' } })
-    fireEvent.blur(field(), { relatedTarget: preset(30) })
+    // Pressing the preset keeps focus in the field (no blur commit, also where buttons never take focus).
+    expect(fireEvent.mouseDown(preset(30))).toBe(false)
     fireEvent.click(preset(30))
     expect(set).toHaveBeenCalledTimes(1)
     expect(set).toHaveBeenCalledWith({ durationMax: 30 })
+  })
+
+  it('typing, then clicking Zurücksetzen is one edit', () => {
+    const set = vi.fn()
+    render(<Stateful initial={60} set={set} />)
+    fireEvent.change(field(), { target: { value: '45' } })
+    expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'Zurücksetzen' }))).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: 'Zurücksetzen' }))
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set).toHaveBeenCalledWith({ durationMax: null })
   })
 
   it('typing, then dragging the knob is one edit, committed on release', () => {
@@ -245,15 +260,48 @@ describe('DurationFilter', () => {
     expect(set).toHaveBeenCalledWith({ durationMax: 90 })
   })
 
-  it('focus leaving the filter commits; moving within it does not', () => {
-    vi.useFakeTimers()
+  it('tabbing from the field to a preset commits the typed value', () => {
     const set = vi.fn()
     render(<Stateful initial={60} set={set} />)
     fireEvent.change(field(), { target: { value: '45' } })
     fireEvent.blur(field(), { relatedTarget: preset(15) })
-    expect(set).not.toHaveBeenCalled()
-    fireEvent.blur(preset(15), { relatedTarget: document.body })
+    expect(set).toHaveBeenCalledTimes(1)
     expect(set).toHaveBeenCalledWith({ durationMax: 45 })
+  })
+
+  it('typing after arrow keys cancels their pending commit', () => {
+    vi.useFakeTimers()
+    const set = vi.fn()
+    render(<Stateful initial={60} set={set} />)
+    fireEvent.keyDown(slider(), { key: 'ArrowLeft' })
+    fireEvent.blur(slider(), { relatedTarget: field() })
+    expect(set).toHaveBeenLastCalledWith({ durationMax: 55 })
+    set.mockClear()
+    fireEvent.keyDown(slider(), { key: 'ArrowLeft' })
+    fireEvent.change(field(), { target: { value: '4' } })
+    act(() => {
+      vi.advanceTimersByTime(400)
+    })
+    expect(set).not.toHaveBeenCalled()
+    fireEvent.change(field(), { target: { value: '45' } })
+    fireEvent.blur(field())
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set).toHaveBeenCalledWith({ durationMax: 45 })
+  })
+
+  it('a drag right after arrow keys cancels their pending commit', () => {
+    vi.useFakeTimers()
+    const set = vi.fn()
+    render(<Stateful initial={60} set={set} />)
+    fireEvent.keyDown(slider(), { key: 'ArrowLeft' })
+    fireEvent.pointerDown(sliderRoot(), { pointerId: 1, clientX: 100, button: 0 })
+    act(() => {
+      vi.advanceTimersByTime(400)
+    })
+    expect(set).not.toHaveBeenCalled()
+    fireEvent.pointerUp(sliderRoot(), { pointerId: 1, clientX: 100 })
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set).toHaveBeenCalledWith({ durationMax: 100 })
   })
 
   it('dragging a real 180 to the far right clears the limit (Radix sees no change)', () => {
