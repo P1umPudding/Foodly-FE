@@ -405,7 +405,97 @@ describe('RecipeList (result count and empty states)', () => {
     )
   }
 
-  afterEach(() => vi.unstubAllGlobals())
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    localStorage.clear()
+  })
+
+  function emptyStateIcon(text: string) {
+    return screen.getByText(text).parentElement?.querySelector('svg')
+  }
+
+  it('says "Keine Treffer" when a server-side filter leaves no recipe, and resetting shows the list (#128)', async () => {
+    const searchSpy = vi
+      .spyOn(foodly, 'searchRecipes')
+      .mockImplementation(async (q) =>
+        q.filters?.tags ? { items: [], cursor: null } : { items: [rec(1, 'Pancakes')], cursor: null },
+      )
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList('/recipes?group=0&tag=Vegan')
+
+    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+    const icon = emptyStateIcon('Keine Treffer für die aktuellen Filter.')
+    expect(icon?.classList.contains('size-5')).toBe(true)
+    expect(icon?.classList.contains('h-10')).toBe(false)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filter zurücksetzen' }))
+
+    await waitFor(() => screen.getByText('Pancakes'))
+    expect(searchSpy.mock.lastCall?.[0].filters).toBeUndefined()
+    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
+  })
+
+  it.each(['tag=Vegan', 'ing=1', 'dmax=30', 'role=owner', 'collab=shared'])(
+    'says "Keine Treffer", not "Noch keine Rezepte", for an empty result under %s',
+    async (param) => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList(`/recipes?group=0&${param}`)
+
+      await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+      screen.getByRole('button', { name: 'Filter zurücksetzen' })
+      expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+    },
+  )
+
+  it('says "Keine Treffer" for a client-side category filter over an empty result', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [])])
+
+    renderList('/recipes?group=0&cat=1')
+
+    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+  })
+
+  it('says "Noch keine Rezepte" with a "Neues Rezept" link when no filter or search is active', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+
+    await waitFor(() => screen.getByText('Noch keine Rezepte.'))
+    expect(screen.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toMatch(/\/recipes\/new$/)
+    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Filter zurücksetzen' })).toBeNull()
+    const icon = emptyStateIcon('Noch keine Rezepte.')
+    expect(icon?.classList.contains('size-5')).toBe(true)
+    expect(icon?.classList.contains('h-10')).toBe(false)
+  })
+
+  it('says "Keine Treffer" for a search over an empty collection', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderSearch('zzz')
+
+    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+  })
+
+  it('shows neither empty text while a filtered result still has pages to come', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: 2 })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList('/recipes?group=0&tag=Vegan')
+
+    await waitFor(() => screen.getByTestId('list-pending-skeleton'))
+    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
+    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+  })
 
   it('shows a skeleton instead of "Keine Treffer" while more pages may hold matches', async () => {
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: 2 })
