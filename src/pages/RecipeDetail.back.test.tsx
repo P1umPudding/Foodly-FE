@@ -115,6 +115,17 @@ describe('RecipeDetail · Zurück', () => {
     expect(screen.getByTestId('list')).toBeTruthy()
   })
 
+  it('opens the list on a direct visit (browser history)', async () => {
+    window.history.replaceState(null, '', '/recipes/5')
+    renderBrowser()
+    await screen.findByText('Rezept 5')
+
+    fireEvent.click(back())
+
+    expect((await screen.findByTestId('list')).textContent).toBe('list')
+    expect(window.location.pathname).toBe('/recipes')
+  })
+
   it('opens the list after a redirect that replaced the first entry (browser history)', async () => {
     // Like the sign-in redirect: the first entry, replaced, so the key is not 'default' but nothing lies before it.
     window.history.replaceState({ usr: null, key: 'redirected', idx: 0 }, '', '/recipes/5')

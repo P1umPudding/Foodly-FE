@@ -165,6 +165,7 @@ export function RecipeDetail() {
                 <TooltipTrigger asChild>
                   <Link
                     to={`/recipes/${recipe.id}/edit`}
+                    state={{ fromDetail: true }}
                     aria-label="Bearbeiten"
                     className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 phone:size-10')}
                   >

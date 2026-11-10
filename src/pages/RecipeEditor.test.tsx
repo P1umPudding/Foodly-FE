@@ -11,6 +11,7 @@ let params: { id?: string } = {}
 vi.mock('react-router-dom', () => ({
   useParams: () => params,
   useNavigate: () => navigate,
+  useLocation: () => ({ key: 'default', state: null }),
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }))
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Alert, AlertDescription, AlertTitle, Button, Skeleton, Spinner, toast } from '@postxl/ui-components'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { foodly } from '../api'
@@ -19,6 +19,7 @@ import type { RecipeId } from '../api/protocol'
 export function RecipeEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const currentUserId = useCurrentUserId()
   const refreshCategories = useRefreshCategories()
 
@@ -105,6 +106,14 @@ export function RecipeEditor() {
     }
   }, [])
 
+  // "Zurück" on the detail page walks back through history, so Fertig must not leave the editor behind the detail:
+  // otherwise Zurück -> editor -> Fertig -> detail -> Zurück would loop and never reach the list.
+  const openedFromDetail = (location.state as { fromDetail?: unknown } | null)?.fromDetail === true
+  const leaveToDetail = () => {
+    if (openedFromDetail) navigate(-1)
+    else navigate(`/recipes/${recipeId}`, { replace: true })
+  }
+
   // "Fertig" waits for the save: the detail page re-fetches on mount, and a GET
   // that overtakes a still-running PUT would show the old recipe.
   const [finishing, setFinishing] = useState(false)
@@ -117,7 +126,7 @@ export function RecipeEditor() {
     try {
       await flush()
       // Left via another route meanwhile: don't pull the user back.
-      if (alive.current) navigate(`/recipes/${recipeId}`)
+      if (alive.current) leaveToDetail()
     } catch {
       // The save status indicator already shows the error with a retry.
     } finally {
@@ -208,7 +217,7 @@ export function RecipeEditor() {
       {heading}
 
       {/* `contents`: the fieldset only disables its controls during Anlegen, it adds no box of its own. */}
-      <fieldset disabled={creating} aria-busy={creating} className="contents">
+      <fieldset disabled={creating} className="contents">
         <div className="flex flex-col gap-4">
           <BasicsCard draft={draft} onChange={patch} />
 
@@ -246,7 +255,7 @@ export function RecipeEditor() {
               <Button asChild variant="ghost">
                 <Link
                   to="/recipes"
-                  aria-disabled={creating}
+                  aria-disabled={creating || undefined}
                   tabIndex={creating ? -1 : undefined}
                   onClick={(e) => {
                     if (creatingRef.current) e.preventDefault()

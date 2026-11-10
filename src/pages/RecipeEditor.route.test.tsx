@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ComponentProps } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
-import { TooltipProvider, toast } from '@postxl/ui-components'
+import { Link, MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Button, TooltipProvider, toast } from '@postxl/ui-components'
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditorRoute } from '../App'
 import { foodly } from '../api'
@@ -127,13 +127,16 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     return null
   }
 
-  function renderEditor() {
+  function renderEditor(
+    entries: NonNullable<ComponentProps<typeof MemoryRouter>['initialEntries']> = ['/recipes/5/edit'],
+  ) {
     visits.length = 0
     render(
       <TooltipProvider>
-        <MemoryRouter initialEntries={['/recipes/5/edit']}>
+        <MemoryRouter initialEntries={entries} initialIndex={entries.length - 1}>
           <VisitLog />
           <Link to="/recipes">elsewhere</Link>
+          <HistoryBack />
           <Routes>
             <Route path="/recipes" element={<p>List</p>} />
             <Route path="/recipes/:id" element={<DetailStub />} />
@@ -142,6 +145,11 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
         </MemoryRouter>
       </TooltipProvider>,
     )
+  }
+
+  function HistoryBack() {
+    const navigate = useNavigate()
+    return <Button onClick={() => navigate(-1)}>history-back</Button>
   }
 
   const titleInput = () => screen.getByLabelText('Titel') as HTMLInputElement
@@ -244,6 +252,31 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
     expect(await screen.findByText('Detail: Pasta 5')).toBeTruthy()
     expect(updateRecipe).not.toHaveBeenCalled()
+  })
+
+  // Detail "Zurück" walks back through history (#132): Fertig must not leave the editor behind the detail page.
+  it('opened from the detail page, Fertig goes back to it, so Back then reaches the list', async () => {
+    server()
+    renderEditor(['/recipes', '/recipes/5', { pathname: '/recipes/5/edit', state: { fromDetail: true } }])
+    await waitFor(() => expect(titleInput().value).toBe('Pasta 5'))
+
+    fireEvent.click(fertig())
+    expect(await screen.findByText('Detail: Pasta 5')).toBeTruthy()
+
+    fireEvent.click(screen.getByText('history-back'))
+    expect(await screen.findByText('List')).toBeTruthy()
+  })
+
+  it('opened another way, Fertig replaces the editor with the detail page', async () => {
+    server()
+    renderEditor(['/recipes', '/recipes/5/edit'])
+    await waitFor(() => expect(titleInput().value).toBe('Pasta 5'))
+
+    fireEvent.click(fertig())
+    expect(await screen.findByText('Detail: Pasta 5')).toBeTruthy()
+
+    fireEvent.click(screen.getByText('history-back'))
+    expect(await screen.findByText('List')).toBeTruthy()
   })
 
   it('does not pull the user back when they left while Fertig was waiting', async () => {
@@ -462,6 +495,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
 
   it('does not pull the user back when they left while creating', async () => {
     const { createRecipe, pending } = deferredCreate()
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => 0)
     renderNew()
     await startCreate()
 
@@ -476,6 +510,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
     expect(createRecipe).toHaveBeenCalledTimes(1)
     expect(screen.getByText('Elsewhere')).toBeTruthy()
     expect(screen.queryByLabelText('Titel')).toBeNull()
+    expect(error).not.toHaveBeenCalled()
   })
 
   it('reports a failed create by toast when the user already left', async () => {
