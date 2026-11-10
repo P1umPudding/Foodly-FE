@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Alert, AlertDescription, AlertTitle, Button, Skeleton, Spinner, toast } from '@postxl/ui-components'
-import { Plus } from 'lucide-react'
+import { AlertTriangle, Plus } from 'lucide-react'
 import { foodly } from '../api'
 import { trackPendingSave } from '../api/pendingSaves'
 import { useRequest } from '../hooks/useRequest'
 import { useCurrentUserId } from '../catalog/CatalogProvider'
 import { canEdit } from '../editor/access'
-import { emptyDraft, move, newSection, toCreateRecipe, toDraft } from '../editor/draft'
+import { emptyDraft, move, newSection, sizeNumberError, toCreateRecipe, toDraft } from '../editor/draft'
 import type { Draft } from '../editor/draft'
 import { useAutosave } from '../editor/useAutosave'
 import { BasicsCard } from '../components/editor/BasicsCard'
@@ -33,9 +33,40 @@ export function RecipeEditor() {
   } = useRequest(() => (isNew ? Promise.resolve(null) : foodly.getRecipe(Number(id))), [id])
 
   const [draft, setDraft] = useState<Draft | null>(isNew ? emptyDraft() : null)
+  const loadedDraft = useRef<Draft | null>(null)
   useEffect(() => {
-    if (loaded) setDraft(toDraft(loaded))
+    if (!loaded) return
+    const next = toDraft(loaded)
+    loadedDraft.current = next
+    setDraft(next)
   }, [loaded])
+
+  // An invalid portion count must never be saved, yet the field has to keep what was typed. So autosave gets
+  // the last valid draft: while the count is invalid nothing new is sent, and the first valid draft after it
+  // (carrying every edit made meanwhile) is. Adjusted during render, so a freshly loaded draft and autosave
+  // switching on still land in one commit (useAutosave's contract). Old data loaded with an invalid count leaves
+  // `savable` null, so the autosave baseline is null and the first valid draft is saved.
+  const sizeError = draft ? sizeNumberError(draft) : null
+  const [savable, setSavable] = useState(draft)
+  if (sizeError === null && savable !== draft) setSavable(draft)
+
+  // Edits held back by an invalid count are lost when the editor is left: warn on tab close, toast on leaving.
+  // Untouched old data (draft still the loaded one) and new recipes (never autosaved) have nothing to lose.
+  const unsavedInvalid = recipeId !== null && sizeError !== null && draft !== savable && draft !== loadedDraft.current
+  const unsavedInvalidRef = useRef(false)
+  useEffect(() => {
+    unsavedInvalidRef.current = unsavedInvalid
+  })
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (unsavedInvalidRef.current) e.preventDefault()
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload)
+      if (unsavedInvalidRef.current) toast.error('Änderungen nicht gespeichert – Portionen prüfen.')
+    }
+  }, [])
 
   const editable = loaded === null ? true : canEdit(loaded, currentUserId)
 
@@ -46,7 +77,7 @@ export function RecipeEditor() {
     retry,
     flush,
   } = useAutosave(
-    draft,
+    savable,
     async (value) => {
       if (value === null || recipeId === null) return
       await foodly.updateRecipe(recipeId, toCreateRecipe(value))
@@ -79,7 +110,7 @@ export function RecipeEditor() {
   const finishingRef = useRef(false)
   const finish = async () => {
     // aria-disabled (not disabled) keeps focus on the button, so clicks still arrive: drop repeats here.
-    if (finishingRef.current) return
+    if (finishingRef.current || sizeError !== null) return
     finishingRef.current = true
     setFinishing(true)
     try {
@@ -203,17 +234,33 @@ export function RecipeEditor() {
               </Button>
               <div className="flex items-center gap-3">
                 {createError && <span className="text-destructive">{createError}</span>}
-                <Button onClick={create} disabled={creating || draft.name.trim() === ''}>
+                <Button onClick={create} disabled={creating || draft.name.trim() === '' || sizeError !== null}>
                   Anlegen
                 </Button>
               </div>
             </>
           ) : (
             <>
-              <SaveStatusIndicator status={saveStatus} onRetry={retry} />
+              <div className="flex items-center gap-3">
+                {/* A save of the last valid draft still running, or failed with its retry, stays visible next to the hint. */}
+                {(sizeError === null || saveStatus.state === 'saving' || saveStatus.state === 'error') && (
+                  <SaveStatusIndicator status={saveStatus} onRetry={retry} />
+                )}
+                {/* Polite, not an alert: it flips while typing; the field's own error text waits for blur. Mounted
+                    with the footer, since screen readers often skip a live region that appears together with its
+                    text. (Old data invalid on load is the exception; there the field shows its error at once.) */}
+                <span role="status" className="flex items-center gap-2 text-destructive">
+                  {sizeError !== null && (
+                    <>
+                      <AlertTriangle className="h-4 w-4" />
+                      {saveStatus.state === 'error' ? 'Portionen prüfen' : 'Nicht gespeichert – Portionen prüfen'}
+                    </>
+                  )}
+                </span>
+              </div>
               <Button
                 onClick={finish}
-                aria-disabled={finishing}
+                aria-disabled={finishing || sizeError !== null}
                 aria-busy={finishing}
                 className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
               >

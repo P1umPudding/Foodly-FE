@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { TooltipProvider } from '@postxl/ui-components'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { TooltipProvider, toast } from '@postxl/ui-components'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditor } from './RecipeEditor'
 import { foodly } from '../api'
 import type { Recipe } from '../api/protocol'
@@ -186,5 +186,122 @@ describe('RecipeEditor · edit', () => {
     fireEvent.click(screen.getByRole('button', { name: /abschnitt hinzufügen/i }))
 
     expect(screen.getAllByLabelText('Abschnittsname')).toHaveLength(2)
+  })
+})
+
+// Runs the 800 ms autosave debounce out (fake timers that still advance, so waitFor keeps working).
+const pastDebounce = () => act(() => vi.advanceTimersByTimeAsync(800))
+const count = () => screen.getByLabelText('Anzahl') as HTMLInputElement
+const HINT = 'Nicht gespeichert – Portionen prüfen'
+
+describe('RecipeEditor · portion count below 1', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+  })
+
+  it('saves nothing while the count is invalid, then saves the fix with every edit made meanwhile', async () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
+    const update = vi.spyOn(foodly, 'updateRecipe').mockResolvedValue(recipe())
+    view()
+    await waitFor(() => expect(count().value).toBe('4'))
+
+    fireEvent.change(count(), { target: { value: '0' } })
+    fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Pasta bianca' } })
+    await pastDebounce()
+
+    expect(update).not.toHaveBeenCalled()
+    expect(screen.getByText(HINT)).toBeTruthy()
+    const done = screen.getByRole('button', { name: 'Fertig' })
+    expect(done.getAttribute('aria-disabled')).toBe('true')
+    // finish() is async: let it run out before checking it did not navigate.
+    await act(async () => {
+      fireEvent.click(done)
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(navigate).not.toHaveBeenCalled()
+
+    fireEvent.change(count(), { target: { value: '3' } })
+    await pastDebounce()
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
+    expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ name: 'Pasta bianca', sizeNumber: 3 }))
+    expect(screen.queryByText(HINT)).toBeNull()
+  })
+
+  it('still saves a valid edit whose debounce runs into an invalid count', async () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
+    const update = vi.spyOn(foodly, 'updateRecipe').mockResolvedValue(recipe())
+    view()
+    await waitFor(() => expect(count().value).toBe('4'))
+
+    fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Pasta bianca' } })
+    fireEvent.change(count(), { target: { value: '0' } })
+    await pastDebounce()
+
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
+    expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ name: 'Pasta bianca', sizeNumber: 4 }))
+    await pastDebounce()
+    expect(update).toHaveBeenCalledTimes(1)
+  })
+
+  it('flags old data with 0 portions at once and saves only once it is fixed', async () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe({ sizeNumber: 0 }))
+    const update = vi.spyOn(foodly, 'updateRecipe').mockResolvedValue(recipe())
+    view()
+    await waitFor(() => expect(count().value).toBe('0'))
+
+    expect(screen.getByText('Mindestens 1 Portion.')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Pasta bianca' } })
+    await pastDebounce()
+    expect(update).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Fertig' }).getAttribute('aria-disabled')).toBe('true')
+
+    fireEvent.change(count(), { target: { value: '2' } })
+    await pastDebounce()
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
+    expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ name: 'Pasta bianca', sizeNumber: 2 }))
+  })
+
+  it('tells on leaving that edits held back by an invalid count were not saved', async () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
+    const update = vi.spyOn(foodly, 'updateRecipe').mockResolvedValue(recipe())
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    const { unmount } = view()
+    await waitFor(() => expect(count().value).toBe('4'))
+
+    fireEvent.change(count(), { target: { value: '-2' } })
+    unmount()
+
+    expect(error).toHaveBeenCalledWith('Änderungen nicht gespeichert – Portionen prüfen.')
+    await pastDebounce()
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('leaves untouched old data without a toast', async () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe({ sizeNumber: 0 }))
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    const { unmount } = view()
+    await waitFor(() => expect(count().value).toBe('0'))
+
+    unmount()
+
+    expect(error).not.toHaveBeenCalled()
+  })
+
+  it('will not create a recipe with an invalid count, and discarding it is silent', () => {
+    params = {}
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    const { unmount } = view()
+
+    fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Neues Rezept' } })
+    fireEvent.change(count(), { target: { value: '0' } })
+
+    expect((screen.getByRole('button', { name: 'Anlegen' }) as HTMLButtonElement).disabled).toBe(true)
+    unmount()
+    expect(error).not.toHaveBeenCalled()
   })
 })
