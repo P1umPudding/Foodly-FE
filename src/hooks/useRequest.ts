@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { toError } from '../lib/toError'
 
 export type RequestState<T> = {
   status: 'loading' | 'ready' | 'error'
@@ -25,13 +26,13 @@ export function useRequest<T>(run: () => Promise<T>, deps: unknown[] = []): Requ
           if (active) setState({ status: 'ready', data, error: null })
         })
         .catch((error: unknown) => {
-          if (active) setState({ status: 'error', data: null, error: error as Error })
+          if (active) setState({ status: 'error', data: null, error: toError(error) })
         })
       return () => {
         active = false
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the caller's deps decide when `run` changes
     [...deps, nonce],
   )
   return { ...state, reload }

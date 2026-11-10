@@ -35,36 +35,39 @@ function indexBy<T, K extends string | number>(rows: T[] | null, key: (t: T) => 
 // mount. A recipe mutation that changes category membership (create, copy, delete) calls `refresh`, which
 // reloads in the background: the old list stays (status 'ready') until the new one arrives, and a failed
 // refresh keeps it. Only the first load and `retry` report 'loading'. A response never replaces a newer one
-// that already arrived, and only the latest call's failure counts, so a refresh started during the first
-// load can't turn that load's success into an error.
+// that already arrived. A failure only counts once no other call is still in flight (that one may yet
+// succeed) and never replaces a loaded list.
 function useCategoriesState() {
   const [state, setState] = useState<CategoriesState>({ list: [], status: 'loading', error: null })
   const latest = useRef(0)
   const applied = useRef(0)
+  const inFlight = useRef(new Set<number>())
 
   const load = useCallback((mode: 'initial' | 'background') => {
     const mine = ++latest.current
+    inFlight.current.add(mine)
     if (mode === 'initial') setState({ list: [], status: 'loading', error: null })
     foodly
       .listCategories()
       .then((list) => {
+        inFlight.current.delete(mine)
         if (mine <= applied.current) return
         applied.current = mine
         setState({ list, status: 'ready', error: null })
       })
       .catch((error: unknown) => {
-        if (mine !== latest.current || mine <= applied.current) return
-        setState((prev) =>
-          mode === 'background' && prev.status === 'ready'
-            ? prev
-            : { list: [], status: 'error', error: toError(error) },
-        )
+        inFlight.current.delete(mine)
+        if (mine <= applied.current || inFlight.current.size > 0) return
+        setState((prev) => (prev.status === 'ready' ? prev : { list: [], status: 'error', error: toError(error) }))
       })
   }, [])
 
   useEffect(() => {
+    // Calls from before a (StrictMode) remount must not land.
     const seen = applied
-    seen.current = latest.current // calls from before a (StrictMode) remount must not land
+    const pending = inFlight.current
+    seen.current = latest.current
+    pending.clear()
     load('initial')
     return () => {
       seen.current = Number.MAX_SAFE_INTEGER // unmounted: drop whatever is still in flight

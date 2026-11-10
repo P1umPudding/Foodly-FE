@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { CatalogProvider, useCategories, useIngredient, useMe, useRefreshCategories } from './CatalogProvider'
 
@@ -194,5 +195,60 @@ it('keeps a successful first load when a refresh started meanwhile fails', async
   await act(async () => calls[0].resolve([category(1, [5])]))
   screen.getByText('cats:ready:1/1')
   await act(async () => calls[1].reject(new Error('offline')))
+  screen.getByText('cats:ready:1/1')
+})
+
+it('waits for the first load when a refresh started meanwhile fails first', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+
+  fireEvent.click(screen.getByText('refresh'))
+  await act(async () => calls[1].reject(new Error('offline')))
+  screen.getByText('cats:loading:')
+  await act(async () => calls[0].resolve([category(1, [5])]))
+  screen.getByText('cats:ready:1/1')
+})
+
+it('reports the error once every call in flight has failed', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+
+  fireEvent.click(screen.getByText('refresh'))
+  await act(async () => calls[1].reject(new Error('offline')))
+  await act(async () => calls[0].reject(new Error('boom')))
+  screen.getByText('cats:error:')
+})
+
+it('keeps categories a refresh loaded when a later retry fails', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+  await act(async () => calls[0].reject(new Error('boom')))
+  screen.getByText('cats:error:')
+
+  fireEvent.click(screen.getByText('refresh'))
+  fireEvent.click(screen.getByText('retry'))
+  await act(async () => calls[1].resolve([category(1, [5])]))
+  screen.getByText('cats:ready:1/1')
+  await act(async () => calls[2].reject(new Error('offline')))
+  screen.getByText('cats:ready:1/1')
+})
+
+it('only lets the remounted load land in StrictMode', async () => {
+  const calls = deferredCategories()
+  render(
+    <StrictMode>
+      <CatalogProvider>
+        <CategoriesProbe />
+      </CatalogProvider>
+    </StrictMode>,
+  )
+  await waitFor(() => expect(calls).toHaveLength(2))
+
+  await act(async () => calls[1].resolve([category(1, [5])]))
+  screen.getByText('cats:ready:1/1')
+  await act(async () => calls[0].resolve([category(1, [])]))
   screen.getByText('cats:ready:1/1')
 })
