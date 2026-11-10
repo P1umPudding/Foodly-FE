@@ -2,7 +2,7 @@ import { Input, Label, RadioGroup, RadioGroupItem } from '@postxl/ui-components'
 import type { Draft, SizeMode } from '../../editor/draft'
 
 // sizeNumber and sizeText are mutually exclusive in the model (PortionScaler
-// branches on sizeNumber !== null), so the mode is an explicit choice rather
+// branches on whether sizeNumber is set), so the mode is an explicit choice rather
 // than something inferred from which field the user touched last.
 export function SizeField({
   mode,

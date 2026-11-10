@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
 import { Button, NumberInput, cn } from '@postxl/ui-components'
+import { hasPortions } from '../../api/views'
 import { TagText } from '../TagText'
 
 // The portion-scaling field in the recipe meta row. Two modes off one set of
 // pieces so nothing reflows as the value changes:
-//   • portions-mode (sizeNumber set): the box is the desired portion count and
-//     factor = desired / sizeNumber.
-//   • multiplier-mode (sizeNumber null): the box is the × factor itself, marked
-//     with a leading "×".
+//   • portions-mode (sizeNumber > 0, see hasPortions): the box is the desired
+//     portion count and factor = desired / sizeNumber.
+//   • multiplier-mode (otherwise): the box is the × factor itself, marked with a
+//     leading "×".
 // The factor lives in RecipeDetail. The box buffers the edit in `draft` and
 // commits on blur/Enter, so it can be cleared while typing; afterwards it always
 // shows the applied value again, even when the factor didn't change (the lib's
@@ -32,8 +33,8 @@ export function PortionScaler({
   sizeText: string | null
   part?: 'full' | 'input' | 'steppers'
 }) {
-  const portions = sizeNumber !== null
-  const base = sizeNumber ?? 1
+  const portions = hasPortions(sizeNumber)
+  const base = portions && sizeNumber !== null ? sizeNumber : 1
   const current = round2(portions ? factor * base : factor)
   // A pending edit is dropped once the applied value changes from outside
   // (steppers, reset), so a later blur can't overwrite that change and stepping
