@@ -53,7 +53,10 @@ werden hier nicht wiederholt.
 
 - `src/catalog/CatalogProvider.tsx` lädt Tags, Users, Ingredients und `me` einmal und
   stellt `byId`-Maps bereit. Neue globale Lookup-Daten gehören hierhin, nicht in
-  Seiten-State.
+  Seiten-State. Ohne `me` rendert er statt der App einen Fehler mit „Erneut versuchen“.
+  Die Kategorien des Nutzers lädt er beim Start und neu (im Hintergrund), wenn eine
+  Rezept-Änderung ihre Mitglieder ändert: wer anlegt, kopiert oder löscht, ruft
+  `useRefreshCategories()`.
 - App-weiter State als Provider in `src/App.tsx` (z. B. `TimerProvider`, der die
   `AppShell` umschließt, damit Timer Navigation überleben). Kein globaler Store (kein
   Redux/Zustand) ohne Decision-Note.

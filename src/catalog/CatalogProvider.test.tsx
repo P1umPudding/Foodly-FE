@@ -1,11 +1,12 @@
-import { render, screen, waitFor } from '@testing-library/react'
-import { CatalogProvider, useCategories, useIngredient, useMe } from './CatalogProvider'
+import { StrictMode } from 'react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { CatalogProvider, useCategories, useIngredient, useMe, useRefreshCategories } from './CatalogProvider'
 
 vi.mock('../api', () => ({
   foodly: {
     listTags: () => Promise.resolve([]),
     listUsers: () => Promise.resolve([]),
-    me: () => Promise.resolve({ id: 1, name: 'Kolja', profilePicture: null }),
+    me: () => me(),
     listIngredients: () => Promise.resolve([{ id: 5, name: 'Zwiebel' }]),
     listCategories: () => categories(),
   },
@@ -13,8 +14,11 @@ vi.mock('../api', () => ({
 
 // Swapped per test: categories must not hold back the rest of the catalog.
 let categories: () => Promise<unknown[]> = () => Promise.resolve([])
+const kolja = { id: 1, name: 'Kolja', profilePicture: null }
+let me: () => Promise<unknown> = () => Promise.resolve(kolja)
 afterEach(() => {
   categories = () => Promise.resolve([])
+  me = () => Promise.resolve(kolja)
 })
 
 function Probe() {
@@ -70,4 +74,181 @@ it('still renders when the categories fail', async () => {
     </CatalogProvider>,
   )
   await waitFor(() => screen.getByText(/cats:error:0/))
+})
+
+function category(id: number, recipes: number[] = []) {
+  return { id, user: 1, name: `Kategorie ${id}`, recipes, order: id, color: '', colorLight: null, colorDark: null }
+}
+
+// A queue of pending listCategories calls, settled by the test in any order.
+function deferredCategories() {
+  const calls: { resolve: (rows: unknown[]) => void; reject: (e: Error) => void }[] = []
+  categories = () => new Promise((resolve, reject) => calls.push({ resolve, reject }))
+  return calls
+}
+
+function CategoriesProbe() {
+  const cats = useCategories()
+  const refresh = useRefreshCategories()
+  return (
+    <>
+      <span>
+        cats:{cats.status}:{cats.list.map((c) => `${c.id}/${c.recipes.length}`).join(',')}
+      </span>
+      <button onClick={refresh}>refresh</button>
+      <button onClick={cats.retry}>retry</button>
+    </>
+  )
+}
+
+function renderCategories() {
+  render(
+    <CatalogProvider>
+      <CategoriesProbe />
+    </CatalogProvider>,
+  )
+}
+
+it('refreshes the categories in the background, keeping the old list meanwhile', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+  calls[0].resolve([category(1, [5])])
+  await screen.findByText('cats:ready:1/1')
+
+  fireEvent.click(screen.getByText('refresh'))
+  expect(calls).toHaveLength(2)
+  screen.getByText('cats:ready:1/1')
+  calls[1].resolve([category(1, [])])
+  await screen.findByText('cats:ready:1/0')
+})
+
+it('keeps only the latest refresh when responses arrive out of order', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+  calls[0].resolve([category(1, [5])])
+  await screen.findByText('cats:ready:1/1')
+
+  fireEvent.click(screen.getByText('refresh'))
+  fireEvent.click(screen.getByText('refresh'))
+  calls[2].resolve([category(1, [5, 6, 7])])
+  await screen.findByText('cats:ready:1/3')
+  await act(async () => calls[1].resolve([category(1, [5, 6])]))
+  screen.getByText('cats:ready:1/3')
+})
+
+it('keeps the loaded categories when a refresh fails', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+  calls[0].resolve([category(1, [5])])
+  await screen.findByText('cats:ready:1/1')
+
+  fireEvent.click(screen.getByText('refresh'))
+  await act(async () => calls[1].reject(new Error('offline')))
+  screen.getByText('cats:ready:1/1')
+})
+
+it('retries failed categories from loading', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+  calls[0].reject(new Error('boom'))
+  await screen.findByText('cats:error:')
+
+  fireEvent.click(screen.getByText('retry'))
+  await screen.findByText('cats:loading:')
+  calls[1].resolve([category(2)])
+  await screen.findByText('cats:ready:2/0')
+})
+
+it('shows an error with a retry instead of the app when /users/me fails', async () => {
+  let fail = true
+  const calls = vi.fn()
+  me = () => {
+    calls()
+    return fail ? Promise.reject(new Error('Serverfehler')) : Promise.resolve(kolja)
+  }
+  render(
+    <CatalogProvider>
+      <MeProbe />
+    </CatalogProvider>,
+  )
+  await screen.findByText('Konnte Profil nicht laden')
+  screen.getByText('Serverfehler')
+  expect(screen.queryByText(/me:/)).toBeNull()
+
+  fail = false
+  fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
+  await screen.findByText(/me:Kolja/)
+  expect(calls).toHaveBeenCalledTimes(2)
+  expect(screen.queryByText('Konnte Profil nicht laden')).toBeNull()
+})
+
+it('keeps a successful first load when a refresh started meanwhile fails', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+
+  fireEvent.click(screen.getByText('refresh'))
+  await act(async () => calls[0].resolve([category(1, [5])]))
+  screen.getByText('cats:ready:1/1')
+  await act(async () => calls[1].reject(new Error('offline')))
+  screen.getByText('cats:ready:1/1')
+})
+
+it('waits for the first load when a refresh started meanwhile fails first', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+
+  fireEvent.click(screen.getByText('refresh'))
+  await act(async () => calls[1].reject(new Error('offline')))
+  screen.getByText('cats:loading:')
+  await act(async () => calls[0].resolve([category(1, [5])]))
+  screen.getByText('cats:ready:1/1')
+})
+
+it('reports the error once every call in flight has failed', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+
+  fireEvent.click(screen.getByText('refresh'))
+  await act(async () => calls[1].reject(new Error('offline')))
+  await act(async () => calls[0].reject(new Error('boom')))
+  screen.getByText('cats:error:')
+})
+
+it('keeps categories a refresh loaded when a later retry fails', async () => {
+  const calls = deferredCategories()
+  renderCategories()
+  await waitFor(() => expect(calls).toHaveLength(1))
+  await act(async () => calls[0].reject(new Error('boom')))
+  screen.getByText('cats:error:')
+
+  fireEvent.click(screen.getByText('refresh'))
+  fireEvent.click(screen.getByText('retry'))
+  await act(async () => calls[1].resolve([category(1, [5])]))
+  screen.getByText('cats:ready:1/1')
+  await act(async () => calls[2].reject(new Error('offline')))
+  screen.getByText('cats:ready:1/1')
+})
+
+it('only lets the remounted load land in StrictMode', async () => {
+  const calls = deferredCategories()
+  render(
+    <StrictMode>
+      <CatalogProvider>
+        <CategoriesProbe />
+      </CatalogProvider>
+    </StrictMode>,
+  )
+  await waitFor(() => expect(calls).toHaveLength(2))
+
+  await act(async () => calls[1].resolve([category(1, [5])]))
+  screen.getByText('cats:ready:1/1')
+  await act(async () => calls[0].resolve([category(1, [])]))
+  screen.getByText('cats:ready:1/1')
 })

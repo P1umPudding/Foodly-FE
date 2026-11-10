@@ -14,7 +14,9 @@ vi.mock('react-router-dom', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }))
 
+const refreshCategories = vi.hoisted(() => vi.fn())
 vi.mock('../catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => refreshCategories,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: { 1: { id: 1, name: 'Zwiebel' } }, status: 'ready' }),
   useCurrentUserId: () => 1,
@@ -54,6 +56,7 @@ afterEach(() => {
   vi.restoreAllMocks()
   vi.useRealTimers()
   navigate.mockReset()
+  refreshCategories.mockClear()
   params = {}
 })
 
@@ -70,6 +73,7 @@ describe('RecipeEditor · new', () => {
       expect(foodly.createRecipe).toHaveBeenCalledWith(expect.objectContaining({ name: 'Neues Rezept' })),
     )
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/recipes/42/edit', { replace: true }))
+    expect(refreshCategories).toHaveBeenCalledTimes(1)
   })
 
   it('will not create a nameless recipe', () => {

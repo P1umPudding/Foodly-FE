@@ -1,9 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigationType } from 'react-router-dom'
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   Badge,
   Button,
   Sheet,
@@ -17,7 +14,7 @@ import { Filter, UtensilsCrossed, SearchX } from 'lucide-react'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
 import { useCategories, useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
 import { useListState } from '../list/useListState'
-import { groupingCategories, inSelectedCategory } from '../list/filter'
+import { UNCATEGORIZED_ID, groupingCategories, inSelectedCategory } from '../list/filter'
 import { hasDisplayableImages } from '../list/rowData'
 import { buildSearchQuery } from '../list/query'
 import { matchesSearch } from '../list/search'
@@ -36,6 +33,7 @@ import { ViewToggles } from '../components/list/ViewToggles'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { fromSearchParams, toSearchParams } from '../list/url'
 import { isShellNavState } from '../components/shell/nav'
+import { RetryAlert } from '../components/RetryAlert'
 
 const SCROLL_KEY = 'recipeList:scroll'
 
@@ -111,6 +109,15 @@ export function RecipeList() {
   // Access guard is redundant (backend enforces it) but harmless.
   const accessibleRecipes = search.recipes.filter((r) => canViewRecipe(r, currentUserId))
   const categories = categoriesCatalog.list
+
+  // Category selection and grouping need the categories. While they load, the list waits for them instead of
+  // briefly showing everything as "Ohne Kategorie" or "Keine Treffer" (and paging through every page looking
+  // for matches). When they failed, the list works without them: the selection is ignored (it stays in the
+  // URL and applies again after a successful retry) and the grouped view shows a flat list.
+  const categoriesFailed = categoriesCatalog.status === 'error'
+  const awaitingCategories = categoriesCatalog.status === 'loading' && (state.categories.length > 0 || state.grouped)
+  const categoryState = categoriesFailed ? { ...state, categories: [] } : state
+  const grouped = state.grouped && !categoriesFailed
   const tagList = Object.values(tags.byId)
 
   // Ingredient facet: prefer ingredients actually present on loaded recipes; when
@@ -128,12 +135,13 @@ export function RecipeList() {
   // selecting one must HIDE non-matching recipes, not dump them into the grouped
   // view's "Ohne Kategorie" bucket.
   const visible = accessibleRecipes.filter(
-    (r) => inSelectedCategory(r, state.categories, categories) && matchesSearch(r, state.search),
+    (r) => inSelectedCategory(r, categoryState.categories, categories) && matchesSearch(r, state.search),
   )
 
-  const pending = search.status === 'ready' && search.hasMore
-  const allLoaded = search.status === 'ready' && !search.hasMore
-  const filterActive = isFilterActive(state)
+  const listReady = search.status === 'ready' && !awaitingCategories
+  const pending = listReady && search.hasMore
+  const allLoaded = listReady && !search.hasMore
+  const filterActive = isFilterActive(categoryState)
 
   // Count of accessible recipes in no category — drives the "Ohne Kategorie" filter.
   const categorizedIds = new Set(categories.flatMap((c) => c.recipes))
@@ -142,7 +150,7 @@ export function RecipeList() {
   // Per-category collapse state (clicking a sticky group header folds that group),
   // persisted per user. Closed group keys; empty = all open. First visit (nothing
   // stored) starts with the "Ohne Kategorie" inbox folded.
-  const groupingCats = groupingCategories(categories, state.categories)
+  const groupingCats = groupingCategories(categories, categoryState.categories)
   // From every loaded (viewable) recipe, not the filtered view: loadMore only appends,
   // so the column never vanishes while scrolling; a new query recomputes it.
   const showImages = hasDisplayableImages(accessibleRecipes)
@@ -230,7 +238,7 @@ export function RecipeList() {
   }, [])
 
   useEffect(() => {
-    if (scrollRestored.current || search.status !== 'ready') return
+    if (scrollRestored.current || !listReady) return
     scrollRestored.current = true
     try {
       const saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null') as { list: string; y: number } | null
@@ -239,7 +247,7 @@ export function RecipeList() {
     } catch {
       // unreadable entry → start at the top
     }
-  }, [search.status])
+  }, [listReady])
 
   // Desktop: the search is ready to type into when the page opens. Not on phones, where focusing would pop the
   // keyboard over the list. Only the first render's viewport counts, so resizing never steals focus.
@@ -256,20 +264,21 @@ export function RecipeList() {
   const sentinelRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = sentinelRef.current
-    if (!el || !search.hasMore) return
+    if (!el || !search.hasMore || awaitingCategories) return
     const io = new IntersectionObserver((entries) => {
       if (entries[0]?.isIntersecting) search.loadMore()
     })
     io.observe(el)
     return () => io.disconnect()
-  }, [search.hasMore, search.loadMore])
+  }, [search.hasMore, search.loadMore, awaitingCategories])
 
   const filters = (
     <FilterControls
-      state={state}
+      state={categoryState}
       set={set}
       categories={categories}
       categoriesLoading={categoriesCatalog.status === 'loading'}
+      categoriesFailed={categoriesFailed}
       onToggleCategory={(id) =>
         set({
           categories: state.categories.includes(id)
@@ -300,10 +309,7 @@ export function RecipeList() {
               <div className="flex items-baseline gap-4">
                 <h1 className="sr-only">Rezepte</h1>
                 {/* Loading or failed: count 0 + more is the hidden placeholder — no number we don't know. */}
-                <ResultCount
-                  count={search.status === 'ready' ? visible.length : 0}
-                  more={search.status !== 'ready' || search.hasMore}
-                />
+                <ResultCount count={listReady ? visible.length : 0} more={!listReady || search.hasMore} />
               </div>
               {/* Mobile-only filter drawer trigger */}
               <Sheet>
@@ -311,9 +317,9 @@ export function RecipeList() {
                   <Button variant="outline" size="sm" className="gap-1.5 lg:hidden">
                     <Filter className="h-4 w-4" />
                     Filter
-                    {activeFacetCount(state) > 0 && (
+                    {activeFacetCount(categoryState) > 0 && (
                       <Badge variant="secondary" className="ml-0.5 h-5 min-w-5 justify-center px-1 tabular-nums">
-                        {activeFacetCount(state)}
+                        {activeFacetCount(categoryState)}
                       </Badge>
                     )}
                   </Button>
@@ -350,8 +356,13 @@ export function RecipeList() {
 
             {/* Removable chips for the active filters + reset-all. */}
             <div className="mt-5 empty:mt-0">
+              {/* While the categories load, their chips would have no name yet. */}
               <ActiveFilters
-                state={state}
+                state={
+                  awaitingCategories
+                    ? { ...state, categories: state.categories.filter((id) => id === UNCATEGORIZED_ID) }
+                    : categoryState
+                }
                 set={set}
                 clear={clear}
                 categories={categories}
@@ -362,18 +373,26 @@ export function RecipeList() {
           </div>
 
           <div className="pt-1">
-            {search.status === 'loading' && <ListSkeleton detail={state.detail} count={4} />}
+            {categoriesFailed && (
+              <div className="pb-4">
+                <RetryAlert
+                  title="Konnte Kategorien nicht laden"
+                  message={categoriesCatalog.error?.message}
+                  onRetry={categoriesCatalog.retry}
+                />
+              </div>
+            )}
+
+            {(search.status === 'loading' || (search.status === 'ready' && awaitingCategories)) && (
+              <ListSkeleton
+                detail={state.detail}
+                count={4}
+                testId={search.status === 'ready' ? 'list-categories-skeleton' : undefined}
+              />
+            )}
 
             {search.status === 'error' && (
-              <Alert variant="destructive">
-                <AlertTitle>Konnte Rezepte nicht laden</AlertTitle>
-                <AlertDescription className="flex flex-col gap-2">
-                  <span>{search.error?.message}</span>
-                  <Button variant="outline" size="sm" onClick={search.reload}>
-                    Erneut versuchen
-                  </Button>
-                </AlertDescription>
-              </Alert>
+              <RetryAlert title="Konnte Rezepte nicht laden" message={search.error?.message} onRetry={search.reload} />
             )}
 
             {/* Pages still to come may hold matches: hold the empty texts back until the list is exhausted.
@@ -410,14 +429,14 @@ export function RecipeList() {
               </div>
             )}
 
-            {search.status === 'ready' && visible.length > 0 && (
+            {listReady && visible.length > 0 && (
               <RecipeListView
                 recipes={visible}
                 categories={groupingCats}
                 allCategories={categories}
                 showImages={showImages}
                 detail={state.detail}
-                grouped={state.grouped}
+                grouped={grouped}
                 collapsed={collapsed}
                 onCollapsedChange={setCollapsed}
               />
@@ -425,8 +444,8 @@ export function RecipeList() {
 
             {/* Infinite-scroll trigger + more-pages spinner. */}
             <div ref={sentinelRef} aria-hidden className="h-1" />
-            {search.loadingMore && visible.length > 0 && (
-              <LoadMoreSkeleton detail={state.detail} grouped={state.grouped} />
+            {listReady && search.loadingMore && visible.length > 0 && (
+              <LoadMoreSkeleton detail={state.detail} grouped={grouped} />
             )}
           </div>
         </div>

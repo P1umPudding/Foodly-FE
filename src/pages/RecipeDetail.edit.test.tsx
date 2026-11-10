@@ -13,6 +13,7 @@ vi.mock('react-router-dom', () => ({
 
 let currentUserId: number | null = 1
 vi.mock('../catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => currentUserId,
 }))

@@ -21,6 +21,7 @@ vi.mock('react-router-dom', () => ({
 }))
 
 vi.mock('../catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
 }))

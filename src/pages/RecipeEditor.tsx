@@ -5,7 +5,7 @@ import { AlertTriangle, Plus } from 'lucide-react'
 import { foodly } from '../api'
 import { trackPendingSave } from '../api/pendingSaves'
 import { useRequest } from '../hooks/useRequest'
-import { useCurrentUserId } from '../catalog/CatalogProvider'
+import { useCurrentUserId, useRefreshCategories } from '../catalog/CatalogProvider'
 import { canEdit } from '../editor/access'
 import { emptyDraft, move, newSection, sizeNumberError, toCreateRecipe, toDraft } from '../editor/draft'
 import type { Draft } from '../editor/draft'
@@ -20,6 +20,7 @@ export function RecipeEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
   const currentUserId = useCurrentUserId()
+  const refreshCategories = useRefreshCategories()
 
   // One component, two modes. `recipeId` is null on /recipes/new until Anlegen
   // succeeds, and that null is exactly what keeps autosave switched off.
@@ -134,6 +135,8 @@ export function RecipeEditor() {
     setCreateError(null)
     try {
       const created = await foodly.createRecipe(toCreateRecipe(draft))
+      // A new recipe can't be given a category yet, so this changes nothing today; keeps the sidebar right once it can.
+      refreshCategories()
       setRecipeId(created.id)
       navigate(`/recipes/${created.id}/edit`, { replace: true })
     } catch (e) {
