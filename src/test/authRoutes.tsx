@@ -14,7 +14,9 @@ export function LocationProbe({ label }: { label: string }) {
   )
 }
 
-export function renderAuthRoutes(path: string, pages: { login?: ReactNode; register?: ReactNode } = {}) {
+type Entry = string | { pathname: string; search?: string; state?: unknown }
+
+export function renderAuthRoutes(path: Entry, pages: { login?: ReactNode; register?: ReactNode } = {}) {
   return render(
     <TooltipProvider>
       <MemoryRouter initialEntries={[path]}>

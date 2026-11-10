@@ -2,17 +2,25 @@
 // session); /login and /register sit outside both. In mock mode foodly.auth is always signed in, so
 // nothing is guarded and /login forwards to the list.
 import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router-dom'
+import { foodly } from '../../api'
 import { CatalogProvider } from '../../catalog/CatalogProvider'
 import { useAuthSession } from '../../hooks/useAuthSession'
 import { safeNext } from '../../lib/safeNext'
 import { AppShell } from './AppShell'
 
+// Router state, not a URL parameter, so the hint doesn't come back from a bookmark or shared link.
+export type LoginState = { expired?: boolean; email?: string }
+
 export function RequireAuth() {
   const session = useAuthSession()
   const { pathname, search, hash } = useLocation()
   if (!session) {
+    const end = foodly.auth.sessionEnd()
+    // Signed out here on purpose: the next person shouldn't land on this page after signing in.
+    if (end?.reason === 'signed-out') return <Navigate to="/login" replace />
     const next = new URLSearchParams({ next: pathname + search + hash })
-    return <Navigate to={`/login?${next.toString()}`} replace />
+    const state: LoginState | undefined = end ? { expired: true, email: end.email } : undefined
+    return <Navigate to={`/login?${next.toString()}`} replace state={state} />
   }
   // Keyed on the user, so a sign-in as someone else (e.g. in another tab) reloads `me` and the catalogs.
   return (

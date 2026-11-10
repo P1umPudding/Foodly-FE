@@ -1,11 +1,12 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { flushSync } from 'react-dom'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { Alert, AlertDescription, Button, Spinner } from '@postxl/ui-components'
 import { ApiError, foodly } from '../api'
 import { AuthCard, AuthLink } from '../components/auth/AuthCard'
 import { AuthField } from '../components/auth/AuthField'
-import { EMPTY_EMAIL, EMPTY_PASSWORD, TOO_MANY_ATTEMPTS } from '../components/auth/texts'
+import { EMPTY_EMAIL, EMPTY_PASSWORD, SESSION_EXPIRED, TOO_MANY_ATTEMPTS } from '../components/auth/texts'
+import type { LoginState } from '../components/shell/RequireAuth'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 type Field = 'email' | 'password'
@@ -18,6 +19,13 @@ function validate(values: Record<Field, string>): Errors {
   return errors
 }
 
+// history.state can hold anything (another app version, a manual pushState), so check the shape.
+function readLoginState(state: unknown): LoginState {
+  if (typeof state !== 'object' || state === null) return {}
+  const { expired, email } = state as Record<string, unknown>
+  return { expired: expired === true, email: typeof email === 'string' ? email : undefined }
+}
+
 function errorText(err: unknown): string {
   if (err instanceof ApiError && err.status === 401) return 'E-Mail oder Passwort stimmt nicht.'
   if (err instanceof ApiError && err.status === 429) return TOO_MANY_ATTEMPTS
@@ -27,8 +35,9 @@ function errorText(err: unknown): string {
 export function Login() {
   useDocumentTitle('Anmelden · Foodly')
   const [params] = useSearchParams()
+  const { expired, email: knownEmail } = readLoginState(useLocation().state)
   const next = params.get('next')
-  const prefilledEmail = params.get('email') ?? ''
+  const prefilledEmail = params.get('email') ?? knownEmail ?? ''
   const [values, setValues] = useState({ email: prefilledEmail, password: '' })
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({})
   const [errors, setErrors] = useState<Errors>({})
@@ -90,6 +99,11 @@ export function Login() {
       }
     >
       <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
+        {expired && (
+          <Alert>
+            <AlertDescription>{SESSION_EXPIRED}</AlertDescription>
+          </Alert>
+        )}
         <AuthField
           id="login-email"
           label="E-Mail"

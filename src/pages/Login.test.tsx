@@ -136,6 +136,22 @@ describe('Login', () => {
     expect(document.activeElement).toBe(password())
   })
 
+  it('after an expired session shows the neutral hint and prefills the known e-mail', () => {
+    renderAuthRoutes(
+      { pathname: '/login', search: '?next=%2Frecipes%2F5', state: { expired: true, email: 'kim@example.com' } },
+      { login: <Login /> },
+    )
+    expect(screen.getByRole('alert').textContent).toBe('Deine Anmeldung ist abgelaufen. Bitte melde dich neu an.')
+    expect(email().value).toBe('kim@example.com')
+    expect(document.activeElement).toBe(password())
+  })
+
+  it('shows no hint without an expired session', () => {
+    renderAuthRoutes('/login', { login: <Login /> })
+    expect(screen.queryByText(/Anmeldung ist abgelaufen/)).toBeNull()
+    expect(email().value).toBe('')
+  })
+
   it('links to /register and keeps next', () => {
     renderAuthRoutes('/login?next=%2Frecipes%2F5', { login: <Login /> })
     expect(screen.getByRole('link', { name: 'Registrieren' }).getAttribute('href')).toBe(
