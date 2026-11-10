@@ -27,10 +27,13 @@ import { activeFacetCount, isFilterActive, type DetailView } from '../list/state
 import { loadCollapsed, saveCollapsed } from '../list/persistence'
 import { ActiveFilters } from '../components/list/ActiveFilters'
 import { FilterControls } from '../components/list/FilterControls'
-import { ListToolbar } from '../components/list/ListToolbar'
+import { MobileListOptions } from '../components/list/MobileListOptions'
 import { GroupIndent, RecipeListView, TileGrid } from '../components/list/RecipeListView'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
+import { SortMenu } from '../components/list/SortMenu'
+import { ViewToggles } from '../components/list/ViewToggles'
+import { useIsDesktop } from '../hooks/useIsDesktop'
 import { fromSearchParams, toSearchParams } from '../list/url'
 import { isShellNavState } from '../components/shell/nav'
 
@@ -97,6 +100,7 @@ function LoadMoreSkeleton({ detail, grouped }: { detail: DetailView; grouped: bo
 export function RecipeList() {
   const { state, set, setSearch, clear } = useListState()
   const currentUserId = useCurrentUserId()
+  const isDesktop = useIsDesktop()
   const tags = useTags()
   const ingredients = useIngredients()
 
@@ -236,6 +240,15 @@ export function RecipeList() {
     }
   }, [search.status])
 
+  // Desktop: the search is ready to type into when the page opens. Not on phones, where focusing would pop the
+  // keyboard over the list. Only the first render's viewport counts, so resizing never steals focus.
+  // preventScroll: the scroll restore above owns the position on this mount.
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const focusSearchOnMount = useRef(isDesktop)
+  useEffect(() => {
+    if (focusSearchOnMount.current) searchInputRef.current?.focus({ preventScroll: true })
+  }, [])
+
   // Load the next page when a sentinel near the list end scrolls into view. The effect re-subscribes
   // whenever loadMore changes (every page), and a fresh observer reports the sentinel's current state:
   // a page that adds no visible row leaves the sentinel in view, so the next page loads by itself.
@@ -313,19 +326,24 @@ export function RecipeList() {
               </Sheet>
             </div>
 
-            {/* Search bar with the sort/view toolbar to its right (drops below on mobile). */}
-            <div ref={searchRowRef} className="mt-2.5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            {/* Search with the sort menu and view toggles to its right; on phones they sit behind one button. */}
+            <div ref={searchRowRef} className={`mt-2.5 flex items-center ${isDesktop ? 'gap-4' : 'gap-3'}`}>
               <SearchInput
                 value={state.search}
                 onChange={setSearch}
                 placeholder="Suchen…"
                 clearLabel="Suche leeren"
-                className="flex-1"
+                className="min-w-0 flex-1"
+                inputRef={searchInputRef}
               />
-              {/* Single "Ansicht" menu: sort + density. */}
-              <div className="flex justify-end sm:block">
-                <ListToolbar state={state} set={set} />
-              </div>
+              {isDesktop ? (
+                <div className="flex items-center gap-4">
+                  <SortMenu state={state} set={set} />
+                  <ViewToggles state={state} set={set} />
+                </div>
+              ) : (
+                <MobileListOptions state={state} set={set} />
+              )}
             </div>
 
             {/* Removable chips for the active filters + reset-all. */}
