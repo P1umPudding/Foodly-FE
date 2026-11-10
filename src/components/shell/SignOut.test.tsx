@@ -4,6 +4,7 @@ import { act, fireEvent, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { foodly } from '../../api'
+import { resetSessionEnd } from '../../api/auth'
 import { Login } from '../../pages/Login'
 import { jsonResponse, jwt, seedSession, storedSession } from '../../test/auth'
 import { renderAuthRoutes } from '../../test/authRoutes'
@@ -51,6 +52,7 @@ async function signOutFromMenu(name: string) {
 afterEach(() => {
   vi.restoreAllMocks()
   localStorage.clear()
+  resetSessionEnd()
 })
 
 describe('Abmelden', () => {

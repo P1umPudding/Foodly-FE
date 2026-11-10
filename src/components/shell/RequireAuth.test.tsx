@@ -2,7 +2,7 @@ import { act, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { foodly } from '../../api'
-import { getAccessToken } from '../../api/auth'
+import { getAccessToken, resetSessionEnd } from '../../api/auth'
 import { Login } from '../../pages/Login'
 import { jsonResponse, jwt, seedSession } from '../../test/auth'
 import { renderAuthRoutes } from '../../test/authRoutes'
@@ -24,6 +24,7 @@ function spyCatalogs() {
 afterEach(() => {
   vi.restoreAllMocks()
   localStorage.clear()
+  resetSessionEnd()
 })
 
 describe('RequireAuth', () => {
@@ -65,13 +66,16 @@ describe('RequireAuth', () => {
     // about the session, so the removal below counts as a sign-out.
     window.dispatchEvent(new StorageEvent('storage', { key: 'foodly.auth' }))
     spyCatalogs()
-    renderAuthRoutes('/recipes/5')
+    renderAuthRoutes('/recipes/5', { login: <Login /> })
     await screen.findByText('app /recipes/5')
     act(() => {
       localStorage.removeItem('foodly.auth')
       window.dispatchEvent(new StorageEvent('storage', { key: 'foodly.auth' }))
     })
-    expect(location()).toBe('login /login?next=%2Frecipes%2F5')
+    expect(screen.getByRole('link', { name: 'Registrieren' }).getAttribute('href')).toBe(
+      '/register?next=%2Frecipes%2F5',
+    )
+    expect(screen.queryByRole('alert')).toBeNull()
   })
 
   it('after a refresh 401 shows the expired hint with the known e-mail and keeps next', async () => {

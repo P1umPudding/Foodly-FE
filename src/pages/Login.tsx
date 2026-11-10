@@ -6,7 +6,7 @@ import { ApiError, foodly } from '../api'
 import { AuthCard, AuthLink } from '../components/auth/AuthCard'
 import { AuthField } from '../components/auth/AuthField'
 import { EMPTY_EMAIL, EMPTY_PASSWORD, SESSION_EXPIRED, TOO_MANY_ATTEMPTS } from '../components/auth/texts'
-import type { LoginState } from '../components/shell/RequireAuth'
+import { readLoginState } from '../components/auth/loginState'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 type Field = 'email' | 'password'
@@ -17,13 +17,6 @@ function validate(values: Record<Field, string>): Errors {
   if (!values.email.trim()) errors.email = EMPTY_EMAIL
   if (!values.password) errors.password = EMPTY_PASSWORD
   return errors
-}
-
-// history.state can hold anything (another app version, a manual pushState), so check the shape.
-function readLoginState(state: unknown): LoginState {
-  if (typeof state !== 'object' || state === null) return {}
-  const { expired, email } = state as Record<string, unknown>
-  return { expired: expired === true, email: typeof email === 'string' ? email : undefined }
 }
 
 function errorText(err: unknown): string {
@@ -37,7 +30,7 @@ export function Login() {
   const [params] = useSearchParams()
   const { expired, email: knownEmail } = readLoginState(useLocation().state)
   const next = params.get('next')
-  const prefilledEmail = params.get('email') ?? knownEmail ?? ''
+  const prefilledEmail = params.get('email') || knownEmail || ''
   const [values, setValues] = useState({ email: prefilledEmail, password: '' })
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({})
   const [errors, setErrors] = useState<Errors>({})
@@ -101,7 +94,7 @@ export function Login() {
       <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
         {expired && (
           <Alert>
-            <AlertDescription>{SESSION_EXPIRED}</AlertDescription>
+            <AlertDescription id="login-expired">{SESSION_EXPIRED}</AlertDescription>
           </Alert>
         )}
         <AuthField
@@ -122,6 +115,8 @@ export function Login() {
           type="password"
           autoComplete="current-password"
           autoFocus={!!prefilledEmail}
+          // Focus lands here, past the hint, so a screen reader reads it with the field.
+          describedBy={expired ? 'login-expired' : undefined}
           revealable
           value={values.password}
           onChange={change('password')}

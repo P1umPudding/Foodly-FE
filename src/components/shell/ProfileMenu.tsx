@@ -22,7 +22,8 @@ import { TriggerButton } from '../TriggerButton'
 const LABEL = 'Profil & Einstellungen'
 
 // Profile and settings behind the avatar (phone header) or the sidebar's bottom row. There is no profile
-// page yet; the menu holds the name, the theme and (REST only) Abmelden. Wake-lock stays on the recipe page, where it acts.
+// page yet; the menu holds the name, the theme and (REST only) Abmelden. Wake-lock stays on the recipe
+// page, where it acts.
 //  • avatar — phone header, 40 px tap target
 //  • row    — expanded sidebar: avatar + name
 //  • icon   — collapsed sidebar: avatar only, tooltip

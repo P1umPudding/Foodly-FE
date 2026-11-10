@@ -67,6 +67,11 @@ export function sessionEnd(): SessionEnd | null {
   return session() ? null : ended
 }
 
+// Tests only: module state, and clearing localStorage between tests doesn't notify.
+export function resetSessionEnd(): void {
+  ended = null
+}
+
 function endSession(end: SessionEnd): void {
   writeStored(null)
   ended = end

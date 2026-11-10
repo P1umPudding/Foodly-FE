@@ -144,6 +144,7 @@ describe('Login', () => {
     expect(screen.getByRole('alert').textContent).toBe('Deine Anmeldung ist abgelaufen. Bitte melde dich neu an.')
     expect(email().value).toBe('kim@example.com')
     expect(document.activeElement).toBe(password())
+    expect(password().getAttribute('aria-describedby')).toContain('login-expired')
   })
 
   it('shows no hint without an expired session', () => {
