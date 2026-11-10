@@ -26,10 +26,12 @@ export function AuthField({
   onChange,
   onBlur,
   type = 'text',
+  autoComplete,
+  autoFocus,
   error,
   hint,
   revealable,
-  ...rest
+  inputRef,
 }: Props) {
   const [revealed, setRevealed] = useState(false)
   const note = error ?? hint
@@ -42,13 +44,13 @@ export function AuthField({
       <div className="relative">
         <Input
           id={id}
-          ref={rest.inputRef}
+          ref={inputRef}
           type={revealable && revealed ? 'text' : type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
-          autoComplete={rest.autoComplete}
-          autoFocus={rest.autoFocus}
+          autoComplete={autoComplete}
+          autoFocus={autoFocus}
           aria-invalid={error ? true : undefined}
           aria-describedby={note ? noteId : undefined}
           className={revealable ? 'min-h-10 pr-10' : 'min-h-10'}

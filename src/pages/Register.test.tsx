@@ -74,6 +74,15 @@ describe('Register', () => {
     expect(note?.textContent).toBe('Diese E-Mail ist schon registriert. Anmelden')
     expect(note?.querySelector('a')?.getAttribute('href')).toBe('/login?email=kim%40example.com&next=%2Frecipes%2F5')
     expect(screen.queryByRole('alert')).toBeNull()
+    expect(document.activeElement).toBe(email)
+  })
+
+  it('on 422 without a backend message shows the generic text', async () => {
+    reply(() => jsonResponse(422, { error: {} }))
+    renderAuthRoutes('/register', { register: <Register /> })
+    fill('Kim', 'kim@example.com', 'password123')
+    await submit()
+    expect(screen.getByRole('alert').textContent).toBe('Registrieren hat nicht geklappt. Bitte versuch es noch einmal.')
   })
 
   it('on 201 signs in and goes to next', async () => {

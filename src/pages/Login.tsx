@@ -65,6 +65,8 @@ export function Login() {
       setFailure(errorText(err))
       if (err instanceof ApiError && err.status === 401) {
         setValues((v) => ({ ...v, password: '' }))
+        // Cleared by us, not by the user: leaving it empty must not show "Bitte gib dein Passwort ein."
+        setTouched((t) => ({ ...t, password: false }))
         refs.password.current?.focus()
       }
     }

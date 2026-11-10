@@ -27,10 +27,11 @@ function validate(values: Record<Field, string>): Errors {
   return errors
 }
 
-// 422 carries the backend's validation message; the client checks should already prevent it.
+// 422 carries the backend's validation message; the client checks should already prevent it. Without
+// a message in the body, ApiError falls back to "HTTP 422", which is no text for the user.
 function errorText(err: unknown): string {
   if (err instanceof ApiError && err.status === 429) return TOO_MANY_ATTEMPTS
-  if (err instanceof ApiError && err.status === 422) return err.message || GENERIC
+  if (err instanceof ApiError && err.status === 422 && err.message !== `HTTP ${err.status}`) return err.message
   return GENERIC
 }
 

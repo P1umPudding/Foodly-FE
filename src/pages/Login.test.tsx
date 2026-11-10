@@ -72,6 +72,8 @@ describe('Login', () => {
     expect(email().value).toBe('kim@example.com')
     expect(password().value).toBe('')
     expect(document.activeElement).toBe(password())
+    fireEvent.blur(password())
+    expect(password().getAttribute('aria-invalid')).toBeNull()
   })
 
   it('on 429 asks to wait', async () => {
