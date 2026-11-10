@@ -83,12 +83,6 @@ export function ImageManager({
           </figure>
         ))}
 
-        <Label
-          htmlFor="image-upload"
-          className="grid size-20 cursor-pointer place-items-center rounded-md border border-dashed text-muted-foreground"
-        >
-          <Upload className="h-5 w-5" />
-        </Label>
         {/* eslint-disable-next-line react/forbid-elements -- native file picker, @postxl/ui-components has no file input */}
         <input
           id="image-upload"
@@ -96,13 +90,20 @@ export function ImageManager({
           accept="image/png,image/jpeg,image/webp"
           aria-label="Bild hochladen"
           disabled={uploading}
-          className="hidden"
+          className="peer hidden"
           onChange={(e) => {
             const file = e.target.files?.[0]
             if (file) void upload(file)
             e.target.value = ''
           }}
         />
+        {/* After the input: peer-disabled dims the tile while uploading or while the editor is locked. */}
+        <Label
+          htmlFor="image-upload"
+          className="grid size-20 cursor-pointer place-items-center rounded-md border border-dashed text-muted-foreground peer-disabled:pointer-events-none peer-disabled:opacity-50"
+        >
+          <Upload className="h-5 w-5" />
+        </Label>
       </div>
     </div>
   )

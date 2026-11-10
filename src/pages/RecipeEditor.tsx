@@ -126,11 +126,17 @@ export function RecipeEditor() {
     }
   }
 
+  // While the POST runs the form is locked (nothing typed meanwhile could be lost), but the user may still leave
+  // via the sidebar or Back: the recipe is created anyway, without pulling them back into the editor.
   const [creating, setCreating] = useState(false)
+  const creatingRef = useRef(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  const cannotCreate = draft === null || draft.name.trim() === '' || sizeError !== null
 
   const create = async () => {
-    if (!draft) return
+    // aria-disabled keeps the button focusable, so Enter/Space still arrive here: guard everything again.
+    if (!draft || creatingRef.current || cannotCreate) return
+    creatingRef.current = true
     setCreating(true)
     setCreateError(null)
     try {
@@ -138,11 +144,13 @@ export function RecipeEditor() {
       // A new recipe can't be given a category yet, so this changes nothing today; keeps the sidebar right once it can.
       refreshCategories()
       setRecipeId(created.id)
-      navigate(`/recipes/${created.id}/edit`, { replace: true })
+      if (alive.current) navigate(`/recipes/${created.id}/edit`, { replace: true })
     } catch (e) {
-      setCreateError((e as Error).message)
+      if (alive.current) setCreateError((e as Error).message)
+      else toast.error('Rezept konnte nicht angelegt werden.')
     } finally {
-      setCreating(false)
+      creatingRef.current = false
+      if (alive.current) setCreating(false)
     }
   }
 
@@ -199,45 +207,64 @@ export function RecipeEditor() {
     <div className="mx-auto max-w-3xl px-6 py-10 pb-28">
       {heading}
 
-      <div className="flex flex-col gap-4">
-        <BasicsCard draft={draft} onChange={patch} />
+      {/* `contents`: the fieldset only disables its controls during Anlegen, it adds no box of its own. */}
+      <fieldset disabled={creating} aria-busy={creating} className="contents">
+        <div className="flex flex-col gap-4">
+          <BasicsCard draft={draft} onChange={patch} />
 
-        {draft.sections.map((section, i) => (
-          <SectionEditor
-            key={section.key}
-            section={section}
-            index={i}
-            total={draft.sections.length}
-            onChange={(next) => patch({ sections: draft.sections.map((s) => (s.key === section.key ? next : s)) })}
-            onUp={() => patch({ sections: move(draft.sections, section.key, -1) })}
-            onDown={() => patch({ sections: move(draft.sections, section.key, 1) })}
-            onRemove={() => patch({ sections: draft.sections.filter((s) => s.key !== section.key) })}
-          />
-        ))}
+          {draft.sections.map((section, i) => (
+            <SectionEditor
+              key={section.key}
+              section={section}
+              index={i}
+              total={draft.sections.length}
+              onChange={(next) => patch({ sections: draft.sections.map((s) => (s.key === section.key ? next : s)) })}
+              onUp={() => patch({ sections: move(draft.sections, section.key, -1) })}
+              onDown={() => patch({ sections: move(draft.sections, section.key, 1) })}
+              onRemove={() => patch({ sections: draft.sections.filter((s) => s.key !== section.key) })}
+            />
+          ))}
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="self-start gap-1.5"
-          onClick={() => patch({ sections: [...draft.sections, newSection()] })}
-        >
-          <Plus className="h-4 w-4" />
-          Abschnitt hinzufügen
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="self-start gap-1.5"
+            onClick={() => patch({ sections: [...draft.sections, newSection()] })}
+          >
+            <Plus className="h-4 w-4" />
+            Abschnitt hinzufügen
+          </Button>
 
-        <ImageManager mainImage={draft.mainImage} images={draft.images} onChange={patch} />
-      </div>
+          <ImageManager mainImage={draft.mainImage} images={draft.images} onChange={patch} />
+        </div>
+      </fieldset>
 
       <div className="fixed right-0 bottom-[var(--shell-bottom,0px)] left-[var(--shell-left,0px)] border-t border-border bg-card">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-6 py-3">
           {isNew ? (
             <>
               <Button asChild variant="ghost">
-                <Link to="/recipes">Verwerfen</Link>
+                <Link
+                  to="/recipes"
+                  aria-disabled={creating}
+                  tabIndex={creating ? -1 : undefined}
+                  onClick={(e) => {
+                    if (creatingRef.current) e.preventDefault()
+                  }}
+                  className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
+                >
+                  Verwerfen
+                </Link>
               </Button>
               <div className="flex items-center gap-3">
                 {createError && <span className="text-destructive">{createError}</span>}
-                <Button onClick={create} disabled={creating || draft.name.trim() === '' || sizeError !== null}>
+                <Button
+                  onClick={create}
+                  aria-disabled={creating || cannotCreate}
+                  aria-busy={creating}
+                  className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+                >
+                  {creating && <Spinner className="size-4" />}
                   Anlegen
                 </Button>
               </div>

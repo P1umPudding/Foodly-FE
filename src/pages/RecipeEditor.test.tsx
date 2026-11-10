@@ -78,9 +78,14 @@ describe('RecipeEditor · new', () => {
 
   it('will not create a nameless recipe', () => {
     params = {}
+    const create = vi.spyOn(foodly, 'createRecipe')
     view()
 
-    expect((screen.getByRole('button', { name: 'Anlegen' }) as HTMLButtonElement).disabled).toBe(true)
+    const anlegen = screen.getByRole('button', { name: 'Anlegen' })
+    expect(anlegen.getAttribute('aria-disabled')).toBe('true')
+    // aria-disabled keeps it focusable, so a keyboard activation still arrives as a click.
+    fireEvent.click(anlegen)
+    expect(create).not.toHaveBeenCalled()
   })
 })
 
@@ -304,7 +309,11 @@ describe('RecipeEditor · portion count below 1', () => {
     fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Neues Rezept' } })
     fireEvent.change(count(), { target: { value: '0' } })
 
-    expect((screen.getByRole('button', { name: 'Anlegen' }) as HTMLButtonElement).disabled).toBe(true)
+    const create = vi.spyOn(foodly, 'createRecipe')
+    const anlegen = screen.getByRole('button', { name: 'Anlegen' })
+    expect(anlegen.getAttribute('aria-disabled')).toBe('true')
+    fireEvent.click(anlegen)
+    expect(create).not.toHaveBeenCalled()
     unmount()
     expect(error).not.toHaveBeenCalled()
   })

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
-import { TooltipProvider } from '@postxl/ui-components'
+import { TooltipProvider, toast } from '@postxl/ui-components'
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditorRoute } from '../App'
 import { foodly } from '../api'
@@ -382,5 +382,113 @@ describe('RecipeEditorRoute · leaving another way', () => {
 
     expect(allPendingSaves()).toBeNull()
     expect(await screen.findByText('Detail: Pasta 5')).toBeTruthy()
+  })
+})
+
+// Leaving while the POST of a new recipe runs: the recipe is still created, but the user stays where they went (#132).
+describe('RecipeEditorRoute · Anlegen', () => {
+  function deferredCreate() {
+    const pending: { resolve: (r: Recipe) => void; reject: (e: Error) => void }[] = []
+    const createRecipe = vi.spyOn(foodly, 'createRecipe').mockImplementation(
+      () =>
+        new Promise((resolve, reject) => {
+          pending.push({ resolve, reject })
+        }),
+    )
+    vi.spyOn(foodly, 'getRecipe').mockImplementation(async (id) => recipe({ id, name: 'Neu' }))
+    vi.spyOn(foodly, 'updateRecipe').mockImplementation(async (id) => recipe({ id, name: 'Neu' }))
+    return { createRecipe, pending }
+  }
+
+  function renderNew() {
+    render(
+      <TooltipProvider>
+        <MemoryRouter initialEntries={['/recipes/new']}>
+          <Link to="/elsewhere">elsewhere</Link>
+          <Routes>
+            <Route path="/elsewhere" element={<p>Elsewhere</p>} />
+            <Route path="/recipes" element={<p>List</p>} />
+            <Route path="/recipes/new" element={<RecipeEditorRoute />} />
+            <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
+          </Routes>
+        </MemoryRouter>
+      </TooltipProvider>,
+    )
+  }
+
+  const titleInput = () => screen.getByLabelText('Titel') as HTMLInputElement
+  const anlegen = () => screen.getByRole('button', { name: 'Anlegen' })
+  const verwerfen = () => screen.getByRole('link', { name: 'Verwerfen' })
+
+  async function startCreate() {
+    fireEvent.change(titleInput(), { target: { value: 'Neu' } })
+    fireEvent.click(anlegen())
+    await waitFor(() => expect(anlegen().getAttribute('aria-busy')).toBe('true'))
+  }
+
+  it('locks the form while creating, then swaps to the edit route', async () => {
+    const { createRecipe, pending } = deferredCreate()
+    renderNew()
+    await startCreate()
+
+    // Via the fieldset: the controls' own `disabled` stays false, only :disabled reflects the lock.
+    expect(titleInput().matches(':disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: /abschnitt hinzufügen/i }).matches(':disabled')).toBe(true)
+    expect(screen.getByLabelText('Bild hochladen').matches(':disabled')).toBe(true)
+    expect(anlegen().getAttribute('aria-disabled')).toBe('true')
+    expect(verwerfen().getAttribute('aria-disabled')).toBe('true')
+    fireEvent.click(verwerfen())
+    fireEvent.click(anlegen())
+    expect(createRecipe).toHaveBeenCalledTimes(1)
+    expect(screen.queryByText('List')).toBeNull()
+
+    await act(async () => pending[0].resolve(recipe({ id: 42, name: 'Neu' })))
+
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Anlegen' })).toBeNull())
+    expect(screen.getByRole('button', { name: 'Fertig' })).toBeTruthy()
+  })
+
+  it('unlocks the form and shows the error when creating fails', async () => {
+    const { pending } = deferredCreate()
+    renderNew()
+    await startCreate()
+
+    await act(async () => pending[0].reject(new Error('Anlegen fehlgeschlagen')))
+
+    expect(await screen.findByText('Anlegen fehlgeschlagen')).toBeTruthy()
+    expect(titleInput().matches(':disabled')).toBe(false)
+    expect(anlegen().getAttribute('aria-disabled')).toBe('false')
+  })
+
+  it('does not pull the user back when they left while creating', async () => {
+    const { createRecipe, pending } = deferredCreate()
+    renderNew()
+    await startCreate()
+
+    fireEvent.click(screen.getByText('elsewhere'))
+    expect(await screen.findByText('Elsewhere')).toBeTruthy()
+
+    await act(async () => {
+      pending[0].resolve(recipe({ id: 42, name: 'Neu' }))
+      for (let i = 0; i < 10; i++) await Promise.resolve()
+    })
+
+    expect(createRecipe).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('Elsewhere')).toBeTruthy()
+    expect(screen.queryByLabelText('Titel')).toBeNull()
+  })
+
+  it('reports a failed create by toast when the user already left', async () => {
+    const { pending } = deferredCreate()
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    renderNew()
+    await startCreate()
+
+    fireEvent.click(screen.getByText('elsewhere'))
+    await screen.findByText('Elsewhere')
+    await act(async () => pending[0].reject(new Error('Anlegen fehlgeschlagen')))
+
+    expect(error).toHaveBeenCalledWith('Rezept konnte nicht angelegt werden.')
+    expect(screen.getByText('Elsewhere')).toBeTruthy()
   })
 })
