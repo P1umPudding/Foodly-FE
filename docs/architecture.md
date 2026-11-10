@@ -108,6 +108,10 @@ werden hier nicht wiederholt.
   `key={userId}` rendert. `next` nur app-intern (`src/lib/safeNext.ts`). Nach dem
   Anmelden leitet `RedirectIfSignedIn` weiter, nicht die Seite. Im Mock-Modus ist immer
   jemand angemeldet: nichts geschützt, `/login` → `/recipes`.
+- Sitzungsende (#143): Wie die Sitzung in diesem Tab endete, steht in
+  `foodly.auth.sessionEnd()`. Abmelden hier → `/login` ohne `next`; Ablauf (`expired`) →
+  `/login?next=…` mit Router-State `{ expired, email }` für Hinweis und Vorausfüllen; Abmelden in
+  einem anderen Tab → `/login?next=…` ohne Hinweis.
 
 ## 6. UI & Styling
 
@@ -152,5 +156,5 @@ Begründete Einzelausnahme: `eslint-disable-next-line <regel> -- <grund>`.
 - Auth/Token-Handling: Backend fertig (B7, PR #20); FE baut es in #141–#143
   (Spec `superpowers/specs/2026-11-08-auth-login-design.md`). Sitzung und
   Token-Refresh liegen seit #141 in `src/api/auth.ts`; Anmelden, Registrieren und
-  Routen-Schutz seit #142 (§5). Offen: Abmelden im Profil-Menü und Hinweis bei
-  abgelaufener Sitzung (#143).
+  Routen-Schutz seit #142 (§5), Abmelden im Profil-Menü und Hinweis bei
+  abgelaufener Sitzung seit #143.
