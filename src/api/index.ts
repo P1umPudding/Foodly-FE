@@ -181,3 +181,4 @@ export function knowsUserNames(): boolean {
 
 export type { PaginatedRecipes } from './protocol'
 export type { AuthEvent, AuthListener, AuthSession, SignedOutReason } from './auth'
+export { ApiError } from './http'

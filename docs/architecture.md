@@ -98,6 +98,13 @@ werden hier nicht wiederholt.
   (einklappbar, Kategorien, Profil), darunter Tab-Leiste + „+“-FAB + Avatar. Das Fenster
   bleibt der Scroll-Container; feste Seitenleisten nutzen `--shell-left`/`--shell-bottom`.
   Groups-Routen erst nach B12 + Backend #13.
+- Anmeldung (#142): `/login` und `/register` liegen **außerhalb** von `AppShell` und
+  `CatalogProvider` (hinter `RedirectIfSignedIn`); alle anderen Routen inkl. 404 hängen an
+  `RequireAuth` (`src/components/shell/RequireAuth.tsx`), der ohne Sitzung synchron mit
+  `replace` auf `/login?next=<pfad+query+hash>` umleitet und `CatalogProvider` mit
+  `key={userId}` rendert. `next` nur app-intern (`src/lib/safeNext.ts`). Nach dem
+  Anmelden leitet `RedirectIfSignedIn` weiter, nicht die Seite. Im Mock-Modus ist immer
+  jemand angemeldet: nichts geschützt, `/login` → `/recipes`.
 
 ## 6. UI & Styling
 
@@ -141,5 +148,6 @@ Begründete Einzelausnahme: `eslint-disable-next-line <regel> -- <grund>`.
 
 - Auth/Token-Handling: Backend fertig (B7, PR #20); FE baut es in #141–#143
   (Spec `superpowers/specs/2026-11-08-auth-login-design.md`). Sitzung und
-  Token-Refresh liegen seit #141 in `src/api/auth.ts`; ohne Login-Seite (#142)
-  gibt es im REST-Modus noch keine Sitzung.
+  Token-Refresh liegen seit #141 in `src/api/auth.ts`; Anmelden, Registrieren und
+  Routen-Schutz seit #142 (§5). Offen: Abmelden im Profil-Menü und Hinweis bei
+  abgelaufener Sitzung (#143).
