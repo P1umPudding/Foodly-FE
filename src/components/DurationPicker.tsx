@@ -166,8 +166,9 @@ function WheelColumn({
       onBlur={resetBuffer}
       // `focus` (not focus-visible) + inset ring: the active column is clearly
       // highlighted even when entered by click, and the inset ring isn't clipped
-      // by overflow-hidden the way an outer ring is.
-      className="relative h-[120px] w-14 touch-none overflow-hidden rounded-md bg-transparent outline-none select-none focus:bg-muted/40 focus:ring-2 focus:ring-inset focus:ring-primary"
+      // by overflow-hidden the way an outer ring is. Hence not FOCUS_RING, only
+      // its 3-px width.
+      className="relative h-[120px] w-14 touch-none overflow-hidden rounded-md bg-transparent outline-none select-none focus:bg-muted/40 focus:ring-[3px] focus:ring-inset focus:ring-primary"
     >
       <div ref={reelRef} className="will-change-transform">
         {Array.from({ length: VISIBLE }, (_, i) => {
