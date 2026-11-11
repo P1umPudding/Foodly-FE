@@ -33,3 +33,37 @@ describe('Lightbox image that fails to load', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 })
+
+describe('Lightbox thumbnails', () => {
+  const images = [ref(1), ref(2), ref(3)]
+
+  it('are named buttons that switch the image', () => {
+    const onIndexChange = vi.fn()
+    render(<Lightbox images={images} index={0} onIndexChange={onIndexChange} onClose={() => {}} />)
+
+    for (const name of ['Bild 1', 'Bild 2', 'Bild 3']) {
+      expect(screen.getByRole('button', { name }).getAttribute('type')).toBe('button')
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Bild 3' }))
+    expect(onIndexChange).toHaveBeenCalledWith(2)
+  })
+
+  it('show a white focus ring with a gap, full white on the active one', () => {
+    render(<Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />)
+
+    const inactive = screen.getByRole('button', { name: 'Bild 2' }).className.split(/\s+/)
+    expect(inactive).toEqual(
+      expect.arrayContaining([
+        'focus-visible:ring-[3px]',
+        'focus-visible:ring-white/60',
+        'focus-visible:ring-offset-2',
+        'focus-visible:ring-offset-black',
+      ]),
+    )
+    expect(inactive).not.toContain('ring-white')
+
+    const active = screen.getByRole('button', { name: 'Bild 1' }).className.split(/\s+/)
+    expect(active).toEqual(expect.arrayContaining(['ring-2', 'ring-white', 'focus-visible:ring-white']))
+    expect(active).not.toContain('focus-visible:ring-white/60')
+  })
+})

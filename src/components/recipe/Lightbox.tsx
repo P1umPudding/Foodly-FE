@@ -6,6 +6,7 @@ import { imageName } from '../../api/assets'
 import { RecipeImage } from './RecipeImage'
 import type { ImageRef } from '../../api/protocol'
 import { FOCUS_RING } from '../focusRing'
+import { TriggerButton } from '../TriggerButton'
 
 // Fullscreen image viewer. The overlay closes on click / Escape; clicks on the
 // image, caption, controls and thumbnail strip don't bubble up to it.
@@ -175,17 +176,20 @@ export function Lightbox({
         <div
           ref={stripRef}
           onClick={stop}
-          className="mt-12 flex max-w-[60vw] cursor-default gap-2 overflow-x-auto p-1 [scrollbar-width:none]"
+          className="mt-12 flex max-w-[60vw] cursor-default gap-2 overflow-x-auto p-1.5 [scrollbar-width:none]"
         >
           {images.map((thumb, i) => (
-            <button
+            <TriggerButton
               key={thumb.id}
-              type="button"
+              variant="bare"
               onClick={() => onIndexChange(i)}
               aria-label={imageName(thumb)}
-              className={`group relative h-20 w-20 shrink-0 cursor-pointer overflow-hidden rounded-md ${
-                i === index ? 'ring-2 ring-white' : ''
-              }`}
+              // The offset gap tells keyboard focus apart from the active marker (ring-2 vs. 3 px alone is 1 px);
+              // the strip's p-1.5 leaves room for ring + offset inside its overflow clip.
+              className={cn(
+                'group relative h-20 w-20 shrink-0 cursor-pointer overflow-hidden rounded-md focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black',
+                i === index && 'ring-2 ring-white focus-visible:ring-white',
+              )}
             >
               <RecipeImage
                 image={thumb}
@@ -197,7 +201,7 @@ export function Lightbox({
               {i !== index && (
                 <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-transparent" />
               )}
-            </button>
+            </TriggerButton>
           ))}
         </div>
       )}

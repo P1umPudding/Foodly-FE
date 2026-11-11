@@ -1,0 +1,57 @@
+# Plan — #138 rohe <button> in RecipeImages und Lightbox
+
+Smallest change: swap the two raw `<button>` for the existing `TriggerButton variant="bare"` (`src/components/TriggerButton.tsx`),
+which renders `type="button"` + `FOCUS_RING` only (no size/padding/hover styles), so layout stays unchanged.
+
+## Step 0 — setup
+- `npm ci` (node_modules missing) before anything else.
+
+## Step 1 — RecipeImages tile (`src/components/recipe/RecipeImages.tsx`)
+- Import `TriggerButton` from `../TriggerButton` and `imageName` from `../../api/assets`.
+- `Tile`: replace `<button type="button" …>` by `<TriggerButton variant="bare" onClick={onClick} aria-label={label} className={…}>`,
+  `Tile` takes `more?: number` instead of the `overlay` string; it renders "+{more}" and the label is `imageName(image)`,
+  plus `, N weitere Bilder` (singular `1 weiteres Bild`) when set, so the hint is not lost to screen readers.
+  Keep existing classes (`relative cursor-zoom-in overflow-hidden rounded-lg bg-foreground/5 dark:bg-muted ${className}`) and add
+  `focus-visible:ring-ring` (full-opacity token, ≥3:1 per design.md). Overlay span and RecipeImage unchanged.
+- New test `src/components/recipe/RecipeImages.test.tsx`:
+  - 2 images → one tile button named after image 2 (`imageName`), `type="button"`, click → `onOpen(1)`.
+  - 4 images → two tiles; second shows "+2" and is named `Bild 3, 2 weitere Bilder`; clicks → `onOpen(1)` / `onOpen(2)`.
+  - tile class list (split on whitespace, `arrayContaining`) has `focus-visible:ring-[3px]` and `focus-visible:ring-ring`, and not `focus-visible:ring-ring/50`.
+
+## Step 2 — Lightbox thumbnails (`src/components/recipe/Lightbox.tsx`)
+- Import `TriggerButton` from `../TriggerButton`.
+- Replace the thumbnail `<button>` with `<TriggerButton variant="bare" key=… onClick={() => onIndexChange(i)} aria-label={imageName(thumb)} className=…>`.
+  Classes: existing ones + `focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black` for all;
+  active additionally `ring-2 ring-white focus-visible:ring-white` (via `cn`, already imported; last wins in tailwind-merge).
+  Lightbox-only (design.md §6 "kein zusätzlicher Ring" is about form fields). The offset gap makes focus clearly distinguishable from the active marker (ring-2 vs ring-[3px] alone differ by 1 px).
+  Strip padding `p-1` → `p-1.5` (6 px) so the 3 px ring + 2 px offset isn't clipped by `overflow-x-auto`.
+  Thumbnail stays a direct child of the strip (scroll uses `strip.children[index]`).
+- Extend `Lightbox.test.tsx` (new describe "Lightbox thumbnails"): 3 images, index 0 → buttons named `Bild 1..3`
+  (`ref(id)` has `name: null`, so `imageName` → `Bild ${id}`), `type="button"`, click on 3rd → `onIndexChange(2)`;
+  inactive has `focus-visible:ring-white/60`, `focus-visible:ring-[3px]`, `focus-visible:ring-offset-2`; active has `ring-white` + `focus-visible:ring-white` (exact class-list checks).
+  Note: names may collide with the main image alt / caption — query with `getByRole('button', { name })`.
+
+## Step 3 — suppressions
+- `npx eslint . --prune-suppressions` → `eslint-suppressions.json` becomes `{}` (keep file). `npm run lint` clean.
+
+## Step 4 — checks + visual
+- `npm run build`, `npm test -- --passWithNoTests`, `npm run format` then `format:check`, `npm run lint`.
+- Visual check (Chrome MCP if available, otherwise note as not done): detail page with 1/2/4 images light+dark, lightbox thumbs, Tab focus ring.
+
+## Acceptance criteria → verification
+1. Suppressions entries removed → Step 3, file diff `{}`, `npm run lint` green.
+2. Tests green, keyboard + aria-label kept → existing tests + new tests (role button, name, type=button; native button gives Enter/Space).
+3. Five local checks green → Step 4.
+
+## Commits
+One commit (as #137): `Lint-Altlast react/forbid-elements abbauen: RecipeImages und Lightbox (#138)` — both components, tests,
+pruned `eslint-suppressions.json` and this plan as `docs/superpowers/plans/2026-11-11-lint-forbid-elements.md`
+(CLAUDE.md: plans live in docs/superpowers/plans). One commit because ESLint 9 fails on unpruned suppressions,
+so a component-only commit would not pass `npm run lint`. No Co-Authored-By trailer.
+
+## Review log
+- Review pass 1 (fresh subagent): 0 blocker, 2 major, 3 minor, 2 nit. Fixed: plan committed to docs/superpowers/plans (M1);
+  single commit incl. pruned suppressions (M2); focus offset on thumbnails + p-1.5 (m3); "+N weitere" in tile label (m4);
+  npm ci as step 0 (m5); German commit subject without prefix (n6); exact class-list assertions (n7).
+- Review pass 2 (fresh subagent): 0 blocker, 0 major, 2 minor, 2 nit. Fixed: spec A4 padding note (m1); label from count
+  "N weitere Bilder" via `more` prop (m2); helper names settled (n3); note why the offset is Lightbox-only (n4).
