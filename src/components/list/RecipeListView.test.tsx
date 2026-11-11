@@ -4,15 +4,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeListView } from './RecipeListView'
 import { categoryColors } from '../../lib/categoryColor'
-import type { StubFeature } from '../../api/stubs'
 import type { Recipe, UserCategory } from '../../api/protocol'
 import { ref } from '../../test/images'
-
-const imageStub = vi.hoisted(() => ({ stubbed: true }))
-vi.mock('../../api/stubs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../api/stubs')>()
-  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
-})
 
 vi.mock('../../catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
@@ -132,20 +125,14 @@ describe('category dots', () => {
 })
 
 describe('image column', () => {
-  afterEach(() => {
-    imageStub.stubbed = true
-  })
-
   const withPhoto = [{ ...recipes[0], mainImage: ref(3) }, recipes[1]]
 
   it('without showImages no row has an image cell', () => {
-    imageStub.stubbed = false
     renderView({ recipes: withPhoto, grouped: false })
     expect(screen.queryAllByTestId('recipe-thumb')).toHaveLength(0)
   })
 
   it('with showImages every row has a 48 px cell, rows without photo the placeholder', () => {
-    imageStub.stubbed = false
     const { container } = renderView({ recipes: withPhoto, grouped: false, showImages: true })
     const thumbs = screen.getAllByTestId('recipe-thumb')
     expect(thumbs).toHaveLength(2)

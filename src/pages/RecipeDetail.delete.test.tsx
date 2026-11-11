@@ -8,12 +8,15 @@ import type { CreateRecipe, Recipe } from '../api/protocol'
 
 const navigate = vi.fn()
 vi.mock('react-router-dom', () => ({
+  useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),
   useNavigate: () => navigate,
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }))
 
+const refreshCategories = vi.hoisted(() => vi.fn())
 vi.mock('../catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => refreshCategories,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
 }))
@@ -59,6 +62,7 @@ async function openDialog() {
 afterEach(() => {
   vi.restoreAllMocks()
   navigate.mockReset()
+  refreshCategories.mockClear()
 })
 
 describe('RecipeDetail delete', () => {
@@ -112,6 +116,7 @@ describe('RecipeDetail delete', () => {
 
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/recipes', { replace: true }), { timeout: 2000 })
     expect(mockData.recipes.some((r) => r.id === seeded.id)).toBe(false)
+    expect(refreshCategories).toHaveBeenCalledTimes(1)
   })
 
   it('disables both buttons while the delete runs', async () => {
@@ -146,6 +151,7 @@ describe('RecipeDetail delete', () => {
     expect(screen.getByRole('alertdialog')).toBeTruthy()
     expect(dialog.getByRole('button', { name: 'Löschen' }).getAttribute('aria-disabled')).toBe('false')
     expect(navigate).not.toHaveBeenCalled()
+    expect(refreshCategories).not.toHaveBeenCalled()
 
     fireEvent.click(dialog.getByRole('button', { name: 'Abbrechen' }))
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())

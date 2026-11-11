@@ -27,7 +27,8 @@ export function trackPendingSave(id: RecipeId, done: Promise<unknown>): void {
   const previous = pending.get(id)
   const entry = previous ? Promise.all([previous, settled]).then(noop) : settled
   pending.set(id, entry)
-  entry.then(() => {
+  // Never rejects: save failures are swallowed into `settled`.
+  void entry.then(() => {
     if (pending.get(id) === entry) pending.delete(id)
   })
 }

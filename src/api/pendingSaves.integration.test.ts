@@ -84,7 +84,9 @@ describe('reads wait for the editor unmount save', () => {
   it('waits for the follow-up PUT queued behind one in flight', async () => {
     const { rerender, unmount } = editor()
     rerender({ name: 'v1' })
-    act(() => vi.advanceTimersByTime(800)) // PUT v1 in flight
+    act(() => {
+      vi.advanceTimersByTime(800) // PUT v1 in flight
+    })
     rerender({ name: 'v2' })
     unmount()
 

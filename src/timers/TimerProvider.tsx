@@ -1,10 +1,11 @@
-// Global kitchen-timer state. Lives above the app shell and Routes so timers survive
-// navigation (but not reload — no persistence). Remaining time is always derived
+// Kitchen-timer state of the signed-in user. RequireAuth mounts one provider per user (keyed), around the
+// app shell, so timers survive navigation; named ones persist per user. Remaining time is always derived
 // from an absolute `endAt`, so a throttled background tab can't drift the clock.
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { toast } from '@postxl/ui-components'
+import type { UserId } from '../api/protocol'
 import { startAlarm, stopAlarm as stopAlarmSound, unlockAudio } from './alarm'
 
 export type TimerId = string
@@ -33,7 +34,8 @@ type TimerApi = {
 const TimerContext = createContext<TimerApi | null>(null)
 
 const TICK_MS = 250
-const STORAGE_KEY = 'foodly.timers.v1'
+const LEGACY_KEY = 'foodly.timers.v1'
+const keyFor = (userId: UserId) => `${LEGACY_KEY}:${userId}`
 
 function newId(): TimerId {
   return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `t${Date.now()}-${Math.random()}`
@@ -46,9 +48,25 @@ function newId(): TimerId {
 // than greeting you with a spent 00:00.
 type PersistedTimer = Pick<Timer, 'id' | 'label' | 'durationMs' | 'status' | 'endAt' | 'remainingMs'>
 
-function loadPersistedTimers(): Timer[] {
+// Timers from before per-user storage go to whoever signs in first on this device. Write-then-remove keeps
+// it idempotent, so StrictMode's second run of the useState initializer finds them under the user key.
+// Timers already stored for the user win; the legacy entry is then just dropped.
+function adoptLegacyTimers(userId: UserId): void {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const legacy = localStorage.getItem(LEGACY_KEY)
+    if (legacy === null) return
+    if (localStorage.getItem(keyFor(userId)) === null) localStorage.setItem(keyFor(userId), legacy)
+    localStorage.removeItem(LEGACY_KEY)
+  } catch {
+    // Storage unavailable — nothing to migrate.
+  }
+}
+
+function loadPersistedTimers(userId: UserId | null): Timer[] {
+  if (userId === null) return []
+  adoptLegacyTimers(userId)
+  try {
+    const raw = localStorage.getItem(keyFor(userId))
     if (!raw) return []
     const saved = JSON.parse(raw)
     if (!Array.isArray(saved)) return []
@@ -70,7 +88,8 @@ function loadPersistedTimers(): Timer[] {
   }
 }
 
-function persistTimers(timers: Timer[]): void {
+function persistTimers(userId: UserId | null, timers: Timer[]): void {
+  if (userId === null) return
   try {
     const named: PersistedTimer[] = timers
       .filter((t) => t.label.trim() !== '')
@@ -84,14 +103,14 @@ function persistTimers(timers: Timer[]): void {
         // per-tick value or the write signature would thrash every 250 ms.
         remainingMs: t.status === 'running' ? 0 : t.remainingMs,
       }))
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(named))
+    localStorage.setItem(keyFor(userId), JSON.stringify(named))
   } catch {
     // Storage unavailable (private mode / quota) — persistence is best-effort.
   }
 }
 
-export function TimerProvider({ children }: { children: ReactNode }) {
-  const [timers, setTimers] = useState<Timer[]>(loadPersistedTimers)
+export function TimerProvider({ userId, children }: { userId: UserId | null; children: ReactNode }) {
+  const [timers, setTimers] = useState<Timer[]>(() => loadPersistedTimers(userId))
   const [alarmingIds, setAlarmingIds] = useState<Set<TimerId>>(new Set())
 
   // Refs read by the interval callback so it never closes over stale state, and
@@ -132,6 +151,17 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     },
     [clearAlarm],
   )
+
+  // Unmounts on sign-out or when another user signs in: nothing may keep ringing, and the global toast store
+  // would otherwise show this user's alarm toasts (with a dead Stopp) in the next user's Toaster.
+  useEffect(() => {
+    const alarmed = alarmedIds.current
+    const toasts = toastIds.current
+    return () => {
+      for (const id of alarmed) stopAlarmSound(id)
+      for (const tid of toasts.values()) toast.dismiss(tid)
+    }
+  }, [])
 
   const hasRunning = timers.some((t) => t.status === 'running')
 
@@ -181,8 +211,8 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       .map((t) => [t.id, t.label, t.durationMs, t.status, t.status === 'running' ? t.endAt : t.remainingMs]),
   )
   useEffect(() => {
-    persistTimers(timersRef.current)
-  }, [persistSig])
+    persistTimers(userId, timersRef.current)
+  }, [persistSig, userId])
 
   const add = useCallback(({ label, durationMs }: { label: string; durationMs: number }) => {
     unlockAudio()

@@ -1,0 +1,144 @@
+import { useRef, useState, type FormEvent } from 'react'
+import { flushSync } from 'react-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
+import { Alert, AlertDescription, Button, Spinner } from '@postxl/ui-components'
+import { ApiError, foodly } from '../api'
+import { AuthCard, AuthLink } from '../components/auth/AuthCard'
+import { AuthField } from '../components/auth/AuthField'
+import { EMPTY_EMAIL, EMPTY_PASSWORD, SESSION_EXPIRED, TOO_MANY_ATTEMPTS } from '../components/auth/texts'
+import { readLoginState } from '../components/auth/loginState'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
+
+type Field = 'email' | 'password'
+type Errors = Partial<Record<Field, string>>
+
+function validate(values: Record<Field, string>): Errors {
+  const errors: Errors = {}
+  if (!values.email.trim()) errors.email = EMPTY_EMAIL
+  if (!values.password) errors.password = EMPTY_PASSWORD
+  return errors
+}
+
+function errorText(err: unknown): string {
+  if (err instanceof ApiError && err.status === 401) return 'E-Mail oder Passwort stimmt nicht.'
+  if (err instanceof ApiError && err.status === 429) return TOO_MANY_ATTEMPTS
+  return 'Anmelden hat nicht geklappt. Bitte versuch es noch einmal.'
+}
+
+export function Login() {
+  useDocumentTitle('Anmelden · Foodly')
+  const [params] = useSearchParams()
+  const { expired, email: knownEmail } = readLoginState(useLocation().state)
+  const next = params.get('next')
+  const prefilledEmail = params.get('email') || knownEmail || ''
+  const [values, setValues] = useState({ email: prefilledEmail, password: '' })
+  const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({})
+  const [errors, setErrors] = useState<Errors>({})
+  const [failure, setFailure] = useState<string | null>(null)
+  // The expired hint gives way to the first real error and stays gone, so retries don't re-announce it.
+  const [hintDismissed, setHintDismissed] = useState(false)
+  const showHint = expired && !hintDismissed
+  const [busy, setBusy] = useState(false)
+  const refs = { email: useRef<HTMLInputElement>(null), password: useRef<HTMLInputElement>(null) }
+
+  const change = (field: Field) => (value: string) => {
+    setValues((v) => ({ ...v, [field]: value }))
+    setTouched((t) => ({ ...t, [field]: true }))
+  }
+  // Checked on leaving only once the field was edited, so leaving the autofocused field to click a link
+  // doesn't flash an error.
+  const blur = (field: Field) => () => {
+    if (touched[field]) setErrors((e) => ({ ...e, [field]: validate(values)[field] }))
+  }
+
+  async function submit(event: FormEvent) {
+    event.preventDefault()
+    if (busy) return
+    const found = validate(values)
+    const firstInvalid = (['email', 'password'] as const).find((f) => found[f])
+    if (firstInvalid) {
+      // Rendered before focusing, so a screen reader announces the field together with its error.
+      flushSync(() => setErrors(found))
+      refs[firstInvalid].current?.focus()
+      return
+    }
+    setErrors({})
+    setBusy(true)
+    setFailure(null)
+    try {
+      // On success RedirectIfSignedIn leaves the page as soon as the session is stored.
+      await foodly.auth.signIn(values.email.trim(), values.password)
+    } catch (err) {
+      const unauthorized = err instanceof ApiError && err.status === 401
+      flushSync(() => {
+        setBusy(false)
+        setFailure(errorText(err))
+        setHintDismissed(true)
+        if (unauthorized) {
+          setValues((v) => ({ ...v, password: '' }))
+          // Cleared by us, not by the user: leaving it empty must not show "Bitte gib dein Passwort ein."
+          setTouched((t) => ({ ...t, password: false }))
+        }
+      })
+      if (unauthorized) refs.password.current?.focus()
+    }
+  }
+
+  const registerTo = next ? `/register?${new URLSearchParams({ next }).toString()}` : '/register'
+
+  return (
+    <AuthCard
+      title="Anmelden"
+      footer={
+        <>
+          Noch kein Konto? <AuthLink to={registerTo}>Registrieren</AuthLink>
+        </>
+      }
+    >
+      <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
+        {showHint && (
+          <Alert>
+            <AlertDescription id="login-expired">{SESSION_EXPIRED}</AlertDescription>
+          </Alert>
+        )}
+        <AuthField
+          id="login-email"
+          label="E-Mail"
+          type="email"
+          autoComplete="email"
+          autoFocus={!prefilledEmail}
+          describedBy={showHint && !prefilledEmail ? 'login-expired' : undefined}
+          value={values.email}
+          onChange={change('email')}
+          onBlur={blur('email')}
+          error={errors.email}
+          inputRef={refs.email}
+        />
+        <AuthField
+          id="login-password"
+          label="Passwort"
+          type="password"
+          autoComplete="current-password"
+          autoFocus={!!prefilledEmail}
+          // Focus starts past the hint, so a screen reader reads it with the focused field.
+          describedBy={showHint && prefilledEmail ? 'login-expired' : undefined}
+          revealable
+          value={values.password}
+          onChange={change('password')}
+          onBlur={blur('password')}
+          error={errors.password}
+          inputRef={refs.password}
+        />
+        {failure && (
+          <Alert variant="destructive">
+            <AlertDescription>{failure}</AlertDescription>
+          </Alert>
+        )}
+        <Button type="submit" className="w-full" disabled={busy}>
+          {busy && <Spinner className="size-4" />}
+          Anmelden
+        </Button>
+      </form>
+    </AuthCard>
+  )
+}

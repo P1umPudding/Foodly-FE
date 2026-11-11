@@ -1,32 +1,42 @@
 // REST transport to the backend. Same-origin in dev (Vite proxy); base URL from
-// VITE_API_URL. Auth is a static bearer — the backend maps any bearer to user 1.
+// VITE_API_URL. The bearer comes from the session (auth.ts); a 401 triggers one
+// refresh and one retry.
 // Mirrors SocketClient.request's contract: resolves the parsed body, throws Error
 // on failure, so useRequest/useRecipeSearch error handling is transport-agnostic.
 
+import { currentAccessToken, expireIfCurrent, refreshAfterUnauthorized, session, tokenForRequest } from './auth'
+import { apiUrl, errorMessage } from './http'
 import type { PaginatedResponse } from './protocol'
 
-const BASE = import.meta.env.VITE_API_URL ?? '/api/v1'
-const DEV_TOKEN = 'dev-token'
+export { apiUrl }
 
-export const apiUrl = (path: string) => `${BASE}${path}`
+type SendInit = { method?: string; headers?: Record<string, string>; body?: BodyInit }
 
-async function errorMessage(res: Response): Promise<string> {
-  try {
-    const parsed = (await res.json()) as { error?: { message?: string } }
-    if (parsed?.error?.message) return parsed.error.message
-  } catch {
-    // non-JSON error body — fall back to the status
-  }
-  return `HTTP ${res.status}`
+const withBearer = (init: SendInit, token: string | null): RequestInit =>
+  token === null ? init : { ...init, headers: { ...init.headers, Authorization: `Bearer ${token}` } }
+
+// The one path for all request kinds. /auth/* never refreshes or retries, so a rejected refresh can't loop.
+async function send(path: string, init: SendInit): Promise<Response> {
+  if (path.startsWith('/auth/')) return fetch(apiUrl(path), init)
+  const sentFor = session()?.userId
+  const known = currentAccessToken()
+  const { token, refreshError } =
+    known !== undefined ? { token: known, refreshError: undefined } : await tokenForRequest()
+  const res = await fetch(apiUrl(path), withBearer(init, token))
+  if (res.status !== 401 || token === null || sentFor === undefined) return res
+
+  const fresh = await refreshAfterUnauthorized(token, sentFor, refreshError)
+  if (fresh === null) return res
+  const retried = await fetch(apiUrl(path), withBearer(init, fresh))
+  // A fresh token that still gets 401 means the session is gone server-side.
+  if (retried.status === 401) expireIfCurrent(fresh)
+  return retried
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(apiUrl(path), {
+  const res = await send(path, {
     method,
-    headers: {
-      Authorization: `Bearer ${DEV_TOKEN}`,
-      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-    },
+    headers: body !== undefined ? { 'Content-Type': 'application/json' } : {},
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 
@@ -42,18 +52,14 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 // always sets Content-Type: application/json when a body is present, so this
 // can't reuse it.
 async function requestBinary<T>(path: string, blob: Blob): Promise<T> {
-  const res = await fetch(apiUrl(path), {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${DEV_TOKEN}`, 'Content-Type': blob.type },
-    body: blob,
-  })
+  const res = await send(path, { method: 'POST', headers: { 'Content-Type': blob.type }, body: blob })
   if (!res.ok) throw new Error(await errorMessage(res))
   return (await res.json()) as T
 }
 
 // Binary GETs (tag icons): the routes need the bearer, which an <img src> can't send.
 async function requestBlob(path: string): Promise<Blob> {
-  const res = await fetch(apiUrl(path), { headers: { Authorization: `Bearer ${DEV_TOKEN}` } })
+  const res = await send(path, {})
   if (!res.ok) throw new Error(await errorMessage(res))
   return res.blob()
 }

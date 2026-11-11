@@ -13,6 +13,7 @@ import type { Recipe } from '../api/protocol'
 // RecipeDetail instance across ids, and only a real route change reproduces stale clone state.
 
 vi.mock('../catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
 }))
@@ -131,7 +132,7 @@ describe('RecipeDetail clone · StrictMode with the mock backend', () => {
       .mockImplementation((id) => mockRequest('recipes.copy', { id }) as Promise<Recipe>)
     render(
       <StrictMode>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <TooltipProvider>
             <MemoryRouter initialEntries={[`/recipes/${original.id}`]}>
               <Routes>

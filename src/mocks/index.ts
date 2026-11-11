@@ -80,7 +80,8 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       return recipe
     }
     case 'categories.list':
-      return mockData.categories
+      // A snapshot, like a REST response: copy/delete change the live arrays in place.
+      return structuredClone(mockData.categories)
     case 'tags.list':
       return mockData.tags
     case 'ingredients.list':

@@ -1,5 +1,8 @@
 import { SocketClient } from './socket'
 import { rest, collectPages } from './rest'
+import * as session from './auth'
+import type { AuthListener, AuthSession, SessionEnd } from './auth'
+import { resetTagIconCache } from './assets'
 import { previewToRecipe } from './adapters'
 import { isStubbed, mergeMyRating, setStubUser, sortByRating, writeMyRating } from './stubs'
 import { assertRating } from './views'
@@ -34,6 +37,43 @@ export async function bootstrap(): Promise<void> {
   socket.useMocks(mockRequest)
 }
 
+// Mock mode is always signed in as the mock user (CURRENT_USER_ID in src/mocks, not imported because the
+// mocks load lazily). Constant, so session() keeps its identity like the REST snapshot.
+const MOCK_SESSION: AuthSession = { userId: 1 }
+
+// The next user must not inherit the last one's stub data or icons that failed with 401. Also on expiry,
+// on sign-out in another tab and on a direct switch to another user, which don't go through auth.signOut.
+function resetSessionCaches(): void {
+  resetTagIconCache()
+  setStubUser(null)
+}
+if (!USE_MOCKS) {
+  let cachesFor = session.session()?.userId ?? null
+  session.subscribe((current, event) => {
+    const userId = current?.userId ?? null
+    if (event || userId !== cachesFor) resetSessionCaches()
+    cachesFor = userId
+  })
+}
+
+const auth = {
+  session: (): AuthSession | null => (USE_MOCKS ? MOCK_SESSION : session.session()),
+  subscribe: (listener: AuthListener): (() => void) => (USE_MOCKS ? () => {} : session.subscribe(listener)),
+  sessionEnd: (): SessionEnd | null => (USE_MOCKS ? null : session.sessionEnd()),
+  canSignOut: !USE_MOCKS,
+  signIn: (email: string, password: string): Promise<AuthSession> =>
+    USE_MOCKS ? Promise.resolve(MOCK_SESSION) : session.signIn(email, password),
+  signUp: (name: string, email: string, password: string): Promise<AuthSession> =>
+    USE_MOCKS ? Promise.resolve(MOCK_SESSION) : session.signUp(name, email, password),
+  // Caches go first, so listeners reacting to the sign-out already see them empty (the subscription
+  // above resets them once more; harmless).
+  signOut: (): Promise<void> => {
+    if (USE_MOCKS) return Promise.resolve()
+    resetSessionCaches()
+    return session.signOut()
+  },
+}
+
 // Reads and writes go over REST; with VITE_MOCK=1 (opt-in; Skaile preview default)
 // everything goes through the socket's mock responder instead.
 //
@@ -41,6 +81,7 @@ export async function bootstrap(): Promise<void> {
 // (no list-all, no /users/{id}), which can't back the bulk byId map that
 // CatalogProvider uses to resolve owner/editor names.
 export const foodly = {
+  auth,
   me: (): Promise<User> =>
     USE_MOCKS
       ? socket.request<User>('me')
@@ -141,3 +182,5 @@ export function knowsUserNames(): boolean {
 }
 
 export type { PaginatedRecipes } from './protocol'
+export type { AuthEvent, AuthListener, AuthSession, SignedOutReason } from './auth'
+export { ApiError } from './http'

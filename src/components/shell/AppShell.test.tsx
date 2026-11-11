@@ -44,7 +44,7 @@ function renderAt(entry: string) {
   return render(
     <ThemeProvider>
       <TooltipProvider>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <MemoryRouter initialEntries={[entry]}>
             <AppShell>
               <Routes>
@@ -108,6 +108,13 @@ describe('AppShell on the desktop', () => {
     expect(wordmark.getAttribute('href')).toBe('/')
     fireEvent.click(wordmark)
     screen.getByText('start page')
+  })
+
+  it('gives the wordmark the 3 px focus ring in the sidebar ring colour (#90/#95)', () => {
+    renderAt('/recipes')
+    const classes = within(sidebar()).getByRole('link', { name: 'Foodly' }).className.split(/\s+/)
+    expect(classes).toEqual(expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-sidebar-ring']))
+    expect(classes).not.toContain('focus-visible:ring-2')
   })
 
   it('highlights the single shown category instead of "Rezepte"', () => {
@@ -252,6 +259,15 @@ describe('Timer button in the header', () => {
     return panel
   }
 
+  it('closes the phone sheet from the header button without reopening it', async () => {
+    await openSheet()
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Timer' }))
+    openTimers()
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('false')
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
+  })
+
   it('keeps the phone sheet non-modal', async () => {
     await openSheet()
     // A modal sheet would hide the page from the accessibility tree and switch off its pointer events.
@@ -281,6 +297,30 @@ describe('Timer button in the header', () => {
     fireEvent.click(within(panel).getByRole('button', { name: 'Schließen' }))
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
     await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
+  })
+
+  // Desktop focus return goes straight to the header button (it used to be looked up inside a span wrapper).
+  const openPopover = async () => {
+    renderAt('/recipes')
+    openTimers()
+    const panel = await screen.findByRole('dialog', { name: 'Timer' })
+    await act(() => new Promise((r) => setTimeout(r, 0)))
+    return panel
+  }
+
+  it('returns focus to the header button when the desktop popover closes with Escape', async () => {
+    await openPopover()
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
+  })
+
+  it('closes the desktop popover from the header button without reopening it', async () => {
+    await openPopover()
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Timer' }))
+    openTimers()
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('false')
   })
 
   it('shows the countdown of a started timer', async () => {

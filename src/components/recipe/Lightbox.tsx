@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@postxl/ui-components'
-import { recipeImageSrc, imageName } from '../../api/assets'
+import { Button, cn } from '@postxl/ui-components'
+import { imageName } from '../../api/assets'
+import { RecipeImage } from './RecipeImage'
 import type { ImageRef } from '../../api/protocol'
+import { FOCUS_RING } from '../focusRing'
 
 // Fullscreen image viewer. The overlay closes on click / Escape; clicks on the
 // image, caption, controls and thumbnail strip don't bubble up to it.
@@ -89,8 +91,10 @@ export function Lightbox({
 
   const image = images[index]
   const stop = (e: React.MouseEvent) => e.stopPropagation()
-  const ctrl =
-    'flex h-14 w-14 items-center justify-center rounded-md bg-white/10 text-white hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white/60'
+  const ctrl = cn(
+    'flex h-14 w-14 items-center justify-center rounded-md bg-white/10 text-white hover:bg-white/20 hover:text-white focus-visible:ring-white/60',
+    FOCUS_RING,
+  )
   // Upscale small images too: force the limiting side to the box max, the other
   // follows the aspect ratio (so the element == the visible image, no letterbox).
   const imgFit = fit === 'w' ? 'w-[50vw] h-auto' : 'h-[64vh] w-auto'
@@ -133,13 +137,14 @@ export function Lightbox({
             <ChevronLeft className="size-8" />
           </Button>
         )}
-        <img
+        <RecipeImage
           ref={imgRef}
-          src={recipeImageSrc(image)}
+          image={image}
           alt={imageName(image)}
           onLoad={computeFit}
           onClick={stop}
           className={`${imgFit} max-h-[64vh] max-w-[50vw] cursor-default rounded-lg object-contain`}
+          fallbackClassName="h-[64vh] w-[50vw] cursor-default rounded-lg"
         />
         {n > 1 && (
           <Button
@@ -182,7 +187,12 @@ export function Lightbox({
                 i === index ? 'ring-2 ring-white' : ''
               }`}
             >
-              <img src={recipeImageSrc(thumb)} alt="" className="h-full w-full object-cover" />
+              <RecipeImage
+                image={thumb}
+                alt=""
+                className="h-full w-full object-cover"
+                fallbackClassName="h-full w-full"
+              />
               {/* dim overlay (not the image's opacity); lifts on hover / when active */}
               {i !== index && (
                 <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-transparent" />

@@ -28,6 +28,6 @@ export function FilterCheckRow({
   )
 }
 
-export function NoMatches() {
-  return <p className="px-1 py-1 text-sm text-muted-foreground">Keine Treffer</p>
+export function NoMatches({ children = 'Keine Treffer' }: { children?: ReactNode }) {
+  return <p className="px-1 py-1 text-sm text-muted-foreground">{children}</p>
 }

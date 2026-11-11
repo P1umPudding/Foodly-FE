@@ -6,11 +6,11 @@ import { averageRating } from './views'
 import type { Recipe, RecipeId, SortOrder, UserId } from './protocol'
 
 // Mirrors the ADR §3 list; extend as further gaps get stubbed.
-export type StubFeature = 'ratings' | 'sharing' | 'groups' | 'addedAt' | 'images'
+export type StubFeature = 'ratings' | 'sharing' | 'groups' | 'addedAt'
 
 const USE_MOCKS = import.meta.env.VITE_MOCK === '1'
 
-export const STUBBED: ReadonlySet<StubFeature> = new Set<StubFeature>(USE_MOCKS ? [] : ['ratings', 'images'])
+export const STUBBED: ReadonlySet<StubFeature> = new Set<StubFeature>(USE_MOCKS ? [] : ['ratings'])
 
 export function isStubbed(feature: StubFeature): boolean {
   return STUBBED.has(feature)

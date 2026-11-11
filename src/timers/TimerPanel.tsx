@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Popover, PopoverContent, PopoverTrigger, Sheet } from '@postxl/ui-components'
-import { BottomSheet } from '../components/BottomSheet'
-import { useIsDesktop } from '../hooks/useIsDesktop'
+import { ResponsivePanel } from '../components/ResponsivePanel'
 import { useTimers } from './TimerProvider'
 import { useTimerPanel } from './TimerPanelContext'
 import { TimerToggle } from './TimerToggle'
 import { TimerRow } from './TimerRow'
 import { TimerForm } from './TimerForm'
 
-// Shell-header widget: the trigger plus a Popover (desktop) or bottom Sheet (phone). The open
+// Shell-header widget: the trigger plus a popover (desktop) or bottom sheet (phone). The open
 // state comes from TimerPanelProvider so a time chip in the page can open the panel too; the
 // local state only covers a panel rendered without the shell.
 export function TimerPanel() {
@@ -16,17 +14,17 @@ export function TimerPanel() {
   const [localOpen, setLocalOpen] = useState(false)
   const open = shared?.open ?? localOpen
   const setOpen = (next: boolean) => (shared ? shared.setOpen(next) : setLocalOpen(next))
-  const isDesktop = useIsDesktop()
-  const triggerRef = useRef<HTMLSpanElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const { timers } = useTimers()
 
-  // Radix would return focus to the trigger's span wrapper (not focusable) or, for the Sheet without a
-  // trigger, to the body. Send it back to the chip that opened the panel, else to the header button —
-  // unless the panel closed because the user clicked elsewhere: that click owns the focus now.
+  // Radix would always return focus to the header button, but a time chip in the page may have opened the
+  // panel. Send it back to that chip, else to the header button — unless the panel closed because the user
+  // clicked elsewhere: that click owns the focus now.
   const closedByOutsideClick = useRef(false)
   const onInteractOutside = (e: Event) => {
     keepOpenForToast(e)
-    // A press on the header button is not "outside": the button toggles the panel itself.
+    // A press on the header button is not "outside": the button toggles the panel itself. Radix checks this
+    // too, but only after calling us, so without this line the flag below would be set and focus lost.
     if (triggerRef.current?.contains(outsideTarget(e))) e.preventDefault()
     if (!e.defaultPrevented) closedByOutsideClick.current = true
   }
@@ -41,7 +39,7 @@ export function TimerPanel() {
       closedByOutsideClick.current = false
       return
     }
-    ;(returnTo ?? triggerRef.current?.querySelector('button'))?.focus()
+    ;(returnTo ?? triggerRef.current)?.focus()
   }
 
   // Named timers first (the ephemeral unnamed ones sink below); within each
@@ -76,44 +74,30 @@ export function TimerPanel() {
     </>
   )
 
-  // Both containers are non-modal so a timer-expired toast stays clickable while the panel is
-  // open (a modal dialog makes everything outside it inert).
-  if (isDesktop) {
-    return (
-      <Popover open={open} onOpenChange={setOpen} modal={false}>
-        <PopoverTrigger asChild>
-          <TimerToggle ref={triggerRef} />
-        </PopoverTrigger>
-        <PopoverContent
-          align="end"
-          onInteractOutside={onInteractOutside}
-          onCloseAutoFocus={restoreFocus}
-          aria-label="Timer"
-          className="flex max-h-[min(36rem,80vh)] w-80 flex-col px-0 pb-0"
-        >
-          <div className="px-4 pb-3 font-semibold">Timer</div>
-          {body}
-        </PopoverContent>
-      </Popover>
-    )
-  }
-
+  // Non-modal on both layouts so a timer-expired toast stays clickable while the panel is open
+  // (a modal dialog makes everything outside it inert).
   return (
-    <>
-      <TimerToggle ref={triggerRef} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(!open)} />
-      <Sheet open={open} onOpenChange={setOpen} modal={false}>
-        <BottomSheet
-          title="Timer"
-          description="Küchen-Timer verwalten"
-          scroll={false}
-          __e2e_test_id__="timer-sheet"
-          onInteractOutside={onInteractOutside}
-          onCloseAutoFocus={restoreFocus}
-        >
+    <ResponsivePanel
+      open={open}
+      onOpenChange={setOpen}
+      modal={false}
+      trigger={<TimerToggle ref={triggerRef} />}
+      onInteractOutside={onInteractOutside}
+      onCloseAutoFocus={restoreFocus}
+      popover={{
+        'aria-label': 'Timer',
+        align: 'end',
+        className: 'flex max-h-[min(36rem,80vh)] w-80 flex-col px-0 pb-0',
+      }}
+      sheet={{ title: 'Timer', description: 'Küchen-Timer verwalten', scroll: false, __e2e_test_id__: 'timer-sheet' }}
+    >
+      {(variant) => (
+        <>
+          {variant === 'popover' && <div className="px-4 pb-3 font-semibold">Timer</div>}
           {body}
-        </BottomSheet>
-      </Sheet>
-    </>
+        </>
+      )}
+    </ResponsivePanel>
   )
 }
 

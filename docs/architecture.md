@@ -45,7 +45,7 @@ werden hier nicht wiederholt.
   Keine abgeleiteten Felder in die Wire-Typen schreiben.
 - Asset-URLs (Bilder, Tag-Icons) nur über `src/api/assets.ts` — eine Stelle für das
   Backend-Schema (Rezeptbilder: Lesen als `ImageRef`, Schreiben als IDs;
-  REST-Anzeige: FE #144). Tag-Icons braucht die REST-Route mit Bearer, darum lädt
+  angezeigt über das öffentliche `GET /images/{hash}`, FE #144). Tag-Icons braucht die REST-Route mit Bearer, darum lädt
   `assets.ts` sie als Blob (`loadTagIcon`, gecacht); `useTagIcon` ist der eine Hook,
   der `assets.ts` statt `foodly.*` aufruft.
 
@@ -53,9 +53,13 @@ werden hier nicht wiederholt.
 
 - `src/catalog/CatalogProvider.tsx` lädt Tags, Users, Ingredients und `me` einmal und
   stellt `byId`-Maps bereit. Neue globale Lookup-Daten gehören hierhin, nicht in
-  Seiten-State.
-- App-weiter State als Provider in `src/App.tsx` (z. B. `TimerProvider`, der die
-  `AppShell` umschließt, damit Timer Navigation überleben). Kein globaler Store (kein
+  Seiten-State. Ohne `me` rendert er statt der App einen Fehler mit „Erneut versuchen“.
+  Die Kategorien des Nutzers lädt er beim Start und neu (im Hintergrund), wenn eine
+  Rezept-Änderung ihre Mitglieder ändert: wer anlegt, kopiert oder löscht, ruft
+  `useRefreshCategories()`.
+- App-weiter State als Provider in `src/App.tsx` oder, wenn er an der Sitzung hängt,
+  in `RequireAuth` (z. B. `TimerProvider`: pro Nutzer, mit `key` auf die User-ID, umschließt
+  die `AppShell`, damit Timer Navigation überleben). Kein globaler Store (kein
   Redux/Zustand) ohne Decision-Note.
 - Feature-State als reine Reducer/Funktionen + Hook: Liste in `src/list/`
   (`state.ts`, `query.ts`, `url.ts`, `persistence.ts`, `useListState.ts`), Editor in
@@ -98,6 +102,17 @@ werden hier nicht wiederholt.
   (einklappbar, Kategorien, Profil), darunter Tab-Leiste + „+“-FAB + Avatar. Das Fenster
   bleibt der Scroll-Container; feste Seitenleisten nutzen `--shell-left`/`--shell-bottom`.
   Groups-Routen erst nach B12 + Backend #13.
+- Anmeldung (#142): `/login` und `/register` liegen **außerhalb** von `AppShell` und
+  `CatalogProvider` (hinter `RedirectIfSignedIn`); alle anderen Routen inkl. 404 hängen an
+  `RequireAuth` (`src/components/shell/RequireAuth.tsx`), der ohne Sitzung synchron mit
+  `replace` auf `/login?next=<pfad+query+hash>` umleitet und `CatalogProvider` mit
+  `key={userId}` rendert. `next` nur app-intern (`src/lib/safeNext.ts`). Nach dem
+  Anmelden leitet `RedirectIfSignedIn` weiter, nicht die Seite. Im Mock-Modus ist immer
+  jemand angemeldet: nichts geschützt, `/login` → `/recipes`.
+- Sitzungsende (#143): Wie die Sitzung in diesem Tab endete, steht in
+  `foodly.auth.sessionEnd()`. Abmelden hier → `/login` ohne `next`; Ablauf (`expired`) →
+  `/login?next=…` mit Router-State `{ expired, email }` für Hinweis und Vorausfüllen; Abmelden in
+  einem anderen Tab → `/login?next=…` ohne Hinweis.
 
 ## 6. UI & Styling
 
@@ -140,5 +155,7 @@ Begründete Einzelausnahme: `eslint-disable-next-line <regel> -- <grund>`.
 ## 8. Offene Architekturpunkte
 
 - Auth/Token-Handling: Backend fertig (B7, PR #20); FE baut es in #141–#143
-  (Spec `superpowers/specs/2026-11-08-auth-login-design.md`). Bis dahin statischer
-  `dev-token` in `rest.ts`, den das Backend ablehnt.
+  (Spec `superpowers/specs/2026-11-08-auth-login-design.md`). Sitzung und
+  Token-Refresh liegen seit #141 in `src/api/auth.ts`; Anmelden, Registrieren und
+  Routen-Schutz seit #142 (§5), Abmelden im Profil-Menü und Hinweis bei
+  abgelaufener Sitzung seit #143.

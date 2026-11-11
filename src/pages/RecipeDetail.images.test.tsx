@@ -1,26 +1,20 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
 import { foodly } from '../api'
-import type { StubFeature } from '../api/stubs'
 import type { Recipe } from '../api/protocol'
 import { ref } from '../test/images'
 
-// Only the images stub is toggled, so the real showsRecipeImages/recipeImageSrc decide what renders.
-const imageStub = vi.hoisted(() => ({ stubbed: true }))
-vi.mock('../api/stubs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../api/stubs')>()
-  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
-})
-
 vi.mock('react-router-dom', () => ({
+  useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),
   useNavigate: () => vi.fn(),
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }))
 
 vi.mock('../catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
 }))
@@ -40,7 +34,7 @@ const recipe: Recipe = {
   sizeNumber: null,
   sizeText: null,
   notes: ['Warm servieren'],
-  mainImage: ref(3),
+  mainImage: { id: 3, hash: 'ab12', name: null },
   images: [ref(4), ref(5)],
   sections: [],
 }
@@ -54,25 +48,33 @@ function renderDetail() {
   )
 }
 
+beforeAll(() => {
+  // jsdom has no scrollTo; the Lightbox thumbnail strip scrolls on mount.
+  Element.prototype.scrollTo ??= vi.fn()
+})
+
 afterEach(() => vi.restoreAllMocks())
 
 describe('RecipeDetail images', () => {
-  it('REST: a recipe with images looks like one without photos', async () => {
-    imageStub.stubbed = true
+  it('REST: serves hero and gallery from the backend by hash', async () => {
     const { container } = renderDetail()
 
     await screen.findByRole('heading', { name: 'Pancakes' })
     expect(screen.getByText('Warm servieren')).toBeTruthy()
-    expect(container.querySelector('img')).toBeNull()
-    expect(container.querySelector('.cursor-zoom-in')).toBeNull()
+    const srcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
+    expect(srcs).toEqual(['/api/v1/images/ab12', '/api/v1/images/h4', '/api/v1/images/h5'])
+    expect(screen.getByAltText('Pancakes').getAttribute('src')).toBe('/api/v1/images/ab12')
   })
 
-  it('mock: shows the recipe images', async () => {
-    imageStub.stubbed = false
-    const { container } = renderDetail()
+  it('a hero that fails to load shows the placeholder, which still opens the lightbox', async () => {
+    renderDetail()
 
     await screen.findByRole('heading', { name: 'Pancakes' })
-    const srcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
-    expect(srcs.some((src) => src?.endsWith('/recipes/3.svg'))).toBe(true)
+    fireEvent.error(screen.getByAltText('Pancakes'))
+    const fallback = screen.getByRole('img', { name: 'Pancakes' })
+    expect(fallback.className).toContain('aspect-[4/3]')
+
+    fireEvent.click(fallback)
+    expect(screen.getByRole('dialog')).toBeTruthy()
   })
 })

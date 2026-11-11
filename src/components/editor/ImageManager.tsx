@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Button, Label, toast } from '@postxl/ui-components'
 import { Star, Trash2, Upload } from 'lucide-react'
 import { foodly } from '../../api'
-import { recipeImageSrc } from '../../api/assets'
+import { errorMessage } from '../../lib/errorMessage'
+import { RecipeImage } from '../recipe/RecipeImage'
 import type { ImageRef } from '../../api/protocol'
 
 // Uploads land in the image store immediately (POST /images); the draft holds the
@@ -26,7 +27,7 @@ export function ImageManager({
       if (mainImage === null) onChange({ mainImage: image, images })
       else onChange({ images: [...images, image] })
     } catch (e) {
-      toast.error(`Bild konnte nicht hochgeladen werden: ${(e as Error).message}`)
+      toast.error(`Bild konnte nicht hochgeladen werden: ${errorMessage(e, 'unbekannter Fehler')}`)
     } finally {
       setUploading(false)
     }
@@ -38,7 +39,12 @@ export function ImageManager({
       <div className="flex flex-wrap items-start gap-3">
         {mainImage !== null && (
           <figure className="flex flex-col items-center gap-1">
-            <img src={recipeImageSrc(mainImage)} alt="Hauptbild" className="size-20 rounded-md object-cover" />
+            <RecipeImage
+              image={mainImage}
+              alt="Hauptbild"
+              className="size-20 rounded-md object-cover"
+              fallbackClassName="size-20 rounded-md"
+            />
             <figcaption className="flex items-center gap-1 text-muted-foreground">
               <Star className="h-3 w-3 fill-star text-star" />
               Hauptbild
@@ -56,7 +62,12 @@ export function ImageManager({
 
         {images.map((image) => (
           <figure key={image.id} className="flex flex-col items-center gap-1">
-            <img src={recipeImageSrc(image)} alt="" className="size-20 rounded-md object-cover" />
+            <RecipeImage
+              image={image}
+              alt=""
+              className="size-20 rounded-md object-cover"
+              fallbackClassName="size-20 rounded-md"
+            />
             <figcaption className="flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -83,12 +94,6 @@ export function ImageManager({
           </figure>
         ))}
 
-        <Label
-          htmlFor="image-upload"
-          className="grid size-20 cursor-pointer place-items-center rounded-md border border-dashed text-muted-foreground"
-        >
-          <Upload className="h-5 w-5" />
-        </Label>
         {/* eslint-disable-next-line react/forbid-elements -- native file picker, @postxl/ui-components has no file input */}
         <input
           id="image-upload"
@@ -96,13 +101,20 @@ export function ImageManager({
           accept="image/png,image/jpeg,image/webp"
           aria-label="Bild hochladen"
           disabled={uploading}
-          className="hidden"
+          className="peer hidden"
           onChange={(e) => {
             const file = e.target.files?.[0]
             if (file) void upload(file)
             e.target.value = ''
           }}
         />
+        {/* After the input: peer-disabled dims the tile while uploading or while the editor is locked. */}
+        <Label
+          htmlFor="image-upload"
+          className="grid size-20 cursor-pointer place-items-center rounded-md border border-dashed text-muted-foreground peer-disabled:pointer-events-none peer-disabled:opacity-50"
+        >
+          <Upload className="h-5 w-5" />
+        </Label>
       </div>
     </div>
   )

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { toError } from '../lib/toError'
 
 export type RequestState<T> = {
   status: 'loading' | 'ready' | 'error'
@@ -8,26 +9,31 @@ export type RequestState<T> = {
 
 /**
  * Run a one-shot backend request and track loading/ready/error. Re-runs when
- * `deps` change. Example:
+ * `deps` change or `reload()` is called (both start over from 'loading'). Example:
  *
- *   const { status, data } = useRequest(() => foodly.listRecipes(), []);
+ *   const { status, data, reload } = useRequest(() => foodly.listRecipes(), []);
  */
-export function useRequest<T>(run: () => Promise<T>, deps: unknown[] = []): RequestState<T> {
+export function useRequest<T>(run: () => Promise<T>, deps: unknown[] = []): RequestState<T> & { reload: () => void } {
   const [state, setState] = useState<RequestState<T>>({ status: 'loading', data: null, error: null })
-  useEffect(() => {
-    let active = true
-    setState({ status: 'loading', data: null, error: null })
-    run()
-      .then((data) => {
-        if (active) setState({ status: 'ready', data, error: null })
-      })
-      .catch((error: unknown) => {
-        if (active) setState({ status: 'error', data: null, error: error as Error })
-      })
-    return () => {
-      active = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps)
-  return state
+  const [nonce, setNonce] = useState(0)
+  const reload = useCallback(() => setNonce((n) => n + 1), [])
+  useEffect(
+    () => {
+      let active = true
+      setState({ status: 'loading', data: null, error: null })
+      run()
+        .then((data) => {
+          if (active) setState({ status: 'ready', data, error: null })
+        })
+        .catch((error: unknown) => {
+          if (active) setState({ status: 'error', data: null, error: toError(error) })
+        })
+      return () => {
+        active = false
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the caller's deps decide when `run` changes
+    [...deps, nonce],
+  )
+  return { ...state, reload }
 }

@@ -99,6 +99,16 @@ describe('Rating', () => {
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(cleared))
   })
 
+  it('shows a failed removal inline', async () => {
+    vi.mocked(foodly.clearMyRating).mockRejectedValueOnce(new Error('kaputt'))
+    open(recipe({ rating: [{ user: 1, rating: 3 }] }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Entfernen' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('kaputt')
+    await waitFor(() =>
+      expect((screen.getByRole('button', { name: 'Entfernen' }) as HTMLButtonElement).disabled).toBe(false),
+    )
+  })
+
   it('disables the stars while a write is in flight', async () => {
     vi.mocked(foodly.setMyRating).mockReturnValue(new Promise(() => {}))
     open(recipe())
@@ -121,7 +131,17 @@ describe('Rating', () => {
     vi.mocked(foodly.setMyRating).mockRejectedValue(new Error('kaputt'))
     open(recipe())
     fireEvent.click(await screen.findByRole('button', { name: '2 von 5' }))
-    expect(await screen.findByText('kaputt')).toBeTruthy()
+    expect((await screen.findByRole('alert')).textContent).toBe('kaputt')
+  })
+
+  it.each([
+    ['an Error without message', new Error('')],
+    ['a non-Error rejection', { status: 500 }],
+  ])('announces a fallback for %s', async (_name, reason) => {
+    vi.mocked(foodly.setMyRating).mockRejectedValue(reason)
+    open(recipe())
+    fireEvent.click(await screen.findByRole('button', { name: '2 von 5' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('Bewertung konnte nicht gespeichert werden')
   })
 
   it('hides the demo hint when ratings are not stubbed', async () => {
@@ -177,6 +197,19 @@ describe('Rating', () => {
       expect(trigger.classList.contains(token)).toBe(true)
     }
     expect(trigger.classList.contains('min-h-10')).toBe(false)
+  })
+
+  it('gives the trigger the 3 px focus ring in full --ring (#90/#95)', () => {
+    render(<Rating recipe={recipe()} />)
+    const classes = screen.getByRole('button', { name: /Bewert/ }).className.split(/\s+/)
+    expect(classes).toEqual(expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-ring']))
+    expect(classes).not.toContain('focus-visible:ring-2')
+  })
+
+  it("names the desktop popover 'Bewertung'", async () => {
+    open(recipe())
+    const panel = await screen.findByRole('dialog', { name: 'Bewertung' })
+    expect(panel.getAttribute('data-slot')).toBe('popover-content')
   })
 
   it('opens a popover with the compact stars on desktop', async () => {

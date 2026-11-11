@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { rest } from './rest'
+import { seedSession } from '../test/auth'
 
 function mockFetch(status: number, body: unknown) {
   return vi.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -9,7 +10,10 @@ function mockFetch(status: number, body: unknown) {
   } as Response)
 }
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  localStorage.clear()
+})
 
 describe('rest write verbs', () => {
   it('put sends JSON and resolves the parsed body', async () => {
@@ -26,6 +30,7 @@ describe('rest write verbs', () => {
   })
 
   it('del resolves undefined on 204', async () => {
+    const { accessToken } = seedSession()
     const fetchSpy = mockFetch(204, undefined)
 
     const result = await rest.del('/recipes/7')
@@ -34,7 +39,7 @@ describe('rest write verbs', () => {
     const [url, init] = fetchSpy.mock.calls[0]
     expect(url).toBe('/api/v1/recipes/7')
     expect(init?.method).toBe('DELETE')
-    expect((init?.headers as Record<string, string>).Authorization).toBe('Bearer dev-token')
+    expect((init?.headers as Record<string, string>).Authorization).toBe(`Bearer ${accessToken}`)
   })
 
   it('del resolves undefined on an empty 200 without parsing the body', async () => {
