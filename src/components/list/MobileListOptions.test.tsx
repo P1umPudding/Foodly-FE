@@ -27,6 +27,8 @@ it('is a 40 px icon button labelled "Sortieren & Ansicht"', () => {
   const button = screen.getByRole('button', { name: 'Sortieren & Ansicht' })
   expect(button.classList.contains('size-10')).toBe(true)
   expect(button.textContent).toBe('')
+  // The shared TriggerButton (#133), not the bare Radix trigger restyled with buttonVariants.
+  expect(button.getAttribute('data-slot')).toBe('button')
 })
 
 it('holds criterion, direction, view and layout', () => {

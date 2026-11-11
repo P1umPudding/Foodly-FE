@@ -3,9 +3,10 @@
 // "Anzeigen" button.
 import { useId, type ReactNode } from 'react'
 import { ArrowUpDown } from 'lucide-react'
-import { Label, RadioGroup, RadioGroupItem, Sheet, SheetTrigger, buttonVariants, cn } from '@postxl/ui-components'
+import { Label, RadioGroup, RadioGroupItem, Sheet, SheetTrigger } from '@postxl/ui-components'
 import type { ListState } from '../../list/state'
 import { BottomSheet } from '../BottomSheet'
+import { TriggerButton } from '../TriggerButton'
 import {
   DETAIL_OPTIONS,
   LAYOUT_OPTIONS,
@@ -75,12 +76,10 @@ export function MobileListOptions({ state, set }: { state: ListState; set: (patc
 
   return (
     <Sheet>
-      {/* The Radix trigger styled as the Button (postxl Button doesn't forwardRef, see FilterButton). */}
-      <SheetTrigger
-        aria-label={TITLE}
-        className={cn(buttonVariants({ variant: 'outline', size: 'icon' }), 'size-10 shrink-0')}
-      >
-        <ArrowUpDown aria-hidden />
+      <SheetTrigger asChild>
+        <TriggerButton variant="outline" size="icon" aria-label={TITLE} className="size-10 shrink-0">
+          <ArrowUpDown aria-hidden />
+        </TriggerButton>
       </SheetTrigger>
       <BottomSheet title={TITLE} description="Sortierung und Ansicht einstellen">
         <div className="space-y-6">
