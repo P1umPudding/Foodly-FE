@@ -124,7 +124,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     const location = useLocation()
     useEffect(() => {
       visits.push(location.pathname)
-    }, [location.key])
+    }, [location.key, location.pathname])
     return null
   }
 

@@ -113,6 +113,7 @@ export function useAutosave<T>(
         if (followUp) run()
         else settleWaiter()
       })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- settleWaiter reads refs only; run must keep a stable identity or the debounce effect re-arms on every render
   }, [])
 
   const ensureWaiter = () => {

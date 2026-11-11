@@ -1,18 +1,8 @@
-import { useId, type ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { ChevronDown, X } from 'lucide-react'
-import {
-  Button,
-  buttonVariants,
-  cn,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Sheet,
-  SheetClose,
-  SheetTrigger,
-} from '@postxl/ui-components'
-import { BottomSheet } from '../BottomSheet'
-import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { Button, cn, SheetClose } from '@postxl/ui-components'
+import { ResponsivePanel } from '../ResponsivePanel'
+import { TriggerButton } from '../TriggerButton'
 import type { FilterValue } from '../../list/filterLabels'
 
 // The outline variant brings its own dark and hover colours, which a plain bg-muted doesn't override.
@@ -31,64 +21,65 @@ export function FilterButton({
   onClear: () => void
   children: ReactNode
 }) {
-  const isDesktop = useIsDesktop()
-  const triggerId = useId()
-  const Root = isDesktop ? Popover : Sheet
-  const Trigger = isDesktop ? PopoverTrigger : SheetTrigger
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const active = value !== null
 
   const clear = () => {
     onClear()
     // The ✕ unmounts with the value, so hand focus to the trigger rather than lose it to <body>.
-    // By id: the postxl PopoverTrigger doesn't forwardRef.
-    document.getElementById(triggerId)?.focus()
+    triggerRef.current?.focus()
   }
 
   return (
     <div className="inline-flex items-center">
-      <Root>
-        {/* The Radix trigger itself, styled as the Button: the postxl Button doesn't forwardRef, which Radix needs
-            for positioning and focus return. Only the first name truncates: "<Filter>:" and "+n" always stay visible.
-            The spaces between the spans keep the accessible name readable; flex drops them visually. */}
-        <Trigger
-          id={triggerId}
-          className={cn(
-            buttonVariants({ variant: 'outline', size: 'sm' }),
-            'relative max-w-56 focus-visible:z-10 phone:h-10',
-            active ? cn(ACTIVE, 'rounded-r-none border-r-0') : 'font-normal',
-          )}
-        >
-          {active ? (
-            <>
-              <span className="shrink-0">{label}:</span> <span className="min-w-0 truncate">{value.first}</span>
-              {value.more > 0 && (
-                <>
-                  {' '}
-                  <span className="shrink-0">+{value.more}</span>
-                </>
-              )}
-            </>
+      <ResponsivePanel
+        trigger={
+          <TriggerButton
+            ref={triggerRef}
+            variant="outline"
+            size="sm"
+            className={cn(
+              'relative max-w-56 focus-visible:z-10 phone:h-10',
+              active ? cn(ACTIVE, 'rounded-r-none border-r-0') : 'font-normal',
+            )}
+          >
+            {/* Only the first name truncates: "<Filter>:" and "+n" always stay visible. The spaces between
+                the spans keep the accessible name readable; flex drops them visually. */}
+            {active ? (
+              <>
+                <span className="shrink-0">{label}:</span> <span className="min-w-0 truncate">{value.first}</span>
+                {value.more > 0 && (
+                  <>
+                    {' '}
+                    <span className="shrink-0">+{value.more}</span>
+                  </>
+                )}
+              </>
+            ) : (
+              label
+            )}
+            {!active && <ChevronDown aria-hidden />}
+          </TriggerButton>
+        }
+        popover={{ 'aria-label': label, align: 'start' }}
+        sheet={{ title: label, description: `Filter ${label} einstellen`, scroll: false }}
+      >
+        {(variant) =>
+          variant === 'popover' ? (
+            children
           ) : (
-            label
-          )}
-          {!active && <ChevronDown aria-hidden />}
-        </Trigger>
-        {isDesktop ? (
-          <PopoverContent align="start" aria-label={label}>
-            {children}
-          </PopoverContent>
-        ) : (
-          <BottomSheet title={label} description={`Filter ${label} einstellen`} scroll={false}>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">{children}</div>
-            {/* Closes only: changes apply as they are made. */}
-            <div className="border-t px-4 py-3">
-              <Button asChild className="w-full phone:h-10">
-                <SheetClose>Anzeigen</SheetClose>
-              </Button>
-            </div>
-          </BottomSheet>
-        )}
-      </Root>
+            <>
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">{children}</div>
+              {/* Closes only: changes apply as they are made. */}
+              <div className="border-t px-4 py-3">
+                <Button asChild className="w-full phone:h-10">
+                  <SheetClose>Anzeigen</SheetClose>
+                </Button>
+              </div>
+            </>
+          )
+        }
+      </ResponsivePanel>
       {active && (
         <Button
           type="button"

@@ -206,6 +206,12 @@ describe('Rating', () => {
     expect(classes).not.toContain('focus-visible:ring-2')
   })
 
+  it("names the desktop popover 'Bewertung'", async () => {
+    open(recipe())
+    const panel = await screen.findByRole('dialog', { name: 'Bewertung' })
+    expect(panel.getAttribute('data-slot')).toBe('popover-content')
+  })
+
   it('opens a popover with the compact stars on desktop', async () => {
     open(recipe())
     const panel = await screen.findByRole('dialog')
