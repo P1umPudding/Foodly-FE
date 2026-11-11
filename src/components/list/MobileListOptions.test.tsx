@@ -27,7 +27,8 @@ it('is a 40 px icon button labelled "Sortieren & Ansicht"', () => {
   const button = screen.getByRole('button', { name: 'Sortieren & Ansicht' })
   expect(button.classList.contains('size-10')).toBe(true)
   expect(button.textContent).toBe('')
-  // The shared TriggerButton (#133), not the bare Radix trigger restyled with buttonVariants.
+  // The shared TriggerButton (#133), not the bare Radix trigger restyled with buttonVariants. Only works for
+  // SheetTrigger: DropdownMenuTrigger passes its own data-slot, which wins over TriggerButton's.
   expect(button.getAttribute('data-slot')).toBe('button')
 })
 

@@ -24,9 +24,12 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
+        {/* gap-2: the former un-merged buttonVariants string kept the base gap-2 next to sm's gap-1.5 (and gap-2
+            won in the CSS); TriggerButton merges, so keep the 8-px gap explicitly and the button doesn't narrow. */}
         <TriggerButton
           variant="outline"
           size="sm"
+          className="gap-2"
           aria-label={`Sortieren: ${criterion.label}, ${dirLabel(state.sortKey, state.sortDir)}`}
         >
           <DirIcon aria-hidden />

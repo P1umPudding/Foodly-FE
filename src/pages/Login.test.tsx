@@ -136,8 +136,12 @@ describe('Login', () => {
 
   it('shows the toggle tooltip on focus', async () => {
     renderAuthRoutes('/login', { login: <Login /> })
-    act(() => screen.getByRole('button', { name: 'Passwort anzeigen' }).focus())
-    expect((await screen.findByRole('tooltip')).textContent).toBe('Passwort anzeigen')
+    const toggle = screen.getByRole('button', { name: 'Passwort anzeigen' })
+    act(() => toggle.focus())
+    const tooltip = await screen.findByRole('tooltip')
+    expect(tooltip.textContent).toBe('Passwort anzeigen')
+    // The description lands on the focused button, not on a wrapper screen readers skip.
+    expect(toggle.getAttribute('aria-describedby')).toBe(tooltip.id)
   })
 
   it('prefills the e-mail from ?email= and focuses the password', () => {
