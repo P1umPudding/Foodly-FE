@@ -179,13 +179,16 @@ describe('timers per signed-in user', () => {
   }
 
   it("shows each user only their own timers, and the first user's again after switching back", async () => {
+    // Only Date is faked: the remaining time after switching back must come from endAt, not from ticks.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(1_000_000)
     spyCatalogs()
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(204))
     signInAs(1)
     renderApp()
     await screen.findByRole('list', { name: 'timers' })
     act(() => api.add({ label: 'Nudeln', durationMs: 10 * MIN }))
-    expect(timerItems()[0].textContent).toMatch(/^Nudeln running /)
+    expect(timerItems()[0].textContent).toBe(`Nudeln running ${10 * MIN}`)
 
     await signOut()
     signInAs(2)
@@ -193,9 +196,10 @@ describe('timers per signed-in user', () => {
     expect(timerItems()).toHaveLength(0)
 
     await signOut()
+    vi.setSystemTime(1_000_000 + 3 * MIN)
     signInAs(1)
     await screen.findByRole('list', { name: 'timers' })
-    expect(timerItems()[0].textContent).toMatch(/^Nudeln running /)
+    expect(timerItems()[0].textContent).toBe(`Nudeln running ${7 * MIN}`)
   })
 
   it('stops a ringing alarm on sign-out', async () => {
