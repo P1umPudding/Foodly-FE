@@ -83,7 +83,11 @@ export function TimerPanel() {
       trigger={<TimerToggle ref={triggerRef} />}
       onInteractOutside={onInteractOutside}
       onCloseAutoFocus={restoreFocus}
-      popover={{ 'aria-label': 'Timer', align: 'end', className: 'flex max-h-[min(36rem,80vh)] w-80 flex-col px-0 pb-0' }}
+      popover={{
+        'aria-label': 'Timer',
+        align: 'end',
+        className: 'flex max-h-[min(36rem,80vh)] w-80 flex-col px-0 pb-0',
+      }}
       sheet={{ title: 'Timer', description: 'Küchen-Timer verwalten', scroll: false, __e2e_test_id__: 'timer-sheet' }}
     >
       {(variant) => (

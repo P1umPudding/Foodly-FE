@@ -1,13 +1,6 @@
 import { useId, useState } from 'react'
 import { Star } from 'lucide-react'
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Button,
-  Separator,
-  cn,
-} from '@postxl/ui-components'
+import { Avatar, AvatarFallback, AvatarImage, Button, Separator, cn } from '@postxl/ui-components'
 import { Stars } from './Stars'
 import { ResponsivePanel, type PanelVariant } from '../ResponsivePanel'
 import { TriggerButton } from '../TriggerButton'
