@@ -132,6 +132,9 @@ export function RecipeList() {
   const listReady = search.status === 'ready' && !awaitingCategories
   const pending = listReady && search.hasMore
   const allLoaded = listReady && !search.hasMore
+  // A failed next page keeps hasMore (the list is not complete) but pauses paging until the user retries.
+  const loadMoreFailed = listReady && search.loadMoreError !== null
+  const loadingAnnounced = (listReady && search.loadingMore) || (pending && visible.length === 0 && !loadMoreFailed)
   const filterActive = isFilterActive(categoryState)
 
   // Per-category collapse state (clicking a sticky group header folds that group),
@@ -223,6 +226,7 @@ export function RecipeList() {
   // Load the next page when a sentinel near the list end scrolls into view. The effect re-subscribes
   // whenever loadMore changes (every page), and a fresh observer reports the sentinel's current state:
   // a page that adds no visible row leaves the sentinel in view, so the next page loads by itself.
+  // After a failed page loadMore is a no-op until the retry, so this does not loop.
   const sentinelRef = useRef<HTMLDivElement>(null)
   const { hasMore, loadMore } = search
   useEffect(() => {
@@ -335,7 +339,7 @@ export function RecipeList() {
 
         {/* Pages still to come may hold matches: hold the empty texts back until the list is exhausted.
           The sentinel below stays in view, so loading carries on by itself. */}
-        {pending && visible.length === 0 && (
+        {pending && visible.length === 0 && !loadMoreFailed && (
           <ListSkeleton detail={state.detail} count={1} testId="list-pending-skeleton" />
         )}
 
@@ -385,6 +389,22 @@ export function RecipeList() {
         {listReady && search.loadingMore && visible.length > 0 && (
           <LoadMoreSkeleton detail={state.detail} grouped={grouped} />
         )}
+        {/* The retry unmounts the alert (focus falls back to the page, as with the first-page error); the
+            status line below announces the loading instead. */}
+        {loadMoreFailed && !search.loadingMore && (
+          <div className="pt-3">
+            <RetryAlert
+              title="Weitere Rezepte konnten nicht geladen werden."
+              message={search.loadMoreError?.message}
+              onRetry={search.retryLoadMore}
+            />
+          </div>
+        )}
+        {/* Always mounted so screen readers pick up the text change. The count stays out of it, or every page
+            would be announced. */}
+        <p role="status" aria-live="polite" className="sr-only">
+          {loadingAnnounced ? 'Weitere Rezepte werden geladen …' : ''}
+        </p>
       </div>
     </div>
   )
