@@ -32,8 +32,6 @@ export function FilterButton({
 
   return (
     <div className="inline-flex items-center">
-      {/* Only the first name truncates: "<Filter>:" and "+n" always stay visible. The spaces between the
-          spans keep the accessible name readable; flex drops them visually. */}
       <ResponsivePanel
         trigger={
           <TriggerButton
@@ -45,6 +43,8 @@ export function FilterButton({
               active ? cn(ACTIVE, 'rounded-r-none border-r-0') : 'font-normal',
             )}
           >
+            {/* Only the first name truncates: "<Filter>:" and "+n" always stay visible. The spaces between
+                the spans keep the accessible name readable; flex drops them visually. */}
             {active ? (
               <>
                 <span className="shrink-0">{label}:</span> <span className="min-w-0 truncate">{value.first}</span>

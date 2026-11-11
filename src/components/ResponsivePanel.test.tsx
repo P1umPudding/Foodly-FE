@@ -42,7 +42,10 @@ function Controlled({ onOpenChange }: { onOpenChange: (open: boolean) => void })
   )
 }
 
-afterEach(() => setViewport(1024))
+afterEach(() => {
+  cleanup()
+  setViewport(1024)
+})
 
 describe('ResponsivePanel on the desktop', () => {
   it('opens a named popover with the popover props and the popover content', () => {

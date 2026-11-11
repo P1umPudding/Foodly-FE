@@ -11,7 +11,8 @@ type ResponsivePanelProps = {
   children: ReactNode | ((variant: PanelVariant) => ReactNode)
   open?: boolean
   onOpenChange?: (open: boolean) => void
-  // Left out, the Radix defaults apply: a non-modal popover, a modal sheet.
+  // One value for both variants (no modal popover with a non-modal sheet). Left out, the Radix defaults
+  // apply: a non-modal popover, a modal sheet.
   modal?: boolean
   onInteractOutside?: (e: Event) => void
   onCloseAutoFocus?: (e: Event) => void

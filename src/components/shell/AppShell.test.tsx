@@ -265,6 +265,7 @@ describe('Timer button in the header', () => {
     openTimers()
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
     expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('false')
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
   })
 
   it('keeps the phone sheet non-modal', async () => {
