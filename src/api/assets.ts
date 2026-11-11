@@ -3,7 +3,6 @@
 
 import { apiUrl, rest } from './rest'
 import type { ImageRef, Tag } from './protocol'
-import { isStubbed } from './stubs'
 
 const USE_MOCKS = import.meta.env.VITE_MOCK === '1'
 
@@ -83,30 +82,26 @@ export function resetTagIconCache(): void {
 
 // Dev-only: map mock image ids → public asset URLs. Any raster/vector format
 // works (the browser <img> doesn't care) — id 1 is a real .png, id 2 a .png.
-// In production this whole function is just the backend's image URL.
+// REST mode never reads it.
 const DEV_RECIPE_IMAGE: Record<number, string> = {
   1: publicUrl('recipes/1.png'),
   2: publicUrl('recipes/cake.png'), // transparent PNG — test fixture for the image backdrop (Schokokuchen)
 }
 
-// ADR 0003 §5: until REST display lands (FE #144, route public since Backend PR #20), list and detail look as if
-// there were no photo.
-export function showsRecipeImages(): boolean {
-  return !isStubbed('images')
-}
+// Backend images are served by hash; GET /images/{hash} is public (Backend PR #20), so <img> needs no bearer.
+const backendImageUrl = (hash: string) => apiUrl(`/images/${encodeURIComponent(hash)}`)
 
 export function recipeImageSrc(image: ImageRef): string {
-  // REST display is not wired yet (FE #144), so in REST only the editor shows this neutral placeholder.
-  if (isStubbed('images')) return publicUrl('recipes/placeholder.svg')
+  if (!USE_MOCKS) return backendImageUrl(image.hash)
   return DEV_RECIPE_IMAGE[image.id] ?? publicUrl(`recipes/${image.id}.svg`)
 }
 
 export function imageName(image: ImageRef): string {
-  // A real name would caption the REST placeholder, so REST keeps the neutral label.
-  if (isStubbed('images')) return `Bild ${image.id}`
   return image.name ?? `Bild ${image.id}`
 }
 
+// Until the backend has a user list (B2), REST user data is the mock list, so its hashes 404 here; the
+// avatar then falls back to the initial.
 export function userImageSrc(hash: string): string {
-  return publicUrl(`users/${hash}.svg`)
+  return USE_MOCKS ? publicUrl(`users/${hash}.svg`) : backendImageUrl(hash)
 }

@@ -37,11 +37,11 @@ afterEach(() => {
 })
 
 describe('STUBBED register', () => {
-  it('stubs ratings and images in REST mode', async () => {
+  it('stubs only ratings in REST mode', async () => {
     vi.stubEnv('VITE_MOCK', '')
     vi.resetModules()
     const { STUBBED, isStubbed } = await import('./stubs')
-    expect([...STUBBED].sort()).toEqual(['images', 'ratings'])
+    expect([...STUBBED].sort()).toEqual(['ratings'])
     expect(isStubbed('ratings')).toBe(true)
     expect(isStubbed('sharing')).toBe(false)
   })

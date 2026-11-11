@@ -1,17 +1,11 @@
+import { useState } from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImageManager } from './ImageManager'
 import { foodly } from '../../api'
 import type { ImageRef } from '../../api/protocol'
-import type { StubFeature } from '../../api/stubs'
 import { ref } from '../../test/images'
-
-const imageStub = vi.hoisted(() => ({ stubbed: true }))
-vi.mock('../../api/stubs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../api/stubs')>()
-  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
-})
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -27,12 +21,30 @@ function setup(onChange = vi.fn(), mainImage: ImageRef | null = ref(1), images: 
 }
 
 describe('ImageManager', () => {
-  // The editor keeps the placeholder previews in REST mode, unlike list and detail.
-  it('REST: previews the images with the placeholder', () => {
-    imageStub.stubbed = true
+  it('REST: previews the images from the backend', () => {
     setup()
 
-    expect(screen.getByAltText('Hauptbild').getAttribute('src')).toMatch(/\/recipes\/placeholder\.svg$/)
+    expect(screen.getByAltText('Hauptbild').getAttribute('src')).toBe('/api/v1/images/h1')
+  })
+
+  it('shows an uploaded image right away', async () => {
+    vi.spyOn(foodly, 'uploadImage').mockResolvedValue({ id: 5, hash: 'ef56', name: null })
+    function Draft() {
+      const [draft, setDraft] = useState<{ mainImage: ImageRef | null; images: ImageRef[] }>({
+        mainImage: null,
+        images: [],
+      })
+      return <ImageManager {...draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} />
+    }
+    const { container } = render(
+      <TooltipProvider>
+        <Draft />
+      </TooltipProvider>,
+    )
+
+    fireEvent.change(screen.getByLabelText('Bild hochladen'), { target: { files: [file()] } })
+
+    await waitFor(() => expect(container.querySelector('img[src="/api/v1/images/ef56"]')).toBeTruthy())
   })
 
   it('uploads a file and appends the returned ref to the gallery', async () => {

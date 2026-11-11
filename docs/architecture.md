@@ -45,7 +45,7 @@ werden hier nicht wiederholt.
   Keine abgeleiteten Felder in die Wire-Typen schreiben.
 - Asset-URLs (Bilder, Tag-Icons) nur über `src/api/assets.ts` — eine Stelle für das
   Backend-Schema (Rezeptbilder: Lesen als `ImageRef`, Schreiben als IDs;
-  REST-Anzeige: FE #144). Tag-Icons braucht die REST-Route mit Bearer, darum lädt
+  angezeigt über das öffentliche `GET /images/{hash}`, FE #144). Tag-Icons braucht die REST-Route mit Bearer, darum lädt
   `assets.ts` sie als Blob (`loadTagIcon`, gecacht); `useTagIcon` ist der eine Hook,
   der `assets.ts` statt `foodly.*` aufruft.
 

@@ -3,7 +3,7 @@ import { Button, Label, toast } from '@postxl/ui-components'
 import { Star, Trash2, Upload } from 'lucide-react'
 import { foodly } from '../../api'
 import { errorMessage } from '../../lib/errorMessage'
-import { recipeImageSrc } from '../../api/assets'
+import { RecipeImage } from '../recipe/RecipeImage'
 import type { ImageRef } from '../../api/protocol'
 
 // Uploads land in the image store immediately (POST /images); the draft holds the
@@ -39,7 +39,12 @@ export function ImageManager({
       <div className="flex flex-wrap items-start gap-3">
         {mainImage !== null && (
           <figure className="flex flex-col items-center gap-1">
-            <img src={recipeImageSrc(mainImage)} alt="Hauptbild" className="size-20 rounded-md object-cover" />
+            <RecipeImage
+              image={mainImage}
+              alt="Hauptbild"
+              className="size-20 rounded-md object-cover"
+              fallbackClassName="size-20 rounded-md"
+            />
             <figcaption className="flex items-center gap-1 text-muted-foreground">
               <Star className="h-3 w-3 fill-star text-star" />
               Hauptbild
@@ -57,7 +62,12 @@ export function ImageManager({
 
         {images.map((image) => (
           <figure key={image.id} className="flex flex-col items-center gap-1">
-            <img src={recipeImageSrc(image)} alt="" className="size-20 rounded-md object-cover" />
+            <RecipeImage
+              image={image}
+              alt=""
+              className="size-20 rounded-md object-cover"
+              fallbackClassName="size-20 rounded-md"
+            />
             <figcaption className="flex items-center gap-1">
               <Button
                 variant="ghost"

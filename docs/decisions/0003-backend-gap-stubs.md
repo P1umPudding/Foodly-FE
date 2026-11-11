@@ -24,24 +24,26 @@ an den Mock-Responder (`src/api/index.ts`).
    Die Mock-JSONs aus `src/mocks/data` passen nicht zu echten IDs und werden
    dafür nicht genutzt. Mit `VITE_MOCK=1` bleibt alles wie bisher beim Mock-Responder.
 3. **Register:** `src/api/stubs.ts` exportiert `STUBBED` (Menge der Features,
-   z. B. `'ratings' | 'sharing' | 'groups' | 'addedAt' | 'images'`) und
+   z. B. `'ratings' | 'sharing' | 'groups' | 'addedAt'`) und
    `isStubbed(feature)`. Im Mock-Modus ist nichts „gestubbt“ (alles ist Mock).
 4. **Sichtbar mit Hinweis:** Gestubbte Funktionen sind in der UI bedienbar und
    tragen einen kleinen Hinweis „Demo“ (eine gemeinsame Komponente, z. B.
    `<DemoHint feature="ratings" />`, rendert nur bei `isStubbed`). Text: „Demo:
    wird noch nicht gespeichert“ bzw. „…nur in diesem Browser gespeichert“.
-5. **Bilder:** Solange #9 offen ist, sehen Rezepte im REST-Modus in Liste und Detail
-   aus wie Rezepte ohne Foto (`showsRecipeImages` in `src/api/assets.ts`). Nur der
-   Editor zeigt einen neutralen Platzhalter (`recipeImageSrc`), damit hochgeladene
-   Bilder verwaltbar bleiben. Upload bleibt echt.
+5. **Bilder** (erledigt durch FE #144, 2026-11: Liste, Detail und Editor zeigen
+   im REST-Modus die echten Bilder über `GET /images/{hash}`; der Stub ist entfernt):
+   Solange #9 offen war, sahen Rezepte im REST-Modus in Liste und Detail
+   aus wie Rezepte ohne Foto (`showsRecipeImages`, inzwischen entfernt). Nur der
+   Editor zeigte einen neutralen Platzhalter, damit hochgeladene Bilder
+   verwaltbar blieben. Upload war schon echt.
 6. Jeder Stub verweist im Code-Kommentar auf sein Backend-Issue.
 
 ## Konsequenzen
 
 - Alpha-Daten aus Stubs sind pro Browser und gehen beim Wechsel aufs echte
   Backend verloren. Das ist in der Alpha akzeptiert.
-- Hochgeladene Bilder sind im REST-Modus bis #9 nur im Editor (als Platzhalter)
-  sichtbar, nicht in Liste und Detail. Das ist in der Alpha akzeptiert.
+- ~~Hochgeladene Bilder sind im REST-Modus bis #9 nur im Editor (als Platzhalter)
+  sichtbar, nicht in Liste und Detail.~~ Erledigt durch FE #144.
 - Tests: Stub-Zweige bekommen Unit-Tests in `src/api` (localStorage pro Test leeren).
 - Wird ein Backend-Issue geschlossen: Stub-Zweig durch REST ersetzen, Feature aus
   `STUBBED` entfernen, `docs/backend-questions.md` nachziehen.
