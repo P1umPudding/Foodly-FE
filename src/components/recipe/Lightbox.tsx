@@ -184,6 +184,7 @@ export function Lightbox({
               variant="bare"
               onClick={() => onIndexChange(i)}
               aria-label={imageName(thumb)}
+              aria-current={i === index || undefined}
               // The offset gap tells keyboard focus apart from the active marker (ring-2 vs. 3 px alone is 1 px);
               // the strip's p-1.5 leaves room for ring + offset inside its overflow clip.
               className={cn(

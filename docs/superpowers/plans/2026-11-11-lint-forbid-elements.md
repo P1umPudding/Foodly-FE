@@ -15,7 +15,7 @@ which renders `type="button"` + `FOCUS_RING` only (no size/padding/hover styles)
   `focus-visible:ring-ring` (full-opacity token, ≥3:1 per design.md). Overlay span and RecipeImage unchanged.
 - New test `src/components/recipe/RecipeImages.test.tsx`:
   - 2 images → one tile button named after image 2 (`imageName`), `type="button"`, click → `onOpen(1)`.
-  - 4 images → two tiles; second shows "+2" and is named `Bild 3, 2 weitere Bilder`; clicks → `onOpen(1)` / `onOpen(2)`.
+  - 5 images → two tiles; second shows "+2" and is named `Bild 3, 2 weitere Bilder` (4 images → `1 weiteres Bild`); clicks → `onOpen(1)` / `onOpen(2)`.
   - tile class list (split on whitespace, `arrayContaining`) has `focus-visible:ring-[3px]` and `focus-visible:ring-ring`, and not `focus-visible:ring-ring/50`.
 
 ## Step 2 — Lightbox thumbnails (`src/components/recipe/Lightbox.tsx`)
@@ -28,7 +28,7 @@ which renders `type="button"` + `FOCUS_RING` only (no size/padding/hover styles)
   Thumbnail stays a direct child of the strip (scroll uses `strip.children[index]`).
 - Extend `Lightbox.test.tsx` (new describe "Lightbox thumbnails"): 3 images, index 0 → buttons named `Bild 1..3`
   (`ref(id)` has `name: null`, so `imageName` → `Bild ${id}`), `type="button"`, click on 3rd → `onIndexChange(2)`;
-  inactive has `focus-visible:ring-white/60`, `focus-visible:ring-[3px]`, `focus-visible:ring-offset-2`; active has `ring-white` + `focus-visible:ring-white` (exact class-list checks).
+  active thumbnail has `aria-current`; inactive has `focus-visible:ring-white/60`, `focus-visible:ring-[3px]`, `focus-visible:ring-offset-2`; active has `ring-white` + `focus-visible:ring-white` (exact class-list checks).
   Note: names may collide with the main image alt / caption — query with `getByRole('button', { name })`.
 
 ## Step 3 — suppressions
@@ -48,10 +48,3 @@ One commit (as #137): `Lint-Altlast react/forbid-elements abbauen: RecipeImages 
 pruned `eslint-suppressions.json` and this plan as `docs/superpowers/plans/2026-11-11-lint-forbid-elements.md`
 (CLAUDE.md: plans live in docs/superpowers/plans). One commit because ESLint 9 fails on unpruned suppressions,
 so a component-only commit would not pass `npm run lint`. No Co-Authored-By trailer.
-
-## Review log
-- Review pass 1 (fresh subagent): 0 blocker, 2 major, 3 minor, 2 nit. Fixed: plan committed to docs/superpowers/plans (M1);
-  single commit incl. pruned suppressions (M2); focus offset on thumbnails + p-1.5 (m3); "+N weitere" in tile label (m4);
-  npm ci as step 0 (m5); German commit subject without prefix (n6); exact class-list assertions (n7).
-- Review pass 2 (fresh subagent): 0 blocker, 0 major, 2 minor, 2 nit. Fixed: spec A4 padding note (m1); label from count
-  "N weitere Bilder" via `more` prop (m2); helper names settled (n3); note why the offset is Lightbox-only (n4).

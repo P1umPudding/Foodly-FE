@@ -44,6 +44,8 @@ describe('Lightbox thumbnails', () => {
     for (const name of ['Bild 1', 'Bild 2', 'Bild 3']) {
       expect(screen.getByRole('button', { name }).getAttribute('type')).toBe('button')
     }
+    expect(screen.getByRole('button', { name: 'Bild 1' }).getAttribute('aria-current')).toBe('true')
+    expect(screen.getByRole('button', { name: 'Bild 2' }).hasAttribute('aria-current')).toBe(false)
     fireEvent.click(screen.getByRole('button', { name: 'Bild 3' }))
     expect(onIndexChange).toHaveBeenCalledWith(2)
   })
