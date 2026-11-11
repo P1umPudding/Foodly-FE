@@ -1,8 +1,9 @@
 // Label above, help or error text below (the error replaces the help text), wired with aria-invalid and
 // aria-describedby. `revealable` adds the show-password button inside the field.
 import { useRef, useState, type FocusEvent, type ReactNode, type Ref } from 'react'
-import { Button, Input, Label, Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
+import { Input, Label, Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { Eye, EyeOff } from 'lucide-react'
+import { TriggerButton } from '../TriggerButton'
 
 type Props = {
   id: string
@@ -65,24 +66,19 @@ export function AuthField({
         />
         {revealable && (
           <Tooltip>
-            {/* span wrapper: postxl Button isn't forwardRef, so the tooltip can only anchor to a host
-                element. type="button": inside the form a plain button would submit it. */}
             <TooltipTrigger asChild>
-              <span className="absolute top-0 right-0 inline-flex">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-10"
-                  aria-label={toggleLabel}
-                  onClick={() => setRevealed((r) => !r)}
-                  onBlur={blur}
-                  // Keeps the focus (and the caret) in the field, also where clicking a button doesn't focus it.
-                  onMouseDown={(e) => e.preventDefault()}
-                >
-                  {revealed ? <EyeOff /> : <Eye />}
-                </Button>
-              </span>
+              <TriggerButton
+                variant="ghost"
+                size="icon"
+                className="absolute top-0 right-0 size-10"
+                aria-label={toggleLabel}
+                onClick={() => setRevealed((r) => !r)}
+                onBlur={blur}
+                // Keeps the focus (and the caret) in the field, also where clicking a button doesn't focus it.
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                {revealed ? <EyeOff /> : <Eye />}
+              </TriggerButton>
             </TooltipTrigger>
             <TooltipContent>{toggleLabel}</TooltipContent>
           </Tooltip>

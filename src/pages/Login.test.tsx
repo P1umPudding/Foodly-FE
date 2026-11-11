@@ -124,6 +124,16 @@ describe('Login', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
+  it('anchors the toggle tooltip on the button itself, keeping the caret in the field', () => {
+    renderAuthRoutes('/login', { login: <Login /> })
+    const toggle = screen.getByRole('button', { name: 'Passwort anzeigen' })
+    // The shared TriggerButton (#133) forwards its ref, so no positioned span wrapper is needed for the tooltip.
+    expect(toggle.classList.contains('absolute')).toBe(true)
+    expect(toggle.parentElement?.tagName).not.toBe('SPAN')
+    // Regression guard: Radix Slot must not drop the mousedown handler (false = default prevented).
+    expect(fireEvent.mouseDown(toggle)).toBe(false)
+  })
+
   it('shows the toggle tooltip on focus', async () => {
     renderAuthRoutes('/login', { login: <Login /> })
     act(() => screen.getByRole('button', { name: 'Passwort anzeigen' }).focus())
