@@ -99,6 +99,16 @@ describe('Rating', () => {
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(cleared))
   })
 
+  it('shows a failed removal inline', async () => {
+    vi.mocked(foodly.clearMyRating).mockRejectedValueOnce(new Error('kaputt'))
+    open(recipe({ rating: [{ user: 1, rating: 3 }] }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Entfernen' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('kaputt')
+    await waitFor(() =>
+      expect((screen.getByRole('button', { name: 'Entfernen' }) as HTMLButtonElement).disabled).toBe(false),
+    )
+  })
+
   it('disables the stars while a write is in flight', async () => {
     vi.mocked(foodly.setMyRating).mockReturnValue(new Promise(() => {}))
     open(recipe())

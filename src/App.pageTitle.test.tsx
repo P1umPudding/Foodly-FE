@@ -60,7 +60,7 @@ async function renderAt(entry: string) {
   render(
     <ThemeProvider>
       <TooltipProvider>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <MemoryRouter initialEntries={[entry]}>
             <AppShell>
               <Routes>

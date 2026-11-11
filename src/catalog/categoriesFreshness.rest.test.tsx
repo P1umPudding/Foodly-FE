@@ -77,7 +77,7 @@ it('updates the sidebar count after deleting a recipe (REST)', async () => {
   render(
     <ThemeProvider>
       <TooltipProvider>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <MemoryRouter initialEntries={['/recipes/5']}>
             <CatalogProvider>
               <AppShell>

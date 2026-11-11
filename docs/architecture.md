@@ -57,8 +57,9 @@ werden hier nicht wiederholt.
   Die Kategorien des Nutzers lädt er beim Start und neu (im Hintergrund), wenn eine
   Rezept-Änderung ihre Mitglieder ändert: wer anlegt, kopiert oder löscht, ruft
   `useRefreshCategories()`.
-- App-weiter State als Provider in `src/App.tsx` (z. B. `TimerProvider`, der die
-  `AppShell` umschließt, damit Timer Navigation überleben). Kein globaler Store (kein
+- App-weiter State als Provider in `src/App.tsx` oder, wenn er an der Sitzung hängt,
+  in `RequireAuth` (z. B. `TimerProvider`: pro Nutzer, mit `key` auf die User-ID, umschließt
+  die `AppShell`, damit Timer Navigation überleben). Kein globaler Store (kein
   Redux/Zustand) ohne Decision-Note.
 - Feature-State als reine Reducer/Funktionen + Hook: Liste in `src/list/`
   (`state.ts`, `query.ts`, `url.ts`, `persistence.ts`, `useListState.ts`), Editor in

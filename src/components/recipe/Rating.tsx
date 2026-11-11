@@ -130,7 +130,9 @@ function MyRatingInput({
               aria-label={`${n} von 5`}
               aria-pressed={own === n}
               disabled={disabled}
-              onClick={() => n !== own && save(() => foodly.setMyRating(recipe.id, n))}
+              onClick={() => {
+                if (n !== own) void save(() => foodly.setMyRating(recipe.id, n))
+              }}
             >
               <Star
                 className={cn(
@@ -149,7 +151,7 @@ function MyRatingInput({
           size="sm"
           className={sheet ? 'h-10' : undefined}
           disabled={disabled || own === null}
-          onClick={() => save(() => foodly.clearMyRating(recipe.id))}
+          onClick={() => void save(() => foodly.clearMyRating(recipe.id))}
         >
           Entfernen
         </Button>

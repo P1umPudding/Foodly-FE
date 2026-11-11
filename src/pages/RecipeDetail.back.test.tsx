@@ -63,7 +63,7 @@ function renderMemory(entries: string[]) {
   vi.spyOn(foodly, 'getRecipe').mockImplementation(async (id) => recipe(id))
   render(
     <TooltipProvider>
-      <TimerProvider>
+      <TimerProvider userId={1}>
         <MemoryRouter initialEntries={entries} initialIndex={entries.length - 1}>
           {routes()}
         </MemoryRouter>
@@ -76,7 +76,7 @@ function renderBrowser() {
   vi.spyOn(foodly, 'getRecipe').mockImplementation(async (id) => recipe(id))
   render(
     <TooltipProvider>
-      <TimerProvider>
+      <TimerProvider userId={1}>
         <BrowserRouter>{routes()}</BrowserRouter>
       </TimerProvider>
     </TooltipProvider>,
