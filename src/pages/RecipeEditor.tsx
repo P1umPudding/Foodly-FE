@@ -275,7 +275,7 @@ export function RecipeEditor() {
               <div className="flex items-center gap-3">
                 {createError && <span className="text-destructive">{createError}</span>}
                 <Button
-                  onClick={create}
+                  onClick={() => void create()}
                   aria-disabled={creating || cannotCreate}
                   aria-busy={creating}
                   className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
@@ -305,7 +305,7 @@ export function RecipeEditor() {
                 </span>
               </div>
               <Button
-                onClick={finish}
+                onClick={() => void finish()}
                 aria-disabled={finishing || sizeError !== null}
                 aria-busy={finishing}
                 className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"

@@ -87,7 +87,7 @@ export function DeleteRecipeButton({
               focus on the button while pending; a disabled button would drop it out of the dialog. */}
           <Button
             variant="destructive"
-            onClick={onConfirm}
+            onClick={() => void onConfirm()}
             aria-disabled={pending}
             className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
           >

@@ -143,7 +143,7 @@ export function ThemeSubmenu() {
         <DropdownMenuRadioGroup value={colorMode}>
           {OPTIONS.map(({ mode, label, icon: Icon }) => (
             // onClick, not onValueChange: the reveal starts at the click point.
-            <DropdownMenuRadioItem key={mode} value={mode} onClick={(e) => select(e, mode)} className="gap-2">
+            <DropdownMenuRadioItem key={mode} value={mode} onClick={(e) => void select(e, mode)} className="gap-2">
               <Icon />
               {label}
             </DropdownMenuRadioItem>

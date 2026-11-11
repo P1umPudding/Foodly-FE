@@ -143,7 +143,7 @@ export function RecipeDetail() {
                   variant="outline"
                   size="sm"
                   aria-label="Duplizieren"
-                  onClick={onClone}
+                  onClick={() => void onClone()}
                   disabled={cloning}
                   className="gap-1.5 phone:size-10"
                 >
