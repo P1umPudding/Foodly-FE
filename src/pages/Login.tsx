@@ -1,11 +1,12 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { flushSync } from 'react-dom'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { Alert, AlertDescription, Button, Spinner } from '@postxl/ui-components'
 import { ApiError, foodly } from '../api'
 import { AuthCard, AuthLink } from '../components/auth/AuthCard'
 import { AuthField } from '../components/auth/AuthField'
-import { EMPTY_EMAIL, EMPTY_PASSWORD, TOO_MANY_ATTEMPTS } from '../components/auth/texts'
+import { EMPTY_EMAIL, EMPTY_PASSWORD, SESSION_EXPIRED, TOO_MANY_ATTEMPTS } from '../components/auth/texts'
+import { readLoginState } from '../components/auth/loginState'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 type Field = 'email' | 'password'
@@ -27,12 +28,16 @@ function errorText(err: unknown): string {
 export function Login() {
   useDocumentTitle('Anmelden · Foodly')
   const [params] = useSearchParams()
+  const { expired, email: knownEmail } = readLoginState(useLocation().state)
   const next = params.get('next')
-  const prefilledEmail = params.get('email') ?? ''
+  const prefilledEmail = params.get('email') || knownEmail || ''
   const [values, setValues] = useState({ email: prefilledEmail, password: '' })
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({})
   const [errors, setErrors] = useState<Errors>({})
   const [failure, setFailure] = useState<string | null>(null)
+  // The expired hint gives way to the first real error and stays gone, so retries don't re-announce it.
+  const [hintDismissed, setHintDismissed] = useState(false)
+  const showHint = expired && !hintDismissed
   const [busy, setBusy] = useState(false)
   const refs = { email: useRef<HTMLInputElement>(null), password: useRef<HTMLInputElement>(null) }
 
@@ -68,6 +73,7 @@ export function Login() {
       flushSync(() => {
         setBusy(false)
         setFailure(errorText(err))
+        setHintDismissed(true)
         if (unauthorized) {
           setValues((v) => ({ ...v, password: '' }))
           // Cleared by us, not by the user: leaving it empty must not show "Bitte gib dein Passwort ein."
@@ -90,12 +96,18 @@ export function Login() {
       }
     >
       <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
+        {showHint && (
+          <Alert>
+            <AlertDescription id="login-expired">{SESSION_EXPIRED}</AlertDescription>
+          </Alert>
+        )}
         <AuthField
           id="login-email"
           label="E-Mail"
           type="email"
           autoComplete="email"
           autoFocus={!prefilledEmail}
+          describedBy={showHint && !prefilledEmail ? 'login-expired' : undefined}
           value={values.email}
           onChange={change('email')}
           onBlur={blur('email')}
@@ -108,6 +120,8 @@ export function Login() {
           type="password"
           autoComplete="current-password"
           autoFocus={!!prefilledEmail}
+          // Focus starts past the hint, so a screen reader reads it with the focused field.
+          describedBy={showHint && prefilledEmail ? 'login-expired' : undefined}
           revealable
           value={values.password}
           onChange={change('password')}

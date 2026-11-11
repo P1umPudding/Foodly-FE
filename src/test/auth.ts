@@ -11,7 +11,7 @@ export function jwt(secondsFromNow: number, claims: Record<string, unknown> = {}
   return `${base64url({ alg: 'HS256', typ: 'JWT' })}.${base64url({ sub: '1', exp, jti: ++issued, ...claims })}.sig`
 }
 
-type Stored = { accessToken: string; refreshToken: string; userId: number }
+type Stored = { accessToken: string; refreshToken: string; userId: number; email?: string }
 
 export function seedSession(session: Partial<Stored> = {}): Stored {
   const stored = { accessToken: jwt(900), refreshToken: 'refresh-1', userId: 1, ...session }

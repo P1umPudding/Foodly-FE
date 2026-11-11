@@ -15,6 +15,7 @@ type Props = {
   autoFocus?: boolean
   error?: ReactNode
   hint?: string
+  describedBy?: string
   revealable?: boolean
   inputRef?: Ref<HTMLInputElement>
 }
@@ -30,6 +31,7 @@ export function AuthField({
   autoFocus,
   error,
   hint,
+  describedBy,
   revealable,
   inputRef,
 }: Props) {
@@ -58,7 +60,7 @@ export function AuthField({
           autoComplete={autoComplete}
           autoFocus={autoFocus}
           aria-invalid={error ? true : undefined}
-          aria-describedby={note ? noteId : undefined}
+          aria-describedby={[note && noteId, describedBy].filter(Boolean).join(' ') || undefined}
           className={revealable ? 'min-h-10 pr-10' : 'min-h-10'}
         />
         {revealable && (
