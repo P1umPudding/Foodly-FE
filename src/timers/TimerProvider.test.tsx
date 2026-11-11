@@ -213,5 +213,21 @@ describe('timers per signed-in user', () => {
     const id = vi.mocked(startAlarm).mock.calls[0][0]
     await signOut()
     expect(stopAlarm).toHaveBeenCalledWith(id)
+    expect(toast.dismiss).toHaveBeenCalledWith('toast-1')
+  })
+
+  it('swaps the timers when another user signs in directly, as in another tab', async () => {
+    spyCatalogs()
+    signInAs(1)
+    renderApp()
+    await screen.findByRole('list', { name: 'timers' })
+    act(() => api.add({ label: 'Ei', durationMs: 50 }))
+    await waitFor(() => expect(startAlarm).toHaveBeenCalled(), { timeout: 3000 })
+    const id = vi.mocked(startAlarm).mock.calls[0][0]
+
+    signInAs(2)
+    await waitFor(() => expect(timerItems()).toHaveLength(0))
+    expect(stopAlarm).toHaveBeenCalledWith(id)
+    expect(JSON.parse(localStorage.getItem('foodly.timers.v1:1')!)).toHaveLength(1)
   })
 })
