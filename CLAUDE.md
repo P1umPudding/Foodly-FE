@@ -117,9 +117,9 @@ In short:
   `WebSocket` in components, hooks or pages.
 - Transport is **REST** via `src/api/rest.ts`. Base URL from
   `import.meta.env.VITE_API_URL` (default `/api/v1`); in dev the Vite proxy
-  forwards `/api` to `http://localhost:8080` (same-origin, because the
-  backend's CORS `Allow-Headers: *` doesn't cover `Authorization`). **Never
-  hardcode URLs** — they come from env only.
+  forwards `/api` to `http://localhost:8080` (same-origin; a cross-origin
+  `VITE_API_URL` needs the app's origin in the backend's
+  `CORS_ALLOWED_ORIGINS`). **Never hardcode URLs** — they come from env only.
 - `VITE_MOCK=1` serves **everything** from `src/mocks`.
 - Every `foodly.*` method has a mock branch; all except `listUsers` also have a
   REST branch (`USE_MOCKS ? socket.request(...) : rest.*`). `listUsers` is

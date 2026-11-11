@@ -3,6 +3,7 @@ import {
   AvatarFallback,
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -11,6 +12,8 @@ import {
   TooltipTrigger,
   cn,
 } from '@postxl/ui-components'
+import { LogOut } from 'lucide-react'
+import { foodly } from '../../api'
 import { useMe } from '../../catalog/CatalogProvider'
 import { ThemeSubmenu } from '../ThemeMenu'
 import { navItemClass } from './navItem'
@@ -19,7 +22,8 @@ import { TriggerButton } from '../TriggerButton'
 const LABEL = 'Profil & Einstellungen'
 
 // Profile and settings behind the avatar (phone header) or the sidebar's bottom row. There is no profile
-// page yet; the menu holds the name and the theme. Wake-lock stays on the recipe page, where it acts.
+// page yet; the menu holds the name, the theme and (REST only) Abmelden. Wake-lock stays on the recipe
+// page, where it acts.
 //  • avatar — phone header, 40 px tap target
 //  • row    — expanded sidebar: avatar + name
 //  • icon   — collapsed sidebar: avatar only, tooltip
@@ -72,6 +76,16 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
         <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <ThemeSubmenu />
+        {foodly.auth.canSignOut && (
+          <>
+            <DropdownMenuSeparator />
+            {/* No confirm, no toast: the guard takes over to /login at once (design spec „Abmelden“). */}
+            <DropdownMenuItem className="gap-2" onSelect={() => void foodly.auth.signOut()}>
+              <LogOut aria-hidden className="size-4" />
+              Abmelden
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

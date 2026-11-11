@@ -88,8 +88,22 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
 With `VITE_MOCK=1` every method is answered by `src/mocks`.
 
 **Dev proxy.** `vite.config.ts` proxies `/api` to `http://localhost:8080`, so
-the browser talks same-origin. That's needed because the backend's CORS
-`Allow-Headers: *` doesn't cover the `Authorization` header cross-origin.
+the browser talks same-origin and CORS doesn't come into play.
+
+**Signing in.** In REST mode every page except `/login` and `/register` needs a
+session. Against a local backend, create the seed users with
+`cargo run --bin seed` in the backend repo and sign in as `user1@example.com`
+(also `user2`, `user3`); the password is in the
+[backend README](https://github.com/klassenserver7b/Foodly-backend#readme), or
+register a new account. "Abmelden" sits in the profile menu (REST mode only).
+
+- **Cross-origin backend:** with a `VITE_API_URL` on another origin, add the
+  app's origin to the backend's `CORS_ALLOWED_ORIGINS` (default
+  `http://localhost:5173`). The backend allows `Authorization` and
+  `Content-Type` for those origins.
+- **HTTPS:** access and refresh token live in `localStorage` and go out as
+  bearer headers, so serve both app and backend over HTTPS anywhere but
+  `localhost`.
 
 **WebSocket.** `src/api/socket.ts` (`SocketClient`) is reserved for future live
 editing and is never connected today; the mock responder runs through it. The
@@ -173,6 +187,6 @@ Cloudflare Pages).
 - Needs an **SPA fallback** (serve `index.html` for unknown routes).
   `public/_redirects` (`/* /index.html 200`) covers Cloudflare-style hosts; on a
   plain server configure the equivalent (e.g. nginx `try_files`).
-- Serve `/api` **same-origin** (reverse proxy to the backend). A cross-origin
-  `VITE_API_URL` won't work until the backend allows `Authorization` in CORS
-  (`docs/backend-questions.md` B7).
+- Serve `/api` **same-origin** (reverse proxy to the backend), or point
+  `VITE_API_URL` at the backend and add the app's origin to its
+  `CORS_ALLOWED_ORIGINS` (see "Signing in" above). HTTPS only.

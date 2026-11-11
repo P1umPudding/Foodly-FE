@@ -13,8 +13,8 @@ fehlt, wird gestubbt (ADR [0003](decisions/0003-backend-gap-stubs.md)).
 - UI ausschließlich mit `@postxl/ui-components` + Tailwind-Tokens, Look nach
   `docs/design.md`.
 - Echte Nutzer: Seit Backend-PR #20 (gemergt 2026-11-09) nimmt das Backend nur noch echte
-  JWTs an. Der REST-Modus braucht Login (#141–#143); bis #142 gemergt ist, läuft er gegen
-  Backend-`main` nicht. Mocks (`VITE_MOCK=1`, Skaile-Vorschau) bleiben ohne Login, Nutzer 1.
+  JWTs an. Der REST-Modus hat Anmelden, Registrieren und Abmelden (#141–#143); Tokens nur
+  über `src/api/auth.ts`. Mocks (`VITE_MOCK=1`, Skaile-Vorschau) bleiben ohne Login, Nutzer 1.
 
 ## Meilenstein Alpha  (Ziel, Stand 2026-10-29)
 

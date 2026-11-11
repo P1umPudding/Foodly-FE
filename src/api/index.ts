@@ -1,7 +1,7 @@
 import { SocketClient } from './socket'
 import { rest, collectPages } from './rest'
 import * as session from './auth'
-import type { AuthListener, AuthSession } from './auth'
+import type { AuthListener, AuthSession, SessionEnd } from './auth'
 import { resetTagIconCache } from './assets'
 import { previewToRecipe } from './adapters'
 import { isStubbed, mergeMyRating, setStubUser, sortByRating, writeMyRating } from './stubs'
@@ -59,6 +59,8 @@ if (!USE_MOCKS) {
 const auth = {
   session: (): AuthSession | null => (USE_MOCKS ? MOCK_SESSION : session.session()),
   subscribe: (listener: AuthListener): (() => void) => (USE_MOCKS ? () => {} : session.subscribe(listener)),
+  sessionEnd: (): SessionEnd | null => (USE_MOCKS ? null : session.sessionEnd()),
+  canSignOut: !USE_MOCKS,
   signIn: (email: string, password: string): Promise<AuthSession> =>
     USE_MOCKS ? Promise.resolve(MOCK_SESSION) : session.signIn(email, password),
   signUp: (name: string, email: string, password: string): Promise<AuthSession> =>

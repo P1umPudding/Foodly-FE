@@ -2,7 +2,9 @@ import { act, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { foodly } from '../../api'
-import { jsonResponse, seedSession } from '../../test/auth'
+import { getAccessToken, resetSessionEnd } from '../../api/auth'
+import { Login } from '../../pages/Login'
+import { jsonResponse, jwt, seedSession } from '../../test/auth'
 import { renderAuthRoutes } from '../../test/authRoutes'
 
 vi.mock('./AppShell', () => ({ AppShell: ({ children }: { children: ReactNode }) => <>{children}</> }))
@@ -22,6 +24,7 @@ function spyCatalogs() {
 afterEach(() => {
   vi.restoreAllMocks()
   localStorage.clear()
+  resetSessionEnd()
 })
 
 describe('RequireAuth', () => {
@@ -47,14 +50,48 @@ describe('RequireAuth', () => {
     expect(me).toHaveBeenCalled()
   })
 
-  it('goes back to /login when the session ends while the app is open', async () => {
+  it('sends an explicit sign-out to /login without next', async () => {
     seedSession()
     spyCatalogs()
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(204))
     renderAuthRoutes('/recipes/5')
     await screen.findByText('app /recipes/5')
     await act(() => foodly.auth.signOut())
-    expect(location()).toBe('login /login?next=%2Frecipes%2F5')
+    expect(location()).toBe('login /login')
+  })
+
+  it('follows a sign-out in another tab to /login with next', async () => {
+    seedSession()
+    // src/api subscribed while storage was still empty; like a sign-in in another tab, this tells it
+    // about the session, so the removal below counts as a sign-out.
+    window.dispatchEvent(new StorageEvent('storage', { key: 'foodly.auth' }))
+    spyCatalogs()
+    renderAuthRoutes('/recipes/5', { login: <Login /> })
+    await screen.findByText('app /recipes/5')
+    act(() => {
+      localStorage.removeItem('foodly.auth')
+      window.dispatchEvent(new StorageEvent('storage', { key: 'foodly.auth' }))
+    })
+    expect(screen.getByRole('link', { name: 'Registrieren' }).getAttribute('href')).toBe(
+      '/register?next=%2Frecipes%2F5',
+    )
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('after a refresh 401 shows the expired hint with the known e-mail and keeps next', async () => {
+    seedSession({ accessToken: jwt(-60), email: 'kim@example.com' })
+    spyCatalogs()
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      if (String(url).endsWith('/auth/refresh')) return jsonResponse(401, {})
+      throw new Error(`unexpected fetch ${String(url)}`)
+    })
+    renderAuthRoutes('/recipes/5', { login: <Login /> })
+    await act(() => getAccessToken())
+    expect(screen.getByRole('alert').textContent).toBe('Deine Anmeldung ist abgelaufen. Bitte melde dich neu an.')
+    expect(screen.getByLabelText<HTMLInputElement>('E-Mail').value).toBe('kim@example.com')
+    expect(screen.getByRole('link', { name: 'Registrieren' }).getAttribute('href')).toBe(
+      '/register?next=%2Frecipes%2F5',
+    )
   })
 })
 
