@@ -259,6 +259,15 @@ describe('Timer button in the header', () => {
     return panel
   }
 
+  it('closes the phone sheet from the header button without reopening it', async () => {
+    await openSheet()
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Timer' }))
+    openTimers()
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('false')
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
+  })
+
   it('keeps the phone sheet non-modal', async () => {
     await openSheet()
     // A modal sheet would hide the page from the accessibility tree and switch off its pointer events.
