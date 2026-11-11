@@ -9,6 +9,7 @@ import { FOCUS_RING } from '../components/focusRing'
 import ratingTsx from '../components/recipe/Rating.tsx?raw'
 import sidebarTsx from '../components/shell/Sidebar.tsx?raw'
 import lightboxTsx from '../components/recipe/Lightbox.tsx?raw'
+import durationPickerTsx from '../components/DurationPicker.tsx?raw'
 
 const RINGS = ['ring', 'sidebar-ring']
 const SURFACES = ['background', 'card', 'popover', 'muted', 'accent', 'sidebar', 'sidebar-accent']
@@ -176,7 +177,8 @@ describe('postxl toggle-group item ring width (#95)', () => {
 })
 
 // Hand-written focus rings must use the shared 3-px width (#90/#95) rather than their own; the colour stays per
-// place. Render checks in Rating.test, AppShell.test and Lightbox.test cover the resulting classes.
+// place. Render checks in Rating.test, AppShell.test and Lightbox.test cover the resulting classes; DurationPicker
+// keeps its own `focus:` inset ring (#158) and only takes the width.
 describe('hand-written focus rings (#133)', () => {
   it('FOCUS_RING has the width postxl buttonVariants ships', () => {
     const base = postxlJs.match(/const buttonVariants = cva\("([^"]*)"/)?.[1]
@@ -214,5 +216,10 @@ describe('hand-written focus rings (#133)', () => {
   ])('%s takes the shared width', (_name, source, marker) => {
     expect(source).toContain(marker)
     expect(focusWidths(source).filter((w) => w !== 'focus-visible:ring-[3px]')).toEqual([])
+  })
+
+  it('DurationPicker takes the shared width on its focus (not focus-visible) inset ring', () => {
+    expect(durationPickerTsx).toContain('focus:ring-inset')
+    expect(focusWidths(durationPickerTsx)).toEqual(['focus:ring-[3px]'])
   })
 })

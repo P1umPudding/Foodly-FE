@@ -32,6 +32,13 @@ it('shows the criterion and the direction on the button', () => {
   expect(trigger().getAttribute('aria-label')).toBe('Sortieren: Name, A → Z')
 })
 
+it('keeps the 8-px gap between icon, label and chevron', () => {
+  render(<Harness />)
+  // jsdom applies no CSS: the un-merged buttonVariants this trigger used to get let base gap-2 beat sm's gap-1.5.
+  expect(trigger().classList.contains('gap-2')).toBe(true)
+  expect(trigger().classList.contains('gap-1.5')).toBe(false)
+})
+
 it('sets sortKey work and sortDir desc via "Arbeitszeit" + "Längste zuerst"', async () => {
   const onSet = vi.fn()
   render(<Harness onSet={onSet} />)
