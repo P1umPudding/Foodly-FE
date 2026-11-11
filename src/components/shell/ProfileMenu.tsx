@@ -40,9 +40,11 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
 
   const trigger =
     variant === 'row' ? (
-      <DropdownMenuTrigger aria-label={`${name} – ${LABEL}`} className={navItemClass(false, false)}>
-        {avatar}
-        <span className="truncate">{name}</span>
+      <DropdownMenuTrigger asChild>
+        <TriggerButton variant="ghost" aria-label={`${name} – ${LABEL}`} className={navItemClass(false, false)}>
+          {avatar}
+          <span className="truncate">{name}</span>
+        </TriggerButton>
       </DropdownMenuTrigger>
     ) : (
       <DropdownMenuTrigger asChild>
