@@ -25,6 +25,7 @@ export function Lightbox({
   const go = (delta: number) => onIndexChange((index + delta + n) % n)
   const stripRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
 
   // Which side of the image fills the box. Sizing the <img> element to the
   // *visible* image (not the whole box) means it has no transparent margin, so a
@@ -66,8 +67,10 @@ export function Lightbox({
     if (scrollbarW > 0) html.style.paddingRight = `${scrollbarW}px`
     const swallow = (e: Event) => e.preventDefault()
     const swallowKeys = (e: KeyboardEvent) => {
-      // Space on a focused button activates it (no scroll); cancelling its keydown would swallow the click.
-      if (e.key === ' ' && e.target instanceof Element && e.target.closest('button')) return
+      // Space on a focused button inside the lightbox activates it (no scroll); cancelling its keydown would
+      // swallow the click. Buttons on the page behind stay blocked (focus isn't moved into the dialog).
+      const t = e.target
+      if (e.key === ' ' && t instanceof Element && t.closest('button') && dialogRef.current?.contains(t)) return
       if ([' ', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault()
     }
     window.addEventListener('wheel', swallow, { passive: false })
@@ -105,6 +108,7 @@ export function Lightbox({
   return createPortal(
     // cursor-zoom-out: clicking the backdrop shrinks the image again.
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       onClick={onClose}
