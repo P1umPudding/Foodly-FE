@@ -26,7 +26,7 @@ Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 - Redesign „Ruhig“ komplett (Abschnitt unten): Shell, Liste, Detail, Koch-Modus, Timer.
 - Phase 4 ohne Teilen: Rezept anlegen, bearbeiten, kopieren (✅ vorhanden),
   **löschen**, Kategorien verwalten (anlegen, umbenennen, sortieren, Rezepte zuordnen),
-  Bild-Upload, Tag-Icons über `GET /tags/{id}/icon` (G3).
+  Bild-Upload und -Anzeige (`GET /images/{hash}`, FE #144), Tag-Icons über `GET /tags/{id}/icon` (G3).
 - Phase 5 ohne Gruppen und „kürzlich hinzugefügt“: Kategorien, eigene zuletzt
   erstellte, „Jump back in“.
 - Phase 6 Mobile komplett.
@@ -34,7 +34,6 @@ Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 **Gestubbt (ADR 0003), später auf REST umstellen:**
 | Funktion | Stub | Backend |
 |---|---|---|
-| Rezeptbilder anzeigen | wie ohne Foto (Editor: Platzhalter) | #9 (B1) ✅ PR #19, `GET /images/{hash}` öffentlich ✅ PR #20 → FE: #140, #144 |
 | Namen von Owner/Editoren | Mock-Liste wie heute | #10 (B2) |
 | Rating abgeben | localStorage | #11 (B3) |
 | Teilen (Editoren/Viewer) | localStorage | #12 (B4) |

@@ -17,44 +17,52 @@ afterEach(() => {
 })
 
 describe('recipe images in REST mode', () => {
-  it('hides recipe images in list and detail', async () => {
-    const { showsRecipeImages } = await loadAssets({ mock: false })
-    expect(showsRecipeImages()).toBe(false)
-  })
-
-  it('serves the placeholder for every image id', async () => {
+  it('serves recipe images from the backend by hash', async () => {
+    vi.stubEnv('VITE_API_URL', '/api/v1')
     const { recipeImageSrc } = await loadAssets({ mock: false })
-    for (const id of [1, 3, 999]) expect(recipeImageSrc(ref(id))).toMatch(/\/recipes\/placeholder\.svg$/)
+    expect(recipeImageSrc({ id: 1, hash: 'ab12', name: null })).toBe('/api/v1/images/ab12')
   })
 
-  it('serves the placeholder under the base path', async () => {
-    const { recipeImageSrc } = await loadAssets({ mock: false, base: '/foo/' })
-    expect(recipeImageSrc(ref(3))).toBe('/foo/recipes/placeholder.svg')
+  it('encodes the hash', async () => {
+    vi.stubEnv('VITE_API_URL', '/api/v1')
+    const { recipeImageSrc } = await loadAssets({ mock: false })
+    expect(recipeImageSrc({ id: 1, hash: 'a/b', name: null })).toBe('/api/v1/images/a%2Fb')
   })
 
-  it('captions the placeholder neutrally, even when the image has a name', async () => {
+  it('captions with the image name, falling back to the id', async () => {
     const { imageName } = await loadAssets({ mock: false })
-    expect(imageName(ref(1))).toBe('Bild 1')
-    expect(imageName({ id: 1, hash: 'h1', name: 'Fertiger Teller' })).toBe('Bild 1')
+    expect(imageName({ id: 1, hash: 'h1', name: 'Fertiger Teller' })).toBe('Fertiger Teller')
+    expect(imageName(ref(7))).toBe('Bild 7')
+  })
+
+  it('serves profile pictures from the backend by hash', async () => {
+    vi.stubEnv('VITE_API_URL', '/api/v1')
+    const { userImageSrc } = await loadAssets({ mock: false })
+    expect(userImageSrc('cd34')).toBe('/api/v1/images/cd34')
   })
 })
 
 describe('recipe images in mock mode', () => {
-  it('shows recipe images', async () => {
-    const { showsRecipeImages } = await loadAssets({ mock: true })
-    expect(showsRecipeImages()).toBe(true)
-  })
-
   it('keeps the mock asset URLs', async () => {
     const { recipeImageSrc } = await loadAssets({ mock: true })
     expect(recipeImageSrc(ref(1))).toMatch(/\/recipes\/1\.png$/)
     expect(recipeImageSrc(ref(3))).toMatch(/\/recipes\/3\.svg$/)
   })
 
+  it('serves the mock assets under the base path', async () => {
+    const { recipeImageSrc } = await loadAssets({ mock: true, base: '/foo/' })
+    expect(recipeImageSrc(ref(3))).toBe('/foo/recipes/3.svg')
+  })
+
   it('captions with the image name, falling back to the id', async () => {
     const { imageName } = await loadAssets({ mock: true })
     expect(imageName({ id: 1, hash: 'h1', name: 'Fertiger Teller' })).toBe('Fertiger Teller')
     expect(imageName(ref(7))).toBe('Bild 7')
+  })
+
+  it('keeps the public profile pictures', async () => {
+    const { userImageSrc } = await loadAssets({ mock: true, base: '/foo/' })
+    expect(userImageSrc('cd34')).toBe('/foo/users/cd34.svg')
   })
 })
 

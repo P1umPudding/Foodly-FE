@@ -2,16 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeRow } from './RecipeRow'
-import type { StubFeature } from '../../api/stubs'
 import type { Recipe, Tag, UserCategory } from '../../api/protocol'
 import { ref } from '../../test/images'
-
-// Only the images stub is toggled, so the real showsRecipeImages/recipeImageSrc decide what renders.
-const imageStub = vi.hoisted(() => ({ stubbed: true }))
-vi.mock('../../api/stubs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../api/stubs')>()
-  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
-})
 
 const tags = vi.hoisted(() => ({ byId: {} as Record<string, Tag> }))
 vi.mock('../../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1, useTags: () => tags }))
@@ -77,32 +69,29 @@ it('collaborative recipe shows the average with a decimal comma', () => {
 
 describe('detailed thumbnail', () => {
   it('without showImages there is no image cell at all', () => {
-    imageStub.stubbed = false
     const { container } = renderRow({ ...base, mainImage: ref(3) })
     expect(screen.queryByTestId('recipe-thumb')).toBeNull()
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('.lucide-utensils-crossed')).toBeNull()
   })
 
-  it('mock: a recipe with a main image shows it in a 48 px cell', () => {
-    imageStub.stubbed = false
-    const { container } = renderRow({ ...base, mainImage: ref(3) }, { showImages: true })
+  it('REST: a recipe with a main image shows it from the backend in a 48 px cell', () => {
+    const { container } = renderRow({ ...base, mainImage: { id: 3, hash: 'ab12', name: null } }, { showImages: true })
     expect(screen.getByTestId('recipe-thumb').className).toMatch(/\bh-12 w-12\b/)
-    expect(container.querySelector('img')?.getAttribute('src')).toMatch(/\/recipes\/3\.svg$/)
+    expect(container.querySelector('img')?.getAttribute('src')).toBe('/api/v1/images/ab12')
     expect(container.querySelector('.lucide-utensils-crossed')).toBeNull()
   })
 
-  it('a recipe without a photo gets the grey placeholder', () => {
-    imageStub.stubbed = false
-    const { container } = renderRow(base, { showImages: true })
-    expect(screen.getByTestId('recipe-thumb').className).toContain('bg-muted')
+  it('a photo that fails to load looks like no photo', () => {
+    const { container } = renderRow({ ...base, mainImage: ref(3) }, { showImages: true })
+    fireEvent.error(container.querySelector('img')!)
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('.lucide-utensils-crossed')).toBeTruthy()
   })
 
-  it('REST: a main image still falls back to the placeholder', () => {
-    imageStub.stubbed = true
-    const { container } = renderRow({ ...base, mainImage: ref(3) }, { showImages: true })
+  it('a recipe without a photo gets the grey placeholder', () => {
+    const { container } = renderRow(base, { showImages: true })
+    expect(screen.getByTestId('recipe-thumb').className).toContain('bg-muted')
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('.lucide-utensils-crossed')).toBeTruthy()
   })

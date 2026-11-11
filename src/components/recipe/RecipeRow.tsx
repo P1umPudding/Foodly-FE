@@ -8,8 +8,8 @@ import { TagChips } from './TagChips'
 import { RatingMeta } from './Stars'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import { CategoryDots } from './CategoryDots'
+import { RecipeImage } from './RecipeImage'
 import { visibleRating } from '../../api/views'
-import { recipeImageSrc, showsRecipeImages } from '../../api/assets'
 import { useCurrentUserId, useTags } from '../../catalog/CatalogProvider'
 import type { Recipe, UserCategory } from '../../api/protocol'
 
@@ -60,6 +60,8 @@ export function RecipeRow({
   const rating = visibleRating(recipe, useCurrentUserId())
   const indicator = <RoleCollabIndicator recipe={recipe} />
   const dots = <CategoryDots categories={categories} />
+  // A photo that fails to load looks like no photo at all.
+  const noPhoto = <UtensilsCrossed className="h-5 w-5 text-muted-foreground/40" />
   // Tags are hidden on phones; no wrapper at all without tags, so no empty flex gap.
   const tags = recipe.tags.length > 0 && (
     <div className="phone:hidden">
@@ -109,10 +111,10 @@ export function RecipeRow({
             data-testid="recipe-thumb"
             className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted"
           >
-            {recipe.mainImage !== null && showsRecipeImages() ? (
-              <img src={recipeImageSrc(recipe.mainImage)} alt="" className="h-full w-full object-cover" />
+            {recipe.mainImage !== null ? (
+              <RecipeImage image={recipe.mainImage} alt="" className="h-full w-full object-cover" fallback={noPhoto} />
             ) : (
-              <UtensilsCrossed className="h-5 w-5 text-muted-foreground/40" />
+              noPhoto
             )}
           </div>
         )}

@@ -31,7 +31,6 @@ import { RecipeImages } from '../components/recipe/RecipeImages'
 import { DeleteRecipeButton } from '../components/recipe/DeleteRecipeButton'
 import { Lightbox } from '../components/recipe/Lightbox'
 import { TriggerButton } from '../components/TriggerButton'
-import { showsRecipeImages } from '../api/assets'
 import type { Recipe, RecipeIngredientId } from '../api/protocol'
 import { hasPortions } from '../api/views'
 
@@ -112,12 +111,7 @@ export function RecipeDetail() {
   // Timer labels are plain text, so tag tokens in the name become the tag's name.
   const plainName = recipe ? plainTagText(recipe.name, tags) : ''
   // All images of the recipe in viewer order: main first, then the gallery. Empty → no hero, no lightbox.
-  const allImages =
-    recipe && showsRecipeImages()
-      ? recipe.mainImage !== null
-        ? [recipe.mainImage, ...recipe.images]
-        : recipe.images
-      : []
+  const allImages = recipe ? (recipe.mainImage !== null ? [recipe.mainImage, ...recipe.images] : recipe.images) : []
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
