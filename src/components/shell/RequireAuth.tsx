@@ -6,6 +6,7 @@ import { foodly } from '../../api'
 import { CatalogProvider } from '../../catalog/CatalogProvider'
 import { useAuthSession } from '../../hooks/useAuthSession'
 import { safeNext } from '../../lib/safeNext'
+import { TimerProvider } from '../../timers/TimerProvider'
 import type { LoginState } from '../auth/loginState'
 import { AppShell } from './AppShell'
 
@@ -21,13 +22,16 @@ export function RequireAuth() {
     const state: LoginState | undefined = end?.reason === 'expired' ? { expired: true, email: end.email } : undefined
     return <Navigate to={`/login?${next.toString()}`} replace state={state} />
   }
-  // Keyed on the user, so a sign-in as someone else (e.g. in another tab) reloads `me` and the catalogs.
+  // Keyed on the user, so a sign-in as someone else (e.g. in another tab) reloads `me` and the catalogs and
+  // swaps in that user's timers; the previous user's alarm ends with their provider.
   return (
-    <CatalogProvider key={session.userId}>
-      <AppShell>
-        <Outlet />
-      </AppShell>
-    </CatalogProvider>
+    <TimerProvider key={session.userId} userId={session.userId}>
+      <CatalogProvider key={session.userId}>
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      </CatalogProvider>
+    </TimerProvider>
   )
 }
 

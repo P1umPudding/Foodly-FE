@@ -44,7 +44,7 @@ function renderAt(entry: string) {
   return render(
     <ThemeProvider>
       <TooltipProvider>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <MemoryRouter initialEntries={[entry]}>
             <AppShell>
               <Routes>

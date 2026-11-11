@@ -25,6 +25,8 @@ describe('guards in mock mode', () => {
   it('protects nothing', async () => {
     renderAuthRoutes('/recipes/5')
     expect(await screen.findByText('app /recipes/5')).toBeTruthy()
+    // The timers belong to mock user 1.
+    expect(localStorage.getItem('foodly.timers.v1:1')).toBe('[]')
   })
 
   it('forwards /login to /recipes', async () => {
