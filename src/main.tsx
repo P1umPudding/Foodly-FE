@@ -23,5 +23,11 @@ function render() {
 // Install the mock responder before mounting (always — REST mode still mocks
 // listUsers). It's a dynamic import, so rendering first lets the first mocked
 // requests race ahead of the responder and reject with "socket not connected".
-// Waiting for bootstrap to settle avoids that.
-bootstrap().finally(render)
+// Waiting for bootstrap to settle avoids that. If it fails, the error is logged
+// and the app renders anyway.
+try {
+  await bootstrap()
+} catch (error) {
+  console.error(error)
+}
+render()

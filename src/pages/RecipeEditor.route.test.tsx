@@ -112,7 +112,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
   function DetailStub() {
     const [name, setName] = useState<string | null>(null)
     useEffect(() => {
-      foodly.getRecipe(5).then((r) => setName(r.name))
+      void foodly.getRecipe(5).then((r) => setName(r.name))
     }, [])
     return <p>Detail: {name ?? '…'}</p>
   }
@@ -384,7 +384,7 @@ describe('RecipeEditorRoute · leaving another way', () => {
   function DetailStub() {
     const [name, setName] = useState<string | null>(null)
     useEffect(() => {
-      foodly.getRecipe(5).then((r) => setName(r.name))
+      void foodly.getRecipe(5).then((r) => setName(r.name))
     }, [])
     return <p>Detail: {name ?? '…'}</p>
   }
