@@ -8,20 +8,5 @@
     "react/forbid-elements": {
       "count": 1
     }
-  },
-  "src/editor/useAutosave.ts": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
-  "src/pages/RecipeEditor.route.test.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
-  "src/pages/RecipeList.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
   }
 }

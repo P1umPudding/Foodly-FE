@@ -224,15 +224,16 @@ export function RecipeList() {
   // whenever loadMore changes (every page), and a fresh observer reports the sentinel's current state:
   // a page that adds no visible row leaves the sentinel in view, so the next page loads by itself.
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const { hasMore, loadMore } = search
   useEffect(() => {
     const el = sentinelRef.current
-    if (!el || !search.hasMore || awaitingCategories) return
+    if (!el || !hasMore || awaitingCategories) return
     const io = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) search.loadMore()
+      if (entries[0]?.isIntersecting) loadMore()
     })
     io.observe(el)
     return () => io.disconnect()
-  }, [search.hasMore, search.loadMore, awaitingCategories])
+  }, [hasMore, loadMore, awaitingCategories])
 
   return (
     // On phones the shell's bottom padding only clears the tab bar; the extra room lets the last card scroll past
