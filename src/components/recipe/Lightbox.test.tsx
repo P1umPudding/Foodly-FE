@@ -50,6 +50,13 @@ describe('Lightbox thumbnails', () => {
     expect(onIndexChange).toHaveBeenCalledWith(2)
   })
 
+  it('Space stays usable on a focused thumbnail, but still cannot scroll the page elsewhere', () => {
+    render(<Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />)
+    // fireEvent returns false when a listener called preventDefault (which would cancel the button's click).
+    expect(fireEvent.keyDown(screen.getByRole('button', { name: 'Bild 2' }), { key: ' ' })).toBe(true)
+    expect(fireEvent.keyDown(document.body, { key: ' ' })).toBe(false)
+  })
+
   it('show a white focus ring with a gap, full white on the active one', () => {
     render(<Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />)
 

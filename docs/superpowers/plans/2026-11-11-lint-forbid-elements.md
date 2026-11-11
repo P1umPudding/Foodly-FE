@@ -44,7 +44,7 @@ which renders `type="button"` + `FOCUS_RING` only (no size/padding/hover styles)
 3. Five local checks green → Step 4.
 
 ## Commits
-One commit (as #137): `Lint-Altlast react/forbid-elements abbauen: RecipeImages und Lightbox (#138)` — both components, tests,
+Main commit (as #137, review fixes follow as separate commits): `Lint-Altlast react/forbid-elements abbauen: RecipeImages und Lightbox (#138)` — both components, tests,
 pruned `eslint-suppressions.json` and this plan as `docs/superpowers/plans/2026-11-11-lint-forbid-elements.md`
 (CLAUDE.md: plans live in docs/superpowers/plans). One commit because ESLint 9 fails on unpruned suppressions,
 so a component-only commit would not pass `npm run lint`. No Co-Authored-By trailer.

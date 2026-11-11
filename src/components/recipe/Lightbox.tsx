@@ -66,6 +66,8 @@ export function Lightbox({
     if (scrollbarW > 0) html.style.paddingRight = `${scrollbarW}px`
     const swallow = (e: Event) => e.preventDefault()
     const swallowKeys = (e: KeyboardEvent) => {
+      // Space on a focused button activates it (no scroll); cancelling its keydown would swallow the click.
+      if (e.key === ' ' && e.target instanceof Element && e.target.closest('button')) return
       if ([' ', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault()
     }
     window.addEventListener('wheel', swallow, { passive: false })
