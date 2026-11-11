@@ -5,16 +5,11 @@ import {
   AvatarFallback,
   AvatarImage,
   Button,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
   Separator,
-  Sheet,
-  SheetTrigger,
   cn,
 } from '@postxl/ui-components'
 import { Stars } from './Stars'
-import { BottomSheet } from '../BottomSheet'
+import { ResponsivePanel, type PanelVariant } from '../ResponsivePanel'
 import { TriggerButton } from '../TriggerButton'
 import { DemoHint } from '../DemoHint'
 import { foodly } from '../../api'
@@ -22,7 +17,6 @@ import { errorMessage } from '../../lib/errorMessage'
 import { visibleRating, formatRating, ratingsByRole, collaborationState, type RatedRole } from '../../api/views'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
 import { userImageSrc } from '../../api/assets'
-import { useIsDesktop } from '../../hooks/useIsDesktop'
 import type { Recipe, UserId } from '../../api/protocol'
 
 const ROLE_LABEL: Record<RatedRole, string> = {
@@ -33,8 +27,6 @@ const ROLE_LABEL: Record<RatedRole, string> = {
 }
 
 const ROLE_ORDER: RatedRole[] = ['owner', 'editor', 'viewer', 'other']
-
-type Layout = 'popover' | 'sheet'
 
 // Full 5-star bar + number for the Durchschnitt row; tabular N,N keeps the
 // width stable.
@@ -87,7 +79,7 @@ function MyRatingInput({
   onChange,
 }: {
   recipe: Recipe
-  layout: Layout
+  layout: PanelVariant
   onChange?: (recipe: Recipe) => void
 }) {
   const currentUserId = useCurrentUserId()
@@ -177,7 +169,7 @@ function RatingDetails({
 }: {
   recipe: Recipe
   value: number | null
-  layout: Layout
+  layout: PanelVariant
   onChange?: (recipe: Recipe) => void
 }) {
   const currentUserId = useCurrentUserId()
@@ -223,15 +215,14 @@ function RatingDetails({
 export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recipe: Recipe) => void }) {
   const currentUserId = useCurrentUserId()
   const value = visibleRating(recipe, currentUserId)
-  const isDesktop = useIsDesktop()
-  const Root = isDesktop ? Popover : Sheet
-  const Trigger = isDesktop ? PopoverTrigger : SheetTrigger
 
   return (
-    <Root>
-      {/* cursor-pointer is explicit until the lib ships it for interactive elements. On phones the hit
-          area grows to 40 px (docs/design.md §7); the negative margin keeps the row height. */}
-      <Trigger asChild>
+    // The sheet stays modal, unlike TimerPanel's: a short form gets the focus trap and focus return,
+    // at the cost of timer toasts not being clickable while it is open.
+    <ResponsivePanel
+      // cursor-pointer is explicit until the lib ships it for interactive elements. On phones the hit
+      // area grows to 40 px (docs/design.md §7); the negative margin keeps the row height.
+      trigger={
         <TriggerButton
           variant="bare"
           aria-label={value === null ? 'Bewerten' : `Bewertung ${formatRating(value)} von 5`}
@@ -242,18 +233,11 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
           </span>
           {value === null && <span className="text-sm text-muted-foreground">Bewerten</span>}
         </TriggerButton>
-      </Trigger>
-      {isDesktop ? (
-        <PopoverContent className="max-h-[60vh] w-72 overflow-y-auto">
-          <RatingDetails recipe={recipe} value={value} layout="popover" onChange={onChange} />
-        </PopoverContent>
-      ) : (
-        // Modal, unlike TimerPanel's sheet: a short form gets the focus trap and focus return,
-        // at the cost of timer toasts not being clickable while it is open.
-        <BottomSheet title="Bewertung" description="Eigene Bewertung abgeben">
-          <RatingDetails recipe={recipe} value={value} layout="sheet" onChange={onChange} />
-        </BottomSheet>
-      )}
-    </Root>
+      }
+      popover={{ 'aria-label': 'Bewertung', className: 'max-h-[60vh] w-72 overflow-y-auto' }}
+      sheet={{ title: 'Bewertung', description: 'Eigene Bewertung abgeben' }}
+    >
+      {(variant) => <RatingDetails recipe={recipe} value={value} layout={variant} onChange={onChange} />}
+    </ResponsivePanel>
   )
 }
