@@ -100,7 +100,7 @@ describe('Rating', () => {
   })
 
   it('shows a failed removal inline', async () => {
-    vi.mocked(foodly.clearMyRating).mockRejectedValue(new Error('kaputt'))
+    vi.mocked(foodly.clearMyRating).mockRejectedValueOnce(new Error('kaputt'))
     open(recipe({ rating: [{ user: 1, rating: 3 }] }))
     fireEvent.click(await screen.findByRole('button', { name: 'Entfernen' }))
     expect((await screen.findByRole('alert')).textContent).toBe('kaputt')
