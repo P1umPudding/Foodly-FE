@@ -228,6 +228,7 @@ describe('timers per signed-in user', () => {
     signInAs(2)
     await waitFor(() => expect(timerItems()).toHaveLength(0))
     expect(stopAlarm).toHaveBeenCalledWith(id)
+    expect(toast.dismiss).toHaveBeenCalledWith('toast-1')
     expect(JSON.parse(localStorage.getItem('foodly.timers.v1:1')!)).toHaveLength(1)
   })
 })
