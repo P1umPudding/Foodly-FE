@@ -24,8 +24,8 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        {/* gap-2: the former un-merged buttonVariants string kept the base gap-2 next to sm's gap-1.5 (and gap-2
-            won in the CSS); TriggerButton merges, so keep the 8-px gap explicitly and the button doesn't narrow. */}
+        {/* gap-2, not sm's gap-1.5: keeps the 8-px spacing this trigger has always had (its old un-merged
+            buttonVariants string let the base gap-2 win). */}
         <TriggerButton
           variant="outline"
           size="sm"
