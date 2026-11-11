@@ -8,11 +8,11 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  buttonVariants,
 } from '@postxl/ui-components'
 import { useId } from 'react'
 import { ChevronDown } from 'lucide-react'
 import type { ListState, SortDir, SortKey } from '../../list/state'
+import { TriggerButton } from '../TriggerButton'
 import { SORT_CRITERIA, SORT_DIRS, criterionFor, dirIcon, dirLabel } from './listOptions'
 
 export function SortMenu({ state, set }: { state: ListState; set: (patch: Partial<ListState>) => void }) {
@@ -23,24 +23,28 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
 
   return (
     <DropdownMenu>
-      {/* The Radix trigger styled as the Button: the postxl Button doesn't forwardRef, which Radix needs to anchor
-          the menu (same as ProfileMenu). */}
-      <DropdownMenuTrigger
-        aria-label={`Sortieren: ${criterion.label}, ${dirLabel(state.sortKey, state.sortDir)}`}
-        className={buttonVariants({ variant: 'outline', size: 'sm' })}
-      >
-        <DirIcon aria-hidden />
-        {/* Width = the widest criterion (invisible sizers reserve it), so the button never resizes per
-            selection and the search field next to it doesn't jump. */}
-        <span className="grid">
-          {SORT_CRITERIA.map((c) => (
-            <span key={c.key} aria-hidden className="invisible col-start-1 row-start-1">
-              {c.label}
-            </span>
-          ))}
-          <span className="col-start-1 row-start-1 text-left">{criterion.label}</span>
-        </span>
-        <ChevronDown aria-hidden />
+      <DropdownMenuTrigger asChild>
+        {/* gap-2, not sm's gap-1.5: keeps the 8-px spacing this trigger has always had (its old un-merged
+            buttonVariants string let the base gap-2 win). */}
+        <TriggerButton
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          aria-label={`Sortieren: ${criterion.label}, ${dirLabel(state.sortKey, state.sortDir)}`}
+        >
+          <DirIcon aria-hidden />
+          {/* Width = the widest criterion (invisible sizers reserve it), so the button never resizes per
+              selection and the search field next to it doesn't jump. */}
+          <span className="grid">
+            {SORT_CRITERIA.map((c) => (
+              <span key={c.key} aria-hidden className="invisible col-start-1 row-start-1">
+                {c.label}
+              </span>
+            ))}
+            <span className="col-start-1 row-start-1 text-left">{criterion.label}</span>
+          </span>
+          <ChevronDown aria-hidden />
+        </TriggerButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-48">
         <DropdownMenuLabel id={keyLabelId}>Sortieren nach</DropdownMenuLabel>
