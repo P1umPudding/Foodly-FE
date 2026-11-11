@@ -119,6 +119,7 @@ describe('RecipeList (loading more pages)', () => {
     await scrollToEnd()
 
     await waitFor(() => screen.getByText(FAILED))
+    expect(screen.getByRole('alert').textContent).toContain(FAILED)
     screen.getByText('offline')
     screen.getByRole('button', { name: 'Erneut versuchen' })
     screen.getByText('1+ Rezepte')
@@ -159,6 +160,28 @@ describe('RecipeList (loading more pages)', () => {
     expect(screen.queryByText(FAILED)).toBeNull()
     screen.getByText('2 Rezepte')
     expect(screen.getByRole('status').textContent).toBe('')
+  })
+
+  it('a failed retry brings the alert back', async () => {
+    vi.stubGlobal('IntersectionObserver', CapturingIO)
+    const searchSpy = vi
+      .spyOn(foodly, 'searchRecipes')
+      .mockResolvedValueOnce({ items: [rec(1, 'Pancakes')], cursor: 2 })
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockRejectedValueOnce(new Error('still offline'))
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+    await waitFor(() => screen.getByText('Pancakes'))
+    await scrollToEnd()
+    const button = await waitFor(() => screen.getByRole('button', { name: 'Erneut versuchen' }))
+    await act(async () => fireEvent.click(button))
+
+    await waitFor(() => screen.getByText('still offline'))
+    screen.getByText(FAILED)
+    screen.getByRole('button', { name: 'Erneut versuchen' })
+    screen.getByText('1+ Rezepte')
+    expect(searchSpy).toHaveBeenCalledTimes(3)
   })
 
   it('announces loading more in the status region while the next page loads', async () => {

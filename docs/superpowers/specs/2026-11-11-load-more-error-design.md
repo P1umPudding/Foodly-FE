@@ -2,11 +2,8 @@
 
 > Issue #112 (Folge aus der Design-Review von #110). Plan: `docs/superpowers/plans/2026-11-11-load-more-error.md`.
 
-
-Folge aus der Design-Review von #110 (Issue #104).
-
 ## Problem
-1. Schlägt das Nachladen einer Folgeseite fehl, setzt `useRecipeSearch` den Cursor auf `null`. Die Liste gilt dann als vollständig und zeigt eine exakte Zahl („14 Rezepte“ statt „14+“) oder sogar „Keine Treffer für die aktuellen Filter.“, obwohl Seiten fehlen. Das verletzt docs/design.md §6 (Fehler: inline `Alert` mit „Erneut versuchen“).
+1. Schlägt das Nachladen einer Folgeseite fehl, setzt `useRecipeSearch` den Cursor auf `null`. Die Liste gilt dann als vollständig und zeigt eine exakte Zahl („14 Rezepte“ statt „14+“) oder sogar „Keine Treffer für die aktuellen Filter.“, obwohl Seiten fehlen. Das verletzt docs/design.md §5 (Fehler: inline `Alert` mit „Erneut versuchen“).
 2. Während bei 0 sichtbaren Zeilen weitergeladen wird (Skelett `list-pending-skeleton`) und beim Nachlade-Skelett gibt es keine Ansage für Screenreader.
 
 ## Soll
@@ -19,23 +16,10 @@ Folge aus der Design-Review von #110 (Issue #104).
 3. Test: während des Nachladens enthält `role=status` „Weitere Rezepte werden geladen …“.
 4. Lokale Checks grün (build, test, format:check).
 
+## Non-goals
+- Kein Auto-Retry, keine Änderung am Fehler der ersten Seite.
 
----
-### Triage (Dispatcher, 11.11.2026)
-- **Non-goals:** kein Auto-Retry, keine Änderung am Fehler der ersten Seite.
-- **Hinweis:** CLAUDE.md/architecture.md beschreiben heute „ein fehlgeschlagenes loadMore stoppt das Paging“ – Doku mit anpassen.
-- Nebenbefund aus Kommentar: `docs/qa/checklist.md:19` an „N Rezepte“/„N+ Rezepte“ angleichen.
-
-
-## Comments
-### skaile-platform (2026-11-05T15:05:48Z)
-Nebenbefund (Designer-Review PR #110): `docs/qa/checklist.md:19` nennt noch „3 von 12 Rezepten“. Beim Umsetzen bitte an „N Rezepte“/„N+ Rezepte“ angleichen.
-
-### skaile-platform (2026-11-11T15:12:59Z)
-Triage: **agent-ready**. Spec ist vollständig (Ziel, Verhalten, testbare AK), reines Frontend, ein kleiner PR. War nach dem Review angelegt, aber nie gelabelt.
-
----
-## Assumptions (worker)
+## Annahmen (Worker)
 1. State lives in `useRecipeSearch`: new `loadMoreError: Error | null` and `retryLoadMore()`. On a failed `loadMore` the cursor is kept (`hasMore` stays true), `loadMoreError` is set. `loadMore` is a no-op while `loadMoreError` is set (prevents sentinel auto-retry loop, since a fresh IntersectionObserver re-reports the visible sentinel). Only `retryLoadMore` clears the error and refetches the same cursor.
 2. `loadMoreError` resets on query change / `reload` (same effect that resets everything); stale failures from an older epoch are ignored.
 3. UI: reuse `RetryAlert` (destructive, outline/sm button "Erneut versuchen") with title "Weitere Rezepte konnten nicht geladen werden." and `error.message` as body; rendered below the list, full width, `pt-3`, at the spot of the load-more skeleton.
@@ -44,6 +28,3 @@ Triage: **agent-ready**. Spec ist vollständig (Ziel, Verhalten, testbare AK), r
 6. Status region: always mounted `sr-only` `role="status"` `aria-live="polite"`; text "Weitere Rezepte werden geladen …" when `(listReady && loadingMore) || (pending && visible.length === 0 && !loadMoreError)`, else empty. First-page loading gets no announcement (non-goal).
 7. Docs: update CLAUDE.md error note (failed loadMore keeps paging state + retry), add a line in docs/architecture.md if it describes useRecipeSearch errors, align docs/qa/checklist.md:19 ("N Rezepte"/"N+ Rezepte") and add the reload-error check. Design reference is docs/design.md §5 (errors), not §6.
 8. Checks: all five from CLAUDE.md (ci, build, test, format:check, lint).
-
-## Spec review log
-- 2026-11-11: fresh reviewer subagent: 1 blocker (no mechanism against sentinel auto-retry), 4 major (0-visible + error, error reset/stale, state location, retry UI), 6 minor (section ref, alert wording, live-region details, doc refs, checks, layout). All resolved with conservative assumptions above; no Dispatcher question needed (all within the issue's stated intent and non-goals).

@@ -2,8 +2,6 @@
 
 # Plan: #112 Rezeptliste – Nachladen mit Fehlerzustand und Statusansage
 
-Source: `.git/agent-work/spec.md` (issue + worker assumptions A1–A8).
-
 ## Step 1 – Hook: keep paging state on loadMore failure (`src/hooks/useRecipeSearch.ts`)
 - New state `loadMoreError: Error | null` (reset to `null` in the query/nonce effect together with the rest).
 - Extract the page fetch into `const fetchPage = useCallback((page: number) => {…}, [key])` (same `eslint-disable-next-line react-hooks/exhaustive-deps` pattern as the existing callbacks; no suppressions file change), used by both callbacks (epoch check as today). It sets `loadingMore(true)` itself:

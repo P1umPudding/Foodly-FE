@@ -81,13 +81,13 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
   )
 
   const loadMore = useCallback(() => {
-    if (cursor === null || loadingMore || loadMoreError) return
+    if (cursor === null || loadingMore || loadMoreError !== null) return
     fetchPage(cursor)
   }, [cursor, loadingMore, loadMoreError, fetchPage])
 
   // Clearing the error and setting loadingMore in one batch keeps the sentinel's next loadMore a no-op.
   const retryLoadMore = useCallback(() => {
-    if (cursor === null || loadingMore || !loadMoreError) return
+    if (cursor === null || loadingMore || loadMoreError === null) return
     setLoadMoreError(null)
     fetchPage(cursor)
   }, [cursor, loadingMore, loadMoreError, fetchPage])
