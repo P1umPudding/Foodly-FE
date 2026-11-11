@@ -26,7 +26,7 @@ function Probe() {
 
 function renderStep() {
   return render(
-    <TimerProvider>
+    <TimerProvider userId={1}>
       <TimerPanelProvider>
         <StepText value={STEP} timerLabel={LABEL} />
         <Probe />
@@ -94,7 +94,7 @@ describe('StepText', () => {
   it('gives focus back to the chip when the panel it opened closes', async () => {
     render(
       <TooltipProvider>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <TimerPanelProvider>
             <TimerPanel />
             <StepText value={STEP} timerLabel={LABEL} />

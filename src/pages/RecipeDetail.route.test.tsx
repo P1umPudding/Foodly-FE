@@ -132,7 +132,7 @@ describe('RecipeDetail clone · StrictMode with the mock backend', () => {
       .mockImplementation((id) => mockRequest('recipes.copy', { id }) as Promise<Recipe>)
     render(
       <StrictMode>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <TooltipProvider>
             <MemoryRouter initialEntries={[`/recipes/${original.id}`]}>
               <Routes>
