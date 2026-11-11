@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ResponsivePanel } from './ResponsivePanel'
@@ -52,6 +52,22 @@ describe('ResponsivePanel on the desktop', () => {
     expect(panel.getAttribute('data-align')).toBe('end')
     expect(panel.className).toContain('w-80')
     expect(within(panel).getByText('Inhalt popover')).toBeTruthy()
+  })
+
+  it('starts at 761 px', () => {
+    setViewport(761)
+    fireEvent.click(renderPanel())
+    expect(screen.getByRole('dialog', { name: 'Panel' }).getAttribute('data-slot')).toBe('popover-content')
+  })
+
+  it('is non-modal by default and modal on request', async () => {
+    fireEvent.click(renderPanel())
+    await screen.findByRole('dialog', { name: 'Panel' })
+    expect(document.body.style.pointerEvents).not.toBe('none')
+    cleanup()
+    fireEvent.click(renderPanel({ modal: true }))
+    await screen.findByRole('dialog', { name: 'Panel' })
+    expect(document.body.style.pointerEvents).toBe('none')
   })
 
   it('accepts plain children', () => {
@@ -112,7 +128,7 @@ describe('ResponsivePanel on a phone', () => {
     fireEvent.click(renderPanel({ modal: false, onInteractOutside, onCloseAutoFocus }))
     await screen.findByRole('dialog', { name: 'Panel-Titel' })
     expect(document.body.style.pointerEvents).not.toBe('none')
-    // A modal sheet would hide the rest of the page from the accessibility tree.
+    // getByRole fails here if a modal sheet has hidden the rest of the page from the accessibility tree.
     const outside = screen.getByRole('button', { name: 'Außerhalb' })
     fireEvent.pointerDown(outside)
     expect(onInteractOutside).toHaveBeenCalled()

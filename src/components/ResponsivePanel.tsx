@@ -3,9 +3,6 @@ import { Popover, PopoverContent, PopoverTrigger, Sheet, SheetTrigger } from '@p
 import { BottomSheet, type BottomSheetProps } from './BottomSheet'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 
-// The one desktop-popover / phone-sheet switch (docs/design.md §7), at the shell breakpoint (761 px).
-// It holds no open state: uncontrolled, each Radix root keeps its own, so the panel closes when the
-// viewport crosses the breakpoint; pass `open` to keep it open across (the timer panel).
 export type PanelVariant = 'popover' | 'sheet'
 
 type ResponsivePanelProps = {
@@ -22,6 +19,9 @@ type ResponsivePanelProps = {
   sheet: Pick<BottomSheetProps, 'title' | 'description' | 'scroll' | 'className' | '__e2e_test_id__'>
 }
 
+// The one desktop-popover / phone-sheet switch (docs/design.md §7), at the shell breakpoint (761 px).
+// It holds no open state: uncontrolled, each Radix root keeps its own, so the panel closes when the
+// viewport crosses the breakpoint; pass `open` to keep it open across (the timer panel).
 export function ResponsivePanel({
   trigger,
   children,

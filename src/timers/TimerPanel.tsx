@@ -23,7 +23,8 @@ export function TimerPanel() {
   const closedByOutsideClick = useRef(false)
   const onInteractOutside = (e: Event) => {
     keepOpenForToast(e)
-    // A press on the header button is not "outside": the button toggles the panel itself.
+    // A press on the header button is not "outside": the button toggles the panel itself. Radix checks this
+    // too, but only after calling us, so without this line the flag below would be set and focus lost.
     if (triggerRef.current?.contains(outsideTarget(e))) e.preventDefault()
     if (!e.defaultPrevented) closedByOutsideClick.current = true
   }
