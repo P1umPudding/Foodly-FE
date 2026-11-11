@@ -1,6 +1,6 @@
-> Spec: `docs/superpowers/specs/2026-11-11-load-more-error-design.md`.
-
 # Plan: #112 Rezeptliste – Nachladen mit Fehlerzustand und Statusansage
+
+> Spec: `docs/superpowers/specs/2026-11-11-load-more-error-design.md`.
 
 ## Step 1 – Hook: keep paging state on loadMore failure (`src/hooks/useRecipeSearch.ts`)
 - New state `loadMoreError: Error | null` (reset to `null` in the query/nonce effect together with the rest).
@@ -34,7 +34,7 @@ Reuse the setup pattern of `RecipeList.search.test.tsx` (CatalogProvider mock, `
 - AC1: page 1 = 1 recipe, cursor 2; intersect; page 2 rejects → alert text „Weitere Rezepte konnten nicht geladen werden.“ + button „Erneut versuchen“; count reads „1+ Rezepte“ (no „Keine Treffer“ is asserted in the 0-visible case); firing the latest captured observer callback again does not call `searchRecipes` a third time (a fresh observer is created after the failure because `loadMore` changes identity, so this exercises the hook guard).
 - AC2: click „Erneut versuchen“, page 2 resolves (cursor null) → second recipe visible, alert gone, count „2 Rezepte“; page 2 retry is a deferred promise; fire `intersect` in the same `act` right after `fireEvent.click`, before resolving it → total calls stay 3; then resolve.
 - AC3: page 2 pending → `getByRole('status')` has „Weitere Rezepte werden geladen …“; after it resolves the status is empty.
-- 0-visible case (use the existing `FiringIO` pattern from `RecipeList.search.test.tsx` ~l.563, which fires on every observe, so a missing hook guard would loop; assert `searchRecipes` stays at 2 calls): search term matching none of page 1 (`?group=0&q=…`, CapturingIO + manual `intersect`, two `Once` mocks), page 2 rejects → alert shown, no `list-pending-skeleton`, no „Keine Treffer“; while pending, status text is announced.
+- 0-visible case (use the existing `FiringIO` pattern from `RecipeList.search.test.tsx` ~l.563, which fires on every observe, so a missing hook guard would loop; assert `searchRecipes` stays at 2 calls): search term matching none of page 1 (`?group=0&q=…`, two `Once` mocks), page 2 rejects → alert shown, no `list-pending-skeleton`, no „Keine Treffer“; while pending, status text is announced.
 
 ## Step 4 – Docs
 - `CLAUDE.md` errors bullet: "in `useRecipeSearch` the first page sets the error state; a failed `loadMore` keeps the cursor and sets `loadMoreError` (paging pauses until `retryLoadMore`)".

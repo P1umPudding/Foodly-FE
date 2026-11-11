@@ -180,4 +180,35 @@ describe('useRecipeSearch', () => {
     expect(result.current.loadMoreError).toBeNull()
     expect(result.current.hasMore).toBe(true)
   })
+
+  it('drops a retry still in flight when the query changes', async () => {
+    let releaseRetry: (res: PaginatedRecipes) => void = () => {}
+    const retry = new Promise<PaginatedRecipes>((resolve) => {
+      releaseRetry = resolve
+    })
+    vi.spyOn(foodly, 'searchRecipes')
+      .mockResolvedValueOnce({ items: [rec(1)], cursor: 2 }) // q1 page 1
+      .mockRejectedValueOnce(new Error('offline')) // q1 page 2
+      .mockReturnValueOnce(retry) // q1 page 2 retry — settles after the query changed
+      .mockResolvedValueOnce({ items: [rec(3)], cursor: null }) // q2 page 1
+
+    const q1: RecipeSearchQuery = { sort: { field: 'name', order: 'asc' } }
+    const q2: RecipeSearchQuery = { sort: { field: 'rating', order: 'desc' } }
+    const { result, rerender } = renderHook((q) => useRecipeSearch(q), { initialProps: q1 })
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    act(() => result.current.loadMore())
+    await waitFor(() => expect(result.current.loadMoreError).not.toBeNull())
+    act(() => result.current.retryLoadMore())
+    rerender(q2)
+    await waitFor(() => expect(result.current.recipes.map((r) => r.id)).toEqual([3]))
+
+    await act(async () => {
+      releaseRetry({ items: [rec(2)], cursor: 9 })
+      await retry
+    })
+    expect(result.current.recipes.map((r) => r.id)).toEqual([3])
+    expect(result.current.loadMoreError).toBeNull()
+    expect(result.current.loadingMore).toBe(false)
+    expect(result.current.hasMore).toBe(false)
+  })
 })
