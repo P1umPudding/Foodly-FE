@@ -68,6 +68,13 @@ Spec `superpowers/specs/2026-11-12-categories-manage-design.md`, Issues K1–K6 
 `superpowers/plans/2026-11-12-categories-manage.md`, kein Backend-Block (alle Endpunkte auf Backend-`main`). Enthält
 die Kategorie-Seite aus Redesign Schritt 4. Danach Phase 5 (Dashboard).
 
+**Stand 2026-11-12 (abends):** Kategorien bis auf #181/#183 gemergt (bis PR #191). Backend-PR #22 (Bulk-User B2,
+`myAccessSince` B6, Sortierfelder in camelCase) geprüft, Befunde in `backend-questions.md`. Geschnitten und freigegeben
+(Daniel): Phase 5 Start D1–D4 (#194–#197, `superpowers/plans/2026-11-12-phase-5-dashboard.md`, Spec rev. 3) und die Folgen aus
+#22, U1 Sortierfelder (#192) + U2 Benutzernamen (#193, `superpowers/plans/2026-11-12-backend-22-followups.md`). Reihenfolge: D1
+sofort, D2 nach #183, D4 nach D1; U1, U2, D3 nach dem Merge von Backend #22 (U1 direkt danach). „Kürzlich mit dir
+geteilt“ kommt mit Teilen (#12).
+
 Details je Phase in `phases/`.
 
 ---
@@ -182,7 +189,8 @@ Parallel nach Token und Shell: ✅ Timer-Knopf + Zeit-Chips **#29** (PR #48),
 ## Phase 5 — Dashboard / Startseite  (braucht Backend)
 
 Überblicks-Startseite mit Kacheln. Spec: `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`
-(rev. 2, 2026-10-28). `createdAt`/`updatedAt` liefert das Backend inzwischen (G1);
+(rev. 3, 2026-11-12), Issues D1–D4 in `docs/superpowers/plans/2026-11-12-phase-5-dashboard.md`. Der Rest dieses
+Abschnitts ist der Stand von rev. 2. `createdAt`/`updatedAt` liefert das Backend inzwischen (G1);
 umsetzbar sind App-Shell, Dashboard (Kategorien, eigene kürzlich erstellte, „Jump back in"),
 Routing `/` → Dashboard, `/recipes` → Liste. **Blockiert:** Gruppen (B12 + Backend #13),
 „kürzlich hinzugefügt" (Backend #14).
