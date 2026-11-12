@@ -71,13 +71,26 @@ describe('RecipeList (server-side search)', () => {
     const never = () => new Promise<never>(() => {})
     afterEach(() => vi.unstubAllGlobals())
 
-    it('tiles: 4:3 tile skeletons', async () => {
+    it('tiles: 4:3 block plus title and meta bars', async () => {
       vi.spyOn(foodly, 'searchRecipes').mockImplementation(never)
       vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
 
       renderList('/recipes?view=tiles&group=0')
 
-      await waitFor(() => expect(screen.getAllByTestId('tile-skeleton')).toHaveLength(4))
+      const tiles = await waitFor(() => {
+        const found = screen.getAllByTestId('tile-skeleton')
+        expect(found).toHaveLength(4)
+        return found
+      })
+      for (const tile of tiles) {
+        expect(tile.firstElementChild?.className).toContain('aspect-[4/3]')
+        const [title, meta, ...rest] = within(tile).getAllByTestId('tile-skeleton-line')
+        expect(rest).toHaveLength(0)
+        expect(title.className).toContain('h-4')
+        expect(title.className).toContain('w-3/4')
+        expect(meta.className).toContain('h-3')
+        expect(meta.className).toContain('w-1/2')
+      }
       expect(screen.queryAllByTestId('row-skeleton')).toHaveLength(0)
     })
 
@@ -118,6 +131,7 @@ describe('RecipeList (server-side search)', () => {
 
       const more = await waitFor(() => screen.getByTestId('list-more-skeleton'))
       expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(4)
+      expect(within(more).getAllByTestId('tile-skeleton-line')).toHaveLength(8)
       expect(within(more).getByTestId('tile-grid').className).toContain('auto-rows-[0]')
     })
 
