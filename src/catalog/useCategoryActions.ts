@@ -13,15 +13,25 @@ export function useCategoryActions() {
     const afterWrite = (change: (list: UserCategory[]) => UserCategory[]) => {
       if (!writer.patch(change)) writer.refresh()
     }
+    // An id the list doesn't know (e.g. created in another tab) means the list is outdated: load it.
     const replace = (category: UserCategory) => {
-      afterWrite((list) => list.map((c) => (c.id === category.id ? category : c)))
+      let known = false
+      afterWrite((list) =>
+        list.map((c) => {
+          if (c.id !== category.id) return c
+          known = true
+          return category
+        }),
+      )
+      if (!known) writer.refresh()
       return category
     }
 
     return {
       create: async (input: CategoryInput): Promise<UserCategory> => {
         const created = await foodly.createCategory(input)
-        afterWrite((list) => [...list, created])
+        // A load answered after the POST may already hold it.
+        afterWrite((list) => [...list.filter((c) => c.id !== created.id), created])
         return created
       },
       update: async (id: UserCategoryId, input: CategoryInput): Promise<UserCategory> =>

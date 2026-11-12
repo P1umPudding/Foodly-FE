@@ -183,7 +183,7 @@ it('rolls a failed latest reorder back to the last accepted order', async () => 
   expect(orders(result.current.categories.list)).toEqual({ 2: 0, 1: 1, 3: 2 })
 })
 
-it('ignores ids in a reorder that are not in the list', async () => {
+it('ignores ids in a reorder that are no longer in the list (deleted meanwhile)', async () => {
   const result = await renderActions()
   api.reorderCategories.mockResolvedValue(undefined)
 
@@ -213,14 +213,48 @@ it('does not reorder before the categories are loaded, but still writes and then
 it('loads the list instead of patching when a write lands while it reloads', async () => {
   const result = await renderActions()
   const reload = deferred<UserCategory[]>()
-  api.listCategories.mockReturnValueOnce(reload.promise)
+  api.listCategories.mockReturnValueOnce(reload.promise).mockResolvedValueOnce([cat(1, 0), cat(3, 2)])
   api.deleteCategory.mockResolvedValue(undefined)
   act(() => result.current.categories.retry())
   expect(result.current.categories.status).toBe('loading')
 
   await act(() => result.current.actions.remove(2))
   expect(api.listCategories).toHaveBeenCalledTimes(3)
-  await waitFor(() => expect(ids(result.current.categories.list)).toEqual([1, 2, 3]))
+  expect(result.current.categories.status).toBe('ready')
+  expect(ids(result.current.categories.list)).toEqual([1, 3])
+
+  await act(async () => reload.resolve(server))
+  expect(ids(result.current.categories.list)).toEqual([1, 3])
+})
+
+it('applies two writes that land in the same tick', async () => {
+  const result = await renderActions()
+  api.createCategory.mockResolvedValueOnce(cat(4, 3)).mockResolvedValueOnce(cat(5, 4))
+
+  await act(() => Promise.all([result.current.actions.create(input), result.current.actions.create(input)]))
+
+  expect(ids(result.current.categories.list)).toEqual([1, 2, 3, 4, 5])
+})
+
+it('does not add a created category twice when a load already brought it', async () => {
+  const result = await renderActions()
+  api.listCategories.mockResolvedValue([...server, cat(4, 3)])
+  await act(async () => result.current.refresh())
+  api.createCategory.mockResolvedValue(cat(4, 3))
+
+  await act(() => result.current.actions.create(input))
+
+  expect(ids(result.current.categories.list)).toEqual([1, 2, 3, 4])
+})
+
+it('loads the list when an update answers for a category it does not know', async () => {
+  const result = await renderActions()
+  api.updateCategory.mockResolvedValue(cat(9, 5))
+  api.listCategories.mockResolvedValue([...server, cat(9, 5)])
+
+  await act(() => result.current.actions.update(9, input))
+
+  expect(ids(result.current.categories.list)).toEqual([1, 2, 3, 9])
 })
 
 it('reloads when a reorder fails after the list started reloading', async () => {

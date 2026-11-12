@@ -22,7 +22,6 @@ type Catalog = {
   categoryWriter: CategoryWriter
 }
 
-// Used by useCategoryActions; components write categories through that hook.
 type CategoryWriter = {
   patch: (change: (list: UserCategory[]) => UserCategory[]) => boolean
   reorder: (ids: UserCategoryId[]) => Promise<void>
@@ -136,7 +135,7 @@ function useCategoriesState() {
         await call
         ids.forEach((id, index) => confirmedOrder.current.set(id, index))
       } catch (error) {
-        // An earlier failure with later reorders queued changes nothing: the latest one sends the whole list.
+        // An earlier failure with later reorders queued changes nothing: the latest one decides.
         if (mine === reorderSeq.current) {
           pendingOrder.current = null
           if (!patch((list) => withOrders(list, confirmedOrder.current))) refresh()
