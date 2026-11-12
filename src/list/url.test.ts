@@ -1,4 +1,4 @@
-import { toSearchParams, fromSearchParams } from './url'
+import { LIST_PARAM_KEYS, hasListParams, toSearchParams, fromSearchParams } from './url'
 import { DEFAULT_STATE } from './state'
 import type { ListState } from './state'
 
@@ -33,5 +33,32 @@ describe('url serialisation', () => {
     expect(out.role).toBe('any')
     expect(out.sortKey).toBe('name')
     expect(out.durationMax).toBeNull()
+  })
+})
+
+describe('LIST_PARAM_KEYS', () => {
+  it('names exactly the keys a fully non-default state writes', () => {
+    const s: ListState = {
+      categories: [2, 5],
+      tags: ['Vegan', 'Schnell'],
+      ingredients: [3, 9],
+      durationMax: 30,
+      role: 'editor',
+      collab: 'collaborative',
+      search: 'apfel',
+      sortKey: 'rating',
+      sortDir: 'desc',
+      detail: 'compact',
+      grouped: false,
+    }
+    const written = [...new Set(toSearchParams(s).keys())].sort()
+    expect(written).toEqual([...LIST_PARAM_KEYS].sort())
+  })
+
+  it('detects list params, also with an empty value', () => {
+    expect(hasListParams(new URLSearchParams('cat=3'))).toBe(true)
+    expect(hasListParams(new URLSearchParams('q='))).toBe(true)
+    expect(hasListParams(new URLSearchParams('foo=1'))).toBe(false)
+    expect(hasListParams(new URLSearchParams(''))).toBe(false)
   })
 })

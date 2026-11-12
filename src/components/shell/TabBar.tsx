@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '@postxl/ui-components'
-import { SHELL_NAV_STATE, currentFor, visibleDestinations } from './nav'
+import { SHELL_NAV_STATE, NAV_DESTINATIONS, currentFor } from './nav'
 import { useNavState } from './useNavState'
 
 // Phone navigation (below 761 px): the same destinations as the sidebar, icon + label.
@@ -12,7 +12,7 @@ export function TabBar() {
       className="fixed inset-x-0 bottom-0 z-40 flex h-16 border-t border-sidebar-border bg-sidebar"
     >
       {/* No category entries here, so unlike the sidebar "Rezepte" stays current on a category view. */}
-      {visibleDestinations().map(({ label, path, icon: Icon }) => (
+      {NAV_DESTINATIONS.map(({ label, path, icon: Icon }) => (
         <NavLink
           key={path}
           to={hrefFor(path)}
