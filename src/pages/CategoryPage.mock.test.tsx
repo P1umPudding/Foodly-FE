@@ -83,7 +83,11 @@ describe('Category page (mock mode)', () => {
       const created = (await api.foodly.listCategories()).find((c) => c.name === 'Suppen')!
       await renderAt(`/categories/${created.id}`)
       expect(
-        await within(main()).findByText('Noch nichts in „Suppen“. Öffne ein Rezept und füg es über „+“ hinzu.', {}, WAIT),
+        await within(main()).findByText(
+          'Noch nichts in „Suppen“. Öffne ein Rezept und füg es über „+“ hinzu.',
+          {},
+          WAIT,
+        ),
       ).toBeTruthy()
       expect(within(main()).getByText('0 Rezepte · nur für dich sichtbar')).toBeTruthy()
     },
@@ -188,10 +192,9 @@ describe('Category page (mock mode)', () => {
       await renderAt('/categories/4')
       expect((await heading()).textContent).toBe('Meal Prep')
       navigate('/categories')
-      fireEvent.keyDown(
-        await within(main()).findByRole('button', { name: 'Aktionen für „Meal Prep“' }, WAIT),
-        { key: 'Enter' },
-      )
+      fireEvent.keyDown(await within(main()).findByRole('button', { name: 'Aktionen für „Meal Prep“' }, WAIT), {
+        key: 'Enter',
+      })
       fireEvent.click(await screen.findByRole('menuitem', { name: 'Löschen' }))
       const dialog = await screen.findByRole('alertdialog')
       fireEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }))

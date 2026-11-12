@@ -7,7 +7,7 @@ import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, buttonVarian
 import { PanelLeftClose, PanelLeftOpen, Plus, Settings } from 'lucide-react'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { categoryColorVars } from '../../lib/categoryColor'
-import { SHELL_NAV_STATE, NAV_DESTINATIONS, currentFor } from './nav'
+import { SHELL_NAV_STATE, NAV_DESTINATIONS, categoryPageHref, currentFor } from './nav'
 import { navItemClass } from './navItem'
 import { ProfileMenu } from './ProfileMenu'
 import { TriggerButton } from '../TriggerButton'
@@ -57,7 +57,7 @@ export function Sidebar({
   onCollapsedChange: (next: boolean) => void
   widthClass: string
 }) {
-  const { pathname, activeCategory, hrefFor, categoryHref } = useNavState()
+  const { pathname, activeCategory, hrefFor } = useNavState()
   const categories = useCategories()
   const ordered = [...categories.list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   // Only a category entry that is actually listed can take over the highlight (not ?cat=999, nor while
@@ -113,7 +113,8 @@ export function Sidebar({
         {NAV_DESTINATIONS.map(({ label, path, icon: Icon }) => {
           // Highlighted on its sub-pages too (a recipe belongs to "Rezepte"), but "page" only on itself.
           // NavLink's own active check ignores the query, so it can't tell "all recipes" from one category:
-          // while a single category is shown, that category is the current entry, not "Rezepte".
+          // while a single category is shown (its page, or the list filtered to it), that category is the current
+          // entry, not "Rezepte".
           const yieldsToCategory = path === '/recipes' && highlightedCategory !== null
           return (
             <WithTip key={path} collapsed={collapsed} label={label}>
@@ -168,7 +169,7 @@ export function Sidebar({
                 return (
                   <WithTip key={c.id} collapsed={collapsed} label={`${c.name} (${count})`}>
                     <Link
-                      to={categoryHref(c.id)}
+                      to={categoryPageHref(c.id)}
                       state={SHELL_NAV_STATE}
                       aria-label={collapsed ? `${c.name} (${count})` : undefined}
                       aria-current={active ? 'page' : undefined}

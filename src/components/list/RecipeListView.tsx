@@ -1,10 +1,12 @@
 import { Button, Collapse, CollapseContent, CollapseTrigger } from '@postxl/ui-components'
+import { Link } from 'react-router-dom'
 import { ChevronDown } from 'lucide-react'
 import { RecipeRow } from '../recipe/RecipeRow'
 import { RecipeTile } from '../recipe/RecipeTile'
 import { categoryColorVars, type CategoryColorInput } from '../../lib/categoryColor'
 import { deriveGroups } from '../../list/grouping'
 import { recipeCategories } from '../../list/rowData'
+import { categoryPageHref } from '../shell/nav'
 import type { ReactNode } from 'react'
 import type { Recipe, UserCategory, UserCategoryId } from '../../api/protocol'
 import type { DetailView } from '../../list/state'
@@ -90,22 +92,31 @@ function CategoryGroup({
 }) {
   return (
     <Collapse open={open} onOpenChange={onOpenChange} className="group/cat" {...(colors && categoryColorVars(colors))}>
-      {/* A real (postxl) Button as the trigger — Button asChild merges onto the
-          Radix trigger (which forwards refs), so we get button semantics +
-          cursor-pointer without changing the heading's look. Sticky so the category
-          stays labelled while scrolling; top clears the site header. Solid (not
-          frosted): two stacked backdrop-blurs would seam against the page header. */}
-      <Button
-        asChild
-        variant="ghost"
-        className="sticky top-[var(--list-sticky-top,var(--site-nav-h))] z-20 mb-2 h-auto w-full justify-start gap-2 rounded-none bg-background px-0 py-1.5 text-lg font-semibold hover:bg-background dark:hover:bg-background has-[>svg]:px-0 text-cat-ink hover:text-cat-ink"
-      >
-        <CollapseTrigger>
-          <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=closed]/cat:-rotate-90" />
-          <span className="min-w-0 truncate">{name}</span>
-          <span className="tabular-nums text-sm font-normal text-muted-foreground">{recipes.length}</span>
-        </CollapseTrigger>
-      </Button>
+      {/* Sticky so the category stays labelled while scrolling; top clears the site header. Solid (not frosted): two
+          stacked backdrop-blurs would seam against the page header. "Öffnen ›" sits beside the trigger, not in it, so
+          it opens the category page without folding the group (and no link nests in a button). */}
+      <div className="sticky top-[var(--list-sticky-top,var(--site-nav-h))] z-20 mb-2 flex items-center gap-2 bg-background">
+        {/* A real (postxl) Button as the trigger — Button asChild merges onto the Radix trigger (which forwards refs),
+            so we get button semantics + cursor-pointer without changing the heading's look. */}
+        <Button
+          asChild
+          variant="ghost"
+          className="h-auto min-w-0 flex-1 justify-start gap-2 rounded-none bg-background px-0 py-1.5 text-lg font-semibold hover:bg-background dark:hover:bg-background has-[>svg]:px-0 text-cat-ink hover:text-cat-ink"
+        >
+          <CollapseTrigger>
+            <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=closed]/cat:-rotate-90" />
+            <span className="min-w-0 truncate">{name}</span>
+            <span className="tabular-nums text-sm font-normal text-muted-foreground">{recipes.length}</span>
+          </CollapseTrigger>
+        </Button>
+        {categoryId !== null && (
+          <Button asChild variant="ghost" size="sm" className="shrink-0 text-muted-foreground hover:text-foreground">
+            <Link to={categoryPageHref(categoryId)} aria-label={`„${name}“ öffnen`}>
+              Öffnen ›
+            </Link>
+          </Button>
+        )}
+      </div>
       <CollapseContent>
         <GroupIndent>
           <Rows recipes={recipes} exceptCategoryId={categoryId} {...rowOptions} />

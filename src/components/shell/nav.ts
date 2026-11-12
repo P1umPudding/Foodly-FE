@@ -30,11 +30,25 @@ export function listHref(categories: number[], prefs: ViewPrefs): string {
   return `/recipes?${params.toString()}`
 }
 
-// The category the list shows on its own, if any — that link is the active nav entry then, not "Rezepte".
+// The category on screen, if any — its page, or the list filtered to it alone. That link is the active nav entry
+// then, not "Rezepte".
 export function activeCategoryId(pathname: string, params: URLSearchParams): number | null {
+  const page = CATEGORY_PAGE.exec(pathname)
+  if (page) return parseCategoryId(page[1])
   if (pathname !== '/recipes') return null
   const { categories } = fromSearchParams(params)
   return categories.length === 1 ? categories[0] : null
+}
+
+const CATEGORY_PAGE = /^\/categories\/([^/]+)$/
+
+export function isCategoryPage(pathname: string): boolean {
+  return CATEGORY_PAGE.test(pathname)
+}
+
+// A category page belongs to "Rezepte" like a recipe does.
+export function inRecipesSection(pathname: string): boolean {
+  return pathname === '/recipes' || pathname.startsWith('/recipes/') || isCategoryPage(pathname)
 }
 
 // A route id as a category id; anything but a plain positive integer is no category.
