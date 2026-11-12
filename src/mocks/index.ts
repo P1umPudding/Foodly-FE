@@ -164,7 +164,14 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       return mockData.users.find((u) => u.id === CURRENT_USER_ID) ?? null
     case 'recipes.search': {
       const { query, page } = payload as { query: RecipeSearchQuery; page: number }
-      const all = applyQuery(mockData.recipes, query, CURRENT_USER_ID)
+      // The backend filters by category; applyQuery can't, it doesn't know the categories. A recipe in any of them
+      // matches (only the category page sends one, so AND vs. OR, Backend #17, doesn't matter yet).
+      const inCategories = query.filters?.categories?.length
+        ? mockData.recipes.filter((r) =>
+            mockData.categories.some((c) => query.filters!.categories!.includes(c.id) && c.recipes.includes(r.id)),
+          )
+        : mockData.recipes
+      const all = applyQuery(inCategories, query, CURRENT_USER_ID)
       const start = (page - 1) * PAGE_SIZE
       const items = all.slice(start, start + PAGE_SIZE)
       const cursor = start + PAGE_SIZE < all.length ? page + 1 : null
