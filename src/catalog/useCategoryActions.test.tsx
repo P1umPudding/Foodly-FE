@@ -255,6 +255,12 @@ it('loads the list when an update answers for a category it does not know', asyn
   await act(() => result.current.actions.update(9, input))
 
   expect(ids(result.current.categories.list)).toEqual([1, 2, 3, 9])
+  expect(api.listCategories).toHaveBeenCalledTimes(2)
+
+  api.setCategoryRecipes.mockResolvedValue(cat(8, 6))
+  api.listCategories.mockResolvedValue([...server, cat(9, 5), cat(8, 6)])
+  await act(() => result.current.actions.setRecipes(8, []))
+  expect(ids(result.current.categories.list)).toEqual([1, 2, 3, 9, 8])
 })
 
 it('reloads when a reorder fails after the list started reloading', async () => {

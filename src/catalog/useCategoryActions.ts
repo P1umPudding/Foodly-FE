@@ -10,20 +10,22 @@ export function useCategoryActions() {
 
   return useMemo(() => {
     // Not loaded yet (or failed): the write landed, so load the list instead of patching an incomplete one.
-    const afterWrite = (change: (list: UserCategory[]) => UserCategory[]) => {
-      if (!writer.patch(change)) writer.refresh()
+    const afterWrite = (change: (list: UserCategory[]) => UserCategory[]): boolean => {
+      const patched = writer.patch(change)
+      if (!patched) writer.refresh()
+      return patched
     }
     // An id the list doesn't know (e.g. created in another tab) means the list is outdated: load it.
     const replace = (category: UserCategory) => {
       let known = false
-      afterWrite((list) =>
+      const patched = afterWrite((list) =>
         list.map((c) => {
           if (c.id !== category.id) return c
           known = true
           return category
         }),
       )
-      if (!known) writer.refresh()
+      if (patched && !known) writer.refresh()
       return category
     }
 
@@ -31,7 +33,11 @@ export function useCategoryActions() {
       create: async (input: CategoryInput): Promise<UserCategory> => {
         const created = await foodly.createCategory(input)
         // A load answered after the POST may already hold it.
-        afterWrite((list) => [...list.filter((c) => c.id !== created.id), created])
+        afterWrite((list) =>
+          list.some((c) => c.id === created.id)
+            ? list.map((c) => (c.id === created.id ? created : c))
+            : [...list, created],
+        )
         return created
       },
       update: async (id: UserCategoryId, input: CategoryInput): Promise<UserCategory> =>
