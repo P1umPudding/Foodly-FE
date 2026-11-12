@@ -45,7 +45,7 @@ export function CategoryPage() {
   const category = id === null ? undefined : catalog.list.find((c) => c.id === id)
 
   // The window is the scroll container: opening a category (keyed by id in App.tsx, so a fresh mount) starts at the
-  // top. So does a sidebar click on the category already open, which doesn't remount.
+  // top. The second effect is for a sidebar click on the category already open, which doesn't remount.
   useEffect(() => window.scrollTo(0, 0), [])
   const { key: locationKey, state: locationState } = useLocation()
   const navigationType = useNavigationType()
@@ -107,7 +107,7 @@ function CategoryHead({ category }: { category: UserCategory }) {
     >
       <CategoryMark category={category} size="xl" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <h1 className="truncate font-display text-2xl text-cat-ink">{category.name}</h1>
+        <h1 className="font-display text-2xl break-words text-cat-ink">{category.name}</h1>
         <p className="text-sm text-cat-ink opacity-75">
           {recipeCount(category.recipes.length)} · nur für dich sichtbar
         </p>

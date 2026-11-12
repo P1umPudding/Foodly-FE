@@ -97,7 +97,7 @@ function CategoryCrumb() {
   const { activeCategory, hrefFor } = useNavState()
   const name = useCategories().list.find((c) => c.id === activeCategory)?.name
   return (
-    <nav aria-label="Brotkrümel" className="flex min-w-0 items-center gap-1.5 font-semibold">
+    <nav aria-label="Pfad" className="flex min-w-0 items-center gap-1.5 font-semibold">
       <Link
         to={hrefFor('/recipes')}
         state={SHELL_NAV_STATE}

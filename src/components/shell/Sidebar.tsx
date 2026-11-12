@@ -7,7 +7,7 @@ import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, buttonVarian
 import { PanelLeftClose, PanelLeftOpen, Plus, Settings } from 'lucide-react'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { categoryColorVars } from '../../lib/categoryColor'
-import { SHELL_NAV_STATE, NAV_DESTINATIONS, categoryPageHref, currentFor } from './nav'
+import { SHELL_NAV_STATE, NAV_DESTINATIONS, categoryPageHref, currentFor, isCategoryPage } from './nav'
 import { navItemClass } from './navItem'
 import { ProfileMenu } from './ProfileMenu'
 import { TriggerButton } from '../TriggerButton'
@@ -63,6 +63,8 @@ export function Sidebar({
   // Only a category entry that is actually listed can take over the highlight (not ?cat=999, nor while
   // the categories are loading or failed).
   const highlightedCategory = ordered.some((c) => c.id === activeCategory) ? activeCategory : null
+  // Category entries lead to the category's page; the list filtered to one is a view of it, not that page.
+  const onCategoryPage = isCategoryPage(pathname)
   const toggleLabel = collapsed ? 'Seitenleiste ausklappen' : 'Seitenleiste einklappen'
   const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose
 
@@ -172,7 +174,7 @@ export function Sidebar({
                       to={categoryPageHref(c.id)}
                       state={SHELL_NAV_STATE}
                       aria-label={collapsed ? `${c.name} (${count})` : undefined}
-                      aria-current={active ? 'page' : undefined}
+                      aria-current={active ? (onCategoryPage ? 'page' : 'location') : undefined}
                       className={navItemClass(active, collapsed)}
                     >
                       <span

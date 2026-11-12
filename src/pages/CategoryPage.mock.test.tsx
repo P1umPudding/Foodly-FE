@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_STATE } from '../list/state'
 import { loadPersisted, savePersisted } from '../list/persistence'
 import { setViewport } from '../test/viewport'
+import { SHELL_NAV_STATE } from '../components/shell/nav'
 
 // Mock mode is decided when src/api loads, so the app is imported fresh with VITE_MOCK=1 — which also gives every test
 // fresh mock data (creates, renames and deletes mutate it).
@@ -62,6 +63,8 @@ describe('Category page (mock mode)', () => {
       await renderAt('/categories/2')
       expect((await heading()).textContent).toBe('Schnelle Küche')
       expect(within(main()).getByText('5 Rezepte · nur für dich sichtbar')).toBeTruthy()
+      // The recipes follow the catalog (each mock call takes 250 ms): skeleton rows until then.
+      expect(within(main()).getAllByTestId('row-skeleton').length).toBeGreaterThan(0)
 
       await rowLink('Guacamole')
       const rows = ['Pfannkuchen', 'Griechischer Bauernsalat', 'Guacamole', 'Cremige Tomatensuppe', 'Asiatische']
@@ -156,6 +159,26 @@ describe('Category page (mock mode)', () => {
       expect((await heading()).textContent).toBe('Flott')
       expect(within(sidebar()).getByText('Flott')).toBeTruthy()
       expect(within(sidebar()).queryByText('Schnelle Küche')).toBeNull()
+      // Focus goes back to the button that opened the dialog.
+      expect(document.activeElement).toBe(within(main()).getByRole('button', { name: 'Bearbeiten' }))
+    },
+    SLOW,
+  )
+
+  it(
+    'scrolls to the top on a sidebar click on the open category, not on Back',
+    async () => {
+      await renderAt('/categories/2?q=gu')
+      await rowLink('Guacamole')
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
+      navigate('/categories/2', { state: SHELL_NAV_STATE })
+      await waitFor(() => expect(location).toBe('/categories/2'))
+      expect(scrollTo).toHaveBeenCalledWith(0, 0)
+
+      scrollTo.mockClear()
+      navigate(-1)
+      await waitFor(() => expect(location).toBe('/categories/2?q=gu'))
+      expect(scrollTo).not.toHaveBeenCalled()
     },
     SLOW,
   )

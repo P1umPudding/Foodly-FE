@@ -131,7 +131,7 @@ function CategoryGroup({
 // `categories` drive the grouping and may be narrowed by the category filter;
 // `allCategories` (unfiltered) feed the rows' dots so a filter never hides them.
 // `showImages` is decided by the page from all loaded recipes. `exceptCategoryId` drops that category's dot from the
-// flat rows (a category page: every row is in it).
+// flat rows (a category page: every row is in it); grouped rows already leave out their own group's dot.
 export function RecipeListView({
   recipes,
   categories,

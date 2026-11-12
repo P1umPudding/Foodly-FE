@@ -135,8 +135,9 @@ describe('AppShell on the desktop', () => {
   it('highlights the single shown category instead of "Rezepte"', () => {
     renderAt('/recipes?cat=2')
     const side = within(sidebar())
-    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('aria-current')).toBe('page')
-    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('aria-current')).not.toBe('page')
+    // Highlighted, but its link leads to the category page, which this is not.
+    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('aria-current')).toBe('location')
+    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('aria-current')).toBeNull()
     expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).not.toBe('page')
   })
 
@@ -155,14 +156,14 @@ describe('AppShell on the desktop', () => {
     const side = within(sidebar())
     expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('aria-current')).toBe('page')
     expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).not.toBe('page')
-    const crumb = within(screen.getByRole('navigation', { name: 'Brotkrümel' }))
+    const crumb = within(screen.getByRole('navigation', { name: 'Pfad' }))
     expect(crumb.getByRole('link', { name: 'Rezepte' }).getAttribute('href')).toBe('/recipes?group=1')
     expect(crumb.getByText('Favoriten').getAttribute('aria-current')).toBe('page')
   })
 
   it('shows only "Rezepte" in the header while the category is unknown', () => {
     renderAt('/categories/999')
-    const crumb = screen.getByRole('navigation', { name: 'Brotkrümel' })
+    const crumb = screen.getByRole('navigation', { name: 'Pfad' })
     expect(crumb.textContent).toBe('Rezepte')
   })
 
