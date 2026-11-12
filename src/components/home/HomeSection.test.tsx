@@ -38,6 +38,13 @@ describe('HomeSection', () => {
     expect(screen.queryByText('section content')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
     expect(onRetry).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('link', { name: 'Verwalten' })).toBeNull()
+  })
+
+  it('uses a custom skeleton', () => {
+    render(<HomeSection title="Kategorien" state="loading" onRetry={() => {}} skeleton={<p>tiles</p>} />)
+    screen.getByText('tiles')
+    expect(screen.queryByTestId('home-section-skeleton')).toBeNull()
   })
 
   it('renders nothing when empty', () => {
