@@ -8,6 +8,7 @@ import { useRequest } from '../hooks/useRequest'
 import { SHELL_NAV_STATE } from '../components/shell/nav'
 import type { Recipe, UserCategory } from '../api/protocol'
 import { ref } from '../test/images'
+import { TILE_META_TEXT, TILE_TITLE_TEXT } from '../components/recipe/RecipeTile'
 
 function cat(id: number, recipes: number[]): UserCategory {
   return { id, user: 1, name: `Cat ${id}`, recipes, order: id, color: '#000000', colorLight: null, colorDark: null }
@@ -88,6 +89,13 @@ describe('RecipeList (server-side search)', () => {
         expect(rest).toHaveLength(0)
         expect([...title.classList]).toEqual(expect.arrayContaining(['h-4', 'w-3/4']))
         expect([...meta.classList]).toEqual(expect.arrayContaining(['h-3', 'w-1/2']))
+        // The line boxes give the skeleton the tile's height (one text line each).
+        expect([...(title.parentElement?.classList ?? [])]).toEqual(
+          expect.arrayContaining(['h-lh', ...TILE_TITLE_TEXT.split(' ')]),
+        )
+        expect([...(meta.parentElement?.classList ?? [])]).toEqual(
+          expect.arrayContaining(['h-lh', ...TILE_META_TEXT.split(' ')]),
+        )
       }
       expect(screen.queryAllByTestId('row-skeleton')).toHaveLength(0)
     })
