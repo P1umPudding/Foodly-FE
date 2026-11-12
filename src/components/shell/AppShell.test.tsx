@@ -52,6 +52,7 @@ function renderAt(entry: string) {
                 <Route path="/recipes" element={<Counter />} />
                 <Route path="/recipes/new" element={<p>editor page</p>} />
                 <Route path="/recipes/:id" element={<p>detail page</p>} />
+                <Route path="/categories" element={<p>categories page</p>} />
               </Routes>
             </AppShell>
           </MemoryRouter>
@@ -145,7 +146,12 @@ describe('AppShell on the desktop', () => {
     catalog.categories = { status: 'loading', list: [] }
     renderAt('/recipes?cat=2')
     const section = screen.getByRole('navigation', { name: 'Kategorien' })
-    expect(section.querySelectorAll('a')).toHaveLength(0)
+    // Only the gear: no category entries yet.
+    expect(
+      within(section)
+        .getAllByRole('link')
+        .map((a) => a.getAttribute('aria-label')),
+    ).toEqual(['Kategorien verwalten'])
     expect(within(section).getAllByTestId('category-skeleton')).toHaveLength(3)
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
   })
@@ -175,10 +181,43 @@ describe('AppShell on the desktop', () => {
     within(menu).getByText('Kolja')
     within(menu).getByRole('menuitem', { name: /Theme/ })
   })
+
+  it('leads to the categories page from the gear next to "Kategorien"', () => {
+    renderAt('/recipes')
+    const gear = within(sidebar()).getByRole('link', { name: 'Kategorien verwalten' })
+    expect(gear.getAttribute('href')).toBe('/categories')
+    fireEvent.click(gear)
+    screen.getByText('categories page')
+    expect(screen.getByRole('banner').textContent).toContain('Kategorien')
+  })
+
+  it('has no gear in the collapsed sidebar', () => {
+    renderAt('/recipes')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    expect(within(sidebar()).queryByRole('link', { name: 'Kategorien verwalten' })).toBeNull()
+  })
+
+  it('leads to the categories page from the profile menu', async () => {
+    renderAt('/recipes')
+    fireEvent.keyDown(within(sidebar()).getByRole('button', { name: 'Kolja – Profil & Einstellungen' }), {
+      key: 'Enter',
+    })
+    const item = await screen.findByRole('menuitem', { name: 'Kategorien' })
+    expect(item.getAttribute('href')).toBe('/categories')
+    fireEvent.click(item)
+    screen.getByText('categories page')
+  })
 })
 
 describe('AppShell on the phone', () => {
   beforeEach(() => setViewport(375))
+
+  it('leads to the categories page from the avatar menu', async () => {
+    renderAt('/recipes')
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Profil & Einstellungen' }), { key: 'Enter' })
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Kategorien' }))
+    screen.getByText('categories page')
+  })
 
   it('shows tab bar, "+" button and avatar on the list; "+" opens the editor', () => {
     renderAt('/recipes')

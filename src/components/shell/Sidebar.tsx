@@ -3,8 +3,8 @@
 // below it and a 64 px icon rail (docs/design/redesign §1.6).
 import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
-import { PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react'
+import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
+import { PanelLeftClose, PanelLeftOpen, Plus, Settings } from 'lucide-react'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { categoryColorVars } from '../../lib/categoryColor'
 import { SHELL_NAV_STATE, currentFor, visibleDestinations } from './nav'
@@ -136,7 +136,28 @@ export function Sidebar({
       {categories.status !== 'error' && (categories.status === 'loading' || ordered.length > 0) && (
         // Own scroll area, so a long category list never pushes the profile row off the screen.
         <nav aria-label="Kategorien" className="mt-4 flex min-h-0 flex-col gap-0.5 overflow-y-auto">
-          {!collapsed && <h2 className="px-2.5 pb-1.5 text-xs font-semibold text-muted-foreground">Kategorien</h2>}
+          {!collapsed && (
+            <div className="flex items-center justify-between pb-1.5 pl-2.5">
+              <h2 className="text-xs font-semibold text-muted-foreground">Kategorien</h2>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {/* A Link styled via buttonVariants, not <Button asChild>: the postxl Button would drop the
+                      tooltip's ref. */}
+                  <Link
+                    to="/categories"
+                    aria-label="Kategorien verwalten"
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'icon' }),
+                      'size-7 text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <Settings aria-hidden className="size-3.5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">Kategorien verwalten</TooltipContent>
+              </Tooltip>
+            </div>
+          )}
           {categories.status === 'loading'
             ? [0, 1, 2].map((i) => (
                 <Skeleton key={i} data-testid="category-skeleton" className="h-9 w-full rounded-md" />
