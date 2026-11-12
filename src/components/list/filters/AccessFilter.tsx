@@ -37,6 +37,7 @@ export function AccessFilter({
         meta={ROLE_META}
         isGreyed={(r) => roleDisabled(r, collab)}
         greyedReason="Passt nicht zur gewählten Freigabe – Klick setzt sie zurück"
+        greyedHint="Blasse Optionen passen nicht zur Freigabe. Auswählen setzt sie auf „Alle“."
         onChange={(next) => set({ role: next, collab: roleAllowsCollab(next, collab) ? collab : 'any' })}
       />
       <AccessGroup
@@ -45,6 +46,7 @@ export function AccessFilter({
         meta={COLLAB_META}
         isGreyed={(c) => collabDisabled(c, role)}
         greyedReason="Passt nicht zur gewählten Rolle – Klick setzt sie zurück"
+        greyedHint="Blasse Optionen passen nicht zur Rolle. Auswählen setzt sie auf „Alle“."
         onChange={(next) => set({ collab: next, role: roleAllowsCollab(role, next) ? role : 'any' })}
       />
     </div>
@@ -57,6 +59,7 @@ function AccessGroup<V extends string>({
   meta,
   isGreyed,
   greyedReason,
+  greyedHint,
   onChange,
 }: {
   title: string
@@ -64,6 +67,7 @@ function AccessGroup<V extends string>({
   meta: Record<V, Meta>
   isGreyed: (option: V) => boolean
   greyedReason: string
+  greyedHint: string
   onChange: (next: V | 'any') => void
 }) {
   const baseId = useId()
@@ -72,6 +76,7 @@ function AccessGroup<V extends string>({
   // Radix selects a radio as soon as arrow keys focus it. On a greyed option that would silently relax the
   // other axis, so arrowing only passes over greyed options; Space or a click still picks them.
   const arrowKeyDown = useRef(false)
+  const anyGreyed = (Object.keys(meta) as V[]).some(isGreyed)
   return (
     <div className="flex flex-col gap-1.5">
       <span id={titleId} className="text-sm text-muted-foreground">
@@ -147,6 +152,12 @@ function AccessGroup<V extends string>({
           )
         })}
       </RadioGroup>
+      {/* Visible twin of the hover-only tooltip (design.md §7); aria-hidden because each radio's description already says it. */}
+      {anyGreyed && (
+        <p aria-hidden className="px-1 text-xs text-muted-foreground">
+          {greyedHint}
+        </p>
+      )}
     </div>
   )
 }
