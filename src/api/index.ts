@@ -9,6 +9,9 @@ import { assertRating } from './views'
 import { afterSave, allPendingSaves, pendingSaveFor } from './pendingSaves'
 import { PAGE_SIZE } from '../list/query'
 import type {
+  CategoryInput,
+  CategoryOrderInput,
+  CategoryRecipesInput,
   CreateRecipe,
   Ingredient,
   PaginatedRecipes,
@@ -21,6 +24,7 @@ import type {
   UploadedImage,
   User,
   UserCategory,
+  UserCategoryId,
 } from './protocol'
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? ''
@@ -100,6 +104,30 @@ export const foodly = {
     USE_MOCKS
       ? socket.request<UserCategory[]>('categories.list')
       : collectPages((page) => rest.get<PaginatedResponse<UserCategory>>(`/categories?page=${page}&limit=100`)),
+
+  createCategory: (input: CategoryInput): Promise<UserCategory> =>
+    USE_MOCKS
+      ? socket.request<UserCategory>('categories.create', { input })
+      : rest.post<UserCategory>('/categories', input),
+
+  updateCategory: (id: UserCategoryId, input: CategoryInput): Promise<UserCategory> =>
+    USE_MOCKS
+      ? socket.request<UserCategory>('categories.update', { id, input })
+      : rest.put<UserCategory>(`/categories/${id}`, input),
+
+  deleteCategory: (id: UserCategoryId): Promise<void> =>
+    USE_MOCKS ? socket.request<void>('categories.delete', { id }) : rest.del(`/categories/${id}`),
+
+  setCategoryRecipes: (id: UserCategoryId, recipeIds: RecipeId[]): Promise<UserCategory> =>
+    USE_MOCKS
+      ? socket.request<UserCategory>('categories.setRecipes', { id, recipeIds })
+      : rest.put<UserCategory>(`/categories/${id}/recipes`, { recipeIds } satisfies CategoryRecipesInput),
+
+  // The backend answers the new orders ({ data: [{ id, order }] }); the caller already knows them.
+  reorderCategories: (ids: UserCategoryId[]): Promise<void> =>
+    USE_MOCKS
+      ? socket.request<void>('categories.reorder', { categoryIds: ids })
+      : rest.put('/categories/order', { categoryIds: ids } satisfies CategoryOrderInput).then(() => undefined),
 
   // Reads wait for an editor save still in flight (see pendingSaves.ts).
   searchRecipes: (query: RecipeSearchQuery, page: number): Promise<PaginatedRecipes> =>
