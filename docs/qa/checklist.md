@@ -16,7 +16,7 @@ Grundlage für die Broad Runs von Foodly QA (am 1. und 15. jedes Monats). Jede J
 - Aktive Filter als Chips entfernen; „Filter zurücksetzen“
 - Sortierung (Name, Arbeitszeit, Gesamtzeit, Bewertung, auf- und absteigend), Ansicht ausführlich/kompakt, Gruppierung nach Kategorie, Gruppen ein- und ausklappen
 - URL teilen, neu laden, Zurück; persönliche Voreinstellung bei leerer URL; Scrollposition nach Rückkehr vom Rezept
-- Ergebnisanzahl („3 von 12 Rezepten“); Zustände Laden, Fehler mit Erneut-versuchen, leer und keine Treffer; Nachladen beim Scrollen
+- Ergebnisanzahl („N Rezepte“, „N+ Rezepte“ solange Seiten ausstehen); Zustände Laden, Fehler mit Erneut-versuchen, leer und keine Treffer; Nachladen beim Scrollen, Nachladefehler mit Erneut-versuchen unter der Liste (Zahl bleibt „N+“)
 
 ## Rezeptdetail
 - Portionen bzw. Faktor per Eingabe und ±, ungültige Eingabe (leer, 0, negativ); Mengen mit Dezimalkomma; Abhaken; Wachhalten

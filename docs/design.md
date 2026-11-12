@@ -163,7 +163,8 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 - **Keine Treffer (Filter):** „Keine Treffer für die aktuellen Filter.“ + „Filter zurücksetzen“ – erst, wenn keine
   Seiten mehr ausstehen. Filtert der Client über geladene Seiten und es kommen noch welche, eine Skelett-Zeile statt
   Leer-Text (`RecipeList.tsx`).
-- **Fehler:** postxl `Alert` inline mit der Meldung und „Erneut versuchen“. Aktion fehlgeschlagen: `toast`.
+- **Fehler:** postxl `Alert` inline mit der Meldung und „Erneut versuchen“ (Nachladen fehlgeschlagen: unter der Liste).
+  Aktion fehlgeschlagen: `toast`.
 - **Kein Zugriff / nicht gefunden:** eigene Seite mit Weg zurück (`NotFound.tsx`).
 
 ## 6. Formulare

@@ -132,8 +132,8 @@ In short:
 - Errors: the transport throws `Error(message)` (sign-in and sign-up throw
   `ApiError` with `status` and `code`, for the sign-in pages); handle it via
   the hooks (`useRequest` / `useRecipeSearch` surface it as an error state;
-  in `useRecipeSearch` only for the first page — a failed `loadMore` stops
-  paging).
+  in `useRecipeSearch` `error` is the first page; a failed `loadMore` keeps
+  the cursor, sets `loadMoreError` and pauses paging until `retryLoadMore`).
 - `socket.ts` is reserved for future live editing — don't build features on it.
 
 ## Commands
