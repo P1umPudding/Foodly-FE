@@ -55,7 +55,7 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
         setError(toError(e))
         setStatus('error')
       })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- query is tracked by value via key; callers pass a new object each render
   }, [key, nonce])
 
   const fetchPage = useCallback(
@@ -76,7 +76,7 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
           if (mine === epoch.current) setLoadingMore(false)
         })
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- key tracks query by value; a per-render fetchPage would re-subscribe the sentinel and refire loadMore
     [key],
   )
 

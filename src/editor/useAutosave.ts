@@ -226,8 +226,7 @@ export function useAutosave<T>(
       const done = chain.catch(() => {})
       onUnmountFlushRef.current?.(done)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [run])
 
   // Closing the tab mid-save loses the change; warn while one is outstanding.
   // Registered once (not per status change) so the native listener isn't torn
