@@ -36,7 +36,7 @@ function OptionRadioGroup<T extends string>({
       {options.map((o) => {
         const id = `${baseId}-${o.value}`
         return (
-          <div key={o.value} className="flex min-h-10 items-center gap-2 rounded-sm px-1 hover:bg-muted">
+          <div key={o.value} className="flex min-h-10 items-center gap-2 rounded-md px-1 hover:bg-muted">
             <RadioGroupItem value={o.value} id={id} />
             {/* Overrides postxl Label's text-base/leading-none/font-medium, like FilterCheckRow. */}
             <Label
