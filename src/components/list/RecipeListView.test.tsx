@@ -202,16 +202,16 @@ it('flat list drops only the excepted category from the rows', () => {
 describe('"Öffnen ›" in the group header', () => {
   it('leads to the category page, but not for "Ohne Kategorie"', () => {
     renderView()
-    expect(screen.getByRole('link', { name: '„Fav“ öffnen' }).getAttribute('href')).toBe('/categories/10')
-    expect(screen.getByRole('link', { name: '„Quick“ öffnen' }).getAttribute('href')).toBe('/categories/11')
-    expect(screen.queryByRole('link', { name: '„Ohne Kategorie“ öffnen' })).toBeNull()
+    expect(screen.getByRole('link', { name: 'Öffnen: „Fav“' }).getAttribute('href')).toBe('/categories/10')
+    expect(screen.getByRole('link', { name: 'Öffnen: „Quick“' }).getAttribute('href')).toBe('/categories/11')
+    expect(screen.queryByRole('link', { name: 'Öffnen: „Ohne Kategorie“' })).toBeNull()
     expect(screen.getAllByText('Öffnen ›')).toHaveLength(2)
   })
 
   it('does not fold the group when clicked', () => {
     const onCollapsedChange = vi.fn()
     renderView({ onCollapsedChange })
-    fireEvent.click(screen.getByRole('link', { name: '„Fav“ öffnen' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Öffnen: „Fav“' }))
     expect(onCollapsedChange).not.toHaveBeenCalled()
   })
 })

@@ -108,9 +108,7 @@ function CategoryHead({ category }: { category: UserCategory }) {
       <CategoryMark category={category} size="xl" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <h1 className="font-display text-2xl break-words text-cat-ink">{category.name}</h1>
-        <p className="text-sm text-cat-ink opacity-75">
-          {recipeCount(category.recipes.length)} · nur für dich sichtbar
-        </p>
+        <p className="text-sm text-cat-ink">{recipeCount(category.recipes.length)} · nur für dich sichtbar</p>
       </div>
       {isDesktop ? (
         <TriggerButton ref={trigger} variant="outline" onClick={openDialog} className="gap-1.5">
@@ -234,6 +232,9 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
                 ? `Noch nichts in „${category.name}“. Öffne ein Rezept und füg es über „+“ hinzu.`
                 : 'Keine Rezepte, die du sehen kannst.'}
             </p>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/recipes">Zu den Rezepten</Link>
+            </Button>
           </div>
         )}
 

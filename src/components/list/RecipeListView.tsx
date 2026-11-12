@@ -111,7 +111,7 @@ function CategoryGroup({
         </Button>
         {categoryId !== null && (
           <Button asChild variant="ghost" size="sm" className="shrink-0 text-muted-foreground hover:text-foreground">
-            <Link to={categoryPageHref(categoryId)} aria-label={`„${name}“ öffnen`}>
+            <Link to={categoryPageHref(categoryId)} aria-label={`Öffnen: „${name}“`}>
               Öffnen ›
             </Link>
           </Button>
