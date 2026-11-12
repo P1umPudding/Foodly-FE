@@ -95,7 +95,7 @@ werden hier nicht wiederholt.
   `beforeunload` + Flush bei Unmount. Lesezugriffe (`getRecipe`, `searchRecipes`) warten auf den
   noch laufenden Unmount-Save (`src/api/pendingSaves.ts`, max. 10 s); Requests deshalb in Effects
   starten, nicht im Render. Migration nur mit Decision-Note.
-- Struktur (Phase 5 rev. 2, `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`;
+- Struktur (Phase 5 rev. 3, `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`;
   bei der Navigationsform hat das Redesign Vorrang, `docs/design/redesign/README.md` §1.6):
   `/recipes` Liste; `/` Start-Seite (`Home`, Spec rev. 3); mit mindestens einem Listen-Parameter
   (`LIST_PARAM_KEYS` in `src/list/url.ts`) leitet `/` samt Query und Hash auf `/recipes` weiter

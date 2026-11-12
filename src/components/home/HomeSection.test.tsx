@@ -23,6 +23,7 @@ function renderSection(state: SectionState, onRetry = vi.fn()) {
 describe('HomeSection', () => {
   it('shows a skeleton while loading', () => {
     renderSection('loading')
+    expect(screen.getByRole('region', { name: 'Kategorien' }).getAttribute('aria-busy')).toBe('true')
     screen.getByRole('heading', { level: 2, name: 'Kategorien' })
     screen.getByTestId('home-section-skeleton')
     expect(screen.queryByText('section content')).toBeNull()

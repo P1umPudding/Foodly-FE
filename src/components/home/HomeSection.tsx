@@ -1,5 +1,7 @@
 // One section of the start page: heading with an optional link, and its loading / error / content states.
-// An empty section renders nothing (design spec: empty sections hide themselves).
+// An empty section renders nothing (design spec: empty sections hide themselves). Render it from the first
+// render on, with state="loading" while fetching: a section that mounts late lets the "nothing to show" card
+// show until it reports.
 import { useId, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Skeleton } from '@postxl/ui-components'
@@ -28,7 +30,7 @@ export function HomeSection({
   if (state === 'empty') return null
 
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-3">
+    <section aria-labelledby={headingId} aria-busy={state === 'loading'} className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
         <h2 id={headingId} className="text-lg font-semibold">
           {title}
