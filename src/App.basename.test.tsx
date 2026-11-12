@@ -9,6 +9,9 @@ import { useRequest } from './hooks/useRequest'
 import type { Recipe } from './api/protocol'
 import { ref } from './test/images'
 
+// The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
+vi.mock('./components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
+
 // The Skaile preview serves the app under a sub-path: main.tsx sets the router
 // basename to BASE_URL. This checks that links and public-asset images pick up
 // that prefix. SKAILE_PREVIEW_BASE -> base -> BASE_URL is not covered here; it
