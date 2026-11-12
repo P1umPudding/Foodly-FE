@@ -53,13 +53,17 @@ async function renderDetail(recipeId: number) {
   await screen.findByRole('heading', { level: 1 }, WAIT)
 }
 
-// Chip links carry the category name; the "+" trigger sits after them.
-async function chipNames() {
-  const row = (await screen.findByRole('button', { name: /Kategorien ändern|Zu Kategorie hinzufügen/ }, WAIT))
-    .parentElement!
+// The chip links in the row of the "+" trigger, by their visible name (the letter mark is aria-hidden).
+function chipNames() {
+  const row = screen.getByRole('button', { name: /Kategorien ändern|Zu Kategorie hinzufügen/ }).parentElement!
   return within(row)
     .queryAllByRole('link')
-    .map((a) => a.textContent?.slice(1))
+    .map((a) =>
+      Array.from(a.childNodes)
+        .filter((n) => !(n instanceof Element && n.hasAttribute('aria-hidden')))
+        .map((n) => n.textContent)
+        .join(''),
+    )
 }
 
 async function openPanel() {
@@ -72,10 +76,10 @@ describe('RecipeDetail · Kategorie-Chips', () => {
     'shows the categories in order, linked to their list, and an icon-only "+"',
     async () => {
       await renderDetail(8)
-      await waitFor(async () => expect(await chipNames()).toEqual(['Favoriten', 'Schnelle Küche']), WAIT)
+      await waitFor(() => expect(chipNames()).toEqual(['Favoriten', 'Schnelle Küche']), WAIT)
       const plus = screen.getByRole('button', { name: 'Kategorien ändern' })
       expect(plus.textContent).toBe('')
-      expect(screen.getByRole('link', { name: /Favoriten/ }).getAttribute('href')).toContain('cat=1')
+      expect(screen.getByRole('link', { name: 'Favoriten' }).getAttribute('href')).toContain('cat=1')
     },
     SLOW,
   )
@@ -86,7 +90,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       await renderDetail(4)
       const plus = await screen.findByRole('button', { name: 'Zu Kategorie hinzufügen' }, WAIT)
       expect(plus.textContent).toBe('Zu Kategorie hinzufügen')
-      expect(await chipNames()).toEqual([])
+      expect(chipNames()).toEqual([])
     },
     SLOW,
   )
@@ -212,7 +216,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
   )
 
   it(
-    'drops the message of a save that fails after the panel was closed',
+    'shows a save that failed after closing on reopen, without announcing it as new',
     async () => {
       await renderDetail(8)
       let fail!: (e: Error) => void
@@ -228,6 +232,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       await act(async () => fail(new Error('kaputt')))
       panel = await openPanel()
       expect(within(panel).queryByRole('alert')).toBeNull()
+      expect(within(panel).getByText('kaputt')).toBeTruthy()
       expect((within(panel).getByRole('checkbox', { name: 'Backen & Süßes' }) as HTMLInputElement).checked).toBe(false)
     },
     SLOW,
@@ -276,7 +281,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       await renderDetail(3)
       expect(screen.queryByRole('link', { name: 'Bearbeiten' })).toBeNull()
       expect(screen.queryByRole('button', { name: /Löschen/ })).toBeNull()
-      await waitFor(async () => expect(await chipNames()).toEqual(['Schnelle Küche']), WAIT)
+      await waitFor(() => expect(chipNames()).toEqual(['Schnelle Küche']), WAIT)
       const save = vi.spyOn(api.foodly, 'setCategoryRecipes')
       const panel = await openPanel()
       fireEvent.click(await within(panel).findByRole('checkbox', { name: 'Schnelle Küche' }, WAIT))
@@ -346,6 +351,22 @@ describe('RecipeDetail · Kategorie-Chips', () => {
 
       const first = await within(panel).findByRole('checkbox', { name: 'Favoriten' }, WAIT)
       await waitFor(() => expect(document.activeElement).toBe(first))
+    },
+    SLOW,
+  )
+
+  it(
+    'puts the focus back on „Erneut versuchen“ when the retry fails too',
+    async () => {
+      vi.spyOn(api.foodly, 'listCategories').mockRejectedValue(new Error('offline'))
+      await renderDetail(8)
+      const panel = await openPanel()
+      fireEvent.click(await within(panel).findByRole('button', { name: 'Erneut versuchen' }, WAIT))
+
+      await waitFor(
+        () => expect(document.activeElement).toBe(within(panel).getByRole('button', { name: 'Erneut versuchen' })),
+        WAIT,
+      )
     },
     SLOW,
   )

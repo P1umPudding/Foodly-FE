@@ -28,20 +28,20 @@ export function CategoryAssignPanel({
 }) {
   const { list, status, error, retry } = categories
   // Retry swaps the alert for the skeleton, which would drop focus to <body>: the wrapper holds it while loading,
-  // then hands it to the first control of the list.
+  // then hands it to the first control (a checkbox, or the retry button again).
   const root = useRef<HTMLDivElement>(null)
   const onRetry = () => {
     root.current?.focus()
     retry()
   }
   useEffect(() => {
-    if (status === 'ready' && root.current && document.activeElement === root.current) {
-      root.current.querySelector<HTMLInputElement>('input')?.focus()
+    if (status !== 'loading' && root.current && document.activeElement === root.current) {
+      root.current.querySelector<HTMLElement>('input, button')?.focus()
     }
   }, [status])
 
   return (
-    <div ref={root} tabIndex={-1} className="outline-none" aria-busy={assign.creating || undefined}>
+    <div ref={root} tabIndex={-1} className="outline-none">
       {status === 'loading' ? (
         <div className="space-y-2" aria-busy>
           <span className="sr-only">Kategorien werden geladen</span>
@@ -90,8 +90,8 @@ function AssignList({
         </div>
       )}
       {assign.error && (
-        <p role="alert" className="px-1 text-sm text-destructive">
-          {assign.error}
+        <p role={assign.error.live ? 'alert' : undefined} className="px-1 text-sm text-destructive">
+          {assign.error.text}
         </p>
       )}
       <CreateCategoryForm assign={assign} />

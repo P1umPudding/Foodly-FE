@@ -20,7 +20,8 @@ import type { Recipe, RecipeId, UserCategory, UserCategoryId } from '../../api/p
 export type CategoryAssign = {
   pending: ReadonlySet<UserCategoryId>
   creating: boolean
-  error: string | null
+  // `live` is false for an error that arrived while the panel was closed: shown on reopen, but not announced as new.
+  error: { text: string; live: boolean } | null
   open: boolean
   onOpenChange: (open: boolean) => void
   // The "Neue Kategorie" field; it clears once the category exists, even if assigning it failed afterwards.
@@ -40,22 +41,23 @@ function useCategoryAssign(recipeId: RecipeId, list: UserCategory[]): CategoryAs
   const { create, setRecipes } = useCategoryActions()
   const [pending, setPending] = useState<ReadonlySet<UserCategoryId>>(new Set())
   const [creating, setCreating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<CategoryAssign['error']>(null)
   const [newName, setNewName] = useState('')
   const [open, setOpen] = useState(false)
   const pendingRef = useRef(new Set<UserCategoryId>())
   const creatingRef = useRef(false)
   const openRef = useRef(false)
 
-  // An error is about the last action in the open panel: closing dismisses it, and one that arrives after closing
-  // is dropped (a reopened panel would otherwise announce an old alert as new).
+  // Closing dismisses a shown error. One that arrives after closing waits for the reopen, without an alert role.
+  // Controlled so the panel stays open when the viewport crosses the breakpoint (its content remounts; the state
+  // lives here, so nothing is lost).
   const onOpenChange = (next: boolean) => {
     openRef.current = next
     setOpen(next)
     if (!next) setError(null)
   }
   const fail = (e: unknown, fallback: string) => {
-    if (openRef.current) setError(errorMessage(e, fallback))
+    setError({ text: errorMessage(e, fallback), live: openRef.current })
   }
 
   const setPendingFor = (id: UserCategoryId, on: boolean) => {
