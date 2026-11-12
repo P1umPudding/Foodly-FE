@@ -97,10 +97,13 @@ werden hier nicht wiederholt.
   starten, nicht im Render. Migration nur mit Decision-Note.
 - Struktur (Phase 5 rev. 2, `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`;
   bei der Navigationsform hat das Redesign Vorrang, `docs/design/redesign/README.md` §1.6):
-  `/recipes` Liste; `/` leitet bis zum Dashboard-Issue mit Query auf `/recipes` weiter
-  (`RootRedirect`). Kategorien nur als Filter `/recipes?cat=<id>` (keine eigene Route).
+  `/recipes` Liste; `/` Start-Seite (`Home`, Spec rev. 3); mit mindestens einem Listen-Parameter
+  (`LIST_PARAM_KEYS` in `src/list/url.ts`) leitet `/` samt Query und Hash auf `/recipes` weiter
+  (`src/pages/RootRoute.tsx`). Abschnitte der Start-Seite sind `HomeSection`s
+  (`src/components/home/`); sie melden ihren Zustand an `HomeSectionsProvider`, der die Karte
+  „Nichts zu zeigen“ nur zeigt, solange alle leer sind. Kategorien nur als Filter `/recipes?cat=<id>` (keine eigene Route).
   `src/components/shell/`: `AppShell` mit `NAV_DESTINATIONS` (`nav.ts`, einzige Quelle,
-  „Start“ vorbereitet, aber ausgeblendet); ab 761 px (`useIsDesktop`) Seitenleiste
+  „Start“ vor „Rezepte“); ab 761 px (`useIsDesktop`) Seitenleiste
   (einklappbar, Kategorien, Profil), darunter Tab-Leiste + „+“-FAB + Avatar. Das Fenster
   bleibt der Scroll-Container; feste Seitenleisten nutzen `--shell-left`/`--shell-bottom`.
   Groups-Routen erst nach B12 + Backend #13.
