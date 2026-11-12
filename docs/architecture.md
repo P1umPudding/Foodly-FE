@@ -101,7 +101,8 @@ werden hier nicht wiederholt.
   (`LIST_PARAM_KEYS` in `src/list/url.ts`) leitet `/` samt Query und Hash auf `/recipes` weiter
   (`src/pages/RootRoute.tsx`). Abschnitte der Start-Seite sind `HomeSection`s
   (`src/components/home/`); sie melden ihren Zustand an `HomeSectionsProvider`, der die Karte
-  „Nichts zu zeigen“ nur zeigt, solange alle leer sind. Kategorien nur als Filter `/recipes?cat=<id>` (keine eigene Route).
+  „Nichts zu zeigen“ nur zeigt, solange keiner gemeldet ist oder alle leer sind. Kategorien nur
+  als Filter `/recipes?cat=<id>` (keine eigene Route).
   `src/components/shell/`: `AppShell` mit `NAV_DESTINATIONS` (`nav.ts`, einzige Quelle,
   „Start“ vor „Rezepte“); ab 761 px (`useIsDesktop`) Seitenleiste
   (einklappbar, Kategorien, Profil), darunter Tab-Leiste + „+“-FAB + Avatar. Das Fenster

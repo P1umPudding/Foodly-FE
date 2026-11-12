@@ -46,7 +46,7 @@ describe('HomeSection', () => {
 
   it('shows heading, link and content when ready', () => {
     renderSection('ready')
-    expect(screen.getByRole('region', { name: 'Kategorien' })).toBeTruthy()
+    screen.getByRole('region', { name: 'Kategorien' })
     expect(screen.getByRole('link', { name: 'Verwalten' }).getAttribute('href')).toBe('/categories')
     screen.getByText('section content')
     expect(screen.queryByTestId('home-section-skeleton')).toBeNull()

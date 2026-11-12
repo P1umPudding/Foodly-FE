@@ -58,7 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
           >
             {/* Not a heading: each page owns its single h1. On the phone, Start greets in its h1, so the
-                header carries the wordmark instead of repeating "Start". */}
+                header carries the wordmark instead of repeating "Start" (plain text: we're already on Start). */}
             {!isDesktop && pathname === '/' ? (
               <span className="font-display text-xl">Foodly</span>
             ) : (

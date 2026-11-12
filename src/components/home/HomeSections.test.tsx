@@ -23,6 +23,19 @@ function Page({ states }: { states: SectionState[] }) {
   )
 }
 
+function Toggle() {
+  const [shown, setShown] = useState(true)
+  return (
+    <MemoryRouter>
+      <HomeSectionsProvider>
+        <Button onClick={() => setShown(false)}>weg</Button>
+        {shown && <HomeSection title="A" state="ready" onRetry={() => {}} />}
+        <NothingToShow />
+      </HomeSectionsProvider>
+    </MemoryRouter>
+  )
+}
+
 describe('NothingToShow', () => {
   it('shows the card with both links when there are no sections', () => {
     render(<Page states={[]} />)
@@ -42,30 +55,22 @@ describe('NothingToShow', () => {
   })
 
   it('shows the card again once the only section with content is gone', () => {
-    function Toggle() {
-      const [shown, setShown] = useState(true)
-      return (
-        <MemoryRouter>
-          <HomeSectionsProvider>
-            <Button onClick={() => setShown(false)}>weg</Button>
-            {shown && <HomeSection title="A" state="ready" onRetry={() => {}} />}
-            <NothingToShow />
-          </HomeSectionsProvider>
-        </MemoryRouter>
-      )
-    }
     render(<Toggle />)
     expect(screen.queryByText(CARD_TEXT)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'weg' }))
     screen.getByText(CARD_TEXT)
   })
 
+  // StrictMode runs each layout effect, its cleanup and the effect again: the cleanup must remove the entry
+  // and the second run must add it back.
   it('keeps the registry right under StrictMode', () => {
     render(
       <StrictMode>
-        <Page states={['ready']} />
+        <Toggle />
       </StrictMode>,
     )
     expect(screen.queryByText(CARD_TEXT)).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'weg' }))
+    screen.getByText(CARD_TEXT)
   })
 })

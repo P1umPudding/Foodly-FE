@@ -81,7 +81,7 @@ describe('AppShell on the desktop', () => {
       .getAllByRole('link')
       .map((l) => l.textContent)
     expect(destinations.indexOf('Start')).toBeLessThan(destinations.indexOf('Rezepte'))
-    expect(side.getByRole('link', { name: 'Start' }).getAttribute('aria-current')).not.toBe('page')
+    expect(side.getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBeNull()
     expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('href')).toBe('/recipes?cat=2&group=1')
     side.getByText('3')
     // phone-only pieces are absent
@@ -94,8 +94,8 @@ describe('AppShell on the desktop', () => {
     const nav = within(mainNav())
     expect(nav.getByRole('link', { name: 'Start' }).getAttribute('href')).toBe('/')
     expect(nav.getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBe('page')
-    expect(nav.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).not.toBe('page')
-    expect(within(screen.getByRole('banner')).getByText('Start')).toBeTruthy()
+    expect(nav.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBeNull()
+    within(screen.getByRole('banner')).getByText('Start')
   })
 
   it('collapses to icons, remembers it, and expands again', () => {
@@ -244,7 +244,7 @@ describe('AppShell on the phone', () => {
   it('shows Start active, the wordmark, "+" button and avatar on /', () => {
     renderAt('/')
     expect(within(mainNav()).getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBe('page')
-    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).not.toBe('page')
+    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBeNull()
     const banner = within(screen.getByRole('banner'))
     banner.getByText('Foodly')
     expect(banner.queryByText('Start')).toBeNull()
@@ -254,7 +254,7 @@ describe('AppShell on the phone', () => {
 
   it('does not mark Start current on the list', () => {
     renderAt('/recipes')
-    expect(within(mainNav()).getByRole('link', { name: 'Start' }).getAttribute('aria-current')).not.toBe('page')
+    expect(within(mainNav()).getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBeNull()
   })
 
   it('keeps "Rezepte" current on a category view (no category tabs)', () => {
