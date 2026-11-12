@@ -8,6 +8,7 @@ import { useRequest } from '../hooks/useRequest'
 import { SHELL_NAV_STATE } from '../components/shell/nav'
 import type { Recipe, UserCategory } from '../api/protocol'
 import { ref } from '../test/images'
+import { TILE_META_TEXT, TILE_TITLE_TEXT } from '../components/recipe/RecipeTile'
 
 function cat(id: number, recipes: number[]): UserCategory {
   return { id, user: 1, name: `Cat ${id}`, recipes, order: id, color: '#000000', colorLight: null, colorDark: null }
@@ -71,13 +72,31 @@ describe('RecipeList (server-side search)', () => {
     const never = () => new Promise<never>(() => {})
     afterEach(() => vi.unstubAllGlobals())
 
-    it('tiles: 4:3 tile skeletons', async () => {
+    it('tiles: 4:3 block plus title and meta bars', async () => {
       vi.spyOn(foodly, 'searchRecipes').mockImplementation(never)
       vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
 
       renderList('/recipes?view=tiles&group=0')
 
-      await waitFor(() => expect(screen.getAllByTestId('tile-skeleton')).toHaveLength(4))
+      const tiles = await waitFor(() => {
+        const found = screen.getAllByTestId('tile-skeleton')
+        expect(found).toHaveLength(4)
+        return found
+      })
+      for (const tile of tiles) {
+        expect(tile.firstElementChild?.classList).toContain('aspect-[4/3]')
+        const [title, meta, ...rest] = within(tile).getAllByTestId('tile-skeleton-line')
+        expect(rest).toHaveLength(0)
+        expect([...title.classList]).toEqual(expect.arrayContaining(['h-4', 'w-3/4']))
+        expect([...meta.classList]).toEqual(expect.arrayContaining(['h-3', 'w-1/2']))
+        // The line boxes give the skeleton the tile's height (one text line each).
+        expect([...(title.parentElement?.classList ?? [])]).toEqual(
+          expect.arrayContaining(['h-lh', ...TILE_TITLE_TEXT.split(' ')]),
+        )
+        expect([...(meta.parentElement?.classList ?? [])]).toEqual(
+          expect.arrayContaining(['h-lh', ...TILE_META_TEXT.split(' ')]),
+        )
+      }
       expect(screen.queryAllByTestId('row-skeleton')).toHaveLength(0)
     })
 
@@ -118,6 +137,7 @@ describe('RecipeList (server-side search)', () => {
 
       const more = await waitFor(() => screen.getByTestId('list-more-skeleton'))
       expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(4)
+      expect(within(more).getAllByTestId('tile-skeleton-line')).toHaveLength(8)
       expect(within(more).getByTestId('tile-grid').className).toContain('auto-rows-[0]')
     })
 
