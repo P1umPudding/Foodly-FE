@@ -50,7 +50,7 @@ hierher, nicht als Einzelwert in den Code.
 Fokus-Ring (`--ring`, `--sidebar-ring`): bei voller Token-Deckkraft ≥ 3:1 auf allen Flächen, hell und dunkel
 (WCAG 1.4.11), geprüft in `src/styles/focusRing.test.ts`; postxl-`ring-ring/50` halbiert die Deckkraft noch (~1,7:1, #77).
 
-Meta-Text (Zähler, Zeiten) steht in `text-xs`/`text-sm`, also kleiner Text mit AA ≥ 4,5:1, und bleibt deshalb
+Meta-Text (Zähler, Zeiten): steht in `text-xs`/`text-sm`, also kleiner Text, für den AA ≥ 4,5:1 verlangt, und bleibt deshalb
 `text-muted-foreground`. Gemessen nach WCAG 2.x mit den Token-Werten aus `theme.css` auf `background`, `card`/`popover`,
 `muted`, `accent`, `sidebar` und `sidebar-accent`: `subtle-foreground` erreicht hell 2,96–3,64:1 und dunkel 3,34–4,20:1,
 `muted-foreground` hell 5,55–6,83:1 und dunkel 6,26–7,88:1. Schlechtester Fall ist der aktive Navigationspunkt
