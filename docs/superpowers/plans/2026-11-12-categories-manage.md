@@ -15,20 +15,20 @@ Lokale Checks statt CI (ADR 0004): `npm ci`, `npm run build`, `npm test -- --pas
 
 | # | Issue | Hängt ab von | Parallel möglich mit |
 |---|---|---|---|
-| K1 | Kategorien schreiben: API-Methoden und Katalog-Aktionen | – | K2 |
-| K2 | Kategorie-Bausteine: Symbol, Farbwahl, Ähnlich-Warnung | – | K1 |
-| K3 | Seite „Meine Kategorien“: anlegen, bearbeiten, löschen | K1, K2 | – |
-| K4 | Kategorien sortieren (Nach oben / Nach unten) | K3 | K5, K6 |
-| K5 | Rezept-Detail: Kategorie-Chips und „+“ zum Zuordnen | K1, K2 | K4, K6 |
-| K6 | Kategorie-Seite `/categories/:id` | K1, K3 | K4, K5 |
-| K7 | Kategorien per Ziehen am Griff sortieren (später) | K4 | – |
+| K1 (#178) | Kategorien schreiben: API-Methoden und Katalog-Aktionen | – | K2 |
+| K2 (#179) | Kategorie-Bausteine: Symbol, Farbwahl, Ähnlich-Warnung | – | K1 |
+| K3 (#180) | Seite „Meine Kategorien“: anlegen, bearbeiten, löschen | K1, K2 | – |
+| K4 (#181) | Kategorien sortieren (Nach oben / Nach unten) | K3 | K5, K6 |
+| K5 (#182) | Rezept-Detail: Kategorie-Chips und „+“ zum Zuordnen | K1, K2 | K4, K6 |
+| K6 (#183) | Kategorie-Seite `/categories/:id` | K1, K3 | K4, K5 |
+| K7 (#184) | Kategorien per Ziehen am Griff sortieren (später) | K4 | – |
 
 Erster Schwung: K1 und K2. Dann K3. Danach K4, K5 und K6 gleichzeitig. K4 und K6 fassen beide
 `src/pages/Categories.tsx` bzw. die Seitenleiste nur an getrennten Stellen an.
 
 ---
 
-## K1 — Kategorien schreiben: API-Methoden und Katalog-Aktionen
+## K1 (#178) — Kategorien schreiben: API-Methoden und Katalog-Aktionen
 
 Labels: agent-ready, alpha · Depends on: –
 
@@ -87,7 +87,7 @@ füllen, in REST und Mock gleich.
 
 ---
 
-## K2 — Kategorie-Bausteine: Symbol, Farbwahl, Ähnlich-Warnung
+## K2 (#179) — Kategorie-Bausteine: Symbol, Farbwahl, Ähnlich-Warnung
 
 Labels: agent-ready, alpha, ui · Depends on: –
 
@@ -140,7 +140,7 @@ Wiederverwendbare Bausteine für Symbol und Farbwahl einer Kategorie, ohne Seite
 
 ---
 
-## K3 — Seite „Meine Kategorien“: anlegen, bearbeiten, löschen
+## K3 (#180) — Seite „Meine Kategorien“: anlegen, bearbeiten, löschen
 
 Labels: agent-ready, alpha, ui · Depends on: K1, K2
 
@@ -201,7 +201,7 @@ die Seite über das Profil-Menü und die Seitenleiste.
 
 ---
 
-## K4 — Kategorien sortieren (Nach oben / Nach unten)
+## K4 (#181) — Kategorien sortieren (Nach oben / Nach unten)
 
 Labels: agent-ready, alpha, ui · Depends on: K3
 
@@ -242,7 +242,7 @@ Man kann die Reihenfolge seiner Kategorien auf `/categories` ändern, ohne Ziehe
 
 ---
 
-## K5 — Rezept-Detail: Kategorie-Chips und „+“ zum Zuordnen
+## K5 (#182) — Rezept-Detail: Kategorie-Chips und „+“ zum Zuordnen
 
 Labels: agent-ready, alpha, ui · Depends on: K1, K2
 
@@ -294,7 +294,7 @@ dafür eine neue Kategorie anlegen.
 
 ---
 
-## K6 — Kategorie-Seite `/categories/:id`
+## K6 (#183) — Kategorie-Seite `/categories/:id`
 
 Labels: agent-ready, alpha, ui · Depends on: K1, K3
 
@@ -358,7 +358,7 @@ dorthin.
 
 ---
 
-## K7 — Kategorien per Ziehen am Griff sortieren (später)
+## K7 (#184) — Kategorien per Ziehen am Griff sortieren (später)
 
 Labels: enhancement · nicht agent-ready · Depends on: K4
 

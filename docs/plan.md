@@ -64,7 +64,7 @@ vor dem Merge behoben. #141–#144 entblockt, neu #146 (Timer pro Nutzer). Reihe
 Danach weiter mit Kategorien verwalten.
 
 **Stand 2026-11-12:** PRs bis #177 gemergt. Kategorien verwalten ist geschnitten (freigegeben von Daniel am 2026-11-12):
-Spec `superpowers/specs/2026-11-12-categories-manage-design.md`, Issues K1–K6 in
+Spec `superpowers/specs/2026-11-12-categories-manage-design.md`, Issues K1–K6 (#178–#183, Ziehen später #184) in
 `superpowers/plans/2026-11-12-categories-manage.md`, kein Backend-Block (alle Endpunkte auf Backend-`main`). Enthält
 die Kategorie-Seite aus Redesign Schritt 4. Danach Phase 5 (Dashboard).
 
