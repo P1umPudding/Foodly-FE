@@ -27,4 +27,25 @@ describe('mock recipes.search', () => {
 
     expect(category.recipes).toContain(copy.id)
   })
+
+  it('narrows to the recipes of the requested category', async () => {
+    const category = mockData.categories.find((c) => c.recipes.length > 0)
+    if (!category) throw new Error('fixture has no non-empty category')
+
+    const page = (await mockRequest('recipes.search', {
+      query: { sort: { field: 'name', order: 'asc' }, filters: { categories: [category.id] } },
+      page: 1,
+    })) as PaginatedRecipes
+
+    expect(page.items.map((r) => r.id).sort()).toEqual([...category.recipes].sort())
+  })
+
+  it('finds nothing for an unknown category', async () => {
+    const page = (await mockRequest('recipes.search', {
+      query: { filters: { categories: [999] } },
+      page: 1,
+    })) as PaginatedRecipes
+
+    expect(page.items).toEqual([])
+  })
 })

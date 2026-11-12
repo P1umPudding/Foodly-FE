@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigationType } from 'react-router-dom'
-import { Button, Skeleton } from '@postxl/ui-components'
+import { Button } from '@postxl/ui-components'
 import { UtensilsCrossed, SearchX } from 'lucide-react'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
 import { useCategories, useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
@@ -11,12 +11,12 @@ import { buildSearchQuery } from '../list/query'
 import { matchesSearch } from '../list/search'
 import { usedIngredients } from '../list/counts'
 import { canViewRecipe } from '../api/views'
-import { isFilterActive, type DetailView } from '../list/state'
+import { isFilterActive } from '../list/state'
 import { loadCollapsed, saveCollapsed } from '../list/persistence'
 import { FilterBar } from '../components/list/FilterBar'
 import { MobileListOptions } from '../components/list/MobileListOptions'
-import { GroupIndent, RecipeListView, TileGrid } from '../components/list/RecipeListView'
-import { TILE_META_TEXT, TILE_TITLE_TEXT } from '../components/recipe/RecipeTile'
+import { RecipeListView } from '../components/list/RecipeListView'
+import { ListSkeleton, LoadMoreSkeleton } from '../components/list/ListSkeleton'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
 import { SortMenu } from '../components/list/SortMenu'
@@ -32,75 +32,6 @@ const SCROLL_KEY = 'recipeList:scroll'
 // (a nav link writes `group=1`, the list itself omits defaults).
 function listIdentity(search: string): string {
   return toSearchParams(fromSearchParams(new URLSearchParams(search))).toString()
-}
-
-// Laid out like a photo RecipeTile: each bar sits in a box one text line of the tile tall.
-function TileSkeleton() {
-  return (
-    <div data-testid="tile-skeleton" className="flex min-w-0 flex-col gap-2">
-      <Skeleton className="aspect-[4/3] w-full rounded-lg" />
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <div className={`flex h-lh items-center ${TILE_TITLE_TEXT}`}>
-          <Skeleton data-testid="tile-skeleton-line" className="h-4 w-3/4 rounded-sm" />
-        </div>
-        <div className={`flex h-lh items-center ${TILE_META_TEXT}`}>
-          <Skeleton data-testid="tile-skeleton-line" className="h-3 w-1/2 rounded-sm" />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Placeholders in the shape of the chosen view, so nothing jumps when the recipes arrive.
-function ListSkeleton({
-  detail,
-  count,
-  testId,
-  oneRow = false,
-}: {
-  detail: DetailView
-  count: number
-  testId?: string
-  oneRow?: boolean
-}) {
-  const items = Array.from({ length: count }, (_, i) => i)
-  if (detail === 'tiles') {
-    return (
-      <div data-testid={testId}>
-        <TileGrid oneRow={oneRow}>
-          {items.map((i) => (
-            <TileSkeleton key={i} />
-          ))}
-        </TileGrid>
-      </div>
-    )
-  }
-  const compact = detail === 'compact'
-  return (
-    <div data-testid={testId} className={compact ? 'space-y-0.5' : 'space-y-3'}>
-      {items.map((i) => (
-        <Skeleton
-          key={i}
-          data-testid="row-skeleton"
-          className={`w-full ${compact ? 'h-8 rounded-md' : 'h-18 rounded-lg'}`}
-        />
-      ))}
-    </div>
-  )
-}
-
-function LoadMoreSkeleton({ detail, grouped }: { detail: DetailView; grouped: boolean }) {
-  if (detail !== 'tiles') {
-    return (
-      <div className="pt-3">
-        <ListSkeleton detail={detail} count={1} testId="list-more-skeleton" />
-      </div>
-    )
-  }
-  // One row, as many tiles as the grid has columns (the max-w-6xl column fits at most 4).
-  const tiles = <ListSkeleton detail="tiles" count={4} testId="list-more-skeleton" oneRow />
-  // Grouped: indented like a group's grid, so the skeleton columns match the tiles above.
-  return <div className="pt-7 phone:pt-5">{grouped ? <GroupIndent lineless>{tiles}</GroupIndent> : tiles}</div>
 }
 
 export function RecipeList() {

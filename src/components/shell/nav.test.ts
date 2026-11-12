@@ -1,7 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { DEFAULT_STATE } from '../../list/state'
 import { loadPersisted } from '../../list/persistence'
-import { NAV_DESTINATIONS, activeCategoryId, listHref, navPrefs, routeTitle } from './nav'
+import {
+  NAV_DESTINATIONS,
+  activeCategoryId,
+  categoryPageHref,
+  inRecipesSection,
+  listHref,
+  navPrefs,
+  parseCategoryId,
+  routeTitle,
+} from './nav'
 
 const defaults = { sortKey: 'name', sortDir: 'asc', detail: 'detailed', grouped: true } as const
 
@@ -72,6 +81,28 @@ describe('activeCategoryId', () => {
     expect(at('')).toBeNull()
     expect(at('cat=1&cat=2')).toBeNull()
     expect(at('cat=2', '/recipes/5')).toBeNull()
+  })
+  it('is the category of its page', () => {
+    expect(at('sort=rating', '/categories/7')).toBe(7)
+    expect(at('', '/categories/7/')).toBe(7)
+    expect(at('', '/categories/abc')).toBeNull()
+    expect(at('', '/categories')).toBeNull()
+  })
+})
+
+describe('category page helpers', () => {
+  it('parses only plain integer ids', () => {
+    expect(parseCategoryId('12')).toBe(12)
+    expect(parseCategoryId('1.5')).toBeNull()
+    expect(parseCategoryId('-1')).toBeNull()
+    expect(parseCategoryId('x')).toBeNull()
+    expect(parseCategoryId(undefined)).toBeNull()
+  })
+  it('addresses the page and counts it to "Rezepte"', () => {
+    expect(categoryPageHref(3)).toBe('/categories/3')
+    expect(inRecipesSection('/categories/3')).toBe(true)
+    expect(inRecipesSection('/recipes/3/edit')).toBe(true)
+    expect(inRecipesSection('/categories')).toBe(false)
   })
 })
 

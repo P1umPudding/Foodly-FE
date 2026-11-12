@@ -55,6 +55,7 @@ describe('Categories page (mock mode)', () => {
       expect(rowNames(list)).toEqual(['Favoriten', 'Schnelle Küche', 'Backen & Süßes', 'Meal Prep'])
       expect(within(list).getByText('4 Rezepte')).toBeTruthy()
       expect(within(list).getByText('2 Rezepte')).toBeTruthy()
+      expect(within(list).getByRole('link', { name: 'Favoriten' }).getAttribute('href')).toBe('/categories/1')
     },
     SLOW,
   )

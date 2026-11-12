@@ -4,11 +4,20 @@ import { MobileListOptions } from './MobileListOptions'
 import { DEFAULT_STATE, type ListState } from '../../list/state'
 
 // Controlled like the page: patches merge into the state, and every patch is reported.
-function Harness({ onSet, initial = DEFAULT_STATE }: { onSet?: (p: Partial<ListState>) => void; initial?: ListState }) {
+function Harness({
+  onSet,
+  initial = DEFAULT_STATE,
+  showLayout,
+}: {
+  onSet?: (p: Partial<ListState>) => void
+  initial?: ListState
+  showLayout?: boolean
+}) {
   const [state, setState] = useState(initial)
   return (
     <MobileListOptions
       state={state}
+      showLayout={showLayout}
       set={(patch) => {
         setState((s) => ({ ...s, ...patch }))
         onSet?.(patch)
@@ -93,4 +102,11 @@ it('rounds every option row like other controls', () => {
     expect(radio.parentElement!.classList.contains('rounded-md')).toBe(true)
     expect(radio.parentElement!.classList.contains('rounded-sm')).toBe(false)
   }
+})
+
+it('leaves out the layout when the page has none (category page)', () => {
+  render(<Harness showLayout={false} />)
+  const sheet = openSheet()
+  expect(within(sheet).queryByRole('radiogroup', { name: 'Gliederung' })).toBeNull()
+  expect(within(sheet).getByRole('radiogroup', { name: 'Ansicht' })).toBeTruthy()
 })

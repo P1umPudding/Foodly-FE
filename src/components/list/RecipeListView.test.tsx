@@ -101,7 +101,7 @@ function renderView(props: Partial<ComponentProps<typeof RecipeListView>> = {}) 
 
 // The row link of a recipe inside the group headed by `group`.
 function rowIn(group: RegExp, name: string) {
-  const groupRoot = screen.getByRole('button', { name: group }).parentElement as HTMLElement
+  const groupRoot = screen.getByRole('button', { name: group }).closest('.group\\/cat') as HTMLElement
   return within(groupRoot).getByRole('link', { name: new RegExp(name) })
 }
 
@@ -151,7 +151,9 @@ describe('tiles view', () => {
     const grids = screen.getAllByTestId('tile-grid')
     expect(grids).toHaveLength(3)
     expect(
-      within(screen.getByRole('button', { name: /Fav/ }).parentElement as HTMLElement).getByTestId('tile-grid'),
+      within(screen.getByRole('button', { name: /Fav/ }).closest('.group\\/cat') as HTMLElement).getByTestId(
+        'tile-grid',
+      ),
     ).toBeTruthy()
     expect(screen.getAllByTestId('tile-type-name').map((t) => t.textContent)).toEqual(['Loner', 'In Both', 'In Both'])
   })
@@ -165,8 +167,8 @@ describe('tiles view', () => {
 
   it('a collapsed group hides its tiles but keeps its header', () => {
     renderView({ detail: 'tiles', collapsed: new Set(['cat-10']) })
-    const fav = screen.getByRole('button', { name: /Fav/ }).parentElement as HTMLElement
-    expect(within(fav).queryByRole('link')).toBeNull()
+    const fav = screen.getByRole('button', { name: /Fav/ }).closest('.group\\/cat') as HTMLElement
+    expect(within(fav).queryByRole('link', { name: /In Both/ })).toBeNull()
     expect(rowIn(/Quick/, 'In Both')).toBeTruthy()
   })
 
@@ -182,5 +184,34 @@ describe('tiles view', () => {
     expect(screen.queryByRole('button', { name: /Fav/ })).toBeNull()
     expect(screen.getAllByTestId('tile-grid')).toHaveLength(1)
     expect(screen.getAllByRole('link')).toHaveLength(2)
+  })
+})
+
+it('flat list drops only the excepted category from the rows', () => {
+  render(
+    <TooltipProvider>
+      <MemoryRouter>
+        <RecipeListView recipes={recipes} categories={cats} detail="detailed" grouped={false} exceptCategoryId={10} />
+      </MemoryRouter>
+    </TooltipProvider>,
+  )
+  expect(screen.getByText('Kategorien: Quick')).toBeTruthy()
+  expect(screen.queryByText(/Kategorien:.*Fav/)).toBeNull()
+})
+
+describe('"Öffnen ›" in the group header', () => {
+  it('leads to the category page, but not for "Ohne Kategorie"', () => {
+    renderView()
+    expect(screen.getByRole('link', { name: 'Öffnen: „Fav“' }).getAttribute('href')).toBe('/categories/10')
+    expect(screen.getByRole('link', { name: 'Öffnen: „Quick“' }).getAttribute('href')).toBe('/categories/11')
+    expect(screen.queryByRole('link', { name: 'Öffnen: „Ohne Kategorie“' })).toBeNull()
+    expect(screen.getAllByText('Öffnen ›')).toHaveLength(2)
+  })
+
+  it('does not fold the group when clicked', () => {
+    const onCollapsedChange = vi.fn()
+    renderView({ onCollapsedChange })
+    fireEvent.click(screen.getByRole('link', { name: 'Öffnen: „Fav“' }))
+    expect(onCollapsedChange).not.toHaveBeenCalled()
   })
 })
