@@ -119,7 +119,8 @@ function CategoryGroup({
 // state). `collapsed` holds the keys that are closed; empty = all open.
 // `categories` drive the grouping and may be narrowed by the category filter;
 // `allCategories` (unfiltered) feed the rows' dots so a filter never hides them.
-// `showImages` is decided by the page from all loaded recipes.
+// `showImages` is decided by the page from all loaded recipes. `exceptCategoryId` drops that category's dot from the
+// flat rows (a category page: every row is in it).
 export function RecipeListView({
   recipes,
   categories,
@@ -129,6 +130,7 @@ export function RecipeListView({
   grouped = true,
   collapsed = NONE_COLLAPSED,
   onCollapsedChange,
+  exceptCategoryId = null,
 }: {
   recipes: Recipe[]
   categories: UserCategory[]
@@ -138,11 +140,12 @@ export function RecipeListView({
   grouped?: boolean
   collapsed?: ReadonlySet<string>
   onCollapsedChange?: (next: Set<string>) => void
+  exceptCategoryId?: UserCategoryId | null
 }) {
   const rowOptions: RowOptions = { detail, allCategories, showImages }
 
   // Flat list: one sorted sequence (or one grid), no category headers or collapse.
-  if (!grouped) return <Rows recipes={recipes} {...rowOptions} />
+  if (!grouped) return <Rows recipes={recipes} exceptCategoryId={exceptCategoryId} {...rowOptions} />
 
   const groups = deriveGroups(recipes, categories)
 

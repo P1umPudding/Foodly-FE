@@ -184,3 +184,15 @@ describe('tiles view', () => {
     expect(screen.getAllByRole('link')).toHaveLength(2)
   })
 })
+
+it('flat list drops only the excepted category from the rows', () => {
+  render(
+    <TooltipProvider>
+      <MemoryRouter>
+        <RecipeListView recipes={recipes} categories={cats} detail="detailed" grouped={false} exceptCategoryId={10} />
+      </MemoryRouter>
+    </TooltipProvider>,
+  )
+  expect(screen.getByText('Kategorien: Quick')).toBeTruthy()
+  expect(screen.queryByText(/Kategorien:.*Fav/)).toBeNull()
+})

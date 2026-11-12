@@ -64,7 +64,15 @@ function Section({ id, title, children }: { id?: string; title: string; children
   )
 }
 
-export function MobileListOptions({ state, set }: { state: ListState; set: (patch: Partial<ListState>) => void }) {
+export function MobileListOptions({
+  state,
+  set,
+  showLayout = true,
+}: {
+  state: ListState
+  set: (patch: Partial<ListState>) => void
+  showLayout?: boolean
+}) {
   const ids = useId()
   const viewHeading = `${ids}-view`
   const layoutHeading = `${ids}-layout`
@@ -108,14 +116,16 @@ export function MobileListOptions({ state, set }: { state: ListState; set: (patc
               options={DETAIL_OPTIONS}
             />
           </Section>
-          <Section id={layoutHeading} title="Gliederung">
-            <OptionRadioGroup
-              aria-labelledby={layoutHeading}
-              value={state.grouped ? 'grouped' : 'flat'}
-              onChange={(v) => set({ grouped: v === 'grouped' })}
-              options={LAYOUT_OPTIONS}
-            />
-          </Section>
+          {showLayout && (
+            <Section id={layoutHeading} title="Gliederung">
+              <OptionRadioGroup
+                aria-labelledby={layoutHeading}
+                value={state.grouped ? 'grouped' : 'flat'}
+                onChange={(v) => set({ grouped: v === 'grouped' })}
+                options={LAYOUT_OPTIONS}
+              />
+            </Section>
+          )}
         </div>
       </BottomSheet>
     </Sheet>
