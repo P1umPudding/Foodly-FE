@@ -1,5 +1,5 @@
 // The page inside the real app in mock mode: catalog, actions, shell and sidebar all real.
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SUGGESTED_COLORS } from '../lib/categoryColor'
@@ -137,4 +137,120 @@ describe('Categories page (mock mode)', () => {
     },
     SLOW,
   )
+
+  describe('reordering', () => {
+    const ORIGINAL = ['Favoriten', 'Schnelle Küche', 'Backen & Süßes', 'Meal Prep']
+    const sidebarNames = () =>
+      within(sidebar())
+        .getAllByRole('link')
+        .map((link) => link.textContent?.trim() ?? '')
+        .filter((text) => ORIGINAL.some((name) => text.includes(name)))
+        .map((text) => ORIGINAL.find((name) => text.includes(name)))
+    const trigger = (name: string) => within(main()).getByRole('button', { name: `Aktionen für „${name}“` })
+    const moveDown = async (name: string) => {
+      openMenu(name)
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Nach unten' }))
+    }
+    function pendingFailure() {
+      let reject!: (error: Error) => void
+      const promise = new Promise<void>((_, rej) => (reject = rej))
+      return { promise, reject }
+    }
+
+    it(
+      'moves the first category down on the page and in the sidebar, keeping focus on its ⋮',
+      async () => {
+        const list = await renderPage()
+        expect(sidebarNames()).toEqual(ORIGINAL)
+        const reorder = vi.spyOn(api.foodly, 'reorderCategories')
+        await moveDown('Favoriten')
+        const moved = ['Schnelle Küche', 'Favoriten', 'Backen & Süßes', 'Meal Prep']
+        expect(rowNames(list)).toEqual(moved)
+        expect(sidebarNames()).toEqual(moved)
+        await waitFor(() => expect(document.activeElement).toBe(trigger('Favoriten')))
+
+        expect(reorder).toHaveBeenCalledTimes(1)
+        await act(() => reorder.mock.results[0].value as Promise<void>)
+        expect(rowNames(list)).toEqual(moved)
+        expect(sidebarNames()).toEqual(moved)
+        expect(screen.queryByText('Reihenfolge nicht gespeichert')).toBeNull()
+      },
+      SLOW,
+    )
+
+    it(
+      'jumps back and says so when saving the order fails',
+      async () => {
+        const list = await renderPage()
+        const call = pendingFailure()
+        vi.spyOn(api.foodly, 'reorderCategories').mockReturnValue(call.promise)
+        await moveDown('Favoriten')
+        expect(rowNames(list)).toEqual(['Schnelle Küche', 'Favoriten', 'Backen & Süßes', 'Meal Prep'])
+        await waitFor(() => expect(document.activeElement).toBe(trigger('Favoriten')))
+
+        await act(async () => call.reject(new Error('boom')))
+        await waitFor(() => expect(rowNames(list)).toEqual(ORIGINAL))
+        expect(sidebarNames()).toEqual(ORIGINAL)
+        expect(await screen.findByText('Reihenfolge nicht gespeichert')).toBeTruthy()
+        expect(document.activeElement).toBe(trigger('Favoriten'))
+
+        fireEvent.click(screen.getByRole('button', { name: 'Schließen' }))
+        expect(screen.queryByText('Reihenfolge nicht gespeichert')).toBeNull()
+        expect(document.activeElement).toBe(trigger('Favoriten'))
+      },
+      SLOW,
+    )
+
+    it(
+      'keeps focus on the ⋮ when an upward move is rolled back',
+      async () => {
+        const list = await renderPage()
+        const call = pendingFailure()
+        vi.spyOn(api.foodly, 'reorderCategories').mockReturnValue(call.promise)
+        openMenu('Schnelle Küche')
+        fireEvent.click(await screen.findByRole('menuitem', { name: 'Nach oben' }))
+        expect(rowNames(list)).toEqual(['Schnelle Küche', 'Favoriten', 'Backen & Süßes', 'Meal Prep'])
+        await waitFor(() => expect(document.activeElement).toBe(trigger('Schnelle Küche')))
+
+        // The rollback re-inserts this row's <li> itself, which blurs its ⋮; React focuses it again after the commit.
+        await act(async () => call.reject(new Error('boom')))
+        await waitFor(() => expect(rowNames(list)).toEqual(ORIGINAL))
+        expect(await screen.findByText('Reihenfolge nicht gespeichert')).toBeTruthy()
+        expect(document.activeElement).toBe(trigger('Schnelle Küche'))
+      },
+      SLOW,
+    )
+
+    it(
+      'returns focus to the ⋮ when the menu is closed with Escape',
+      async () => {
+        await renderPage()
+        openMenu('Favoriten')
+        fireEvent.keyDown(await screen.findByRole('menu'), { key: 'Escape' })
+        await waitFor(() => expect(document.activeElement).toBe(trigger('Favoriten')))
+      },
+      SLOW,
+    )
+
+    it(
+      'shows no message when an earlier move fails but the latest one is saved',
+      async () => {
+        const list = await renderPage()
+        const first = pendingFailure()
+        const reorder = vi.spyOn(api.foodly, 'reorderCategories').mockImplementationOnce(() => first.promise)
+        await moveDown('Favoriten')
+        await waitFor(() => expect(document.activeElement).toBe(trigger('Favoriten')))
+        await moveDown('Favoriten')
+        const latest = ['Schnelle Küche', 'Backen & Süßes', 'Favoriten', 'Meal Prep']
+        expect(rowNames(list)).toEqual(latest)
+
+        await act(async () => first.reject(new Error('boom')))
+        await waitFor(() => expect(reorder).toHaveBeenCalledTimes(2))
+        await act(() => reorder.mock.results[1].value as Promise<void>)
+        expect(rowNames(list)).toEqual(latest)
+        expect(screen.queryByText('Reihenfolge nicht gespeichert')).toBeNull()
+      },
+      SLOW,
+    )
+  })
 })
