@@ -202,6 +202,26 @@ describe('Categories page (mock mode)', () => {
     )
 
     it(
+      'keeps focus on the ⋮ when an upward move is rolled back',
+      async () => {
+        const list = await renderPage()
+        const call = pendingFailure()
+        vi.spyOn(api.foodly, 'reorderCategories').mockReturnValue(call.promise)
+        openMenu('Schnelle Küche')
+        fireEvent.click(await screen.findByRole('menuitem', { name: 'Nach oben' }))
+        expect(rowNames(list)).toEqual(['Schnelle Küche', 'Favoriten', 'Backen & Süßes', 'Meal Prep'])
+        await waitFor(() => expect(document.activeElement).toBe(trigger('Schnelle Küche')))
+
+        // The rollback re-inserts this row's <li> itself, which blurs its ⋮; React focuses it again after the commit.
+        await act(async () => call.reject(new Error('boom')))
+        await waitFor(() => expect(rowNames(list)).toEqual(ORIGINAL))
+        expect(await screen.findByText('Reihenfolge nicht gespeichert')).toBeTruthy()
+        expect(document.activeElement).toBe(trigger('Schnelle Küche'))
+      },
+      SLOW,
+    )
+
+    it(
       'returns focus to the ⋮ when the menu is closed with Escape',
       async () => {
         await renderPage()

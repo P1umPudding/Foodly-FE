@@ -69,7 +69,7 @@ export function Categories() {
       category.id,
       delta,
     )
-    // A rollback moves the row back; React keeps focus on its ⋮ across the move.
+    // A rollback moves the row back; React DOM re-focuses its ⋮ after the commit if the move blurred it.
     void reorder(ids).catch(() => {
       if (mine === moves.current) setMoveFailed(true)
     })
