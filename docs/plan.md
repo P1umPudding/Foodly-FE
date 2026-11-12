@@ -63,6 +63,11 @@ vor dem Merge behoben. #141–#144 entblockt, neu #146 (Timer pro Nutzer). Reihe
 #140 (dringend) und #141 parallel → #142 direkt danach → #143, #146; #144 nach #140.
 Danach weiter mit Kategorien verwalten.
 
+**Stand 2026-11-12:** PRs bis #177 gemergt. Kategorien verwalten ist geschnitten (freigegeben von Daniel am 2026-11-12):
+Spec `superpowers/specs/2026-11-12-categories-manage-design.md`, Issues K1–K6 in
+`superpowers/plans/2026-11-12-categories-manage.md`, kein Backend-Block (alle Endpunkte auf Backend-`main`). Enthält
+die Kategorie-Seite aus Redesign Schritt 4. Danach Phase 5 (Dashboard).
+
 Details je Phase in `phases/`.
 
 ---
@@ -167,7 +172,7 @@ Freigegeben von Kolja am 2026-10-29. Reihenfolge:
 3. ✅ App-Shell **#27** (PR #41; Start ausgeblendet bis zum Dashboard).
 4. Rezeptliste (Filterleiste, Kacheln): Spec
    `docs/superpowers/specs/2026-11-05-recipe-list-redesign-design.md`, 7 Issues #103–#109
-   (Label `redesign`), läuft. Kategorie-Seite gehört zu „Kategorien verwalten“.
+   (Label `redesign`), läuft. Kategorie-Seite gehört zu „Kategorien verwalten“ (K6, 2026-11-12).
 5. Start/Dashboard = Phase 5 (ohne B4–B6-Blöcke), Breakdown offen.
 6. Detail, dann Koch-Modus.
 
