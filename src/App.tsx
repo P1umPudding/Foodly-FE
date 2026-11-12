@@ -1,8 +1,8 @@
 import { Routes, Route, useParams } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RedirectIfSignedIn, RequireAuth } from './components/shell/RequireAuth'
-import { RootRedirect } from './components/shell/RootRedirect'
 import { NotFound } from './pages/NotFound'
+import { RootRoute } from './pages/RootRoute'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { RecipeList } from './pages/RecipeList'
@@ -30,7 +30,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
         </Route>
         <Route element={<RequireAuth />}>
-          <Route path="/" element={<RootRedirect />} />
+          <Route path="/" element={<RootRoute />} />
           <Route path="/recipes" element={<RecipeList />} />
           {/* before /recipes/:id — otherwise "new" is parsed as an id */}
           <Route path="/recipes/new" element={<RecipeEditorRoute />} />
