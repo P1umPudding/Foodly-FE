@@ -90,13 +90,17 @@ describe('category writes', () => {
     const original = (await list()).map((c) => ({ id: c.id, order: c.order }))
     const ids = original.map((c) => c.id).reverse()
 
-    await expect(mockRequest('categories.reorder', { categoryIds: ids })).resolves.toBeUndefined()
+    try {
+      await expect(mockRequest('categories.reorder', { categoryIds: ids })).resolves.toBeUndefined()
 
-    const orders = new Map((await list()).map((c) => [c.id, c.order]))
-    ids.forEach((id, index) => expect(orders.get(id)).toBe(index))
-    for (const { id, order } of original) {
-      const category = mockData.categories.find((c) => c.id === id)
-      if (category) category.order = order
+      const after = await list()
+      expect(after.map((c) => c.id)).toEqual(ids)
+      ids.forEach((id, index) => expect(after[index]).toMatchObject({ id, order: index }))
+    } finally {
+      for (const { id, order } of original) {
+        const category = mockData.categories.find((c) => c.id === id)
+        if (category) category.order = order
+      }
     }
   })
 

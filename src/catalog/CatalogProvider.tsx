@@ -51,12 +51,16 @@ function indexBy<T, K extends string | number>(rows: T[] | null, key: (t: T) => 
 // that lands after it still shows the old order until the next load (needs a concurrent copy/delete; accepted).
 function useCategoriesState() {
   const [state, setState] = useState<CategoriesState>({ list: [], status: 'loading', error: null })
+  // Writes read the list synchronously; a ref written during render would lag behind a setState not rendered yet.
+  const current = useRef(state)
+  const commit = useCallback((next: CategoriesState) => {
+    current.current = next
+    setState(next)
+  }, [])
   const latest = useRef(0)
   const applied = useRef(0)
   const inFlight = useRef(new Set<number>())
   const mounted = useRef(false)
-  const current = useRef(state)
-  current.current = state
   const pendingOrder = useRef<UserCategoryId[] | null>(null)
   const reorderQueue = useRef<Promise<void>>(Promise.resolve())
   const reorderSeq = useRef(0)
@@ -64,26 +68,29 @@ function useCategoriesState() {
   // The last order the server accepted, to roll back to when the latest reorder fails.
   const confirmedOrder = useRef(new Map<UserCategoryId, number | null>())
 
-  const load = useCallback((mode: 'initial' | 'background') => {
-    if (!mounted.current) return
-    const mine = ++latest.current
-    inFlight.current.add(mine)
-    if (mode === 'initial') setState({ list: [], status: 'loading', error: null })
-    foodly
-      .listCategories()
-      .then((list) => {
-        inFlight.current.delete(mine)
-        if (mine <= applied.current) return
-        applied.current = mine
-        const order = pendingOrder.current
-        setState({ list: order ? withOrder(list, order) : list, status: 'ready', error: null })
-      })
-      .catch((error: unknown) => {
-        inFlight.current.delete(mine)
-        if (mine <= applied.current || inFlight.current.size > 0) return
-        setState((prev) => (prev.status === 'ready' ? prev : { list: [], status: 'error', error: toError(error) }))
-      })
-  }, [])
+  const load = useCallback(
+    (mode: 'initial' | 'background') => {
+      if (!mounted.current) return
+      const mine = ++latest.current
+      inFlight.current.add(mine)
+      if (mode === 'initial') commit({ list: [], status: 'loading', error: null })
+      foodly
+        .listCategories()
+        .then((list) => {
+          inFlight.current.delete(mine)
+          if (mine <= applied.current) return
+          applied.current = mine
+          const order = pendingOrder.current
+          commit({ list: order ? withOrder(list, order) : list, status: 'ready', error: null })
+        })
+        .catch((error: unknown) => {
+          inFlight.current.delete(mine)
+          if (mine <= applied.current || inFlight.current.size > 0) return
+          if (current.current.status !== 'ready') commit({ list: [], status: 'error', error: toError(error) })
+        })
+    },
+    [commit],
+  )
 
   useEffect(() => {
     // Calls from before a (StrictMode) remount must not land.
@@ -108,11 +115,11 @@ function useCategoriesState() {
       if (!mounted.current || current.current.status !== 'ready') return false
       const dropped = inFlight.current.size > 0
       applied.current = Math.max(applied.current, latest.current)
-      setState((prev) => ({ ...prev, list: change(prev.list) }))
+      commit({ ...current.current, list: change(current.current.list) })
       if (dropped) load('background')
       return true
     },
-    [load],
+    [commit, load],
   )
 
   const reorder = useCallback(
@@ -235,6 +242,7 @@ export function useCategories() {
 export function useRefreshCategories(): () => void {
   return useCatalog().refreshCategories
 }
+// Internal to src/catalog: components write through useCategoryActions.
 export function useCategoryWriter(): CategoryWriter {
   return useCatalog().categoryWriter
 }

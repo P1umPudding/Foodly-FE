@@ -98,34 +98,39 @@ it('rethrows a failed write and leaves the list alone', async () => {
 it('keeps a created category when an older refresh lands after it, and loads again', async () => {
   const result = await renderActions()
   const stale = deferred<UserCategory[]>()
-  api.listCategories.mockReturnValueOnce(stale.promise).mockResolvedValue([...server, cat(4, 3, 'Neu')])
+  const reload = deferred<UserCategory[]>()
+  api.listCategories.mockReturnValueOnce(stale.promise).mockReturnValueOnce(reload.promise)
   api.createCategory.mockResolvedValue(cat(4, 3, 'Neu'))
 
   act(() => result.current.refresh())
   await act(() => result.current.actions.create(input))
   expect(ids(result.current.categories.list)).toEqual([1, 2, 3, 4])
+  expect(api.listCategories).toHaveBeenCalledTimes(3)
 
   await act(async () => stale.resolve(server))
   expect(ids(result.current.categories.list)).toEqual([1, 2, 3, 4])
-  expect(api.listCategories).toHaveBeenCalledTimes(3)
+
+  await act(async () => reload.resolve([...server, cat(4, 3, 'Neu vom Server')]))
+  expect(result.current.categories.list[3].name).toBe('Neu vom Server')
 })
 
 it('gives a list that lands during a pending reorder the new order', async () => {
   const result = await renderActions()
   const put = deferred<void>()
   api.reorderCategories.mockReturnValue(put.promise)
+  api.listCategories.mockResolvedValue([cat(1, 0, 'Frisch'), cat(2, 1), cat(3, 2), cat(4, 3)])
 
   let reorder!: Promise<void>
   act(() => {
     reorder = result.current.actions.reorder([3, 2, 1])
   })
   await act(async () => result.current.refresh())
-  expect(api.listCategories).toHaveBeenCalledTimes(2)
-  expect(ids(result.current.categories.list)).toEqual([3, 2, 1])
+  expect(ids(result.current.categories.list)).toEqual([3, 2, 1, 4])
+  expect(result.current.categories.list[2].name).toBe('Frisch')
 
   await act(async () => put.resolve())
   await reorder
-  expect(orders(result.current.categories.list)).toEqual({ 3: 0, 2: 1, 1: 2 })
+  expect(orders(result.current.categories.list)).toEqual({ 3: 0, 2: 1, 1: 2, 4: 3 })
 })
 
 it('runs reorders one after another; the latest decides', async () => {
@@ -203,4 +208,55 @@ it('does not reorder before the categories are loaded, but still writes and then
   await act(() => hook.result.current.actions.create(input))
   await waitFor(() => expect(ids(hook.result.current.categories.list)).toEqual([1, 2, 3, 4]))
   expect(hook.result.current.categories.status).toBe('ready')
+})
+
+it('loads the list instead of patching when a write lands while it reloads', async () => {
+  const result = await renderActions()
+  const reload = deferred<UserCategory[]>()
+  api.listCategories.mockReturnValueOnce(reload.promise)
+  api.deleteCategory.mockResolvedValue(undefined)
+  act(() => result.current.categories.retry())
+  expect(result.current.categories.status).toBe('loading')
+
+  await act(() => result.current.actions.remove(2))
+  expect(api.listCategories).toHaveBeenCalledTimes(3)
+  await waitFor(() => expect(ids(result.current.categories.list)).toEqual([1, 2, 3]))
+})
+
+it('reloads when a reorder fails after the list started reloading', async () => {
+  const result = await renderActions()
+  const put = deferred<void>()
+  const reload = deferred<UserCategory[]>()
+  api.reorderCategories.mockReturnValue(put.promise)
+  api.listCategories.mockReturnValueOnce(reload.promise).mockResolvedValue(server)
+
+  let reorder!: Promise<void>
+  act(() => {
+    reorder = result.current.actions.reorder([3, 2, 1])
+  })
+  const failed = expect(reorder).rejects.toThrow('boom')
+  act(() => result.current.categories.retry())
+  await act(async () => put.reject(new Error('boom')))
+  await failed
+
+  expect(api.listCategories).toHaveBeenCalledTimes(3)
+  await act(async () => reload.resolve(server))
+  expect(ids(result.current.categories.list)).toEqual([1, 2, 3])
+})
+
+it('still settles a pending reorder after unmount without loading again', async () => {
+  const hook = renderHook(() => ({ categories: useCategories(), actions: useCategoryActions() }), { wrapper })
+  await waitFor(() => expect(hook.result.current?.categories.status).toBe('ready'))
+  const put = deferred<void>()
+  api.reorderCategories.mockReturnValue(put.promise)
+
+  let reorder!: Promise<void>
+  act(() => {
+    reorder = hook.result.current.actions.reorder([3, 2, 1])
+  })
+  const failed = expect(reorder).rejects.toThrow('boom')
+  hook.unmount()
+  put.reject(new Error('boom'))
+  await failed
+  expect(api.listCategories).toHaveBeenCalledTimes(1)
 })

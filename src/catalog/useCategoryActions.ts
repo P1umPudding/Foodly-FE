@@ -24,7 +24,6 @@ export function useCategoryActions() {
         afterWrite((list) => [...list, created])
         return created
       },
-      // PUT replaces everything: a rename sends the colours too.
       update: async (id: UserCategoryId, input: CategoryInput): Promise<UserCategory> =>
         replace(await foodly.updateCategory(id, input)),
       remove: async (id: UserCategoryId): Promise<void> => {

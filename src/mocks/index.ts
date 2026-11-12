@@ -103,8 +103,8 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       return recipe
     }
     case 'categories.list':
-      // A snapshot, like a REST response: copy/delete change the live arrays in place.
-      return structuredClone(mockData.categories)
+      // A snapshot, like a REST response: copy/delete change the live arrays in place. Sorted like the backend.
+      return structuredClone(mockData.categories).sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.id - b.id)
     case 'categories.create': {
       const { input } = payload as { input: CategoryInput }
       assertCategoryInput(input)
