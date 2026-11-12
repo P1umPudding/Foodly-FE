@@ -15,16 +15,16 @@ Lokale Checks statt CI (ADR 0004): `npm ci`, `npm run build`, `npm test -- --pas
 
 | # | Issue | Hängt ab von | Parallel möglich mit |
 |---|---|---|---|
-| D1 | Start-Seite `/`: Gerüst, Navigation, Weiterleitung | – | – |
-| D2 | Start: Kategorie-Kacheln | D1, #183 | D4 |
-| D3 | Start: Zuletzt erstellt | D1, Backend #22, U1 | D2, D4 |
-| D4 | Start: Zuletzt angesehen | D1 | D2 |
+| D1 (#194) | Start-Seite `/`: Gerüst, Navigation, Weiterleitung | – | – |
+| D2 (#195) | Start: Kategorie-Kacheln | D1, #183 | D4 |
+| D3 (#196) | Start: Zuletzt erstellt | D1, Backend #22, U1 | D2, D4 |
+| D4 (#197) | Start: Zuletzt angesehen | D1 | D2 |
 
 „Kürzlich mit dir geteilt“ wird bewusst nicht geschnitten (Spec, „Umfang“).
 
 ---
 
-## D1 — Start-Seite `/`: Gerüst, Navigation, Weiterleitung
+## D1 (#194) — Start-Seite `/`: Gerüst, Navigation, Weiterleitung
 
 Labels: agent-ready, alpha, ui, phase:5, redesign · Depends on: –
 
@@ -78,7 +78,7 @@ Spec rev. 3, Abschnitte „Routing“ und „Seite „Start““. Heute leitet 
 
 ---
 
-## D2 — Start: Kategorie-Kacheln
+## D2 (#195) — Start: Kategorie-Kacheln
 
 Labels: agent-ready, alpha, ui, phase:5, redesign · Depends on: D1, #183
 
@@ -117,7 +117,7 @@ Auf Start stehen die eigenen Kategorien als getönte Kacheln, mit Link auf ihre 
 
 ---
 
-## D3 — Start: Zuletzt erstellt
+## D3 (#196) — Start: Zuletzt erstellt
 
 Labels: alpha, ui, phase:5, redesign, backend-blocked · Depends on: D1, U1 (siehe
 `2026-11-12-backend-22-followups.md`), Backend klassenserver7b/Foodly-backend#22
@@ -161,7 +161,7 @@ Auf Start stehen die 6 zuletzt erstellten eigenen Rezepte.
 
 ---
 
-## D4 — Start: Zuletzt angesehen
+## D4 (#197) — Start: Zuletzt angesehen
 
 Labels: agent-ready, alpha, ui, phase:5, redesign · Depends on: D1
 

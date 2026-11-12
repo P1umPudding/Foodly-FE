@@ -12,14 +12,14 @@ Lokale Checks statt CI (ADR 0004): `npm ci`, `npm run build`, `npm test -- --pas
 
 | # | Issue | Hängt ab von |
 |---|---|---|
-| U1 | Sortierfelder in camelCase (`workTime`, `totalTime`) | Backend #22 |
-| U2 | Benutzernamen über `GET /users?ids=` statt `listUsers`-Mock | Backend #22 |
+| U1 (#192) | Sortierfelder in camelCase (`workTime`, `totalTime`) | Backend #22 |
+| U2 (#193) | Benutzernamen über `GET /users?ids=` statt `listUsers`-Mock | Backend #22 |
 
 D3 (Phase 5) hängt zusätzlich an U1 (gleiche Stelle `RecipeSortField`).
 
 ---
 
-## U1 — Sortierfelder in camelCase (`workTime`, `totalTime`)
+## U1 (#192) — Sortierfelder in camelCase (`workTime`, `totalTime`)
 
 Labels: alpha, backend-blocked · Depends on: klassenserver7b/Foodly-backend#22
 
@@ -58,7 +58,7 @@ Sortieren nach Arbeits- und Gesamtzeit funktioniert gegen Backend-`main` nach #2
 
 ---
 
-## U2 — Benutzernamen über `GET /users?ids=` statt `listUsers`-Mock
+## U2 (#193) — Benutzernamen über `GET /users?ids=` statt `listUsers`-Mock
 
 Labels: alpha, ui, backend-blocked · Depends on: klassenserver7b/Foodly-backend#22
 
