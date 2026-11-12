@@ -24,7 +24,19 @@ const nums = (params: URLSearchParams, key: string): number[] =>
 
 // Every query key the list reads. `/` forwards to the list when one of them is present (old links like
 // `/?cat=3`); url.test pins this against toSearchParams so the two can't drift.
-export const LIST_PARAM_KEYS = ['cat', 'tag', 'ing', 'dmax', 'role', 'collab', 'q', 'sort', 'dir', 'view', 'group'] as const
+export const LIST_PARAM_KEYS = [
+  'cat',
+  'tag',
+  'ing',
+  'dmax',
+  'role',
+  'collab',
+  'q',
+  'sort',
+  'dir',
+  'view',
+  'group',
+] as const
 
 export function hasListParams(params: URLSearchParams): boolean {
   return LIST_PARAM_KEYS.some((key) => params.has(key))

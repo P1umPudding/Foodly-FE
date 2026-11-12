@@ -40,7 +40,9 @@ export function HomeSection({
         )}
       </div>
       {state === 'loading' && (skeleton ?? <Skeleton data-testid="home-section-skeleton" className="h-24 w-full" />)}
-      {state === 'error' && <RetryAlert title={`Konnte „${title}“ nicht laden`} message={errorMessage} onRetry={onRetry} />}
+      {state === 'error' && (
+        <RetryAlert title={`Konnte „${title}“ nicht laden`} message={errorMessage} onRetry={onRetry} />
+      )}
       {state === 'ready' && children}
     </section>
   )
