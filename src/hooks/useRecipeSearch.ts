@@ -11,13 +11,17 @@ export type RecipeSearchResult = {
   error: Error | null
   hasMore: boolean
   loadingMore: boolean
+  loadMoreError: Error | null
   loadMore: () => void
+  retryLoadMore: () => void
   reload: () => void
 }
 
 // Accumulating, cursor-paginated recipe search. useRequest can't drive this — it
 // is one-shot and nulls data on every run — so pagination state lives here.
 // Changing the query (by value, via its JSON key) resets to page 1.
+// A failed next page keeps its cursor and pauses paging until retryLoadMore: the list's
+// sentinel calls loadMore again on every re-subscription, so retrying there would loop.
 export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
   const key = JSON.stringify(query)
   const [recipes, setRecipes] = useState<Recipe[]>([])
@@ -25,6 +29,7 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
   const [error, setError] = useState<Error | null>(null)
   const [cursor, setCursor] = useState<number | null>(null)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [loadMoreError, setLoadMoreError] = useState<Error | null>(null)
   const [nonce, setNonce] = useState(0)
   // Bumped on every query-epoch change so stale loadMore responses are dropped.
   const epoch = useRef(0)
@@ -36,6 +41,7 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
     setRecipes([])
     setCursor(null)
     setLoadingMore(false)
+    setLoadMoreError(null)
     foodly
       .searchRecipes(query, 1)
       .then((res) => {
@@ -52,28 +58,51 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, nonce])
 
-  const loadMore = useCallback(() => {
-    if (cursor === null || loadingMore) return
-    const mine = epoch.current
-    const page = cursor
-    setLoadingMore(true)
-    foodly
-      .searchRecipes(query, page)
-      .then((res) => {
-        if (mine !== epoch.current) return
-        setRecipes((prev) => [...prev, ...res.items])
-        setCursor(res.cursor)
-      })
-      .catch(() => {
-        if (mine === epoch.current) setCursor(null) // stop paging on error
-      })
-      .finally(() => {
-        if (mine === epoch.current) setLoadingMore(false)
-      })
+  const fetchPage = useCallback(
+    (page: number) => {
+      const mine = epoch.current
+      setLoadingMore(true)
+      foodly
+        .searchRecipes(query, page)
+        .then((res) => {
+          if (mine !== epoch.current) return
+          setRecipes((prev) => [...prev, ...res.items])
+          setCursor(res.cursor)
+        })
+        .catch((e: unknown) => {
+          if (mine === epoch.current) setLoadMoreError(toError(e))
+        })
+        .finally(() => {
+          if (mine === epoch.current) setLoadingMore(false)
+        })
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, loadingMore, key])
+    [key],
+  )
+
+  const loadMore = useCallback(() => {
+    if (cursor === null || loadingMore || loadMoreError !== null) return
+    fetchPage(cursor)
+  }, [cursor, loadingMore, loadMoreError, fetchPage])
+
+  // Clearing the error and setting loadingMore in one batch keeps the sentinel's next loadMore a no-op.
+  const retryLoadMore = useCallback(() => {
+    if (cursor === null || loadingMore || loadMoreError === null) return
+    setLoadMoreError(null)
+    fetchPage(cursor)
+  }, [cursor, loadingMore, loadMoreError, fetchPage])
 
   const reload = useCallback(() => setNonce((n) => n + 1), [])
 
-  return { recipes, status, error, hasMore: cursor !== null, loadingMore, loadMore, reload }
+  return {
+    recipes,
+    status,
+    error,
+    hasMore: cursor !== null,
+    loadingMore,
+    loadMoreError,
+    loadMore,
+    retryLoadMore,
+    reload,
+  }
 }

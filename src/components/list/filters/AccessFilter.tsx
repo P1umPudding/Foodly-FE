@@ -117,7 +117,7 @@ function AccessGroup<V extends string>({
             <div
               key={option}
               className={cn(
-                'flex items-center gap-2 rounded-sm px-1 phone:min-h-10',
+                'flex items-center gap-2 rounded-md px-1 phone:min-h-10',
                 greyed ? 'hover:bg-muted/40' : 'hover:bg-muted',
               )}
             >

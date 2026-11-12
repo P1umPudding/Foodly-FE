@@ -16,7 +16,7 @@ export function FilterCheckRow({
 } & Omit<HTMLAttributes<HTMLDivElement>, 'onToggle'>) {
   const id = useId()
   return (
-    <div className={cn('flex items-center gap-2 rounded-sm px-1 hover:bg-muted phone:min-h-10', className)} {...rest}>
+    <div className={cn('flex items-center gap-2 rounded-md px-1 hover:bg-muted phone:min-h-10', className)} {...rest}>
       {/* postxl renders its own (empty) label next to the box; gap-0 keeps it from adding space. */}
       <Checkbox id={id} checked={checked} onChange={onToggle} checkIcon="check" className="shrink-0 gap-0" />
       {/* Overrides postxl Label's text-base/leading-none/font-medium: rows read like today's text-sm list and

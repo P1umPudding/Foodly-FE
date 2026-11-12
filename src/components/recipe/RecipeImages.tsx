@@ -1,4 +1,6 @@
 import { RecipeImage } from './RecipeImage'
+import { TriggerButton } from '../TriggerButton'
+import { imageName } from '../../api/assets'
 import type { ImageRef } from '../../api/protocol'
 
 // Image area for the recipe detail view: the main image and the right-edge
@@ -52,7 +54,7 @@ export function RecipeImages({
             image={rest[1]}
             className="min-h-0 flex-1"
             onClick={() => onOpen(2)}
-            overlay={extra > 2 ? `+${extra - 2}` : undefined}
+            more={extra > 2 ? extra - 2 : undefined}
           />
         </div>
       )}
@@ -60,29 +62,33 @@ export function RecipeImages({
   )
 }
 
+const moreLabel = (n: number) => (n === 1 ? '1 weiteres Bild' : `${n} weitere Bilder`)
+
 function Tile({
   image,
   className,
   onClick,
-  overlay,
+  more,
 }: {
   image: ImageRef
   className: string
   onClick: () => void
-  overlay?: string
+  more?: number
 }) {
   return (
-    <button
-      type="button"
+    <TriggerButton
+      variant="bare"
       onClick={onClick}
-      className={`relative cursor-zoom-in overflow-hidden rounded-lg bg-foreground/5 dark:bg-muted ${className}`}
+      // The image itself is decorative (alt=""), so the button carries the name, including the "+N" hint.
+      aria-label={more !== undefined ? `${imageName(image)}, ${moreLabel(more)}` : imageName(image)}
+      className={`relative cursor-zoom-in overflow-hidden rounded-lg bg-foreground/5 focus-visible:ring-ring dark:bg-muted ${className}`}
     >
       <RecipeImage image={image} alt="" className="h-full w-full object-cover" fallbackClassName="h-full w-full" />
-      {overlay && (
+      {more !== undefined && (
         <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-2xl font-medium text-white">
-          {overlay}
+          +{more}
         </span>
       )}
-    </button>
+    </TriggerButton>
   )
 }
