@@ -41,7 +41,7 @@ describe('RecipeCategoryChips', () => {
     renderChips()
     const links = screen.getAllByRole('link')
     expect(links.map((a) => a.textContent)).toEqual(['EEins', 'ZZwei'])
-    expect(links[0].getAttribute('href')).toContain('cat=1')
+    expect(links[0].getAttribute('href')).toBe('/categories/1')
     expect(links[0].hasAttribute('data-cat')).toBe(true)
     expect(screen.getByRole('button', { name: 'Kategorien ändern' }).textContent).toBe('')
   })

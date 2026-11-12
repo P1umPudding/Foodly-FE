@@ -4,7 +4,7 @@ import { loadPersisted } from '../../list/persistence'
 import { activeCategoryId, listHref, navPrefs } from './nav'
 
 // What sidebar and tab bar need to address the list: its hrefs (with the user's view prefs) and which
-// single category, if any, the list currently shows.
+// category, if any, is on screen.
 export function useNavState() {
   const { pathname } = useLocation()
   const [params] = useSearchParams()
@@ -14,6 +14,5 @@ export function useNavState() {
     pathname,
     activeCategory: activeCategoryId(pathname, params),
     hrefFor: (path: string) => (path === '/recipes' ? listHref([], prefs) : path),
-    categoryHref: (id: number) => listHref([id], prefs),
   }
 }

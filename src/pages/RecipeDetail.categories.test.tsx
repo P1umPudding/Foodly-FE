@@ -79,7 +79,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       await waitFor(() => expect(chipNames()).toEqual(['Favoriten', 'Schnelle Küche']), WAIT)
       const plus = screen.getByRole('button', { name: 'Kategorien ändern' })
       expect(plus.textContent).toBe('')
-      expect(screen.getByRole('link', { name: 'Favoriten' }).getAttribute('href')).toContain('cat=1')
+      expect(screen.getByRole('link', { name: 'Favoriten' }).getAttribute('href')).toBe('/categories/1')
     },
     SLOW,
   )

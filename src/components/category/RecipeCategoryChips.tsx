@@ -9,7 +9,7 @@ import { useCategoryActions } from '../../catalog/useCategoryActions'
 import { categoryColorVars, firstFreeColor } from '../../lib/categoryColor'
 import { errorMessage } from '../../lib/errorMessage'
 import { recipeCategories } from '../../list/rowData'
-import { useNavState } from '../shell/useNavState'
+import { categoryPageHref } from '../shell/nav'
 import { ResponsivePanel } from '../ResponsivePanel'
 import { TriggerButton } from '../TriggerButton'
 import { FOCUS_RING } from '../focusRing'
@@ -111,7 +111,6 @@ function useCategoryAssign(recipeId: RecipeId, list: UserCategory[]): CategoryAs
 
 export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
   const categories = useCategories()
-  const { categoryHref } = useNavState()
   const assign = useCategoryAssign(recipe.id, categories.list)
   const cats = categories.status === 'ready' ? recipeCategories(recipe, categories.list) : []
   const showText = categories.status === 'ready' && cats.length === 0
@@ -122,7 +121,7 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
       {cats.map((c) => (
         <Link
           key={c.id}
-          to={categoryHref(c.id)}
+          to={categoryPageHref(c.id)}
           {...categoryColorVars(c)}
           className={cn(
             FOCUS_RING,

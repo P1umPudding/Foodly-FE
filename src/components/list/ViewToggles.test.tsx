@@ -43,3 +43,13 @@ it('gives the view toggles the 3-px focus ring instead of postxl ring-1 (#95)', 
     expect(classes).not.toContain('focus-visible:ring-1')
   }
 })
+
+it('leaves out the layout toggles when the page has none (category page)', () => {
+  render(
+    <TooltipProvider>
+      <ViewToggles state={base} set={() => undefined} showLayout={false} />
+    </TooltipProvider>,
+  )
+  expect(screen.queryByRole('group', { name: 'Gliederung' })).toBeNull()
+  expect(screen.getByRole('group', { name: 'Ansicht' })).toBeTruthy()
+})

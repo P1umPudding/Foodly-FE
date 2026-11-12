@@ -53,6 +53,7 @@ function renderAt(entry: string) {
                 <Route path="/recipes/new" element={<p>editor page</p>} />
                 <Route path="/recipes/:id" element={<p>detail page</p>} />
                 <Route path="/categories" element={<p>categories page</p>} />
+                <Route path="/categories/:id" element={<p>category page</p>} />
               </Routes>
             </AppShell>
           </MemoryRouter>
@@ -82,7 +83,7 @@ describe('AppShell on the desktop', () => {
       .map((l) => l.textContent)
     expect(destinations.indexOf('Start')).toBeLessThan(destinations.indexOf('Rezepte'))
     expect(side.getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBeNull()
-    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('href')).toBe('/recipes?cat=2&group=1')
+    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('href')).toBe('/categories/2')
     side.getByText('3')
     // phone-only pieces are absent
     expect(screen.getAllByRole('navigation', { name: 'Hauptnavigation' })).toHaveLength(1)
@@ -134,20 +135,36 @@ describe('AppShell on the desktop', () => {
   it('highlights the single shown category instead of "Rezepte"', () => {
     renderAt('/recipes?cat=2')
     const side = within(sidebar())
-    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('aria-current')).toBe('page')
-    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('aria-current')).not.toBe('page')
+    // Highlighted, but its link leads to the category page, which this is not.
+    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('aria-current')).toBe('location')
+    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('aria-current')).toBeNull()
     expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).not.toBe('page')
   })
 
-  it('keeps the view prefs in nav links but drops the filters', () => {
+  it('keeps the view prefs in the "Rezepte" link but drops the filters; category links are plain', () => {
     renderAt('/recipes?sort=rating&view=compact&cat=2&tag=x')
     const side = within(sidebar())
     expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('href')).toBe(
       '/recipes?sort=rating&view=compact&group=1',
     )
-    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('href')).toBe(
-      '/recipes?cat=5&sort=rating&view=compact&group=1',
-    )
+    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('href')).toBe('/categories/5')
+  })
+
+  it('highlights the category on its page and shows "Rezepte / <Name>" in the header', () => {
+    renderAt('/categories/2')
+    screen.getByText('category page')
+    const side = within(sidebar())
+    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('aria-current')).toBe('page')
+    expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).not.toBe('page')
+    const crumb = within(screen.getByRole('navigation', { name: 'Pfad' }))
+    expect(crumb.getByRole('link', { name: 'Rezepte' }).getAttribute('href')).toBe('/recipes?group=1')
+    expect(crumb.getByText('Favoriten').getAttribute('aria-current')).toBe('page')
+  })
+
+  it('shows only "Rezepte" in the header while the category is unknown', () => {
+    renderAt('/categories/999')
+    const crumb = screen.getByRole('navigation', { name: 'Pfad' })
+    expect(crumb.textContent).toBe('Rezepte')
   })
 
   it('keeps "Rezepte" current for a category that is not listed', () => {
@@ -260,6 +277,14 @@ describe('AppShell on the phone', () => {
   it('keeps "Rezepte" current on a category view (no category tabs)', () => {
     renderAt('/recipes?cat=2')
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
+  })
+
+  it('keeps "Rezepte" active on a category page, with the "+" button', () => {
+    renderAt('/categories/2')
+    const tab = within(mainNav()).getByRole('link', { name: 'Rezepte' })
+    expect(tab.getAttribute('aria-current')).toBe('location')
+    expect(tab.className).toContain('text-foreground')
+    expect(screen.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
   })
 
   it('has no "+" button and no avatar on sub-pages', () => {

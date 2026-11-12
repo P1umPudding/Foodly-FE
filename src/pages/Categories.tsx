@@ -25,7 +25,7 @@ import { DeleteCategoryDialog } from '../components/category/DeleteCategoryDialo
 import { RetryAlert } from '../components/RetryAlert'
 import { TriggerButton } from '../components/TriggerButton'
 import { FOCUS_RING } from '../components/focusRing'
-import { useNavState } from '../components/shell/useNavState'
+import { categoryPageHref } from '../components/shell/nav'
 import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { moveCategory } from '../lib/moveCategory'
 import type { UserCategory, UserCategoryId } from '../api/protocol'
@@ -40,7 +40,6 @@ export function Categories() {
   const navigate = useNavigate()
   const hasAppHistory = useHasAppHistory()
   const categories = useCategories()
-  const { categoryHref } = useNavState()
   const ordered = [...categories.list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   const [dialog, setDialog] = useState<DialogState | null>(null)
   const openings = useRef(0)
@@ -190,9 +189,8 @@ export function Categories() {
                 <li key={c.id} className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0">
                   <CategoryMark category={c} size="md" />
                   <div className="flex min-w-0 flex-1 flex-col">
-                    {/* Until the category page exists (K6), the name opens the list filtered to it. */}
                     <Link
-                      to={categoryHref(c.id)}
+                      to={categoryPageHref(c.id)}
                       className={cn('truncate rounded-sm font-medium hover:underline', FOCUS_RING)}
                     >
                       {c.name}

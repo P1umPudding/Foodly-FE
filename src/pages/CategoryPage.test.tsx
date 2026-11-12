@@ -1,0 +1,74 @@
+// The page against a catalog that changes under it: the mock-mode tests can only remount the page.
+import { render, screen } from '@testing-library/react'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { TooltipProvider } from '@postxl/ui-components'
+import { describe, expect, it, vi } from 'vitest'
+import { CategoryPage } from './CategoryPage'
+import type { UserCategory } from '../api/protocol'
+
+const CATEGORY: UserCategory = {
+  id: 2,
+  user: 1,
+  name: 'Favoriten',
+  recipes: [],
+  order: 0,
+  color: '#e11d48',
+  colorLight: null,
+  colorDark: null,
+}
+const catalog = vi.hoisted(() => ({ categories: { status: 'ready', list: [] as unknown[] } }))
+
+vi.mock('../catalog/CatalogProvider', () => ({
+  useCategories: () => catalog.categories,
+  useCurrentUserId: () => 1,
+}))
+vi.mock('../hooks/useRecipeSearch', () => ({
+  useRecipeSearch: () => ({
+    recipes: [],
+    status: 'ready',
+    error: null,
+    hasMore: false,
+    loadingMore: false,
+    loadMoreError: null,
+    loadMore: () => undefined,
+    retryLoadMore: () => undefined,
+    reload: () => undefined,
+  }),
+}))
+
+const page = () => (
+  <TooltipProvider>
+    <MemoryRouter initialEntries={['/categories/2']}>
+      <Routes>
+        <Route path="/categories/:id" element={<CategoryPage />} />
+      </Routes>
+    </MemoryRouter>
+  </TooltipProvider>
+)
+
+describe('CategoryPage', () => {
+  it('turns into "Kategorie nicht gefunden" when the open category leaves the catalog', () => {
+    catalog.categories = { status: 'ready', list: [CATEGORY] }
+    const { rerender } = render(page())
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Favoriten')
+
+    catalog.categories = { status: 'ready', list: [] }
+    rerender(page())
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Kategorie nicht gefunden')
+    expect(screen.getByRole('link', { name: 'Zu den Rezepten' })).toBeTruthy()
+  })
+
+  it('has a generic h1 while the categories load', () => {
+    catalog.categories = { status: 'loading', list: [] }
+    render(page())
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Kategorie')
+    expect(screen.getByTestId('category-head-skeleton')).toBeTruthy()
+  })
+
+  it('does not call a category empty when only its recipes are out of sight', () => {
+    catalog.categories = { status: 'ready', list: [{ ...CATEGORY, recipes: [7] }] }
+    render(page())
+    expect(screen.getByText('Keine Rezepte, die du sehen kannst.')).toBeTruthy()
+    expect(screen.queryByText(/Noch nichts in/)).toBeNull()
+  })
+})
