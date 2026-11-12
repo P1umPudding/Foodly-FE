@@ -13,6 +13,9 @@ import { useRequest } from './hooks/useRequest'
 import { setViewport } from './test/viewport'
 import type { Recipe } from './api/protocol'
 
+// The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
+vi.mock('./components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
+
 // Shell and page together: the header shows the title, the page owns the one h1. jsdom applies no CSS, so
 // "visible once" means: once in the header, and in the page only as the sr-only h1. The sidebar's nav
 // links carry the same words, but they are links, not titles, so the checks stay inside header and main.

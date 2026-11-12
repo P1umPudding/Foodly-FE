@@ -31,6 +31,7 @@ import { RecipeImages } from '../components/recipe/RecipeImages'
 import { DeleteRecipeButton } from '../components/recipe/DeleteRecipeButton'
 import { Lightbox } from '../components/recipe/Lightbox'
 import { TriggerButton } from '../components/TriggerButton'
+import { RecipeCategoryChips } from '../components/category/RecipeCategoryChips'
 import type { Recipe, RecipeIngredientId } from '../api/protocol'
 import { hasPortions } from '../api/views'
 
@@ -198,6 +199,7 @@ export function RecipeDetail() {
       {status === 'ready' && recipe && (
         <article>
           <header>
+            <RecipeCategoryChips key={recipe.id} recipe={recipe} />
             <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
               <h1 className="font-display text-4xl text-foreground">
                 <TagText value={recipe.name} size="lg" />
