@@ -82,6 +82,49 @@ geroutet; `rating` kommt immer leer zurück.
 
 **Entsperrt:** Phase 4 „Rating abgeben"; Rating-Anzeige/-Sortierung im REST-Modus.
 
+**Sortierung nach Bewertung (FE #49), Stand 2026-11-12.** Backend-`main` sortiert schon
+serverseitig (`sort.field = "rating"`, `COALESCE(AVG(rating), 0.0)`); es fehlen nur Daten
+(#11). Zwei Feinheiten passen nicht: Unbewertete zählen als 0 und stehen bei `asc` vorne,
+und ohne Tie-Breaker (`recipes.id ASC`) können Rezepte beim Blättern doppelt erscheinen oder
+fehlen. Vorschlag: Durchschnitt über alle Nutzer, Unbewertete in beiden Richtungen zuletzt,
+immer `id ASC` als Tie-Breaker (für alle Sortierfelder). Von Kolja am 2026-11-12 als
+Kommentar auf [#11](https://github.com/klassenserver7b/Foodly-backend/issues/11)
+freigegeben. **Noch nicht gepostet:** Der Skaile-Bot darf im Backend-Repo nicht
+kommentieren („Resource not accessible by integration“). Bitte Kolja oder Daniel posten.
+
+<details><summary>Kommentar-Entwurf für Backend #11</summary>
+
+````markdown
+**Recipe search: sort by rating — unrated last and stable tie-breaker (follow-up to #11)**
+
+**Context.** The frontend lists recipes via `POST /api/v1/recipes/search` with infinite scroll (offset pages, `limit=100`, following `cursor`). Users can sort by rating. Today `rating[]` is always empty (#11 not routed yet), so the frontend keeps ratings in a local stub and re-sorts each page on its own. Rated recipes from page 2 therefore show up after the unrated ones from page 1 (frontend issue P1umPudding/Foodly-FE#49). Once #11 lands, sorting must happen entirely on the server, across all pages.
+
+`main` already has a `rating` sort arm (`src/api/rest/recipes/mod.rs`, `COALESCE(AVG(rating), 0.0)`). Two details would break the list for us:
+1. Unrated recipes count as `0.0`, so with `order: "asc"` they come before all rated ones.
+2. There is no tie-breaker after the sort field. Many recipes share the same average (and all unrated ones are tied), so with offset paging recipes can repeat or be skipped between pages.
+
+**Proposed behavior** (no new parameters):
+- Request: `"sort": { "field": "rating", "order": "desc" | "asc" }`, combinable with all `filters` and with `page`/`limit` as today.
+- Sort key: average of all users' ratings for the recipe (`AVG(user_ratings.rating)`, 1–5), the same value the frontend shows as the average from `rating[]`.
+- Recipes without any rating come **last in both directions** (`AVG` without `COALESCE`, `NULLS LAST`).
+- Tie-breaker: always append `recipes.id ASC` after the sort field, so the order is total and stable across pages. Ideally do this for every sort field (`name`, `workTime`, `totalTime`, `accessSince`), not only `rating`.
+- The recipe's position must not depend on the requesting user's own rating. It is the overall average, consistent with the `rating[]` data.
+
+**Acceptance criteria:**
+- [ ] With ratings on recipes spread across more than one page (e.g. 150 recipes, `limit=100`), `desc` returns all rated recipes ordered by average (highest first) before any unrated ones, across page 1 and page 2. (Integration test can insert `user_ratings` directly if #11 is not merged yet.)
+- [ ] `asc` returns rated recipes lowest average first, unrated ones still last.
+- [ ] Recipes with equal averages (and all unrated ones) are ordered by `id ASC`. Concatenating all pages yields every matching recipe exactly once.
+- [ ] Combining `rating` sort with filters (e.g. `categories`, `maxWorkTime`) keeps the same rules.
+- [ ] `02_API_Design.md` documents the rating sort semantics (average, unrated last, `id` tie-breaker).
+
+**Unblocks (frontend):** P1umPudding/Foodly-FE#49. Together with #11 the frontend drops its per-page re-sort and its local rating stub.
+
+---
+_Filed by the Foodly frontend lead (P1umPudding/Foodly-FE). Context: `docs/backend-questions.md` (B3) in the frontend repo. Happy to adjust, it is a suggestion, not a requirement._
+````
+
+</details>
+
 ### B4 — Sharing-Endpoints
 
 **Problem.** `PUT /recipes/{id}/editors|viewers` dokumentiert, nicht geroutet.
