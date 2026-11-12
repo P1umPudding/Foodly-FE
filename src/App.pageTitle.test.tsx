@@ -6,6 +6,7 @@ import { RecipeEditorRoute } from './App'
 import { AppShell } from './components/shell/AppShell'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
+import { Home } from './pages/Home'
 import { ThemeProvider } from './theme/ThemeProvider'
 import { TimerProvider } from './timers/TimerProvider'
 import { foodly } from './api'
@@ -67,6 +68,7 @@ async function renderAt(entry: string) {
           <MemoryRouter initialEntries={[entry]}>
             <AppShell>
               <Routes>
+                <Route path="/" element={<Home />} />
                 <Route path="/recipes" element={<RecipeList />} />
                 <Route path="/recipes/new" element={<RecipeEditorRoute />} />
                 <Route path="/recipes/:id" element={<RecipeDetail />} />
@@ -132,6 +134,26 @@ describe('page title shown once', () => {
     await screen.findByText('Pancakes')
     expect(screen.queryByRole('complementary', { name: 'Seitenleiste' })).toBeNull()
     expectTitleOnce('Rezepte')
+    expect(h1s()).toHaveLength(1)
+  })
+})
+
+// Start greets in a visible h1 instead of repeating its title, so it has its own check.
+describe('start page title', () => {
+  it('desktop: "Start" in the header, the greeting as the one h1', async () => {
+    await renderAt('/')
+    expect(within(screen.getByRole('banner')).getAllByText('Start')).toHaveLength(1)
+    expect(within(screen.getByRole('main')).queryByText('Start')).toBeNull()
+    expect(h1s()).toHaveLength(1)
+    expect(within(screen.getByRole('main')).getByRole('heading', { level: 1 }).textContent).toBe('Hallo Kolja')
+  })
+
+  it('phone: the wordmark in the header instead of a title', async () => {
+    setViewport(375)
+    await renderAt('/')
+    const banner = within(screen.getByRole('banner'))
+    banner.getByText('Foodly')
+    expect(banner.queryByText('Start')).toBeNull()
     expect(h1s()).toHaveLength(1)
   })
 })

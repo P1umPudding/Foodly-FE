@@ -3,18 +3,13 @@ import { BookOpen, House, type LucideIcon } from 'lucide-react'
 import { DEFAULT_STATE, type ListState } from '../../list/state'
 import { fromSearchParams, toSearchParams } from '../../list/url'
 
-export type NavDestination = { label: string; path: string; icon: LucideIcon; hidden?: boolean }
+export type NavDestination = { label: string; path: string; icon: LucideIcon }
 
-// Single source for sidebar and tab bar. The shell shows only real destinations: Start stays hidden
-// until the dashboard issue switches it on (`/` redirects to the list until then).
+// Single source for sidebar and tab bar.
 export const NAV_DESTINATIONS: NavDestination[] = [
-  { label: 'Start', path: '/', icon: House, hidden: true },
+  { label: 'Start', path: '/', icon: House },
   { label: 'Rezepte', path: '/recipes', icon: BookOpen },
 ]
-
-export function visibleDestinations(): NavDestination[] {
-  return NAV_DESTINATIONS.filter((d) => !d.hidden)
-}
 
 export type ViewPrefs = Pick<ListState, 'sortKey' | 'sortDir' | 'detail' | 'grouped'>
 
@@ -43,6 +38,7 @@ export function activeCategoryId(pathname: string, params: URLSearchParams): num
 }
 
 export function routeTitle(pathname: string): string {
+  if (pathname === '/') return 'Start'
   if (pathname === '/recipes') return 'Rezepte'
   if (pathname === '/recipes/new') return 'Neues Rezept'
   if (/^\/recipes\/[^/]+\/edit$/.test(pathname)) return 'Rezept bearbeiten'

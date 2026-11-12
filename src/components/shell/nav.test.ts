@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { DEFAULT_STATE } from '../../list/state'
 import { loadPersisted } from '../../list/persistence'
-import { NAV_DESTINATIONS, activeCategoryId, listHref, navPrefs, routeTitle, visibleDestinations } from './nav'
+import { NAV_DESTINATIONS, activeCategoryId, listHref, navPrefs, routeTitle } from './nav'
 
 const defaults = { sortKey: 'name', sortDir: 'asc', detail: 'detailed', grouped: true } as const
 
 describe('NAV_DESTINATIONS', () => {
-  it('shows only Rezepte; Start is prepared but hidden', () => {
-    expect(visibleDestinations().map((d) => [d.label, d.path])).toEqual([['Rezepte', '/recipes']])
-    expect(NAV_DESTINATIONS.find((d) => d.path === '/')).toMatchObject({ label: 'Start', hidden: true })
+  it('lists Start before Rezepte', () => {
+    expect(NAV_DESTINATIONS.map((d) => [d.label, d.path])).toEqual([
+      ['Start', '/'],
+      ['Rezepte', '/recipes'],
+    ])
   })
 })
 
@@ -75,6 +77,7 @@ describe('activeCategoryId', () => {
 
 describe('routeTitle', () => {
   it('names the shell routes', () => {
+    expect(routeTitle('/')).toBe('Start')
     expect(routeTitle('/recipes')).toBe('Rezepte')
     expect(routeTitle('/recipes/new')).toBe('Neues Rezept')
     expect(routeTitle('/recipes/7')).toBe('Rezept')

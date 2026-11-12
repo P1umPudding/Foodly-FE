@@ -7,7 +7,7 @@ import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, buttonVarian
 import { PanelLeftClose, PanelLeftOpen, Plus, Settings } from 'lucide-react'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { categoryColorVars } from '../../lib/categoryColor'
-import { SHELL_NAV_STATE, currentFor, visibleDestinations } from './nav'
+import { SHELL_NAV_STATE, NAV_DESTINATIONS, currentFor } from './nav'
 import { navItemClass } from './navItem'
 import { ProfileMenu } from './ProfileMenu'
 import { TriggerButton } from '../TriggerButton'
@@ -110,7 +110,7 @@ export function Sidebar({
       </WithTip>
 
       <nav aria-label="Hauptnavigation" className="flex flex-col gap-0.5">
-        {visibleDestinations().map(({ label, path, icon: Icon }) => {
+        {NAV_DESTINATIONS.map(({ label, path, icon: Icon }) => {
           // Highlighted on its sub-pages too (a recipe belongs to "Rezepte"), but "page" only on itself.
           // NavLink's own active check ignores the query, so it can't tell "all recipes" from one category:
           // while a single category is shown, that category is the current entry, not "Rezepte".
