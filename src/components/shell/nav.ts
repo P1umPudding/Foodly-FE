@@ -37,6 +37,15 @@ export function activeCategoryId(pathname: string, params: URLSearchParams): num
   return categories.length === 1 ? categories[0] : null
 }
 
+// A route id as a category id; anything but a plain positive integer is no category.
+export function parseCategoryId(param: string | undefined): number | null {
+  return param !== undefined && /^\d+$/.test(param) ? Number(param) : null
+}
+
+export function categoryPageHref(id: number): string {
+  return `/categories/${id}`
+}
+
 export function routeTitle(pathname: string): string {
   if (pathname === '/') return 'Start'
   if (pathname === '/recipes') return 'Rezepte'

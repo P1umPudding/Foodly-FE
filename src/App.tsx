@@ -9,6 +9,7 @@ import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
 import { RecipeEditor } from './pages/RecipeEditor'
 import { Categories } from './pages/Categories'
+import { CategoryPage } from './pages/CategoryPage'
 
 export function RecipeEditorRoute() {
   const { id } = useParams()
@@ -17,6 +18,12 @@ export function RecipeEditorRoute() {
   // new<->edit (or between two ids) would keep stale state and autosave against
   // the wrong recipe. Key on route identity to force a clean remount.
   return <RecipeEditor key={id ?? 'new'} />
+}
+
+// Keyed like the editor: another category starts with a fresh page (dialog, scroll).
+function CategoryPageRoute() {
+  const { id } = useParams()
+  return <CategoryPage key={id} />
 }
 
 export default function App() {
@@ -38,6 +45,7 @@ export default function App() {
           <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
           {/* static segment: stays before /categories/:id */}
           <Route path="/categories" element={<Categories />} />
+          <Route path="/categories/:id" element={<CategoryPageRoute />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
