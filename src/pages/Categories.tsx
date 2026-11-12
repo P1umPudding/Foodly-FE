@@ -61,14 +61,13 @@ export function Categories() {
 
   // Each move sends the whole current list; only the latest one decides (the catalog rolls back only for that one).
   const move = (category: UserCategory, delta: -1 | 1) => {
+    const current = ordered.map((c) => c.id)
+    const ids = moveCategory(current, category.id, delta)
+    // The list can change while the menu is open (e.g. another tab): a move that changes nothing sends nothing.
+    if (ids.every((id, k) => id === current[k])) return
     const mine = ++moves.current
     lastMoved.current = category.id
     setMoveFailed(false)
-    const ids = moveCategory(
-      ordered.map((c) => c.id),
-      category.id,
-      delta,
-    )
     // A rollback moves the row back; React DOM re-focuses its ⋮ after the commit if the move blurred it.
     void reorder(ids).catch(() => {
       if (mine === moves.current) setMoveFailed(true)
@@ -220,7 +219,7 @@ export function Categories() {
                       </TooltipTrigger>
                       <TooltipContent>Aktionen</TooltipContent>
                     </Tooltip>
-                    {/* Otherwise Radix puts focus back on this ⋮, which a move keeps in place (keyed row). */}
+                    {/* Only a dialog opened from here places focus itself; moves and Escape let Radix return it to this ⋮. */}
                     <DropdownMenuContent
                       align="end"
                       onCloseAutoFocus={(e) => {
