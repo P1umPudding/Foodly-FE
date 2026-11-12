@@ -212,6 +212,13 @@ describe('AppShell on the desktop', () => {
 describe('AppShell on the phone', () => {
   beforeEach(() => setViewport(375))
 
+  it('leads to the categories page from the avatar menu', async () => {
+    renderAt('/recipes')
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Profil & Einstellungen' }), { key: 'Enter' })
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Kategorien' }))
+    screen.getByText('categories page')
+  })
+
   it('shows tab bar, "+" button and avatar on the list; "+" opens the editor', () => {
     renderAt('/recipes')
     expect(screen.queryByRole('complementary', { name: 'Seitenleiste' })).toBeNull()

@@ -2,6 +2,8 @@
 // instead of owning a trigger.
 import { useRef, useState } from 'react'
 import {
+  Alert,
+  AlertDescription,
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
@@ -62,9 +64,9 @@ export function DeleteCategoryDialog({
           <AlertDialogDescription>Die Rezepte bleiben erhalten, nur die Sammlung verschwindet.</AlertDialogDescription>
         </AlertDialogHeader>
         {error && (
-          <p role="alert" className="text-sm text-destructive">
-            {error}
-          </p>
+          <Alert variant="destructive" role="alert">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>Abbrechen</AlertDialogCancel>

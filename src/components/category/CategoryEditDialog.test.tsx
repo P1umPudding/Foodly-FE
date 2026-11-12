@@ -119,6 +119,7 @@ describe('CategoryEditDialog', () => {
     fireEvent.change(nameInput(), { target: { value: 'Suppen' } })
     fireEvent.click(saveButton())
     await waitFor(() => expect(saveButton().getAttribute('aria-disabled')).toBe('true'))
+    expect(saveButton().querySelector('.animate-spin')).not.toBeNull()
     fireEvent.click(saveButton())
     expect(actions.create).toHaveBeenCalledTimes(1)
     resolve(cat({ id: 9 }))
