@@ -16,6 +16,12 @@ export type UserCategory = {
   colorDark: string | null
 }
 
+// Body of POST /categories and PUT /categories/{id}. PUT replaces everything, so a rename sends the colours too.
+export type CategoryInput = { name: string; color: string; colorLight: string | null; colorDark: string | null }
+// PUT /categories/{id}/recipes replaces the whole list.
+export type CategoryRecipesInput = { recipeIds: RecipeId[] }
+export type CategoryOrderInput = { categoryIds: UserCategoryId[] }
+
 export type RecipeId = number
 export type Recipe = {
   id: RecipeId
