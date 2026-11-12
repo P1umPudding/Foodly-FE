@@ -72,7 +72,9 @@ werden hier nicht wiederholt.
 
 - One-shot-Reads: `useRequest(run, deps)` (`src/hooks/useRequest.ts`) →
   `loading | ready | error`.
-- Paginierte Reads: `useRecipeSearch` (akkumuliert Seiten, reset bei Query-Wechsel).
+- Paginierte Reads: `useRecipeSearch` (akkumuliert Seiten, reset bei Query-Wechsel). Schlägt eine Folgeseite
+  fehl, bleibt der Cursor (`hasMore`), `loadMoreError` ist gesetzt und das Paging pausiert bis `retryLoadMore`
+  (kein Auto-Retry über den Sentinel).
 - Schreiben mit Autosave: `useAutosave` (Debounce, single-flight, Koaleszenz).
 - Jede datengetriebene Ansicht rendert **alle drei** Zustände:
   - Laden → Skelette in der Form des Inhalts (postxl `Skeleton`, Redesign §1.7; z. B.
