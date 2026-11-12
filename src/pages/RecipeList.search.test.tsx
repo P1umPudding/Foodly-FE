@@ -83,13 +83,11 @@ describe('RecipeList (server-side search)', () => {
         return found
       })
       for (const tile of tiles) {
-        expect(tile.firstElementChild?.className).toContain('aspect-[4/3]')
+        expect(tile.firstElementChild?.classList).toContain('aspect-[4/3]')
         const [title, meta, ...rest] = within(tile).getAllByTestId('tile-skeleton-line')
         expect(rest).toHaveLength(0)
-        expect(title.className).toContain('h-4')
-        expect(title.className).toContain('w-3/4')
-        expect(meta.className).toContain('h-3')
-        expect(meta.className).toContain('w-1/2')
+        expect([...title.classList]).toEqual(expect.arrayContaining(['h-4', 'w-3/4']))
+        expect([...meta.classList]).toEqual(expect.arrayContaining(['h-3', 'w-1/2']))
       }
       expect(screen.queryAllByTestId('row-skeleton')).toHaveLength(0)
     })
