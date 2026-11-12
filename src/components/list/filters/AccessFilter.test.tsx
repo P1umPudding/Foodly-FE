@@ -176,18 +176,12 @@ describe('AccessFilter', () => {
     })
 
     it('drops both hints once both axes are back on "Alle"', () => {
-      const { rerender } = render(
-        <TooltipProvider>
-          <AccessFilter role="viewer" collab="shared" set={vi.fn()} />
-        </TooltipProvider>,
-      )
+      const { rerender } = render(<AccessFilter role="viewer" collab="shared" set={vi.fn()} />, {
+        wrapper: TooltipProvider,
+      })
       expect(screen.getByText(ROLE_HINT)).toBeTruthy()
       expect(screen.getByText(COLLAB_HINT)).toBeTruthy()
-      rerender(
-        <TooltipProvider>
-          <AccessFilter role="any" collab="any" set={vi.fn()} />
-        </TooltipProvider>,
-      )
+      rerender(<AccessFilter role="any" collab="any" set={vi.fn()} />)
       expect(screen.queryByText(ROLE_HINT)).toBeNull()
       expect(screen.queryByText(COLLAB_HINT)).toBeNull()
     })

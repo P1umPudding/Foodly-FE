@@ -9,7 +9,7 @@ Scope: `src/components/list/filters/AccessFilter.tsx` + `AccessFilter.test.tsx` 
   `<p aria-hidden className="px-1 text-xs text-muted-foreground">{greyedHint}</p>`
   - `aria-hidden`: the per-option `aria-describedby` sr-only reason already tells screen readers (spec assumption 2); no `role="status"`/`aria-live`.
   - No `useIsDesktop`; renders on all widths. Tooltip and sr-only reason untouched.
-  - One-line why-comment: `// Visible twin of the hover-only tooltip (design.md §7); aria-hidden because each radio's description already says it.`
+  - Short why-comment (two lines, within printWidth): visible twin of the hover-only tooltip (design.md §7); aria-hidden because each greyed radio's aria-describedby already carries the reason.
 - `AccessFilter` passes:
   - Meine Rolle: `Blasse Optionen passen nicht zur Freigabe. Auswählen setzt sie auf „Alle“.`
   - Freigabe: `Blasse Optionen passen nicht zur Rolle. Auswählen setzt sie auf „Alle“.`
@@ -19,7 +19,7 @@ Scope: `src/components/list/filters/AccessFilter.tsx` + `AccessFilter.test.tsx` 
 Hint consts `ROLE_HINT`, `COLLAB_HINT` copied exactly (curly quotes „Alle“). Locate with `screen.getByText(HINT)` (ByText does not filter aria-hidden) and assert placement via `hint.previousElementSibling === screen.getByRole('radiogroup', { name })` — no reliance on the postxl wrapper structure.
 - AC1a: `setup('viewer', 'shared')` → both hints present, each directly after its radiogroup, `aria-hidden="true"`, and `classList.contains` for `text-xs`, `text-muted-foreground`, `px-1`.
 - AC1b (issue's combo, per Soll rule): `setup('owner', 'shared')` → role hint present, `screen.queryByText(COLLAB_HINT)` null.
-- AC1c: `setup()` (Alle/Alle) → neither hint in the document.
+- AC1c: render Betrachter × Geteilt, then `rerender` with Alle/Alle → both hints gone (fails if the hint were unconditional).
 - Regression: existing sr-only/aria-describedby test stays green unchanged.
 
 ## Step 3 — checks
