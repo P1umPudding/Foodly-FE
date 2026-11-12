@@ -21,7 +21,8 @@ export type CategoryAssign = {
   pending: ReadonlySet<UserCategoryId>
   creating: boolean
   error: string | null
-  clearError: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
   // The "Neue Kategorie" field; it clears once the category exists, even if assigning it failed afterwards.
   newName: string
   setNewName: (name: string) => void
@@ -33,14 +34,29 @@ export type CategoryAssign = {
 // Kept here, not in the panel: the panel's content unmounts on close, and a save still in flight must keep its row
 // busy (and a failed create its name) when the panel is opened again. The guards read refs, so a second click
 // before the re-render is ignored too.
+// Known gap: switching to another recipe while a save runs resets the busy rows, so ticking the same category there
+// before the answer arrives sends a list without the first recipe (last write wins, like two tabs; accepted).
 function useCategoryAssign(recipeId: RecipeId, list: UserCategory[]): CategoryAssign {
   const { create, setRecipes } = useCategoryActions()
   const [pending, setPending] = useState<ReadonlySet<UserCategoryId>>(new Set())
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
+  const [open, setOpen] = useState(false)
   const pendingRef = useRef(new Set<UserCategoryId>())
   const creatingRef = useRef(false)
+  const openRef = useRef(false)
+
+  // An error is about the last action in the open panel: closing dismisses it, and one that arrives after closing
+  // is dropped (a reopened panel would otherwise announce an old alert as new).
+  const onOpenChange = (next: boolean) => {
+    openRef.current = next
+    setOpen(next)
+    if (!next) setError(null)
+  }
+  const fail = (e: unknown, fallback: string) => {
+    if (openRef.current) setError(errorMessage(e, fallback))
+  }
 
   const setPendingFor = (id: UserCategoryId, on: boolean) => {
     if (on) pendingRef.current.add(id)
@@ -57,7 +73,7 @@ function useCategoryAssign(recipeId: RecipeId, list: UserCategory[]): CategoryAs
     setPendingFor(category.id, true)
     setError(null)
     setRecipes(category.id, next)
-      .catch((e: unknown) => setError(errorMessage(e, 'Speichern fehlgeschlagen')))
+      .catch((e: unknown) => fail(e, 'Speichern fehlgeschlagen'))
       .finally(() => setPendingFor(category.id, false))
   }
 
@@ -72,14 +88,14 @@ function useCategoryAssign(recipeId: RecipeId, list: UserCategory[]): CategoryAs
       try {
         created = await create({ name, color: firstFreeColor(list), colorLight: null, colorDark: null })
       } catch (e) {
-        setError(errorMessage(e, 'Anlegen fehlgeschlagen'))
+        fail(e, 'Anlegen fehlgeschlagen')
         return false
       }
       setNewName('')
       try {
         await setRecipes(created.id, [recipeId])
       } catch (e) {
-        setError(errorMessage(e, 'Zuordnen fehlgeschlagen'))
+        fail(e, 'Zuordnen fehlgeschlagen')
       }
       return true
     } finally {
@@ -88,7 +104,7 @@ function useCategoryAssign(recipeId: RecipeId, list: UserCategory[]): CategoryAs
     }
   }
 
-  return { pending, creating, error, clearError: () => setError(null), newName, setNewName, createAndAssign, toggle }
+  return { pending, creating, error, open, onOpenChange, newName, setNewName, createAndAssign, toggle }
 }
 
 export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
@@ -97,13 +113,6 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
   const assign = useCategoryAssign(recipe.id, categories.list)
   const cats = categories.status === 'ready' ? recipeCategories(recipe, categories.list) : []
   const showText = categories.status === 'ready' && cats.length === 0
-  const [open, setOpen] = useState(false)
-  // An error is about the last action in the panel; closing it dismisses the message (a reopened panel would
-  // otherwise announce an old alert as new).
-  const onOpenChange = (next: boolean) => {
-    setOpen(next)
-    if (!next) assign.clearError()
-  }
 
   // Always rendered, also while loading, so the title doesn't jump down once the categories arrive.
   return (
@@ -123,23 +132,23 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
         </Link>
       ))}
       <ResponsivePanel
-        open={open}
-        onOpenChange={onOpenChange}
+        open={assign.open}
+        onOpenChange={assign.onOpenChange}
         trigger={
           <TriggerButton
             variant="outline"
-            size="sm"
+            size="xs2"
             // With its text showing, the text is the name (label in name, WCAG 2.5.3).
             aria-label={showText ? undefined : 'Kategorien ändern'}
-            // h-6 matches the chips (postxl sm is 32 px); phones get the 40 px tap target.
-            className="h-6 gap-1 border-dashed px-2 phone:h-10"
+            // min-h-6 lines it up with the chips; phones get the 40 px tap target.
+            className="min-h-6 gap-1 border-dashed phone:min-h-10"
           >
             <Plus aria-hidden className="size-4" />
             {showText && 'Zu Kategorie hinzufügen'}
           </TriggerButton>
         }
         popover={{ align: 'start', className: 'w-72', 'aria-label': 'Kategorien' }}
-        sheet={{ title: 'Kategorien', description: 'Rezept Kategorien zuordnen' }}
+        sheet={{ title: 'Kategorien', description: 'Dem Rezept Kategorien zuordnen' }}
       >
         {(variant) => (
           <CategoryAssignPanel recipeId={recipe.id} categories={categories} assign={assign} variant={variant} />

@@ -156,11 +156,14 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       await renderDetail(8)
       const before = await api.foodly.listCategories()
       const create = vi.spyOn(api.foodly, 'createCategory')
+      const save = vi.spyOn(api.foodly, 'setCategoryRecipes')
       const panel = await openPanel()
       const field = await within(panel).findByRole('textbox', { name: 'Neue Kategorie' }, WAIT)
       fireEvent.change(field, { target: { value: '  Suppen ' } })
       fireEvent.submit(field.closest('form')!)
+      fireEvent.submit(field.closest('form')!)
 
+      expect(create).toHaveBeenCalledTimes(1)
       expect(create).toHaveBeenCalledWith({
         name: 'Suppen',
         color: firstFreeColor(before),
@@ -171,6 +174,61 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       await waitFor(() => expect((box as HTMLInputElement).checked).toBe(true), WAIT)
       expect(screen.getByRole('link', { name: /Suppen/ })).toBeTruthy()
       expect((field as HTMLInputElement).value).toBe('')
+      const created = (await create.mock.results[0].value) as UserCategory
+      expect(save).toHaveBeenCalledWith(created.id, [8])
+    },
+    SLOW,
+  )
+
+  it(
+    'keeps a create running across closing the panel, and its name when it then fails',
+    async () => {
+      await renderDetail(8)
+      let fail!: (e: Error) => void
+      vi.spyOn(api.foodly, 'createCategory').mockReturnValueOnce(
+        new Promise<UserCategory>((_, reject) => (fail = reject)),
+      )
+      let panel = await openPanel()
+      const field = await within(panel).findByRole('textbox', { name: 'Neue Kategorie' }, WAIT)
+      fireEvent.change(field, { target: { value: 'Suppen' } })
+      fireEvent.submit(field.closest('form')!)
+      await waitFor(() =>
+        expect(within(panel).getByRole('checkbox', { name: 'Favoriten' }).getAttribute('aria-disabled')).toBe('true'),
+      )
+
+      fireEvent.keyDown(field, { key: 'Escape' })
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), WAIT)
+      panel = await openPanel()
+      const again = within(panel).getByRole('textbox', { name: 'Neue Kategorie' }) as HTMLInputElement
+      expect(again.value).toBe('Suppen')
+      expect(again.readOnly).toBe(true)
+
+      await act(async () => fail(new Error('Name must not be empty')))
+      expect(within(panel).getByRole('alert').textContent).toBe('Name must not be empty')
+      expect(again.value).toBe('Suppen')
+      expect(again.readOnly).toBe(false)
+    },
+    SLOW,
+  )
+
+  it(
+    'drops the message of a save that fails after the panel was closed',
+    async () => {
+      await renderDetail(8)
+      let fail!: (e: Error) => void
+      vi.spyOn(api.foodly, 'setCategoryRecipes').mockReturnValueOnce(
+        new Promise<UserCategory>((_, reject) => (fail = reject)),
+      )
+      let panel = await openPanel()
+      const box = await within(panel).findByRole('checkbox', { name: 'Backen & Süßes' }, WAIT)
+      fireEvent.click(box)
+      fireEvent.keyDown(box, { key: 'Escape' })
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), WAIT)
+
+      await act(async () => fail(new Error('kaputt')))
+      panel = await openPanel()
+      expect(within(panel).queryByRole('alert')).toBeNull()
+      expect((within(panel).getByRole('checkbox', { name: 'Backen & Süßes' }) as HTMLInputElement).checked).toBe(false)
     },
     SLOW,
   )
@@ -274,6 +332,20 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       expect(within(panel).getByText('Kategorien nicht geladen')).toBeTruthy()
       expect(within(panel).getByRole('button', { name: 'Erneut versuchen' })).toBeTruthy()
       expect(within(panel).queryByRole('textbox')).toBeNull()
+    },
+    SLOW,
+  )
+
+  it(
+    'hands the focus to the list once a retry loaded it',
+    async () => {
+      vi.spyOn(api.foodly, 'listCategories').mockRejectedValueOnce(new Error('offline'))
+      await renderDetail(8)
+      const panel = await openPanel()
+      fireEvent.click(await within(panel).findByRole('button', { name: 'Erneut versuchen' }, WAIT))
+
+      const first = await within(panel).findByRole('checkbox', { name: 'Favoriten' }, WAIT)
+      await waitFor(() => expect(document.activeElement).toBe(first))
     },
     SLOW,
   )

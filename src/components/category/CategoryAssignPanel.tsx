@@ -1,6 +1,6 @@
 // Panel content behind the "+" chip of the recipe detail: tick the categories the recipe sits in, or create one.
 // Every toggle saves at once; the state lives in RecipeCategoryChips (see there).
-import { useRef, type FormEvent } from 'react'
+import { useEffect, useRef, type FormEvent } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button, Input, Skeleton, cn } from '@postxl/ui-components'
 import { RetryAlert } from '../RetryAlert'
@@ -27,15 +27,21 @@ export function CategoryAssignPanel({
   variant: PanelVariant
 }) {
   const { list, status, error, retry } = categories
-  // Retry swaps the alert for the skeleton, which would drop focus to <body>; the wrapper takes it instead.
+  // Retry swaps the alert for the skeleton, which would drop focus to <body>: the wrapper holds it while loading,
+  // then hands it to the first control of the list.
   const root = useRef<HTMLDivElement>(null)
   const onRetry = () => {
     root.current?.focus()
     retry()
   }
+  useEffect(() => {
+    if (status === 'ready' && root.current && document.activeElement === root.current) {
+      root.current.querySelector<HTMLInputElement>('input')?.focus()
+    }
+  }, [status])
 
   return (
-    <div ref={root} tabIndex={-1} className="outline-none">
+    <div ref={root} tabIndex={-1} className="outline-none" aria-busy={assign.creating || undefined}>
       {status === 'loading' ? (
         <div className="space-y-2" aria-busy>
           <span className="sr-only">Kategorien werden geladen</span>
@@ -105,7 +111,7 @@ function CreateCategoryForm({ assign }: { assign: CategoryAssign }) {
   }
 
   return (
-    <form className="flex items-center gap-2" aria-busy={assign.creating} onSubmit={(e) => void onSubmit(e)}>
+    <form className="flex items-center gap-2" onSubmit={(e) => void onSubmit(e)}>
       <Input
         ref={input}
         value={assign.newName}
