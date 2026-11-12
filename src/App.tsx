@@ -8,6 +8,7 @@ import { Register } from './pages/Register'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
 import { RecipeEditor } from './pages/RecipeEditor'
+import { Categories } from './pages/Categories'
 
 export function RecipeEditorRoute() {
   const { id } = useParams()
@@ -35,6 +36,8 @@ export default function App() {
           <Route path="/recipes/new" element={<RecipeEditorRoute />} />
           <Route path="/recipes/:id" element={<RecipeDetail />} />
           <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
+          {/* static segment: stays before /categories/:id */}
+          <Route path="/categories" element={<Categories />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
