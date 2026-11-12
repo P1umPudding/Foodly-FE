@@ -8,7 +8,7 @@ import { Plus } from 'lucide-react'
 import { TimerPanel } from '../../timers/TimerPanel'
 import { TimerPanelProvider } from '../../timers/TimerPanelContext'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
-import { routeTitle, visibleDestinations } from './nav'
+import { NAV_DESTINATIONS, routeTitle } from './nav'
 import { ProfileMenu } from './ProfileMenu'
 import { Sidebar, loadSidebarCollapsed, saveSidebarCollapsed } from './Sidebar'
 import { TabBar } from './TabBar'
@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const [collapsed, setCollapsed] = useState(loadSidebarCollapsed)
   const sidebar = SIDEBAR_WIDTH[collapsed ? 'collapsed' : 'expanded']
-  const onMainPage = visibleDestinations().some((d) => d.path === pathname)
+  const onMainPage = NAV_DESTINATIONS.some((d) => d.path === pathname)
 
   const setSidebarCollapsed = (next: boolean) => {
     setCollapsed(next)
@@ -57,8 +57,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               isDesktop ? 'px-6' : 'px-4',
             )}
           >
-            {/* Not a heading: each page owns its single h1. */}
-            <span className="truncate font-semibold">{routeTitle(pathname)}</span>
+            {/* Not a heading: each page owns its single h1. On the phone, Start greets in its h1, so the
+                header carries the wordmark instead of repeating "Start". */}
+            {!isDesktop && pathname === '/' ? (
+              <span className="font-display text-xl">Foodly</span>
+            ) : (
+              <span className="truncate font-semibold">{routeTitle(pathname)}</span>
+            )}
             {/* Room for page actions. */}
             <div className="flex-1" />
             <TimerPanel />
@@ -67,9 +72,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <main className="flex-1">{children}</main>
         </div>
         {!isDesktop && <TabBar />}
-        {/* Moving or resizing this button? The phone bottom padding of RecipeList's list wrapper must
-            still clear its top edge (#74). */}
-        {!isDesktop && pathname === '/recipes' && (
+        {/* Moving or resizing this button? The phone bottom padding of RecipeList's list wrapper and of
+            Home must still clear its top edge (#74). */}
+        {!isDesktop && (pathname === '/recipes' || pathname === '/') && (
           <Button asChild size="icon" className="fixed right-4 bottom-20 z-40 size-14 rounded-full shadow-lg">
             <Link to="/recipes/new" aria-label="Neues Rezept">
               <Plus className="size-6" />
