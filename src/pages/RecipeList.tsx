@@ -16,6 +16,7 @@ import { loadCollapsed, saveCollapsed } from '../list/persistence'
 import { FilterBar } from '../components/list/FilterBar'
 import { MobileListOptions } from '../components/list/MobileListOptions'
 import { GroupIndent, RecipeListView, TileGrid } from '../components/list/RecipeListView'
+import { TILE_META_TEXT, TILE_TITLE_TEXT } from '../components/recipe/RecipeTile'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
 import { SortMenu } from '../components/list/SortMenu'
@@ -31,6 +32,23 @@ const SCROLL_KEY = 'recipeList:scroll'
 // (a nav link writes `group=1`, the list itself omits defaults).
 function listIdentity(search: string): string {
   return toSearchParams(fromSearchParams(new URLSearchParams(search))).toString()
+}
+
+// Laid out like a photo RecipeTile: each bar sits in a box one text line of the tile tall.
+function TileSkeleton() {
+  return (
+    <div data-testid="tile-skeleton" className="flex min-w-0 flex-col gap-2">
+      <Skeleton className="aspect-[4/3] w-full rounded-lg" />
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <div className={`flex h-lh items-center ${TILE_TITLE_TEXT}`}>
+          <Skeleton data-testid="tile-skeleton-line" className="h-4 w-3/4 rounded-sm" />
+        </div>
+        <div className={`flex h-lh items-center ${TILE_META_TEXT}`}>
+          <Skeleton data-testid="tile-skeleton-line" className="h-3 w-1/2 rounded-sm" />
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // Placeholders in the shape of the chosen view, so nothing jumps when the recipes arrive.
@@ -51,7 +69,7 @@ function ListSkeleton({
       <div data-testid={testId}>
         <TileGrid oneRow={oneRow}>
           {items.map((i) => (
-            <Skeleton key={i} data-testid="tile-skeleton" className="aspect-[4/3] w-full rounded-lg" />
+            <TileSkeleton key={i} />
           ))}
         </TileGrid>
       </div>
