@@ -21,18 +21,24 @@ export type CategoryAssign = {
   pending: ReadonlySet<UserCategoryId>
   creating: boolean
   error: string | null
+  clearError: () => void
+  // The "Neue Kategorie" field; it clears once the category exists, even if assigning it failed afterwards.
+  newName: string
+  setNewName: (name: string) => void
+  // Resolves true once the category exists.
+  createAndAssign: () => Promise<boolean>
   toggle: (category: UserCategory) => void
-  // Resolves true once the category exists (the field may clear), even if assigning it failed afterwards.
-  createAndAssign: (name: string) => Promise<boolean>
 }
 
 // Kept here, not in the panel: the panel's content unmounts on close, and a save still in flight must keep its row
-// busy when the panel is opened again. The guards read refs, so a second click before the re-render is ignored too.
+// busy (and a failed create its name) when the panel is opened again. The guards read refs, so a second click
+// before the re-render is ignored too.
 function useCategoryAssign(recipeId: RecipeId, list: UserCategory[]): CategoryAssign {
   const { create, setRecipes } = useCategoryActions()
   const [pending, setPending] = useState<ReadonlySet<UserCategoryId>>(new Set())
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [newName, setNewName] = useState('')
   const pendingRef = useRef(new Set<UserCategoryId>())
   const creatingRef = useRef(false)
 
@@ -55,7 +61,8 @@ function useCategoryAssign(recipeId: RecipeId, list: UserCategory[]): CategoryAs
       .finally(() => setPendingFor(category.id, false))
   }
 
-  const createAndAssign = async (name: string): Promise<boolean> => {
+  const createAndAssign = async (): Promise<boolean> => {
+    const name = newName.trim()
     if (creatingRef.current || name === '') return false
     creatingRef.current = true
     setCreating(true)
@@ -68,6 +75,7 @@ function useCategoryAssign(recipeId: RecipeId, list: UserCategory[]): CategoryAs
         setError(errorMessage(e, 'Anlegen fehlgeschlagen'))
         return false
       }
+      setNewName('')
       try {
         await setRecipes(created.id, [recipeId])
       } catch (e) {
@@ -80,7 +88,7 @@ function useCategoryAssign(recipeId: RecipeId, list: UserCategory[]): CategoryAs
     }
   }
 
-  return { pending, creating, error, toggle, createAndAssign }
+  return { pending, creating, error, clearError: () => setError(null), newName, setNewName, createAndAssign, toggle }
 }
 
 export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
@@ -89,6 +97,13 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
   const assign = useCategoryAssign(recipe.id, categories.list)
   const cats = categories.status === 'ready' ? recipeCategories(recipe, categories.list) : []
   const showText = categories.status === 'ready' && cats.length === 0
+  const [open, setOpen] = useState(false)
+  // An error is about the last action in the panel; closing it dismisses the message (a reopened panel would
+  // otherwise announce an old alert as new).
+  const onOpenChange = (next: boolean) => {
+    setOpen(next)
+    if (!next) assign.clearError()
+  }
 
   // Always rendered, also while loading, so the title doesn't jump down once the categories arrive.
   return (
@@ -108,13 +123,16 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
         </Link>
       ))}
       <ResponsivePanel
+        open={open}
+        onOpenChange={onOpenChange}
         trigger={
           <TriggerButton
             variant="outline"
             size="sm"
             // With its text showing, the text is the name (label in name, WCAG 2.5.3).
             aria-label={showText ? undefined : 'Kategorien ändern'}
-            className="gap-1 border-dashed phone:min-h-10"
+            // h-6 matches the chips (postxl sm is 32 px); phones get the 40 px tap target.
+            className="h-6 gap-1 border-dashed px-2 phone:h-10"
           >
             <Plus aria-hidden className="size-4" />
             {showText && 'Zu Kategorie hinzufügen'}

@@ -97,7 +97,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       await renderDetail(8)
       const save = vi.spyOn(api.foodly, 'setCategoryRecipes')
       const panel = await openPanel()
-      const box = within(panel).getByRole('checkbox', { name: 'Backen & Süßes' })
+      const box = await within(panel).findByRole('checkbox', { name: 'Backen & Süßes' }, WAIT)
       expect((box as HTMLInputElement).checked).toBe(false)
       fireEvent.click(box)
 
@@ -111,13 +111,14 @@ describe('RecipeDetail · Kategorie-Chips', () => {
   it(
     'unticking removes only this recipe and keeps the order of the others',
     async () => {
-      await renderDetail(13)
+      await renderDetail(8)
       const save = vi.spyOn(api.foodly, 'setCategoryRecipes')
       const panel = await openPanel()
-      const box = within(panel).getByRole('checkbox', { name: 'Favoriten' })
+      const box = await within(panel).findByRole('checkbox', { name: 'Favoriten' }, WAIT)
       fireEvent.click(box)
 
-      expect(save).toHaveBeenCalledWith(1, [1, 6, 8])
+      // 8 sits in the middle of [1, 6, 8, 13].
+      expect(save).toHaveBeenCalledWith(1, [1, 6, 13])
       await waitFor(() => expect(screen.queryByRole('link', { name: /Favoriten/ })).toBeNull(), WAIT)
       expect((box as HTMLInputElement).checked).toBe(false)
     },
@@ -133,7 +134,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
         .spyOn(api.foodly, 'setCategoryRecipes')
         .mockReturnValueOnce(new Promise<UserCategory>((_, reject) => (fail = reject)))
       const panel = await openPanel()
-      const box = within(panel).getByRole('checkbox', { name: 'Backen & Süßes' })
+      const box = await within(panel).findByRole('checkbox', { name: 'Backen & Süßes' }, WAIT)
       fireEvent.click(box)
 
       await waitFor(() => expect(box.getAttribute('aria-disabled')).toBe('true'))
@@ -156,7 +157,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       const before = await api.foodly.listCategories()
       const create = vi.spyOn(api.foodly, 'createCategory')
       const panel = await openPanel()
-      const field = within(panel).getByRole('textbox', { name: 'Neue Kategorie' })
+      const field = await within(panel).findByRole('textbox', { name: 'Neue Kategorie' }, WAIT)
       fireEvent.change(field, { target: { value: '  Suppen ' } })
       fireEvent.submit(field.closest('form')!)
 
@@ -175,13 +176,32 @@ describe('RecipeDetail · Kategorie-Chips', () => {
   )
 
   it(
+    'keeps a created category unticked with the message when assigning it fails',
+    async () => {
+      await renderDetail(8)
+      vi.spyOn(api.foodly, 'setCategoryRecipes').mockRejectedValueOnce(new Error('recipe 8 not found'))
+      const panel = await openPanel()
+      const field = await within(panel).findByRole('textbox', { name: 'Neue Kategorie' }, WAIT)
+      fireEvent.change(field, { target: { value: 'Suppen' } })
+      fireEvent.submit(field.closest('form')!)
+
+      expect((await within(panel).findByRole('alert', {}, WAIT)).textContent).toBe('recipe 8 not found')
+      const box = within(panel).getByRole('checkbox', { name: 'Suppen' })
+      expect((box as HTMLInputElement).checked).toBe(false)
+      expect((field as HTMLInputElement).value).toBe('')
+      expect(screen.queryByRole('link', { name: /Suppen/ })).toBeNull()
+    },
+    SLOW,
+  )
+
+  it(
     'keeps the name and shows the message when creating fails',
     async () => {
       await renderDetail(8)
       vi.spyOn(api.foodly, 'createCategory').mockRejectedValueOnce(new Error('Name must not be empty'))
       const save = vi.spyOn(api.foodly, 'setCategoryRecipes')
       const panel = await openPanel()
-      const field = within(panel).getByRole('textbox', { name: 'Neue Kategorie' })
+      const field = await within(panel).findByRole('textbox', { name: 'Neue Kategorie' }, WAIT)
       fireEvent.change(field, { target: { value: 'Suppen' } })
       fireEvent.submit(field.closest('form')!)
 
@@ -196,10 +216,12 @@ describe('RecipeDetail · Kategorie-Chips', () => {
     'works for a recipe the user only views',
     async () => {
       await renderDetail(3)
+      expect(screen.queryByRole('link', { name: 'Bearbeiten' })).toBeNull()
+      expect(screen.queryByRole('button', { name: /Löschen/ })).toBeNull()
       await waitFor(async () => expect(await chipNames()).toEqual(['Schnelle Küche']), WAIT)
       const save = vi.spyOn(api.foodly, 'setCategoryRecipes')
       const panel = await openPanel()
-      fireEvent.click(within(panel).getByRole('checkbox', { name: 'Schnelle Küche' }))
+      fireEvent.click(await within(panel).findByRole('checkbox', { name: 'Schnelle Küche' }, WAIT))
 
       expect(save).toHaveBeenCalledWith(2, [5, 8, 12, 14])
       await waitFor(() => expect(screen.queryByRole('link', { name: /Schnelle Küche/ })).toBeNull(), WAIT)

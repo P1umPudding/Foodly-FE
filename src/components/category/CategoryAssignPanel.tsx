@@ -1,6 +1,6 @@
 // Panel content behind the "+" chip of the recipe detail: tick the categories the recipe sits in, or create one.
 // Every toggle saves at once; the state lives in RecipeCategoryChips (see there).
-import { useRef, useState, type FormEvent } from 'react'
+import { useRef, type FormEvent } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button, Input, Skeleton, cn } from '@postxl/ui-components'
 import { RetryAlert } from '../RetryAlert'
@@ -10,7 +10,7 @@ import { categoryColorVars } from '../../lib/categoryColor'
 import type { useCategories } from '../../catalog/CatalogProvider'
 import type { PanelVariant } from '../ResponsivePanel'
 import type { CategoryAssign } from './RecipeCategoryChips'
-import type { RecipeId } from '../../api/protocol'
+import type { RecipeId, UserCategory } from '../../api/protocol'
 
 // The name limit of the categories spec (same as the category dialog, K3).
 const MAX_NAME = 60
@@ -27,20 +27,42 @@ export function CategoryAssignPanel({
   variant: PanelVariant
 }) {
   const { list, status, error, retry } = categories
-
-  if (status === 'loading') {
-    return (
-      <div className="space-y-2" aria-busy>
-        <Skeleton className="h-6 w-full" />
-        <Skeleton className="h-6 w-full" />
-        <Skeleton className="h-6 w-2/3" />
-      </div>
-    )
-  }
-  if (status === 'error') {
-    return <RetryAlert title="Kategorien nicht geladen" message={error?.message} onRetry={retry} />
+  // Retry swaps the alert for the skeleton, which would drop focus to <body>; the wrapper takes it instead.
+  const root = useRef<HTMLDivElement>(null)
+  const onRetry = () => {
+    root.current?.focus()
+    retry()
   }
 
+  return (
+    <div ref={root} tabIndex={-1} className="outline-none">
+      {status === 'loading' ? (
+        <div className="space-y-2" aria-busy>
+          <span className="sr-only">Kategorien werden geladen</span>
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-2/3" />
+        </div>
+      ) : status === 'error' ? (
+        <RetryAlert title="Kategorien nicht geladen" message={error?.message} onRetry={onRetry} />
+      ) : (
+        <AssignList recipeId={recipeId} list={list} assign={assign} variant={variant} />
+      )}
+    </div>
+  )
+}
+
+function AssignList({
+  recipeId,
+  list,
+  assign,
+  variant,
+}: {
+  recipeId: RecipeId
+  list: UserCategory[]
+  assign: CategoryAssign
+  variant: PanelVariant
+}) {
   return (
     <div className="space-y-3">
       {list.length === 0 ? (
@@ -72,34 +94,35 @@ export function CategoryAssignPanel({
 }
 
 function CreateCategoryForm({ assign }: { assign: CategoryAssign }) {
-  const [name, setName] = useState('')
   const input = useRef<HTMLInputElement>(null)
-  const trimmed = name.trim()
   // aria-disabled and readOnly instead of disabled: a disabled control under the focus would drop it to <body>.
-  const blocked = trimmed === '' || assign.creating
+  const blocked = assign.newName.trim() === '' || assign.creating
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (blocked) return
-    if (await assign.createAndAssign(trimmed)) {
-      setName('')
-      input.current?.focus()
-    }
+    if (await assign.createAndAssign()) input.current?.focus()
   }
 
   return (
     <form className="flex items-center gap-2" aria-busy={assign.creating} onSubmit={(e) => void onSubmit(e)}>
       <Input
         ref={input}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={assign.newName}
+        onChange={(e) => assign.setNewName(e.target.value)}
         readOnly={assign.creating}
         maxLength={MAX_NAME}
         placeholder="Neue Kategorie"
         aria-label="Neue Kategorie"
         className="min-w-0 flex-1"
       />
-      <Button type="submit" size="sm" aria-disabled={blocked || undefined} className="gap-1.5">
+      <Button
+        type="submit"
+        size="sm"
+        aria-disabled={blocked || undefined}
+        // postxl only dims `disabled:`; aria-disabled needs the same look.
+        className="gap-1.5 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+      >
         {assign.creating && <Loader2 aria-hidden className="size-4 animate-spin" />}
         Anlegen
       </Button>
