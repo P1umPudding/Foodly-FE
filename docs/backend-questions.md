@@ -4,7 +4,8 @@ Lebende Liste aller Fragen an den Backend-Vertrag (`klassenserver7b/Foodly-backe
 Branch `main`, `resources/md/02_API_Design.md` + `03_Data_Models.md`), je mit
 Vorschlag und Status. Gepflegt vom Lead.
 
-Abgeglichen am **2026-11-09** gegen `main` @ `4cbbb55` (PR #20 gemergt als `097b69d`),
+Abgeglichen am **2026-11-12** gegen `main` @ `4cbbb55` (PR #20 gemergt als `097b69d`) und den offenen
+PR #22 @ `b39c380` (Review unten, „Review Backend-PR #22“),
 Doku **und** Code unter `src/api/rest/`. `web-api` ist
 seit PR #18 (2026-11-04) in `main` gemergt; `main` ist der Default-Branch, neue
 Backend-PRs gehen gegen `main`.
@@ -19,11 +20,11 @@ Kolja) · `später` (nicht blockierend).
 | #   | Thema                                   | Status      | Blockiert FE?           | Backend-Issue |
 | --- | --------------------------------------- | ----------- | ----------------------- | ------------- |
 | B1  | Bild-URL: `ImageId` → Datei             | gelöst      | –                       | [#9](https://github.com/klassenserver7b/Foodly-backend/issues/9) |
-| B2  | User-Lookup für Namen (owner/editors)   | offen       | ja (REST-only-Betrieb)  | [#10](https://github.com/klassenserver7b/Foodly-backend/issues/10) |
+| B2  | User-Lookup für Namen (owner/editors)   | PR #22 offen | ja (FE U2)             | [#10](https://github.com/klassenserver7b/Foodly-backend/issues/10) |
 | B3  | Ratings-Endpoints fehlen im Code        | offen       | ja (Phase 4 Rating)     | [#11](https://github.com/klassenserver7b/Foodly-backend/issues/11) |
 | B4  | Sharing-Endpoints fehlen im Code        | offen       | ja (Phase 4 Teilen)     | [#12](https://github.com/klassenserver7b/Foodly-backend/issues/12) |
 | B5  | Groups-Endpoints fehlen im Code         | offen       | ja (Phase 5 M2)         | [#13](https://github.com/klassenserver7b/Foodly-backend/issues/13) |
-| B6  | „added-at" pro viewer/editor + Feed     | offen       | ja (Phase 5 M2)         | [#14](https://github.com/klassenserver7b/Foodly-backend/issues/14) |
+| B6  | „added-at" pro viewer/editor + Feed     | PR #22 offen | ja (FE D3)             | [#14](https://github.com/klassenserver7b/Foodly-backend/issues/14) |
 | B7  | Echte Auth + CORS `Authorization`       | FE-Arbeit   | ja (REST-Modus braucht Login) | [#15](https://github.com/klassenserver7b/Foodly-backend/issues/15) |
 | B8  | Tags anlegen (Katalog read-only)        | Entscheidung | nein                   | –             |
 | B9  | `tagId = name`                          | später      | nein                    | –             |
@@ -72,6 +73,10 @@ Alternativ Recipe expandiert `owner/editors/viewers` als `{ id, name }` — mehr
 weniger Requests; A ist flexibler.
 
 **Entsperrt:** `listUsers`-Mock entfernen; Rollen-/Rating-Anzeige mit echten Namen.
+
+**Stand 2026-11-12:** Umgesetzt in Backend-PR #22 (offen) wie vorgeschlagen, aber **ohne** Beschränkung auf
+Nutzer, mit denen man teilt (Review-Hinweis 2 unten). FE-Issue U2 (`superpowers/plans/2026-11-12-backend-22-followups.md`),
+`backend-blocked` bis zum Merge.
 
 ### B3 — Ratings-Endpoints
 
@@ -160,6 +165,12 @@ Der Activity-/Notification-Feed ist im Backend als „DB schema TBD" offen.
    `{ id, type: "recipe.shared" | "group.added" | …, actor, recipe?, group?, at, read }`.
    Nicht nötig für Phase 5, gemeinsam modellieren, wenn Notifications dran sind.
 
+**Stand 2026-11-12:** Stufe 1 in Backend-PR #22 (offen): `added_at` in beiden Tabellen, `myAccessSince` an Preview
+und Detail (Owner = `createdAt`, Editor vor Viewer), `sort.field = "accessSince"` (camelCase, nicht `access_since`).
+Nebeneffekt: `accessRights:[owner]` + `accessSince desc` = „zuletzt erstellt“ serverseitig (FE D3). Die Kachel
+„Kürzlich mit dir geteilt“ wird erst mit Teilen (B4, #12) geschnitten (Daniel, 2026-11-12): Ohne Teilen-Endpunkte
+wird niemand Editor/Viewer.
+
 **Entsperrt:** Phase 5 Milestone 2 (Recency-Kachel „hinzugefügt").
 
 ### B7 — Echte Auth + CORS
@@ -206,6 +217,39 @@ Routen, `DEV_TOKEN` aus `src/api/rest.ts` entfernen. Entschieden (Daniel, 2026-1
 offene Registrierung, Tokens in `localStorage`. Spec:
 `superpowers/specs/2026-11-08-auth-login-design.md`.
 
+### Review Backend-PR #22 (2026-11-12, Lead)
+
+PR [#22](https://github.com/klassenserver7b/Foodly-backend/pull/22) „bulk user lookup and access-since tracking“
+@ `b39c380`, 28 Dateien. Geprüft gegen den FE-Code auf `main`. Folgen fürs FE:
+`superpowers/plans/2026-11-12-backend-22-followups.md` (U1, U2) und Phase-5-Plan (D3).
+
+1. **Sortierfelder (bricht das FE bis U1):** Unbekannte `sort.field` → 422 statt Fallback auf `id`; `worktime`/
+   `totaltime` sind keine Aliase mehr. FE sendet sie heute. → U1 direkt nach dem Merge.
+2. **Datenschutz `GET /users?ids=`:** Jeder angemeldete Nutzer kann beliebige IDs (bis 100 pro Request, beliebig oft)
+   zu Name und Profilbild auflösen und so alle Nutzer durchzählen. Für die Alpha unkritisch, vor einem öffentlichen
+   Betrieb aber zu klären.
+3. **`myAccessSince` / `accessSince`:** passt zu B6 und zum FE-Bedarf. Tie-Breaker `id` ist jetzt immer gesetzt.
+4. **Doku:** Filter-Arrays sind UND (B16), Statuscodes 201 → 200 (B14 erledigt), Zeitstempel als `+00:00`, `page`
+   max. 10.000, Kategorie-Rezepte max. 500, `reorder` max. 100, Filter-Arrays max. 100 bzw. 10 (alles 422). Für das
+   FE ohne Arbeit; die IDs sind jetzt i64, für JS-Zahlen unkritisch.
+
+**Kommentar zum Posten** (der Lead kann im Backend-Repo nicht kommentieren; bitte von Kolja oder Daniel als
+PR-Kommentar ablegen):
+
+> Danke für den PR, das deckt B2 und B6 genau so ab, wie das Frontend es braucht. Zwei Hinweise aus Frontend-Sicht:
+>
+> 1. **Sortierfelder:** Mit dem PR antwortet `sort.field: "worktime"` / `"totaltime"` mit 422. Das Frontend schickt
+>    heute genau diese Schreibweise und stellt direkt nach dem Merge auf `workTime` / `totalTime` um (FE-Issue
+>    verlinkt). Falls ihr das Fenster dazwischen vermeiden wollt, könnten `worktime` / `totaltime` noch eine Weile als
+>    Alias bleiben; sonst passt es so, wir mergen zeitnah nach.
+> 2. **`GET /users?ids=` und Privatsphäre:** Aktuell kann jeder angemeldete Nutzer beliebige IDs zu Name und
+>    Profilbild auflösen und damit alle Nutzer durchzählen. Für die Alpha ist das kein Problem. Vorschlag für später:
+>    nur Nutzer zurückgeben, mit denen man ein Rezept (oder später eine Gruppe) teilt, plus sich selbst. Unbekannte bzw.
+>    nicht sichtbare IDs fehlen ja schon jetzt einfach in der Antwort, das Frontend käme damit ohne Änderung klar.
+>
+> Kleinigkeit: Laut Doku sind die Filter-Arrays strikt UND. Damit ist die Teilfrage aus #17 beantwortet, das Frontend
+> filtert Kategorien (ODER) weiter selbst.
+
 ---
 
 ## Entscheidungen (Kolja)
@@ -237,6 +281,8 @@ Backend-Umbau der Zugriffsabfrage.
   Filterleiste zeigt keine Zahlen. Vorschlag: opt-in `facets` im Request,
   `total` + `facets` in der Antwort; `total` allein wäre der erste Schritt. Im Issue
   außerdem gefragt: Ist `categories` im Filter UND (Doku) oder ODER (FE heute)?
+  **Teilantwort (Doku in PR #22):** alle Filter-Arrays sind serverseitig strikt UND. Der Kategorie-Filter des FE
+  (ODER) bleibt deshalb clientseitig. Zahlen/Facetten weiter offen.
   → [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17)
 - **B15 Sortierung nach Timestamps:** `POST /recipes/search` sortiert nur nach
   name/worktime/totaltime/rating, alles andere fällt auf `id ASC` zurück. Phase-5-Kachel
@@ -263,7 +309,7 @@ Backend-Umbau der Zugriffsabfrage.
 - **G1 Timestamps:** `createdAt`/`updatedAt` liefert das Backend an Preview und
   Detail (`updatedAt` nur bei Inhaltsänderungen). **FE:** `protocol.ts` ergänzen,
   Phase-5-Kachel „Eigene zuletzt erstellt" auf `createdAt` umstellen (M2-Teil 1,
-  nicht blockiert).
+  nicht blockiert). **Stand 2026-11-12:** Typen kommen mit D3 (zusammen mit `myAccessSince`).
 - **G2 `UserRating` DB-only:** Backend sagt explizit „never exposed". FE hat den Typ
   bereits auskommentiert — erledigt.
 - **G3 Tag-Icons:** `GET /tags/{id}/icon` existiert. **FE (gelöst, #38):** Die Route
@@ -273,8 +319,10 @@ Backend-Umbau der Zugriffsabfrage.
   einem Ladefehler steht der Tag-Name.
 - **G4 Kategorien:** `GET /categories` existiert (paginiert); FE nutzt es seit
   `feat/rest-backend-wiring`. Kategorie-Filter kann jetzt serverseitig laufen.
-- **G5 Sortfelder:** Backend akzeptiert `worktime|work_time` und
-  `totaltime|total_time`; FE sendet `worktime`/`totaltime`. Passt.
+- **G5 Sortfelder:** Auf `main` akzeptiert das Backend `worktime|work_time` und
+  `totaltime|total_time`; FE sendet `worktime`/`totaltime`. **Mit PR #22** gilt camelCase: nur noch
+  `workTime|work_time`, `totalTime|total_time` (+ `accessSince`), alles andere 422. FE-Issue U1 stellt um und geht
+  direkt nach dem Merge von #22 rein (Daniel, 2026-11-12).
 
 ---
 
