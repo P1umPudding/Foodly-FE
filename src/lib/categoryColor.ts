@@ -169,3 +169,21 @@ export function hueDistance(a: string, b: string): number {
   const d = Math.abs(x.h - y.h) % 360
   return d > 180 ? 360 - d : d
 }
+
+export type CategoryLike = Pick<UserCategory, 'id' | 'name' | 'order' | 'color'>
+
+const SIMILAR_HUE_DEG = 20
+
+// Only `color` counts, not the per-theme overrides: the picker edits `color` alone (ADR 0002).
+export function similarCategory<C extends CategoryLike>(
+  color: string,
+  categories: readonly C[],
+  exceptId?: C['id'],
+): C | null {
+  const ordered = [...categories].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  return ordered.find((c) => c.id !== exceptId && hueDistance(color, c.color) < SIMILAR_HUE_DEG) ?? null
+}
+
+export function firstFreeColor(categories: readonly CategoryLike[]): string {
+  return SUGGESTED_COLORS.find((c) => !similarCategory(c, categories)) ?? SUGGESTED_COLORS[0]
+}
