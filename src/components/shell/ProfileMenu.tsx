@@ -12,7 +12,8 @@ import {
   TooltipTrigger,
   cn,
 } from '@postxl/ui-components'
-import { LogOut } from 'lucide-react'
+import { LogOut, Tags } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { foodly } from '../../api'
 import { useMe } from '../../catalog/CatalogProvider'
 import { ThemeSubmenu } from '../ThemeMenu'
@@ -22,7 +23,7 @@ import { TriggerButton } from '../TriggerButton'
 const LABEL = 'Profil & Einstellungen'
 
 // Profile and settings behind the avatar (phone header) or the sidebar's bottom row. There is no profile
-// page yet; the menu holds the name, the theme and (REST only) Abmelden. Wake-lock stays on the recipe
+// page yet; the menu holds the name, the categories, the theme and (REST only) Abmelden. Wake-lock stays on the recipe
 // page, where it acts.
 //  • avatar — phone header, 40 px tap target
 //  • row    — expanded sidebar: avatar + name
@@ -77,6 +78,12 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
       >
         <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="gap-2">
+          <Link to="/categories">
+            <Tags aria-hidden className="size-4" />
+            Kategorien
+          </Link>
+        </DropdownMenuItem>
         <ThemeSubmenu />
         {foodly.auth.canSignOut && (
           <>
