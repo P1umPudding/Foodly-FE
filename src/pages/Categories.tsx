@@ -1,4 +1,4 @@
-// „Meine Kategorien“: the user's categories, created, renamed, recoloured and deleted here.
+// „Meine Kategorien“: the user's categories, created, renamed, recoloured, reordered and deleted here.
 import { useLayoutEffect, useRef, useState, type MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
