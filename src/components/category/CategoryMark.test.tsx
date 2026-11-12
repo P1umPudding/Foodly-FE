@@ -20,9 +20,14 @@ describe('categoryInitial', () => {
 describe('categoryInitial without Intl.Segmenter', () => {
   afterEach(() => vi.unstubAllGlobals())
 
+  it('keeps a whole grapheme cluster with Intl.Segmenter', () => {
+    expect(categoryInitial('👍🏽 Top')).toBe('👍🏽')
+  })
+
   it('falls back to the first code point', () => {
-    vi.stubGlobal('Intl', { ...Intl, Segmenter: undefined })
-    expect(categoryInitial('🍝 Pasta')).toBe('🍝')
+    // Intl's members are not enumerable, so spread would drop them all.
+    vi.stubGlobal('Intl', Object.assign(Object.create(Intl), { Segmenter: undefined }))
+    expect(categoryInitial('👍🏽 Top')).toBe('👍')
     expect(categoryInitial('sommer')).toBe('S')
   })
 })

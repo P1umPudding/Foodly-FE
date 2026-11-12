@@ -1,4 +1,5 @@
 // Picks the one colour of a category (ADR 0002); light/dark variants are derived, never edited here.
+// onChange fires live while the native colour input is dragged: consumers that save debounce or save on submit.
 import { useId } from 'react'
 import { Input, Label, RadioGroup, RadioGroupItem } from '@postxl/ui-components'
 import { SUGGESTED_COLORS, categoryColorVars, similarCategory, type CategoryLike } from '../../lib/categoryColor'
@@ -29,7 +30,10 @@ export function CategoryColorPicker({
   categories: readonly CategoryLike[]
   exceptId?: CategoryLike['id']
 }) {
-  const customId = useId()
+  const id = useId()
+  const customId = `${id}-custom`
+  const hintId = `${id}-hint`
+  const statusId = `${id}-status`
   // The value can come straight from the foreign backend: guard like parseHex does.
   const lower = typeof value === 'string' ? value.trim().toLowerCase() : ''
   // '' and never undefined: undefined would make Radix uncontrolled and keep a stale check.
@@ -41,6 +45,9 @@ export function CategoryColorPicker({
     <div className="flex flex-col gap-3">
       <RadioGroup
         aria-label="Vorschlagsfarben"
+        aria-describedby={`${hintId} ${statusId}`}
+        // Radix moves linearly, not by grid row; horizontal keeps Up/Down from pretending otherwise.
+        orientation="horizontal"
         value={selected}
         onValueChange={onChange}
         className="grid-cols-6 gap-2 self-start"
@@ -51,13 +58,12 @@ export function CategoryColorPicker({
             value={color}
             aria-label={`Farbe ${i + 1}`}
             {...categoryColorVars(colorOnly(color))}
-            // dark:bg-cat-dot beats the item's own dark:bg-input/30. The ring marks the choice, so the
-            // indicator dot is hidden; a wider offset keeps focus visible on the checked swatch.
+            // dark:bg-cat-dot beats the item's own dark:bg-input/30. An outline marks the choice (indicator
+            // dot hidden), so the item's own focus ring stays free to show keyboard focus on top of it.
             className={
               'size-10 rounded-md border-0 bg-cat-dot shadow-none dark:bg-cat-dot ' +
-              '[&_[data-slot=radio-group-indicator]]:hidden data-[state=checked]:ring-2 ' +
-              'data-[state=checked]:ring-foreground data-[state=checked]:ring-offset-2 ' +
-              'data-[state=checked]:ring-offset-background focus-visible:data-[state=checked]:ring-offset-4'
+              '[&_[data-slot=radio-group-indicator]]:hidden data-[state=checked]:outline-2 ' +
+              'data-[state=checked]:outline-offset-2 data-[state=checked]:outline-solid data-[state=checked]:outline-foreground'
             }
           />
         ))}
@@ -68,6 +74,7 @@ export function CategoryColorPicker({
           id={customId}
           type="color"
           value={toColorInputValue(lower)}
+          aria-describedby={`${hintId} ${statusId}`}
           onChange={(e) => onChange(e.target.value)}
           className="h-10 w-14 p-1"
         />
@@ -89,9 +96,9 @@ export function CategoryColorPicker({
       </div>
 
       <div className="flex flex-col text-xs text-muted-foreground">
-        <p>Du wählst eine Farbe, die Varianten für Hell und Dunkel rechnet Foodly selbst.</p>
+        <p id={hintId}>Du wählst eine Farbe, die Varianten für Hell und Dunkel rechnet Foodly selbst.</p>
         {/* Always in the accessibility tree (never display:none) so a hint appearing later is announced. */}
-        <p role="status" className="mt-1 empty:mt-0">
+        <p id={statusId} role="status" className="mt-1 empty:mt-0">
           {similar && `Ähnlich wie „${similar.name}“. Eine andere Farbe macht die beiden leichter unterscheidbar.`}
         </p>
       </div>

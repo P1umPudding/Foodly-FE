@@ -10,9 +10,12 @@ const SIZE = {
   xl: 'size-10 text-lg/none',
 } as const
 
+let segmenter: Intl.Segmenter | undefined
+
 function firstGrapheme(text: string): string {
   if (typeof Intl.Segmenter !== 'function') return Array.from(text)[0] ?? ''
-  const [first] = new Intl.Segmenter('de', { granularity: 'grapheme' }).segment(text)
+  segmenter ??= new Intl.Segmenter('de', { granularity: 'grapheme' })
+  const [first] = segmenter.segment(text)
   return first?.segment ?? ''
 }
 

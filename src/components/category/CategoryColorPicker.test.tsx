@@ -1,7 +1,7 @@
 import { act, render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { CategoryColorPicker } from './CategoryColorPicker'
-import { SUGGESTED_COLORS, oklchToHex } from '../../lib/categoryColor'
+import { SUGGESTED_COLORS, categoryColors, oklchToHex } from '../../lib/categoryColor'
 import type { CategoryLike } from '../../lib/categoryColor'
 
 const pasta: CategoryLike = { id: 7, name: 'Pasta', order: 0, color: SUGGESTED_COLORS[0] }
@@ -58,6 +58,14 @@ describe('CategoryColorPicker', () => {
     setup()
     expect(screen.getAllByText('Suppen')).toHaveLength(2)
     expect(screen.getByText(/Varianten für Hell und Dunkel/)).toBeTruthy()
+    const dot = categoryColors({ color: SUGGESTED_COLORS[0], colorLight: null, colorDark: null }).light.dot
+    const chip = screen.getAllByText('Suppen')[0].closest('[data-cat]') as HTMLElement
+    expect(chip.style.getPropertyValue('--cat-dot-l')).toBe(dot)
+  })
+
+  it('previews a placeholder while the name is empty', () => {
+    setup({ name: '  ' })
+    expect(screen.getAllByText('Neue Kategorie')).toHaveLength(2)
   })
 
   it('warns about a similar existing category by name', () => {
