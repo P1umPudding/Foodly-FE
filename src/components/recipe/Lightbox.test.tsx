@@ -33,3 +33,54 @@ describe('Lightbox image that fails to load', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 })
+
+describe('Lightbox thumbnails', () => {
+  const images = [ref(1), ref(2), ref(3)]
+
+  it('are named buttons that switch the image', () => {
+    const onIndexChange = vi.fn()
+    render(<Lightbox images={images} index={0} onIndexChange={onIndexChange} onClose={() => {}} />)
+
+    for (const name of ['Bild 1', 'Bild 2', 'Bild 3']) {
+      expect(screen.getByRole('button', { name }).getAttribute('type')).toBe('button')
+    }
+    expect(screen.getByRole('button', { name: 'Bild 1' }).getAttribute('aria-current')).toBe('true')
+    expect(screen.getByRole('button', { name: 'Bild 2' }).hasAttribute('aria-current')).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: 'Bild 3' }))
+    expect(onIndexChange).toHaveBeenCalledWith(2)
+  })
+
+  it('Space stays usable on a focused thumbnail, but still cannot reach or scroll the page behind', () => {
+    render(
+      <>
+        <button type="button">Dahinter</button>
+        <a href="#x">Link dahinter</a>
+        <Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />
+      </>,
+    )
+    // fireEvent returns false when a listener called preventDefault (which would cancel the button's click).
+    expect(fireEvent.keyDown(screen.getByRole('button', { name: 'Bild 2' }), { key: ' ' })).toBe(true)
+    expect(fireEvent.keyDown(screen.getByRole('button', { name: 'Dahinter' }), { key: ' ' })).toBe(false)
+    expect(fireEvent.keyDown(screen.getByRole('link', { name: 'Link dahinter' }), { key: ' ' })).toBe(false)
+    expect(fireEvent.keyDown(document.body, { key: ' ' })).toBe(false)
+  })
+
+  it('show a white focus ring with a gap, full white on the active one', () => {
+    render(<Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />)
+
+    const inactive = screen.getByRole('button', { name: 'Bild 2' }).className.split(/\s+/)
+    expect(inactive).toEqual(
+      expect.arrayContaining([
+        'focus-visible:ring-[3px]',
+        'focus-visible:ring-white/60',
+        'focus-visible:ring-offset-2',
+        'focus-visible:ring-offset-black',
+      ]),
+    )
+    expect(inactive).not.toContain('ring-white')
+
+    const active = screen.getByRole('button', { name: 'Bild 1' }).className.split(/\s+/)
+    expect(active).toEqual(expect.arrayContaining(['ring-2', 'ring-white', 'focus-visible:ring-white']))
+    expect(active).not.toContain('focus-visible:ring-white/60')
+  })
+})
