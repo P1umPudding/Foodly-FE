@@ -4,9 +4,11 @@ import {
   categoryColorVars,
   categoryColors,
   contrastRatio,
+  firstFreeColor,
   hexToOklch,
   hueDistance,
   oklchToHex,
+  similarCategory,
   type CategoryRole,
 } from './categoryColor'
 
@@ -206,5 +208,46 @@ describe('hueDistance', () => {
   it('treats neutral or invalid colours as far apart', () => {
     expect(hueDistance('#808080', '#ff0000')).toBe(180)
     expect(hueDistance('#ff0000', 'nope')).toBe(180)
+  })
+})
+
+const named = (id: number, color: string, order: number | null = id) => ({ id, name: `Kat ${id}`, order, color })
+
+describe('similarCategory', () => {
+  it('finds a category with the same colour', () => {
+    const hit = named(1, SUGGESTED_COLORS[0])
+    expect(similarCategory(SUGGESTED_COLORS[0], [hit])).toBe(hit)
+  })
+
+  it('returns null for a colour 30° away', () => {
+    expect(similarCategory(SUGGESTED_COLORS[1], [named(1, SUGGESTED_COLORS[0])])).toBeNull()
+  })
+
+  it('skips the category given as exceptId', () => {
+    expect(similarCategory(SUGGESTED_COLORS[0], [named(1, SUGGESTED_COLORS[0])], 1)).toBeNull()
+  })
+
+  it('never matches a grey colour', () => {
+    expect(similarCategory('#808080', [named(1, '#808080'), named(2, SUGGESTED_COLORS[0])])).toBeNull()
+  })
+
+  it('returns the first match by order', () => {
+    const later = named(1, SUGGESTED_COLORS[0], 5)
+    const earlier = named(2, SUGGESTED_COLORS[0], 1)
+    expect(similarCategory(SUGGESTED_COLORS[0], [later, earlier])).toBe(earlier)
+  })
+})
+
+describe('firstFreeColor', () => {
+  it('starts with the first suggestion when there are no categories', () => {
+    expect(firstFreeColor([])).toBe(SUGGESTED_COLORS[0])
+  })
+
+  it('skips a suggestion already taken', () => {
+    expect(firstFreeColor([named(1, SUGGESTED_COLORS[0])])).toBe(SUGGESTED_COLORS[1])
+  })
+
+  it('falls back to the first suggestion when all are taken', () => {
+    expect(firstFreeColor(SUGGESTED_COLORS.map((c, i) => named(i, c)))).toBe(SUGGESTED_COLORS[0])
   })
 })
