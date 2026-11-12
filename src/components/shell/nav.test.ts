@@ -84,6 +84,7 @@ describe('activeCategoryId', () => {
   })
   it('is the category of its page', () => {
     expect(at('sort=rating', '/categories/7')).toBe(7)
+    expect(at('', '/categories/7/')).toBe(7)
     expect(at('', '/categories/abc')).toBeNull()
     expect(at('', '/categories')).toBeNull()
   })

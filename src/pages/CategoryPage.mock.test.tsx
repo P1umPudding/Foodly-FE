@@ -67,6 +67,10 @@ describe('Category page (mock mode)', () => {
       const rows = ['Pfannkuchen', 'Griechischer Bauernsalat', 'Guacamole', 'Cremige Tomatensuppe', 'Asiatische']
       for (const name of rows) expect(within(main()).getByRole('link', { name: new RegExp(name) })).toBeTruthy()
       expect(within(main()).queryByRole('link', { name: /Ofengemüse/ })).toBeNull()
+      const recipeLinks = within(main())
+        .getAllByRole('link')
+        .filter((a) => /^\/recipes\/\d+$/.test(a.getAttribute('href') ?? ''))
+      expect(recipeLinks).toHaveLength(5)
       expect(search.mock.calls[0][0]).toMatchObject({ filters: { categories: [2] } })
 
       // Guacamole is in "Favoriten" too: that dot stays, this category's goes from every row.
@@ -181,13 +185,13 @@ describe('Category page (mock mode)', () => {
       expect(within(main()).queryByText('Kategorie nicht gefunden')).toBeNull()
       fireEvent.click(within(main()).getByRole('button', { name: 'Erneut versuchen' }))
       expect(within(main()).getByTestId('category-head-skeleton')).toBeTruthy()
-      expect((await heading()).textContent).toBe('Schnelle Küche')
+      await waitFor(() => expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Schnelle Küche'), WAIT)
     },
     SLOW,
   )
 
   it(
-    'turns into "nicht gefunden" once the category is deleted elsewhere',
+    'says "nicht gefunden" when coming back to a category deleted meanwhile',
     async () => {
       await renderAt('/categories/4')
       expect((await heading()).textContent).toBe('Meal Prep')

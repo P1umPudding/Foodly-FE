@@ -40,7 +40,7 @@ export function activeCategoryId(pathname: string, params: URLSearchParams): num
   return categories.length === 1 ? categories[0] : null
 }
 
-const CATEGORY_PAGE = /^\/categories\/([^/]+)$/
+const CATEGORY_PAGE = /^\/categories\/([^/]+)\/?$/
 
 export function isCategoryPage(pathname: string): boolean {
   return CATEGORY_PAGE.test(pathname)

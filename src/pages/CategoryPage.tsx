@@ -1,6 +1,6 @@
 // One category: its tinted head and the recipes in it, with the list's search, sort and view but no filters or layout.
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigationType, useParams } from 'react-router-dom'
 import {
   Button,
   DropdownMenu,
@@ -25,7 +25,7 @@ import { SortMenu } from '../components/list/SortMenu'
 import { ViewToggles } from '../components/list/ViewToggles'
 import { RetryAlert } from '../components/RetryAlert'
 import { TriggerButton } from '../components/TriggerButton'
-import { parseCategoryId } from '../components/shell/nav'
+import { isShellNavState, parseCategoryId } from '../components/shell/nav'
 import { categoryColorVars } from '../lib/categoryColor'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
@@ -38,19 +38,27 @@ import type { UserCategory } from '../api/protocol'
 
 const recipeCount = (n: number) => `${n} ${n === 1 ? 'Rezept' : 'Rezepte'}`
 
-// Keyed by id in App.tsx, so switching categories starts from scratch (dialog, scroll).
 export function CategoryPage() {
   const { id: idParam } = useParams()
   const id = parseCategoryId(idParam)
   const catalog = useCategories()
   const category = id === null ? undefined : catalog.list.find((c) => c.id === id)
 
-  // The window is the scroll container: a sidebar click from deep down another category must start at the top.
+  // The window is the scroll container: opening a category (keyed by id in App.tsx, so a fresh mount) starts at the
+  // top. So does a sidebar click on the category already open, which doesn't remount.
   useEffect(() => window.scrollTo(0, 0), [])
+  const { key: locationKey, state: locationState } = useLocation()
+  const navigationType = useNavigationType()
+  const fromShellNav = isShellNavState(locationState) && navigationType !== 'POP'
+  useEffect(() => {
+    if (fromShellNav) window.scrollTo(0, 0)
+  }, [locationKey, fromShellNav])
 
   return (
     // On phones the extra bottom room lets the last card scroll past the fixed "+" button (as on /recipes, #74).
     <div className="mx-auto max-w-6xl px-6 pt-6 pb-10 phone:px-4 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]">
+      {/* Every state has the page's one h1; until the category is known it can only be generic. */}
+      {catalog.status !== 'ready' && <h1 className="sr-only">Kategorie</h1>}
       {catalog.status === 'loading' && (
         <>
           <Skeleton data-testid="category-head-skeleton" className="h-24 w-full rounded-lg" />
@@ -64,10 +72,10 @@ export function CategoryPage() {
         <RetryAlert title="Konnte Kategorien nicht laden" message={catalog.error?.message} onRetry={catalog.retry} />
       )}
 
-      {/* Also when the category goes away while open (deleted on /categories): the catalog no longer lists it. */}
+      {/* Also when the catalog drops the category while the page is open (deleted through it). */}
       {catalog.status === 'ready' && !category && (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <h1 className="text-lg font-semibold">Kategorie nicht gefunden</h1>
+          <h1 className="font-display text-2xl">Kategorie nicht gefunden</h1>
           <Button asChild variant="outline" size="sm">
             <Link to="/recipes">Zu den Rezepten</Link>
           </Button>
@@ -99,8 +107,10 @@ function CategoryHead({ category }: { category: UserCategory }) {
     >
       <CategoryMark category={category} size="xl" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <h1 className="truncate text-xl font-semibold text-cat-ink">{category.name}</h1>
-        <p className="text-sm text-muted-foreground">{recipeCount(category.recipes.length)} · nur für dich sichtbar</p>
+        <h1 className="truncate font-display text-2xl text-cat-ink">{category.name}</h1>
+        <p className="text-sm text-cat-ink opacity-75">
+          {recipeCount(category.recipes.length)} · nur für dich sichtbar
+        </p>
       </div>
       {isDesktop ? (
         <TriggerButton ref={trigger} variant="outline" onClick={openDialog} className="gap-1.5">
@@ -215,11 +225,14 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
           <ListSkeleton detail={state.detail} count={1} testId="list-pending-skeleton" />
         )}
 
+        {/* The head counts every recipe in the category; one the user may no longer view is not "nothing in it". */}
         {allLoaded && visible.length === 0 && !searching && (
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <FolderOpen className="size-5 text-muted-foreground/40" />
             <p className="max-w-sm text-muted-foreground">
-              Noch nichts in „{category.name}“. Öffne ein Rezept und füg es über „+“ hinzu.
+              {category.recipes.length === 0
+                ? `Noch nichts in „${category.name}“. Öffne ein Rezept und füg es über „+“ hinzu.`
+                : 'Keine Rezepte, die du sehen kannst.'}
             </p>
           </div>
         )}
