@@ -63,7 +63,9 @@ export function CategoryColorPicker({
             className={
               'size-10 rounded-md border-0 bg-cat-dot shadow-none dark:bg-cat-dot ' +
               '[&_[data-slot=radio-group-indicator]]:hidden data-[state=checked]:outline-2 ' +
-              'data-[state=checked]:outline-offset-2 data-[state=checked]:outline-solid data-[state=checked]:outline-foreground'
+              'data-[state=checked]:outline-offset-4 data-[state=checked]:outline-solid data-[state=checked]:outline-foreground ' +
+              // Forced colours drop the box-shadow focus ring; an outline still shows there.
+              'forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-solid'
             }
           />
         ))}
@@ -74,7 +76,7 @@ export function CategoryColorPicker({
           id={customId}
           type="color"
           value={toColorInputValue(lower)}
-          aria-describedby={`${hintId} ${statusId}`}
+          aria-describedby={statusId}
           onChange={(e) => onChange(e.target.value)}
           className="h-10 w-14 p-1"
         />

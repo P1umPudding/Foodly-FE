@@ -17,7 +17,7 @@ describe('categoryInitial', () => {
   })
 })
 
-describe('categoryInitial without Intl.Segmenter', () => {
+describe('categoryInitial grapheme handling', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('keeps a whole grapheme cluster with Intl.Segmenter', () => {
