@@ -39,7 +39,7 @@ export function CategoryFilter({
   )
 }
 
-function CategoryLabel({ name, count }: { name: string; count?: number }) {
+export function CategoryLabel({ name, count }: { name: string; count?: number }) {
   return (
     <span className="flex w-full min-w-0 items-center gap-2">
       <span aria-hidden className="size-2 shrink-0 rounded-full bg-cat-dot" />
