@@ -82,3 +82,15 @@ it('gives every option row a 40 px tap target', () => {
     expect(radio.closest('.min-h-10')).not.toBeNull()
   }
 })
+
+// design.md §2: rows are controls (rounded-md).
+it('rounds every option row like other controls', () => {
+  render(<Harness />)
+  const sheet = openSheet()
+  const radios = within(sheet).getAllByRole('radio')
+  expect(radios).toHaveLength(11)
+  for (const radio of radios) {
+    expect(radio.parentElement!.classList.contains('rounded-md')).toBe(true)
+    expect(radio.parentElement!.classList.contains('rounded-sm')).toBe(false)
+  }
+})
