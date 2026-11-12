@@ -1,175 +1,89 @@
-# Phase 5 — Dashboard & App Restructure — Design (rev. 2)
+# Phase 5 — Dashboard / Start — Design (rev. 3)
 
-Status: revised design, pre-plan. Replaces the 2026-07-07 version.
-Date: 2026-10-28.
-Related: `docs/plan.md` (Phase 5), `docs/phases/phase-2-organisation-navigation.md`,
-`docs/backend-questions.md`, `docs/decisions/0001-rest-transport.md`.
+Status: freigegeben (Daniel, 2026-11-12, Entscheidung `dec_6000b8fe`). Ersetzt rev. 2 (2026-10-28).
+Issue-Plan: `docs/superpowers/plans/2026-11-12-phase-5-dashboard.md` (D1–D4).
+Grundlage: `docs/design/redesign/README.md` §1.6, §1.7, §3 („Start“), Mockup `docs/design/redesign/app.js` (`S.home`).
 
-## Why a revision
+## Was sich seit rev. 2 geändert hat
 
-The first version was written on 2026-07-07 and merged on 2026-10-27 (PR #11) without being
-re-checked. Since then:
+- App-Shell, Seitenleiste und Tab-Leiste gibt es (Redesign Schritt 3, #27). „Start“ steht schon in `NAV_DESTINATIONS`
+  (`src/components/shell/nav.ts`), ist aber `hidden`, und `/` leitet über `RootRedirect` auf `/recipes` weiter.
+- Kategorien lassen sich verwalten, und es gibt die Kategorie-Seite `/categories/:id` (Block „Kategorien verwalten“,
+  #178–#183). Kategorie-Links zeigen dorthin, nicht mehr auf `/recipes?cat=`.
+- Backend-PR #22 bringt `myAccessSince` und `sort.field = "accessSince"`. Für eigene Rezepte gilt `myAccessSince =
+  createdAt`. „Zuletzt erstellt“ wird damit serverseitig sortierbar, der Client-Helper aus rev. 2 entfällt.
 
-- The app talks REST (`src/api/rest.ts`, ADR 0001); mocks are a dev/preview mode only.
-- The Phase 4 editor is live at `/recipes/new` and `/recipes/:id/edit`.
-- The backend already returns `createdAt` / `updatedAt` on recipes (G1).
-- Groups have no endpoints yet (backend #13) and their recipe model is undecided (B12).
+## Umfang (Entscheidungen Daniel, 2026-11-12)
 
-This revision drops what is blocked, uses what now exists, and simplifies where the old plan
-duplicated existing machinery.
+| Kachel | Quelle | Status |
+|---|---|---|
+| Kategorien | `useCategories()` | baubar (D2, nach #183) |
+| Zuletzt erstellt | `POST /recipes/search`, `accessRights:[owner]`, `accessSince desc` | wartet auf Backend #22 (D3) |
+| Zuletzt angesehen („Jump back in“) | lokal pro Nutzer | baubar (D4) |
+| Kürzlich mit dir geteilt | `accessSince` mit `accessRights:[editor, viewer]` | **nicht geschnitten**: kommt mit Teilen (Backend #12). Ohne Teilen wird im Backend niemand Editor oder Viewer, die Kachel wäre immer leer. |
+| Gruppen | – | blockiert (B12, Backend #13) |
+| Heute geplant, Einkauf | – | Konzept, spätere Phasen |
 
-## Problem
-
-The app has the recipe list at `/`, plus detail and editor routes. The list *is* the home
-screen, and the `Nav` has no concept of app sections. Phase 5 wants a **Dashboard as the landing
-screen**. That forces a top-level restructure: where the list moves, and what the primary
-navigation is.
-
-Phases 6–7 (mobile, native wrap) mean the navigation shell must work on mobile from day one.
-
-## Decisions
-
-- **Scope:** new navigation shell + IA, plus a light cohesion pass on existing screens (no logic
-  rewrite).
-- **Nav destinations:** **Home · Recipes · +Create**. Groups is hidden until unblocked (see
-  Blocked). Categories are reachable from the Dashboard and the list filters, not a tab.
-- **+Create:** a plain link to the existing editor `/recipes/new`. No menu; it becomes one once
-  categories or groups can be created in the FE.
-- **Responsive shell:** one `NAV_DESTINATIONS` definition.
-  - Mobile (`<md`): fixed bottom tab bar, Create as a centre "+".
-  - Desktop (`md+`): tabs inside the existing header, no left rail (three items do not justify
-    one). Switching to a rail later, once Groups/Categories grow the nav, is a layout change only.
-- **Connection dot removed from the header.** It shows WebSocket status labelled "Backend", which
-  is misleading in REST mode. The component stays in the code and returns with socket-based live
-  editing.
-
-## Blocked (not in this phase until decided)
-
-| Feature | Waiting on |
-|---|---|
-| Groups tab, `/groups`, `/groups/:id`, "My groups" tile | B12 (group ↔ recipe model, decision) and backend #13 (groups endpoints) |
-| "Recently added to you" tile | backend #14 (B6, `added_at` / `myAccessSince`) |
-
-No stand-ins: in particular no id-order proxy for "recently added", because a recipe id says when
-it was created, not when it was shared with the viewer.
+D3 wird **nicht** vorab clientseitig sortiert. D3 wartet auf #22.
 
 ## Routing
 
-`src/App.tsx`:
+| Route | Bildschirm |
+|---|---|
+| `/` ohne Query | Start (`src/pages/Home.tsx`) |
+| `/` mit Listen-Parametern (`cat`, `tag`, `ing`, `dmax`, `role`, `collab`, `q`, `sort`, `dir`, `view`, `group`) | Weiterleitung auf `/recipes` mit derselben Query (alte Lesezeichen) |
+| alle anderen | unverändert |
 
-| Route | Screen | Status |
-|---|---|---|
-| `/` | Dashboard | new |
-| `/` with list params | redirect to `/recipes?…` (same params) | new |
-| `/recipes` | Recipe list (moved from `/`) | moved |
-| `/recipes/new` | Recipe editor | unchanged |
-| `/recipes/:id` | Recipe detail | unchanged |
-| `/recipes/:id/edit` | Recipe editor | unchanged |
-| `*` | NotFound | unchanged |
+„Start“ wird in Seitenleiste und Tab-Leiste sichtbar (`hidden` entfällt). Ziele der Navigation beginnen einen neuen
+Verlauf (README §3.4).
 
-**Legacy list URLs.** The list keeps its state in the URL (`src/list/url.ts`). If `/` is opened
-with any list param (`cat`, `tag`, `ing`, `dmax`, `role`, `collab`, `q`, `sort`, `dir`, `view`,
-`group`), it redirects to `/recipes` with the same query string, so bookmarks and shared links keep
-working. Plain `/` shows the Dashboard. The Dashboard has no filters of its own.
+## Seite „Start“
 
-**No `/categories/:id` route.** Category links go to `/recipes?cat=<id>`, the existing URL filter.
+- **Kopf:** Datum klein („Donnerstag, 12. November“, `Intl.DateTimeFormat('de-DE')`), darunter „Hallo <Vorname>“
+  (`useMe().name`, erstes Wort). Handy: Kopfzeile mit Foodly-Logo als Titel, Avatar rechts; FAB „+“ wie auf
+  `/recipes`.
+- **Aufbau Desktop:** „Kategorien“ über die volle Breite, darunter die Rezept-Abschnitte. Handy: alles in einer Spalte.
+- **Abschnitt:** Überschrift (`h2`) links, Link rechts („Verwalten“, „Alle Rezepte“). Rezepte als Kacheln
+  (`RecipeTile`, Raster 2 Spalten Handy, 3 Desktop), höchstens 6.
+- **Leere Abschnitte blenden sich aus.** Ein Abschnitt zeigt Skelette in Kachelform, solange er lädt. Bei einem
+  Fehler steht im Abschnitt ein `RetryAlert`; die anderen Abschnitte bleiben nutzbar.
+- **Nichts zu zeigen** (alle Abschnitte leer, auch solange es nur das Gerüst aus D1 gibt): eine Karte „Hier erscheinen
+  deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.“ mit „Alle Rezepte“ (`/recipes`) und
+  „Neues Rezept“ (`/recipes/new`). Neutral formuliert, weil sie auch bei bestehenden Nutzern erscheinen kann.
 
-## App shell
+### Kategorien (D2)
+Getönte Kacheln (`categoryColorVars`, `bg-cat-soft`, Rahmen `border-cat-line`, Radius 8 px): `CategoryMark md`, Name
+(eine Zeile, Ellipse), Anzahl rechts (`tabular-nums`). Reihenfolge nach `order`. Link auf `/categories/:id`. Raster:
+Handy 2, Desktop 4 Spalten. Abschnitts-Link „Verwalten“ → `/categories`. Ohne Kategorien blendet sich der Abschnitt aus
+wie die anderen (angelegt wird über `/categories` oder den „+“-Chip im Rezept).
 
-New `AppShell` component wrapping `<Routes>`, replacing today's bare `<Nav> + <main> + <Footer>`.
-It owns:
+### Zuletzt erstellt (D3)
+`foodly.searchRecipes({ filters: { accessRights: ['owner'] }, sort: { field: 'accessSince', order: 'desc' } }, 1)`,
+die ersten 6. Link „Alle Rezepte“ → `/recipes` mit Zugriff „Meine“ (`role=owner`) und Sortierung wie gespeichert.
 
-- **`NAV_DESTINATIONS`** — single source of truth: `{ icon, label, path }` for Home, Recipes,
-  +Create.
-- **Desktop:** header = wordmark · tabs · (search, timers, theme toggle on the right).
-- **Mobile:** bottom tab bar; header shrinks to wordmark + search.
-- Active-route highlighting via `NavLink`.
+### Zuletzt angesehen (D4)
+- Speicher `src/home/recentlyViewed.ts`: `localStorage["foodly:recently-viewed:<userId>"]`, Liste von Rezept-IDs,
+  neueste zuerst, ohne Doppelte, max. 20. Schreiben ist best-effort (wie `src/list/persistence.ts`).
+- `RecipeDetail` merkt sich die ID, sobald das Rezept geladen ist (nicht bei Fehler/404).
+- Kachel: die ersten 6 IDs über `foodly.getRecipe` (parallel). IDs, die mit Fehler antworten (gelöscht, kein
+  Zugriff), fallen still raus und werden aus dem Speicher entfernt. Überschrift „Zuletzt angesehen“, kein Link.
+- Abmelden löscht den Speicher nicht (pro Nutzer geschlüsselt).
 
-The Phase 2 filter rail and category sidebar stay **inside `/recipes`**; they are list controls,
-not app navigation. Timers stay app-global.
+## Daten / API
 
-**Migration risk:** `/recipes` inherits the scroll-restore and sticky-header measurement logic that
-assumed it lives at `/`, and the header height changes because the tabs move into it. The sticky
-offsets must be re-verified (see Testing). This is the riskiest part of the phase.
+- Keine neue `foodly.*`-Methode. D3 ergänzt den Wire-Vertrag um das, was das Backend schon bzw. mit #22 liefert:
+  `createdAt: string | null`, `updatedAt: string | null` (G1, bisher nicht im FE-Typ) und `myAccessSince: string | null`
+  an `Recipe` (und damit `RecipePreview`), dazu `'accessSince'` in `RecipeSortField`. Die Mock-Rezepte bekommen
+  Zeitstempel, der Mock sortiert `accessSince` wie das Backend (Owner: `createdAt`).
+- Rezept-Liste der Kacheln über `previewToRecipe` wie in der Liste.
 
-## Dashboard (`/`)
+## Tests
 
-Responsive tile grid (1 col mobile → 2 tablet → 3 desktop). Each tile: heading, short body,
-"see all →" link. Tiles with nothing to show hide themselves.
+- Unit: Weiterleitung `/` mit/ohne Listen-Parameter; `recentlyViewed` (Reihenfolge, Doppelte, max. 20, pro Nutzer,
+  Entfernen); Begrüßung (Vorname, Datum).
+- Komponenten (Mock-Modus): Abschnitte zeigen/verbergen sich; Lade-, Fehler-, Leerzustand je Abschnitt; Karte „Nichts zu zeigen“; Kategorie-Kachel verlinkt auf `/categories/:id`; „Start“ in Seitenleiste und Tab-Leiste aktiv auf `/`.
 
-- **My categories** — the user's `UserCategory` list as coloured chips/rows (Phase 2 colour
-  tokens), each linking to `/recipes?cat=<id>`. No "+" button: the FE cannot create categories.
-- **Your recent creations** — the user's own recipes, newest first by real `createdAt`.
-  "See all" links to the list filtered to own recipes.
-- **Jump back in** — recipes whose detail was most recently opened, from a local recently-viewed
-  store (no backend). Shows the last N.
+## Später
 
-**Recent creations — sorting.** `POST /recipes/search` cannot sort by `created_at` (only name, work
-time, total time, rating; anything else falls back to `id ASC`). For now the FE loads the user's
-own recipes and sorts them client-side. This sits behind one helper (e.g.
-`recentCreations(n)`), so switching to a server-side sort later changes only the helper's body.
-Backend issue: [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) (B15).
-
-## Recipe list (`/recipes`)
-
-Unchanged logic. Additions:
-
-- When **exactly one** category is filtered, the header shows that category's name in its colour.
-  The filter stays removable and combinable like any other.
-- Header realigned to the new shell (see Cohesion pass).
-
-## Cohesion pass (existing screens, no logic changes)
-
-- **`PageHeader`** — shared scaffold (title + optional subtitle/colour + right-aligned actions
-  slot), used by the Dashboard and the list. Groups will reuse it later.
-- **`Tile`** — one card look for the Dashboard tiles. Prefer a `@postxl/ui-components` primitive;
-  otherwise one thin local wrapper.
-- **List header realignment** — required, not optional: header height and sticky offsets change
-  with the tabs in the header. This is the one place that touches the sticky-measurement code.
-- **Detail and editor** — unchanged visually; they inherit the shell chrome only.
-
-## Data / API additions
-
-- **`protocol.ts`:** add `createdAt` and `updatedAt` (ISO 8601 strings) to `Recipe` and
-  `RecipePreview` (G1). The backend returns both on `GET /recipes/{id}` and in search results;
-  `updatedAt` changes only on content edits.
-- **Mocks:** mock recipes get `createdAt` / `updatedAt` values so the Dashboard works in mock
-  mode.
-- **Recently-viewed store** (`localStorage`, per user): `/recipes/:id` pushes its id on view;
-  "Jump back in" reads the last N. Same family as `src/list/persistence.ts`.
-- **`recentCreations` helper** — client-side `createdAt` sort now, server-side sort later.
-- No groups API or mock groups in this phase.
-
-## Testing
-
-Repo pattern: pure logic unit-tested, components smoke-tested (vitest).
-
-- **Unit:**
-  - redirect from `/` with list params to `/recipes` (params preserved, plain `/` not
-    redirected)
-  - `recentCreations` sort by `createdAt`
-  - recently-viewed store
-  - category heading shown only when exactly one `cat` filter is set
-- **Smoke:**
-  - shell renders both nav modes (header tabs, bottom bar)
-  - Dashboard tiles show/hide correctly
-  - +Create opens the editor
-- **Visual (required):** list sticky offsets line up under the new header. Via Chrome MCP if QA's
-  Chrome works by then; otherwise a manual check by a person in the Skaile preview before merge.
-
-## Out of scope / later
-
-- Groups (blocked; see above).
-- "Recently added to you" tile (blocked on backend #14).
-- **"At a glance" tile** (counts: visible recipes, shared with you, categories, groups) —
-  later option, once Groups is unblocked.
-- Left rail on desktop — later, if the nav grows.
-- Category creation in the FE.
-- Connection dot / any backend health indicator — returns with live editing.
-
-## Follow-ups
-
-- **Backend:** `created_at` / `updated_at` as sort fields in `POST /recipes/search` —
-  filed as [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) (B15).
-- **Plan:** the 2026-07-07 M1 plan was dropped; implementation issues come from the Lead's
-  breakdown of this spec.
+- „Kürzlich mit dir geteilt“ (mit Teilen, Backend #12), Gruppen (B12, #13), „Heute geplant“, Einkauf.
+- Activity-Feed (B6 Stufe 2).
