@@ -17,7 +17,7 @@ Scope: `src/components/list/filters/AccessFilter.tsx` + `AccessFilter.test.tsx` 
 
 ## Step 2 — tests (AccessFilter.test.tsx)
 Hint consts `ROLE_HINT`, `COLLAB_HINT` copied exactly (curly quotes „Alle“). Locate with `screen.getByText(HINT)` (ByText does not filter aria-hidden) and assert placement via `hint.previousElementSibling === screen.getByRole('radiogroup', { name })` — no reliance on the postxl wrapper structure.
-- AC1a: `setup('viewer', 'shared')` → both hints present, each directly after its radiogroup, `aria-hidden="true"`, and `classList.contains` for `text-xs`, `text-muted-foreground`, `px-1`.
+- AC1a: `setup('viewer', 'shared')` → both hints present, each directly after its radiogroup, `aria-hidden="true"`, and `expect([...classList]).toEqual(expect.arrayContaining([...]))` for `text-xs`, `text-muted-foreground`, `px-1`.
 - AC1b (issue's combo, per Soll rule): `setup('owner', 'shared')` → role hint present, `screen.queryByText(COLLAB_HINT)` null.
 - AC1c: render Betrachter × Geteilt, then `rerender` with Alle/Alle → both hints gone (fails if the hint were unconditional).
 - Regression: existing sr-only/aria-describedby test stays green unchanged.
@@ -39,5 +39,5 @@ Hint consts `ROLE_HINT`, `COLLAB_HINT` copied exactly (curly quotes „Alle“).
 - Existing greyedReason ("Klick setzt sie zurück") unchanged; possible follow-up.
 
 ## Review log
-- Pass 1 (fresh subagent): no blocker. Major: AC1 deviation must be visible → PR section + handoff note. Minor: placement test via previousElementSibling instead of parentElement container; exact curly-quote constants; text-xs vs §6 noted in PR. Nits applied: simpler anyGreyed, one-line comment, classList checks. Not applied: committing plan to docs/superpowers/plans (pipeline keeps notes in .git/agent-work).
-- Pass 2 (fresh subagent): no blocker/major; typing and test queries confirmed feasible. Applied: assertions without jest-dom (`getAttribute('aria-hidden')` → `toBe('true')`, `classList.contains(...)` → `toBe(true)`); AC1b also asserts the role hint's `previousElementSibling` is the „Meine Rolle“ radiogroup; plan committed as `docs/superpowers/plans/2026-11-12-access-filter-greyed-hint.md` (CLAUDE.md, existing precedent); Dispatcher handoff explicitly asks the owners to confirm the AC1 deviation.
+- Pass 1 (fresh subagent): no blocker. Major: AC1 deviation must be visible → PR section + handoff note. Minor: placement test via previousElementSibling instead of parentElement container; exact curly-quote constants; text-xs vs §6 noted in PR. Nits applied: simpler anyGreyed, one-line comment (later two lines, within printWidth), classList checks. Not applied: committing plan to docs/superpowers/plans (pipeline keeps notes in .git/agent-work).
+- Pass 2 (fresh subagent): no blocker/major; typing and test queries confirmed feasible. Applied: assertions without jest-dom (`getAttribute('aria-hidden')` → `toBe('true')`, `arrayContaining` on `[...classList]`); AC1b also asserts the role hint's `previousElementSibling` is the „Meine Rolle“ radiogroup; plan committed as `docs/superpowers/plans/2026-11-12-access-filter-greyed-hint.md` (CLAUDE.md, existing precedent); Dispatcher handoff explicitly asks the owners to confirm the AC1 deviation.
