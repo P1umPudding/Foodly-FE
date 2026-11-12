@@ -111,13 +111,7 @@ export function CategoryEditDialog({
           autoComplete="off"
         />
       </div>
-      <CategoryColorPicker
-        value={color}
-        onChange={setColor}
-        name={name}
-        categories={list}
-        exceptId={category?.id}
-      />
+      <CategoryColorPicker value={color} onChange={setColor} name={name} categories={list} exceptId={category?.id} />
       {error && (
         <Alert variant="destructive" role="alert">
           <AlertDescription>{error}</AlertDescription>

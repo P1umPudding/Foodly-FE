@@ -147,9 +147,11 @@ describe('AppShell on the desktop', () => {
     renderAt('/recipes?cat=2')
     const section = screen.getByRole('navigation', { name: 'Kategorien' })
     // Only the gear: no category entries yet.
-    expect(within(section).getAllByRole('link').map((a) => a.getAttribute('aria-label'))).toEqual([
-      'Kategorien verwalten',
-    ])
+    expect(
+      within(section)
+        .getAllByRole('link')
+        .map((a) => a.getAttribute('aria-label')),
+    ).toEqual(['Kategorien verwalten'])
     expect(within(section).getAllByTestId('category-skeleton')).toHaveLength(3)
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
   })

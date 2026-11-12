@@ -38,7 +38,10 @@ async function renderPage() {
 
 const main = () => screen.getByRole('main')
 const sidebar = () => screen.getByRole('navigation', { name: 'Kategorien' })
-const rowNames = (list: HTMLElement) => within(list).getAllByRole('listitem').map((li) => within(li).getAllByRole('link')[0].textContent)
+const rowNames = (list: HTMLElement) =>
+  within(list)
+    .getAllByRole('listitem')
+    .map((li) => within(li).getAllByRole('link')[0].textContent)
 
 function openMenu(name: string) {
   fireEvent.keyDown(within(main()).getByRole('button', { name: `Aktionen für „${name}“` }), { key: 'Enter' })

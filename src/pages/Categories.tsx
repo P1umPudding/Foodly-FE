@@ -98,7 +98,11 @@ export function Categories() {
         {categories.status === 'loading' && (
           <Card className="gap-0 p-0">
             {[0, 1, 2].map((i) => (
-              <div key={i} data-testid="category-row-skeleton" className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0">
+              <div
+                key={i}
+                data-testid="category-row-skeleton"
+                className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0"
+              >
                 <Skeleton className="size-7 rounded" />
                 <Skeleton className="h-4 flex-1" />
               </div>
@@ -116,7 +120,9 @@ export function Categories() {
 
         {ready && ordered.length === 0 && (
           <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed px-6 py-10 text-center">
-            <p className="text-sm text-muted-foreground">Noch keine Kategorien. Leg eine an und sammle darin Rezepte.</p>
+            <p className="text-sm text-muted-foreground">
+              Noch keine Kategorien. Leg eine an und sammle darin Rezepte.
+            </p>
             {newCategoryButton}
           </div>
         )}
@@ -163,7 +169,11 @@ export function Categories() {
                         <Pencil aria-hidden className="size-4" />
                         Bearbeiten
                       </DropdownMenuItem>
-                      <DropdownMenuItem variant="destructive" className="gap-2" onSelect={() => openDialog('delete', c)}>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        className="gap-2"
+                        onSelect={() => openDialog('delete', c)}
+                      >
                         <Trash2 aria-hidden className="size-4" />
                         Löschen
                       </DropdownMenuItem>
