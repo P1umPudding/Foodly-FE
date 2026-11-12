@@ -1,7 +1,7 @@
 import { act, render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { CategoryColorPicker } from './CategoryColorPicker'
-import { SUGGESTED_COLORS } from '../../lib/categoryColor'
+import { SUGGESTED_COLORS, oklchToHex } from '../../lib/categoryColor'
 import type { CategoryLike } from '../../lib/categoryColor'
 
 const pasta: CategoryLike = { id: 7, name: 'Pasta', order: 0, color: SUGGESTED_COLORS[0] }
@@ -67,6 +67,11 @@ describe('CategoryColorPicker', () => {
     )
   })
 
+  it('warns about a near but not identical colour', () => {
+    setup({ categories: [pasta], value: oklchToHex(0.62, 0.17, 10) })
+    expect(status().textContent).toContain('„Pasta“')
+  })
+
   it('does not warn about the category being edited', () => {
     setup({ categories: [pasta], exceptId: pasta.id })
     expect(status().textContent).toBe('')
@@ -74,6 +79,18 @@ describe('CategoryColorPicker', () => {
 
   it('does not warn for a clearly different colour', () => {
     setup({ categories: [pasta], value: SUGGESTED_COLORS[3] })
+    expect(status().textContent).toBe('')
+  })
+
+  it('shows a short or uppercase hex as the colour input expects it', () => {
+    setup({ value: '#ABC' })
+    expect((screen.getByLabelText('Eigene Farbe') as HTMLInputElement).value).toBe('#aabbcc')
+  })
+
+  it('stays usable with an invalid value', () => {
+    setup({ value: 'kein-hex', categories: [pasta] })
+    expect((screen.getByLabelText('Eigene Farbe') as HTMLInputElement).value).toBe('#000000')
+    for (const radio of screen.getAllByRole('radio')) expect(radio.getAttribute('aria-checked')).toBe('false')
     expect(status().textContent).toBe('')
   })
 })

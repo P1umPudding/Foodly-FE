@@ -7,9 +7,8 @@ import { CategoryMark } from './CategoryMark'
 const HEX6 = /^#[0-9a-f]{6}$/
 const HEX3 = /^#[0-9a-f]{3}$/
 
-// <input type="color"> only accepts #rrggbb; anything else would silently show black.
-function toColorInputValue(value: string): string {
-  const v = value.trim().toLowerCase()
+// <input type="color"> only takes lowercase #rrggbb, so #ABC must be expanded to show as itself.
+function toColorInputValue(v: string): string {
   if (HEX6.test(v)) return v
   if (HEX3.test(v)) return '#' + [...v.slice(1)].map((d) => d + d).join('')
   return '#000000'
@@ -31,11 +30,12 @@ export function CategoryColorPicker({
   exceptId?: CategoryLike['id']
 }) {
   const customId = useId()
-  const lower = value.trim().toLowerCase()
+  // The value can come straight from the foreign backend: guard like parseHex does.
+  const lower = typeof value === 'string' ? value.trim().toLowerCase() : ''
   // '' and never undefined: undefined would make Radix uncontrolled and keep a stale check.
   const selected = SUGGESTED_COLORS.find((c) => c === lower) ?? ''
-  const similar = similarCategory(value, categories, exceptId)
-  const preview = { name: name.trim() || 'Neue Kategorie', ...colorOnly(value) }
+  const similar = similarCategory(lower, categories, exceptId)
+  const preview = { name: name.trim() || 'Neue Kategorie', ...colorOnly(lower) }
 
   return (
     <div className="flex flex-col gap-3">
@@ -43,7 +43,7 @@ export function CategoryColorPicker({
         aria-label="Vorschlagsfarben"
         value={selected}
         onValueChange={onChange}
-        className="grid-cols-6 gap-2 justify-self-start"
+        className="grid-cols-6 gap-2 self-start"
       >
         {SUGGESTED_COLORS.map((color, i) => (
           <RadioGroupItem
@@ -52,12 +52,12 @@ export function CategoryColorPicker({
             aria-label={`Farbe ${i + 1}`}
             {...categoryColorVars(colorOnly(color))}
             // dark:bg-cat-dot beats the item's own dark:bg-input/30. The ring marks the choice, so the
-            // indicator dot is hidden; it stays visible under the focus ring.
+            // indicator dot is hidden; a wider offset keeps focus visible on the checked swatch.
             className={
               'size-10 rounded-md border-0 bg-cat-dot shadow-none dark:bg-cat-dot ' +
               '[&_[data-slot=radio-group-indicator]]:hidden data-[state=checked]:ring-2 ' +
               'data-[state=checked]:ring-foreground data-[state=checked]:ring-offset-2 ' +
-              'data-[state=checked]:ring-offset-background focus-visible:data-[state=checked]:ring-foreground'
+              'data-[state=checked]:ring-offset-background focus-visible:data-[state=checked]:ring-offset-4'
             }
           />
         ))}
@@ -67,7 +67,7 @@ export function CategoryColorPicker({
         <Input
           id={customId}
           type="color"
-          value={toColorInputValue(value)}
+          value={toColorInputValue(lower)}
           onChange={(e) => onChange(e.target.value)}
           className="h-10 w-14 p-1"
         />
@@ -77,7 +77,7 @@ export function CategoryColorPicker({
       <div className="flex flex-wrap items-center gap-4 text-sm">
         <span
           {...categoryColorVars(preview)}
-          className="inline-flex items-center gap-1.5 rounded-full border border-cat-line bg-cat-soft py-0.5 pr-2.5 pl-0.5 text-cat-ink"
+          className="inline-flex items-center gap-1.5 rounded-sm border border-cat-line bg-cat-soft py-0.5 pr-2 pl-0.5 text-xs text-cat-ink"
         >
           <CategoryMark category={preview} size="sm" />
           {preview.name}
@@ -88,13 +88,13 @@ export function CategoryColorPicker({
         </span>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Du wählst eine Farbe, die Varianten für Hell und Dunkel rechnet Foodly selbst.
-      </p>
-      {/* Always rendered so a hint appearing after a colour change is announced. */}
-      <p role="status" aria-live="polite" className="text-xs text-muted-foreground empty:hidden">
-        {similar && `Ähnlich wie „${similar.name}“. Eine andere Farbe macht die beiden leichter unterscheidbar.`}
-      </p>
+      <div className="flex flex-col text-xs text-muted-foreground">
+        <p>Du wählst eine Farbe, die Varianten für Hell und Dunkel rechnet Foodly selbst.</p>
+        {/* Always in the accessibility tree (never display:none) so a hint appearing later is announced. */}
+        <p role="status" className="mt-1 empty:mt-0">
+          {similar && `Ähnlich wie „${similar.name}“. Eine andere Farbe macht die beiden leichter unterscheidbar.`}
+        </p>
+      </div>
     </div>
   )
 }

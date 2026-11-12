@@ -35,7 +35,7 @@ export function CategoryMark({
       aria-hidden
       {...categoryColorVars(category)}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-[4px] bg-cat-soft font-medium text-cat-ink',
+        'inline-flex shrink-0 items-center justify-center rounded-sm bg-cat-soft font-medium text-cat-ink',
         SIZE[size],
       )}
     >

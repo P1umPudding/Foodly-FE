@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { CategoryMark, categoryInitial } from './CategoryMark'
 
 const category = (name: string) => ({ name, color: '#d95544', colorLight: null, colorDark: null })
@@ -17,7 +17,26 @@ describe('categoryInitial', () => {
   })
 })
 
+describe('categoryInitial without Intl.Segmenter', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('falls back to the first code point', () => {
+    vi.stubGlobal('Intl', { ...Intl, Segmenter: undefined })
+    expect(categoryInitial('🍝 Pasta')).toBe('🍝')
+    expect(categoryInitial('sommer')).toBe('S')
+  })
+})
+
 describe('CategoryMark', () => {
+  it.each([
+    ['Ärger', 'Ä'],
+    ['🍝 Pasta', '🍝'],
+    ['sommer', 'S'],
+  ])('renders %s as %s', (name, expected) => {
+    const { container } = render(<CategoryMark category={category(name)} size="sm" />)
+    expect(container.textContent).toBe(expected)
+  })
+
   it('shows the initial, hidden from screen readers, coloured through the category vars', () => {
     const { container } = render(<CategoryMark category={category('sommer')} size="md" />)
     const mark = container.firstElementChild as HTMLElement
