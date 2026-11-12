@@ -1,7 +1,9 @@
 // „Meine Kategorien“: the user's categories, created, renamed, recoloured and deleted here.
-import { useRef, useState, type MouseEvent } from 'react'
+import { useLayoutEffect, useRef, useState, type MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
+  Alert,
+  AlertTitle,
   Button,
   Card,
   DropdownMenu,
@@ -14,8 +16,9 @@ import {
   TooltipTrigger,
   cn,
 } from '@postxl/ui-components'
-import { EllipsisVertical, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, EllipsisVertical, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useCategories } from '../catalog/CatalogProvider'
+import { useCategoryActions } from '../catalog/useCategoryActions'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
 import { CategoryMark } from '../components/category/CategoryMark'
 import { DeleteCategoryDialog } from '../components/category/DeleteCategoryDialog'
@@ -24,6 +27,7 @@ import { TriggerButton } from '../components/TriggerButton'
 import { FOCUS_RING } from '../components/focusRing'
 import { useNavState } from '../components/shell/useNavState'
 import { useHasAppHistory } from '../hooks/useHasAppHistory'
+import { moveCategory } from '../lib/moveCategory'
 import type { UserCategory, UserCategoryId } from '../api/protocol'
 
 // `target` outlives `open`, so a closing dialog keeps its title and name during the exit animation. `key` is new per
@@ -43,6 +47,46 @@ export function Categories() {
   // Header and empty state never show at once: one ref for whichever „Neue Kategorie“ is rendered.
   const newButton = useRef<HTMLButtonElement>(null)
   const menuTriggers = useRef(new Map<UserCategoryId, HTMLButtonElement>())
+  const { reorder } = useCategoryActions()
+  const [moveFailed, setMoveFailed] = useState(false)
+  const moves = useRef(0)
+  const lastMoved = useRef<UserCategoryId | null>(null)
+  // Set by a move item for the menu's close; set by a failed move for the rollback render.
+  const focusMovedOnClose = useRef(false)
+  const refocusAfterRollback = useRef(false)
+
+  const focusLastMoved = () => {
+    const trigger = lastMoved.current === null ? undefined : menuTriggers.current.get(lastMoved.current)
+    ;(trigger ?? newButton.current)?.focus()
+  }
+
+  // Each move sends the whole current list; only the latest one decides (the catalog rolls back only for that one).
+  const move = (category: UserCategory, delta: -1 | 1) => {
+    const mine = ++moves.current
+    lastMoved.current = category.id
+    focusMovedOnClose.current = true
+    setMoveFailed(false)
+    const ids = moveCategory(
+      ordered.map((c) => c.id),
+      category.id,
+      delta,
+    )
+    void reorder(ids).catch(() => {
+      if (mine !== moves.current) return
+      // The row jumps back; keep the keyboard user on its ⋮ unless they have moved on meanwhile.
+      const active = document.activeElement
+      const trigger = menuTriggers.current.get(category.id)
+      if (!active || active === document.body || active === trigger) refocusAfterRollback.current = true
+      setMoveFailed(true)
+    })
+  }
+
+  // The rollback re-inserts the row's <li>, which can drop focus from its ⋮.
+  useLayoutEffect(() => {
+    if (!refocusAfterRollback.current) return
+    refocusAfterRollback.current = false
+    focusLastMoved()
+  })
 
   const openDialog = (kind: DialogState['kind'], target: UserCategory | null) =>
     setDialog({ kind, target, open: true, key: ++openings.current })
@@ -127,10 +171,32 @@ export function Categories() {
           </div>
         )}
 
+        {ready && moveFailed && (
+          <Alert variant="destructive" className="flex items-start justify-between gap-2">
+            <AlertTitle>Reihenfolge nicht gespeichert</AlertTitle>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TriggerButton
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Schließen"
+                  onClick={() => {
+                    setMoveFailed(false)
+                    focusLastMoved()
+                  }}
+                >
+                  <X aria-hidden className="size-4" />
+                </TriggerButton>
+              </TooltipTrigger>
+              <TooltipContent>Schließen</TooltipContent>
+            </Tooltip>
+          </Alert>
+        )}
+
         {ready && ordered.length > 0 && (
           <Card className="gap-0 p-0">
             <ul aria-label="Meine Kategorien">
-              {ordered.map((c) => (
+              {ordered.map((c, i) => (
                 <li key={c.id} className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0">
                   <CategoryMark category={c} size="md" />
                   <div className="flex min-w-0 flex-1 flex-col">
@@ -163,12 +229,32 @@ export function Categories() {
                       </TooltipTrigger>
                       <TooltipContent>Aktionen</TooltipContent>
                     </Tooltip>
-                    {/* The dialog decides where focus goes once it closes. */}
-                    <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
+                    {/* After a move focus returns to the moved row's ⋮; after Bearbeiten/Löschen the dialog decides. */}
+                    <DropdownMenuContent
+                      align="end"
+                      onCloseAutoFocus={(e) => {
+                        e.preventDefault()
+                        if (!focusMovedOnClose.current) return
+                        focusMovedOnClose.current = false
+                        focusLastMoved()
+                      }}
+                    >
                       <DropdownMenuItem className="gap-2" onSelect={() => openDialog('edit', c)}>
                         <Pencil aria-hidden className="size-4" />
                         Bearbeiten
                       </DropdownMenuItem>
+                      {i > 0 && (
+                        <DropdownMenuItem className="gap-2" onSelect={() => move(c, -1)}>
+                          <ArrowUp aria-hidden className="size-4" />
+                          Nach oben
+                        </DropdownMenuItem>
+                      )}
+                      {i < ordered.length - 1 && (
+                        <DropdownMenuItem className="gap-2" onSelect={() => move(c, 1)}>
+                          <ArrowDown aria-hidden className="size-4" />
+                          Nach unten
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         variant="destructive"
                         className="gap-2"
