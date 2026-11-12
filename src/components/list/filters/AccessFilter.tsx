@@ -152,7 +152,8 @@ function AccessGroup<V extends string>({
           )
         })}
       </RadioGroup>
-      {/* Visible twin of the hover-only tooltip (design.md §7); aria-hidden because each radio's description already says it. */}
+      {/* Visible twin of the hover-only tooltip (design.md §7). aria-hidden: each greyed radio's
+          aria-describedby already carries the reason, so screen readers would hear it twice. */}
       {anyGreyed && (
         <p aria-hidden className="px-1 text-xs text-muted-foreground">
           {greyedHint}

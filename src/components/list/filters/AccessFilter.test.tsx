@@ -163,7 +163,7 @@ describe('AccessFilter', () => {
         const hint = screen.getByText(text)
         expect(hint.previousElementSibling).toBe(screen.getByRole('radiogroup', { name }))
         expect(hint.getAttribute('aria-hidden')).toBe('true')
-        for (const cls of ['text-xs', 'text-muted-foreground', 'px-1']) expect(hint.classList.contains(cls)).toBe(true)
+        expect([...hint.classList]).toEqual(expect.arrayContaining(['text-xs', 'text-muted-foreground', 'px-1']))
       }
     })
 
@@ -175,8 +175,19 @@ describe('AccessFilter', () => {
       expect(screen.queryByText(COLLAB_HINT)).toBeNull()
     })
 
-    it('shows no hint while both axes are "Alle"', () => {
-      setup()
+    it('drops both hints once both axes are back on "Alle"', () => {
+      const { rerender } = render(
+        <TooltipProvider>
+          <AccessFilter role="viewer" collab="shared" set={vi.fn()} />
+        </TooltipProvider>,
+      )
+      expect(screen.getByText(ROLE_HINT)).toBeTruthy()
+      expect(screen.getByText(COLLAB_HINT)).toBeTruthy()
+      rerender(
+        <TooltipProvider>
+          <AccessFilter role="any" collab="any" set={vi.fn()} />
+        </TooltipProvider>,
+      )
       expect(screen.queryByText(ROLE_HINT)).toBeNull()
       expect(screen.queryByText(COLLAB_HINT)).toBeNull()
     })
