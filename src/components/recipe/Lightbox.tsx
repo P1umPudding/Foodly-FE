@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button, cn } from '@postxl/ui-components'
@@ -22,7 +22,7 @@ export function Lightbox({
   onClose: () => void
 }) {
   const n = images.length
-  const go = (delta: number) => onIndexChange((index + delta + n) % n)
+  const go = useCallback((delta: number) => onIndexChange((index + delta + n) % n), [index, n, onIndexChange])
   const stripRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -54,8 +54,7 @@ export function Lightbox({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index, n])
+  }, [go, onClose])
 
   // While open: hide the page scrollbar (padding-compensated, no jump) and
   // swallow manual scroll. Programmatic scrolling (caller's auto-scroll) is fine.

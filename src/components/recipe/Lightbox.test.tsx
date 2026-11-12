@@ -84,3 +84,63 @@ describe('Lightbox thumbnails', () => {
     expect(active).not.toContain('focus-visible:ring-white/60')
   })
 })
+
+describe('Lightbox keyboard', () => {
+  const images = [ref(1), ref(2), ref(3)]
+  const press = (key: string) => fireEvent.keyDown(window, { key })
+
+  it('closes on Escape', () => {
+    const onClose = vi.fn()
+    render(<Lightbox images={images} index={0} onIndexChange={() => {}} onClose={onClose} />)
+    press('Escape')
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('wraps around with the arrow keys', () => {
+    const onIndexChange = vi.fn()
+    const { rerender } = render(<Lightbox images={images} index={2} onIndexChange={onIndexChange} onClose={() => {}} />)
+    press('ArrowRight')
+    expect(onIndexChange).toHaveBeenLastCalledWith(0)
+
+    rerender(<Lightbox images={images} index={0} onIndexChange={onIndexChange} onClose={() => {}} />)
+    press('ArrowLeft')
+    expect(onIndexChange).toHaveBeenLastCalledWith(2)
+  })
+
+  it('steps from the current index after it changes', () => {
+    const onIndexChange = vi.fn()
+    const { rerender } = render(<Lightbox images={images} index={0} onIndexChange={onIndexChange} onClose={() => {}} />)
+    rerender(<Lightbox images={images} index={1} onIndexChange={onIndexChange} onClose={() => {}} />)
+    press('ArrowRight')
+    expect(onIndexChange).toHaveBeenCalledExactlyOnceWith(2)
+  })
+
+  it('calls the current handlers when only they change', () => {
+    const oldIndexChange = vi.fn()
+    const oldClose = vi.fn()
+    const { rerender } = render(
+      <Lightbox images={images} index={0} onIndexChange={oldIndexChange} onClose={oldClose} />,
+    )
+    const newIndexChange = vi.fn()
+    const newClose = vi.fn()
+    rerender(<Lightbox images={images} index={0} onIndexChange={newIndexChange} onClose={newClose} />)
+
+    press('ArrowRight')
+    press('Escape')
+    expect(newIndexChange).toHaveBeenCalledExactlyOnceWith(1)
+    expect(newClose).toHaveBeenCalledTimes(1)
+    expect(oldIndexChange).not.toHaveBeenCalled()
+    expect(oldClose).not.toHaveBeenCalled()
+  })
+
+  it('ignores keys after unmount', () => {
+    const onIndexChange = vi.fn()
+    const onClose = vi.fn()
+    const { unmount } = render(<Lightbox images={images} index={0} onIndexChange={onIndexChange} onClose={onClose} />)
+    unmount()
+    press('ArrowRight')
+    press('Escape')
+    expect(onIndexChange).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+  })
+})
