@@ -1,7 +1,18 @@
 // In-browser mock backend. bootstrap() lazy-loads it (own chunk) on every boot:
 // with VITE_MOCK=1 every request is routed here, in REST mode only listUsers.
 
-import type { CreateRecipe, ImageId, Ingredient, Recipe, RecipeId, Tag, User, UserCategory } from '../api/protocol'
+import type {
+  CategoryInput,
+  CreateRecipe,
+  ImageId,
+  Ingredient,
+  Recipe,
+  RecipeId,
+  Tag,
+  User,
+  UserCategory,
+  UserCategoryId,
+} from '../api/protocol'
 import { applyQuery, PAGE_SIZE } from '../list/query'
 import { assertRating } from '../api/views'
 import { imageRef, withImageRefs } from './images'
@@ -67,6 +78,18 @@ function expand(input: CreateRecipe, id: RecipeId, owner: number): Recipe {
   }
 }
 
+// Same rules as the backend (422 there), English like its messages.
+function assertCategoryInput(input: CategoryInput): void {
+  if (!input.name.trim()) throw new Error('Name must not be empty')
+  if (!input.color) throw new Error('Color must not be empty')
+}
+
+function findCategory(id: UserCategoryId | undefined): UserCategory {
+  const category = mockData.categories.find((c) => c.id === id)
+  if (!category) throw new Error('Category not found')
+  return category
+}
+
 export async function mockRequest(type: string, payload?: unknown): Promise<unknown> {
   await delay()
   const id = (payload as { id?: number } | undefined)?.id
@@ -80,8 +103,57 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       return recipe
     }
     case 'categories.list':
-      // A snapshot, like a REST response: copy/delete change the live arrays in place.
-      return structuredClone(mockData.categories)
+      // A snapshot, like a REST response: copy/delete change the live arrays in place. Sorted like the backend.
+      return structuredClone(mockData.categories).sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.id - b.id)
+    case 'categories.create': {
+      const { input } = payload as { input: CategoryInput }
+      assertCategoryInput(input)
+      // Like the backend: the new category goes to the end.
+      const order = Math.max(-1, ...mockData.categories.map((c) => c.order ?? 0)) + 1
+      const created: UserCategory = {
+        id: nextId++,
+        user: CURRENT_USER_ID,
+        name: input.name,
+        recipes: [],
+        order,
+        color: input.color,
+        colorLight: input.colorLight,
+        colorDark: input.colorDark,
+      }
+      mockData.categories.push(created)
+      return structuredClone(created)
+    }
+    case 'categories.update': {
+      const { input } = payload as { input: CategoryInput }
+      const category = findCategory(id)
+      assertCategoryInput(input)
+      Object.assign(category, {
+        name: input.name,
+        color: input.color,
+        colorLight: input.colorLight,
+        colorDark: input.colorDark,
+      })
+      return structuredClone(category)
+    }
+    case 'categories.delete': {
+      mockData.categories.splice(mockData.categories.indexOf(findCategory(id)), 1)
+      return undefined
+    }
+    case 'categories.setRecipes': {
+      const { recipeIds } = payload as { recipeIds: RecipeId[] }
+      const category = findCategory(id)
+      const unknown = recipeIds.find((recipeId) => !mockData.recipes.some((r) => r.id === recipeId))
+      if (unknown !== undefined) throw new Error(`recipe ${unknown} not found`)
+      category.recipes = [...recipeIds]
+      return structuredClone(category)
+    }
+    case 'categories.reorder': {
+      const { categoryIds } = payload as { categoryIds: UserCategoryId[] }
+      // Check every id first, so a bad one changes nothing.
+      const listed = categoryIds.map(findCategory)
+      listed.forEach((category, index) => (category.order = index))
+      return undefined
+    }
     case 'tags.list':
       return mockData.tags
     case 'ingredients.list':
