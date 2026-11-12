@@ -1,5 +1,5 @@
 // „Meine Kategorien“: the user's categories, created, renamed, recoloured, reordered and deleted here.
-import { useLayoutEffect, useRef, useState, type MouseEvent } from 'react'
+import { useRef, useState, type MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Alert,
@@ -51,9 +51,8 @@ export function Categories() {
   const [moveFailed, setMoveFailed] = useState(false)
   const moves = useRef(0)
   const lastMoved = useRef<UserCategoryId | null>(null)
-  // Set by a move item for the menu's close; set by a failed move for the rollback render.
-  const focusMovedOnClose = useRef(false)
-  const refocusAfterRollback = useRef(false)
+  // Bearbeiten/Löschen: the dialog places focus when it closes, so the menu must not put it back on the ⋮ first.
+  const dialogOwnsFocus = useRef(false)
 
   const focusLastMoved = () => {
     const trigger = lastMoved.current === null ? undefined : menuTriggers.current.get(lastMoved.current)
@@ -64,32 +63,24 @@ export function Categories() {
   const move = (category: UserCategory, delta: -1 | 1) => {
     const mine = ++moves.current
     lastMoved.current = category.id
-    focusMovedOnClose.current = true
     setMoveFailed(false)
     const ids = moveCategory(
       ordered.map((c) => c.id),
       category.id,
       delta,
     )
+    // A rollback moves the row back; React keeps focus on its ⋮ across the move.
     void reorder(ids).catch(() => {
-      if (mine !== moves.current) return
-      // The row jumps back; keep the keyboard user on its ⋮ unless they have moved on meanwhile.
-      const active = document.activeElement
-      const trigger = menuTriggers.current.get(category.id)
-      if (!active || active === document.body || active === trigger) refocusAfterRollback.current = true
-      setMoveFailed(true)
+      if (mine === moves.current) setMoveFailed(true)
     })
   }
 
-  // The rollback re-inserts the row's <li>, which can drop focus from its ⋮.
-  useLayoutEffect(() => {
-    if (!refocusAfterRollback.current) return
-    refocusAfterRollback.current = false
-    focusLastMoved()
-  })
-
   const openDialog = (kind: DialogState['kind'], target: UserCategory | null) =>
     setDialog({ kind, target, open: true, key: ++openings.current })
+  const openFromMenu = (kind: DialogState['kind'], target: UserCategory) => {
+    dialogOwnsFocus.current = true
+    openDialog(kind, target)
+  }
   const closeDialog = () => setDialog((d) => (d ? { ...d, open: false } : d))
 
   // The ⋮ item that opened the dialog is gone by now; back to its row's ⋮, or, when there is no such row (created,
@@ -172,8 +163,8 @@ export function Categories() {
         )}
 
         {ready && moveFailed && (
-          <Alert variant="destructive" className="flex items-start justify-between gap-2">
-            <AlertTitle>Reihenfolge nicht gespeichert</AlertTitle>
+          <Alert variant="destructive" className="flex items-center justify-between gap-2">
+            <AlertTitle className="mb-0">Reihenfolge nicht gespeichert</AlertTitle>
             <Tooltip>
               <TooltipTrigger asChild>
                 <TriggerButton
@@ -229,17 +220,16 @@ export function Categories() {
                       </TooltipTrigger>
                       <TooltipContent>Aktionen</TooltipContent>
                     </Tooltip>
-                    {/* After a move focus returns to the moved row's ⋮; after Bearbeiten/Löschen the dialog decides. */}
+                    {/* Otherwise Radix puts focus back on this ⋮, which a move keeps in place (keyed row). */}
                     <DropdownMenuContent
                       align="end"
                       onCloseAutoFocus={(e) => {
+                        if (!dialogOwnsFocus.current) return
+                        dialogOwnsFocus.current = false
                         e.preventDefault()
-                        if (!focusMovedOnClose.current) return
-                        focusMovedOnClose.current = false
-                        focusLastMoved()
                       }}
                     >
-                      <DropdownMenuItem className="gap-2" onSelect={() => openDialog('edit', c)}>
+                      <DropdownMenuItem className="gap-2" onSelect={() => openFromMenu('edit', c)}>
                         <Pencil aria-hidden className="size-4" />
                         Bearbeiten
                       </DropdownMenuItem>
@@ -258,7 +248,7 @@ export function Categories() {
                       <DropdownMenuItem
                         variant="destructive"
                         className="gap-2"
-                        onSelect={() => openDialog('delete', c)}
+                        onSelect={() => openFromMenu('delete', c)}
                       >
                         <Trash2 aria-hidden className="size-4" />
                         Löschen

@@ -151,7 +151,7 @@ describe('Categories page (mock mode)', () => {
       openMenu(name)
       fireEvent.click(await screen.findByRole('menuitem', { name: 'Nach unten' }))
     }
-    function deferred() {
+    function pendingFailure() {
       let reject!: (error: Error) => void
       const promise = new Promise<void>((_, rej) => (reject = rej))
       return { promise, reject }
@@ -182,7 +182,7 @@ describe('Categories page (mock mode)', () => {
       'jumps back and says so when saving the order fails',
       async () => {
         const list = await renderPage()
-        const call = deferred()
+        const call = pendingFailure()
         vi.spyOn(api.foodly, 'reorderCategories').mockReturnValue(call.promise)
         await moveDown('Favoriten')
         expect(rowNames(list)).toEqual(['Schnelle Küche', 'Favoriten', 'Backen & Süßes', 'Meal Prep'])
@@ -202,10 +202,21 @@ describe('Categories page (mock mode)', () => {
     )
 
     it(
+      'returns focus to the ⋮ when the menu is closed with Escape',
+      async () => {
+        await renderPage()
+        openMenu('Favoriten')
+        fireEvent.keyDown(await screen.findByRole('menu'), { key: 'Escape' })
+        await waitFor(() => expect(document.activeElement).toBe(trigger('Favoriten')))
+      },
+      SLOW,
+    )
+
+    it(
       'shows no message when an earlier move fails but the latest one is saved',
       async () => {
         const list = await renderPage()
-        const first = deferred()
+        const first = pendingFailure()
         const reorder = vi.spyOn(api.foodly, 'reorderCategories').mockImplementationOnce(() => first.promise)
         await moveDown('Favoriten')
         await waitFor(() => expect(document.activeElement).toBe(trigger('Favoriten')))
