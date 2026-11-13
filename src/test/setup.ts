@@ -1,4 +1,5 @@
 import { resetFailedImages } from '../components/recipe/failedImages'
+import { resetCheckedIngredients } from '../cook/checkedIngredients'
 import { createMediaQueryList } from './viewport'
 
 // jsdom lacks ResizeObserver, which Radix primitives (e.g. Slider) touch on mount.
@@ -44,3 +45,6 @@ if (!window.matchMedia) {
 
 // Image load failures are remembered module-wide (failedImages.ts); each test starts without them.
 afterEach(() => resetFailedImages())
+
+// The ticked-ingredients store lives at module level too; each test starts without ticks.
+afterEach(() => resetCheckedIngredients())
