@@ -28,8 +28,8 @@ export const TimerToggle = forwardRef<HTMLButtonElement, ComponentPropsWithoutRe
           aria-label="Timer"
           className={cn(
             'gap-1.5 rounded-md',
-            // 40 px tap target on phones, same height with and without the countdown so the header doesn't jump.
-            running ? 'phone:h-10' : 'phone:size-10',
+            // 40 px tap target on phones and touch screens, same height with and without the countdown so the header doesn't jump.
+            running ? 'phone:h-10 touch:h-10' : 'phone:size-10 touch:size-10',
             running && 'text-sm font-semibold',
             alarming
               ? 'text-destructive hover:text-destructive'

@@ -40,7 +40,8 @@ export function TimerRow({ timer }: { timer: Timer }) {
   const label = timer.label || 'Timer'
 
   return (
-    <div className="border-b border-border py-1">
+    // Named group: several rows repeat the same action names ("Entfernen", "Pause").
+    <div role="group" aria-label={label} className="border-b border-border py-1">
       <div
         className={cn(
           'flex items-center gap-1.5 rounded-md py-1.5',

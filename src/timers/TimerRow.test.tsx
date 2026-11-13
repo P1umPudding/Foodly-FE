@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
 import { describe, expect, it, vi } from 'vitest'
 import { TimerRow } from './TimerRow'
@@ -59,7 +59,7 @@ describe('TimerRow — mockup row', () => {
 
   it('removes the timer with ✕', () => {
     const { remove } = renderRow(timer)
-    fireEvent.click(screen.getByRole('button', { name: 'Entfernen' }))
+    fireEvent.click(within(screen.getByRole('group', { name: 'Nudeln' })).getByRole('button', { name: 'Entfernen' }))
     expect(remove).toHaveBeenCalledWith('t1')
   })
 

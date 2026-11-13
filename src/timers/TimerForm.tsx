@@ -15,6 +15,7 @@ export function TimerForm() {
   const [invalid, setInvalid] = useState(false)
   const durationRef = useRef<HTMLInputElement>(null)
   const headingId = useId()
+  const errorId = useId()
 
   const changeDuration = (text: string) => {
     setDuration(text)
@@ -44,7 +45,7 @@ export function TimerForm() {
         onChange={(e) => setLabel(e.target.value)}
         placeholder="Name (optional)"
         aria-label="Timer-Name"
-        className="mb-2"
+        className="mb-2 touch:h-10"
       />
 
       <div className="mb-2 grid grid-cols-4 gap-1.5">
@@ -70,7 +71,8 @@ export function TimerForm() {
           placeholder="0:12:00"
           aria-label="Dauer"
           aria-invalid={invalid || undefined}
-          className="flex-1 tabular-nums"
+          aria-describedby={invalid ? errorId : undefined}
+          className="flex-1 tabular-nums touch:h-10"
         />
         <Button type="submit" className="touch:h-10">
           <Play />
@@ -78,7 +80,7 @@ export function TimerForm() {
         </Button>
       </div>
       {invalid && (
-        <p role="alert" className="mt-1 text-xs text-destructive">
+        <p id={errorId} role="alert" className="mt-1 text-xs text-destructive">
           Ungültige Dauer, z. B. 12 oder 0:12:00
         </p>
       )}

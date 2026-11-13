@@ -48,10 +48,12 @@ describe('TimerForm', () => {
     expect(add).not.toHaveBeenCalled()
     expect(screen.getByRole('alert').textContent).toBe('Ungültige Dauer, z. B. 12 oder 0:12:00')
     expect(duration.getAttribute('aria-invalid')).toBe('true')
+    expect(duration.getAttribute('aria-describedby')).toBe(screen.getByRole('alert').id)
     expect(document.activeElement).toBe(duration)
 
     fireEvent.change(duration, { target: { value: '1' } })
     expect(screen.queryByRole('alert')).toBeNull()
     expect(duration.hasAttribute('aria-invalid')).toBe(false)
+    expect(duration.hasAttribute('aria-describedby')).toBe(false)
   })
 })

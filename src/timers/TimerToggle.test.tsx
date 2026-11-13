@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
 import { describe, expect, it, vi } from 'vitest'
 import { TimerToggle } from './TimerToggle'
@@ -22,12 +22,14 @@ describe('TimerToggle — tap target', () => {
     const button = renderToggle(null)
     expect(button.classList.contains('size-9')).toBe(true)
     expect(button.classList.contains('phone:size-10')).toBe(true)
+    expect(button.classList.contains('touch:size-10')).toBe(true)
   })
 
   it('keeps the 40 px height on phones with the countdown, width follows the text', () => {
     const button = renderToggle(65_000)
     expect(button.classList.contains('h-8')).toBe(true)
     expect(button.classList.contains('phone:h-10')).toBe(true)
+    expect(button.classList.contains('touch:h-10')).toBe(true)
     expect(button.classList.contains('phone:size-10')).toBe(false)
   })
 
@@ -40,15 +42,13 @@ describe('TimerToggle — tap target', () => {
 describe('TimerToggle — countdown pill', () => {
   it('shows the shortest remaining time in a pill while a timer runs', () => {
     const button = renderToggle(1_122_000)
-    const pill = button.querySelector('span')
-    expect(pill?.textContent).toBe('18:42')
-    expect(pill?.classList.contains('bg-muted')).toBe(true)
-    expect(pill?.classList.contains('rounded-sm')).toBe(true)
+    const pill = within(button).getByText('18:42')
+    expect(pill.classList.contains('bg-muted')).toBe(true)
+    expect(pill.classList.contains('rounded-sm')).toBe(true)
   })
 
   it('shows no pill while no timer runs', () => {
     const button = renderToggle(null)
-    expect(button.querySelector('span')).toBeNull()
     expect(button.textContent).toBe('')
   })
 })
