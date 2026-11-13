@@ -40,7 +40,7 @@ gilt: nichts Neues im alten Stil bauen.
 | `bg-accent` | Hover-Fläche von Zeilen und Ghost-Buttons |
 | `text-foreground` | Text, Titel, Icons in Aktionen |
 | `text-muted-foreground` | Sekundärtext (Untertitel, Beschreibungen) und Meta: Zähler („14 Rezepte“), Zeiten, selbst gerenderte Platzhalter |
-| `text-subtle-foreground` | derzeit ungenutzt; kein AA für kleinen Text – nur Nicht-Text und großer Text (≥ 3:1, Ausnahme siehe unten) |
+| `text-subtle-foreground` | nur Nicht-Text (Fortschrittsbalken eines pausierten Timers); kein AA für kleinen Text – nur Nicht-Text und großer Text (≥ 3:1, Ausnahme siehe unten) |
 | `border-border` (Standard) / `border-border-strong` | Haarlinie / Hover- und Checkbox-Rand |
 | `bg-sidebar`, `bg-sidebar-accent` | Seitenleiste, aktiver Navigationspunkt |
 | `bg-primary text-primary-foreground` | **eine** Hauptaktion pro Ansicht („Neues Rezept“, „Speichern“) |
