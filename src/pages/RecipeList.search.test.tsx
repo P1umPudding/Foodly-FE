@@ -438,6 +438,10 @@ describe('RecipeList (filter bar)', () => {
     const link = screen.getByRole('button', { name: 'Alle Filter zurücksetzen' })
     // No "·" separator any more (mockup link-btn).
     expect(link.parentElement?.textContent).not.toContain('·')
+    // 26 px like the mockup, widened to a 40 px hit area on phones (docs/design.md §7); jsdom applies no CSS.
+    for (const token of ['h-[26px]', 'relative', 'phone:after:absolute', 'phone:after:-inset-y-[7px]']) {
+      expect(link.classList.contains(token)).toBe(true)
+    }
   })
 
   it('"Alle Filter zurücksetzen" clears every filter and the search, but keeps the sort', async () => {

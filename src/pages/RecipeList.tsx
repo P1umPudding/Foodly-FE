@@ -274,7 +274,8 @@ export function RecipeList() {
           <ResultCount count={listReady ? visible.length : 0} more={!listReady || search.hasMore} />
           {facetActive && (
             // Mockup link-btn: quiet 12 px text with a hover fill (design.md keeps accent colour off links), hence the
-            // text-xs over the size's text-base. On phones the ::after widens the hit area to 40 px (design.md §7).
+            // text-xs over the size's text-base. On phones the ::after widens the hit area to 40 px (design.md §7); the 7 px
+            // above and below fit into the header's mt-3/pb-3.
             <Button
               variant="ghost"
               size="xs"
