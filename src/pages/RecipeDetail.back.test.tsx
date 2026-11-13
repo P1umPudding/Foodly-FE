@@ -143,6 +143,20 @@ describe('RecipeDetail · Zurück', () => {
     expect(window.location.pathname).toBe('/recipes')
   })
 
+  // The stepper replaces the entry (new key, same history index), which must not count as having come from the app.
+  it('opens the list on a direct visit after the size was changed (browser history)', async () => {
+    window.history.replaceState(null, '', '/recipes/5')
+    renderBrowser()
+    await screen.findByText('Rezept 5')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mehr' }))
+    expect(window.location.search).toBe('?factor=1.5')
+    fireEvent.click(back())
+
+    expect((await screen.findByTestId('list')).textContent).toBe('list')
+    expect(window.location.pathname).toBe('/recipes')
+  })
+
   it('goes back in browser history after navigating in the app', async () => {
     window.history.replaceState(null, '', '/recipes?q=Pfann')
     renderBrowser()
