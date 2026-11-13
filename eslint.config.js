@@ -57,7 +57,7 @@ export default tseslint.config(
         {
           // Whatever an expression-bodied effect callback evaluates to goes to React as its cleanup (#211).
           selector:
-            "CallExpression[callee.name=/^use(Layout|Insertion)?Effect$/] > ArrowFunctionExpression[body.type!='BlockStatement']",
+            "CallExpression:matches([callee.name=/^use(Layout|Insertion)?Effect$/], [callee.property.name=/^use(Layout|Insertion)?Effect$/]) > ArrowFunctionExpression[body.type!='BlockStatement']",
           message:
             'An expression-bodied effect callback hands its value to React as the cleanup; use a block body (and an explicit `return` for a real cleanup).',
         },
