@@ -54,6 +54,8 @@ function sortValue(recipe: Recipe, field: RecipeSortField): number | string | nu
       return recipe.overallMinutes
     case 'rating':
       return averageRating(recipe)
+    case 'accessSince':
+      return recipe.myAccessSince
   }
 }
 
