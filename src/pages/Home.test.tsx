@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { foodly } from '../api'
 import { Home } from './Home'
 import type { UserCategory } from '../api/protocol'
 
@@ -29,9 +30,12 @@ beforeEach(() => {
   // Only Date: faking the timers too would stall Testing Library's polling.
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 10, 12, 12))
+  // "Zuletzt erstellt" loads on mount; without own recipes it hides itself.
+  vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
 })
 afterEach(() => {
   vi.useRealTimers()
+  vi.restoreAllMocks()
   me.current = { id: 1, name: 'Kolja Beispiel', profilePicture: null }
   categories.current = { list: [], status: 'ready', error: null, retry: () => {} }
 })
@@ -49,10 +53,12 @@ describe('Home', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Hallo')
   })
 
-  it('shows the "nothing to show" card while no section has content', () => {
+  it('shows the "nothing to show" card while no section has content', async () => {
     renderHome()
-    const card = screen.getByText(
-      'Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.',
+    const card = (
+      await screen.findByText(
+        'Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.',
+      )
     ).parentElement!
     expect(within(card).getByRole('link', { name: 'Alle Rezepte' }).getAttribute('href')).toBe('/recipes')
     expect(within(card).getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
