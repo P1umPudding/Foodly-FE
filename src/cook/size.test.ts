@@ -16,12 +16,15 @@ describe('parseSize, portions recipe (sizeNumber 4)', () => {
   it('reads ?servings as a factor of the base', () => {
     expect(parseSize(params('servings=8'), 4)).toBe(2)
     expect(parseSize(params('servings=1'), 4)).toBe(0.25)
-    expect(parseSize(params('servings=99'), 4)).toBe(24.75)
+    expect(parseSize(params('servings=240'), 120)).toBe(2)
   })
 
-  it.each(['', 'abc', '0', '-2', '2.5', '1e1', ' 3', '100'])('treats servings=%j as factor 1', (value) => {
-    expect(parseSize(params(`servings=${encodeURIComponent(value)}`), 4)).toBe(1)
-  })
+  it.each(['', 'abc', '0', '-2', '2.5', '1e1', ' 3', '99999999999999999999'])(
+    'treats servings=%j as factor 1',
+    (value) => {
+      expect(parseSize(params(`servings=${encodeURIComponent(value)}`), 4)).toBe(1)
+    },
+  )
 
   it('is factor 1 without a param', () => {
     expect(parseSize(params(''), 4)).toBe(1)
@@ -38,9 +41,12 @@ describe('parseSize, fixed-size recipe', () => {
     expect(parseSize(params(`factor=${factor}`), null)).toBe(factor)
   })
 
-  it.each(['', 'abc', '0', '-1', '1.3', '3', '0.1', 'Infinity', 'NaN'])('treats factor=%j as factor 1', (value) => {
-    expect(parseSize(params(`factor=${value}`), null)).toBe(1)
-  })
+  it.each(['', 'abc', '0', '-1', '1.3', '3', '0.1', 'Infinity', 'NaN', '0x2', '2e0', '+1.5', ' 2'])(
+    'treats factor=%j as factor 1',
+    (value) => {
+      expect(parseSize(params(`factor=${encodeURIComponent(value)}`), null)).toBe(1)
+    },
+  )
 
   it('ignores ?servings', () => {
     expect(parseSize(params('servings=8'), null)).toBe(1)
@@ -113,13 +119,14 @@ describe('steppers', () => {
     expect(snapFactor(0.1)).toBe(0.25)
   })
 
-  it('keeps servings whole and within 1…99', () => {
+  it('keeps servings whole and at least 1, with no upper limit', () => {
     expect(clampServings(2.4)).toBe(2)
     expect(clampServings(0.3)).toBe(1)
-    expect(clampServings(150)).toBe(99)
+    expect(clampServings(150)).toBe(150)
     expect(stepServings(2.5, 1)).toBe(3)
     expect(stepServings(2.5, -1)).toBe(2)
     expect(stepServings(1, -1)).toBe(1)
-    expect(stepServings(99, 1)).toBe(99)
+    expect(stepServings(120, 1)).toBe(121)
+    expect(stepServings(120, -1)).toBe(119)
   })
 })

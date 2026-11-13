@@ -51,7 +51,8 @@ describe('checkedIngredients', () => {
 
   it('reads another recipe as empty before it is opened, and a write starts it fresh', () => {
     openRecipe(5)
-    renderHook(() => useCheckedIngredients(5)).result.current.toggle(3)
+    const first = renderHook(() => useCheckedIngredients(5))
+    act(() => first.result.current.toggle(3))
 
     const { result } = renderHook(() => useCheckedIngredients(6))
     expect(result.current.checkedIds.size).toBe(0)

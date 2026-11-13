@@ -16,7 +16,8 @@ vi.mock('../catalog/CatalogProvider', () => ({
   useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
-  useUser: (id: number): User | undefined => (names[id] ? { id, name: names[id], profilePicture: null } : undefined),
+  useUsers: (ids: number[]): User[] =>
+    ids.filter((id) => names[id]).map((id) => ({ id, name: names[id], profilePicture: null })),
 }))
 
 function recipe(over: Partial<Recipe> = {}): Recipe {
@@ -98,6 +99,16 @@ describe('RecipeDetail head layout', () => {
     expect(within(dialog).getByText(/1\s*\/\s*2/)).toBeTruthy()
   })
 
+  it('gallery tiles open the lightbox after the hero', async () => {
+    Element.prototype.scrollTo ??= vi.fn()
+    renderDetail('/recipes/5', { 5: recipe({ mainImage: ref(3), images: [ref(4), ref(5)] }) })
+    await heading()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bild 5' }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/3\s*\/\s*3/)).toBeTruthy()
+  })
+
   it('without a photo: no image, no placeholder, no gallery, a narrower head and a larger title', async () => {
     const { container } = renderDetail('/recipes/5', { 5: recipe() })
     const title = await heading()
@@ -140,15 +151,19 @@ describe('RecipeDetail origin', () => {
   it('names the owner of someone else’s recipe', async () => {
     renderDetail('/recipes/5', { 5: recipe({ owner: 2, viewers: [1] }) })
     await heading()
-    expect(screen.getByText('von', { exact: false }).textContent).toBe('von Mara')
+    expect(screen.getByText('von Mara')).toBeTruthy()
+  })
+
+  it('leaves the origin out while no name is known', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ owner: 7, viewers: [1] }) })
+    await heading()
+    expect(screen.queryByText(/^von/)).toBeNull()
   })
 
   it('names the editors of my own recipe', async () => {
     renderDetail('/recipes/5', { 5: recipe({ editors: [2, 3] }) })
     await heading()
-    const origin = screen.getByText('mit', { exact: false })
-    expect(origin.textContent).toBe('mit MaraJonas')
-    expect(within(origin).getByText('Jonas')).toBeTruthy()
+    expect(screen.getByText('mit Mara, Jonas')).toBeTruthy()
   })
 })
 
@@ -196,6 +211,8 @@ describe('RecipeDetail size in the URL', () => {
     expect(location()).toBe('/recipes/5?factor=0.75 REPLACE')
     fireEvent.click(screen.getByRole('button', { name: 'Mehr' }))
     expect(location()).toBe('/recipes/5 REPLACE')
+    // A size change is a URL change, not a reload of the recipe.
+    expect(foodly.getRecipe).toHaveBeenCalledTimes(1)
   })
 
   it('opening with ?servings shows the scaled amounts', async () => {

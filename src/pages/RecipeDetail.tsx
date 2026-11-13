@@ -19,7 +19,7 @@ import { errorMessage } from '../lib/errorMessage'
 import { useRequest } from '../hooks/useRequest'
 import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { canEdit, isOwner } from '../editor/access'
-import { useCurrentUserId, useRefreshCategories, useTags, useUser } from '../catalog/CatalogProvider'
+import { useCurrentUserId, useRefreshCategories, useTags, useUsers } from '../catalog/CatalogProvider'
 import { TagText } from '../components/TagText'
 import { plainTagText } from '../components/tagTokens'
 import { Rating } from '../components/recipe/Rating'
@@ -339,26 +339,16 @@ export function RecipeDetail() {
   )
 }
 
-// "von <owner>" on someone else's recipe, "mit <editors>" on my own shared one; nothing otherwise.
+// "von <owner>" on someone else's recipe, "mit <editors>" on my own shared one; nothing otherwise, and nothing
+// until at least one name has loaded.
 function RecipeOrigin({ recipe, me }: { recipe: Recipe; me: UserId | null }) {
   const notMine = me === null || recipe.owner !== me
-  const ids = notMine ? [recipe.owner] : recipe.editors.filter((id) => id !== me)
-  if (ids.length === 0) return null
+  const users = useUsers(notMine ? [recipe.owner] : recipe.editors.filter((id) => id !== me))
+  if (users.length === 0) return null
   return (
     <span className="inline-flex items-center gap-1.5">
       <Users className="size-4 shrink-0" />
-      {notMine ? 'von' : 'mit'}{' '}
-      {/* Names still loading render nothing, so the separator only sits between shown names. */}
-      <span className="[&>span+span]:before:content-[',_']">
-        {ids.map((id) => (
-          <UserName key={id} id={id} />
-        ))}
-      </span>
+      {`${notMine ? 'von' : 'mit'} ${users.map((u) => u.name).join(', ')}`}
     </span>
   )
-}
-
-function UserName({ id }: { id: UserId }) {
-  const user = useUser(id)
-  return user ? <span>{user.name}</span> : null
 }

@@ -121,9 +121,12 @@ describe('PortionScaler — floors', () => {
 })
 
 describe('PortionScaler — ceilings', () => {
-  it('portions plus is disabled at 99', () => {
-    renderScaler({ sizeNumber: 1, sizeText: 'Portionen', factor: 99 })
-    expect((screen.getByLabelText('Mehr') as HTMLButtonElement).disabled).toBe(true)
+  it('portions have no upper limit (e.g. 120 cookies)', () => {
+    const { onChange } = renderScaler({ sizeNumber: 120, sizeText: 'Plätzchen', factor: 1 })
+    fireEvent.click(screen.getByLabelText('Mehr'))
+    expect(onChange).toHaveBeenLastCalledWith(121 / 120)
+    fireEvent.click(screen.getByLabelText('Weniger'))
+    expect(onChange).toHaveBeenLastCalledWith(119 / 120)
   })
 
   it('multiplier plus is disabled at ×2, the end of the series', () => {
@@ -136,7 +139,7 @@ describe('PortionScaler — ceilings', () => {
 describe('PortionScaler — typed values snap to allowed sizes', () => {
   it.each([
     ['portions: rounds to a whole count', { sizeNumber: 4 }, 1, '2.4', '2', 2 / 4],
-    ['portions: caps at 99', { sizeNumber: 4 }, 1, '150', '99', 99 / 4],
+    ['portions: no cap', { sizeNumber: 4 }, 1, '150', '150', 150 / 4],
     ['multiplier: nearest series value', { sizeNumber: null }, 1, '1.3', '1.5', 1.5],
     ['multiplier: caps at ×2', { sizeNumber: null }, 1, '5', '2', 2],
     ['multiplier: floors at ×¼', { sizeNumber: null }, 1, '0.1', '0.25', 0.25],
@@ -145,6 +148,12 @@ describe('PortionScaler — typed values snap to allowed sizes', () => {
     type(typed)
     expect(box().value).toBe(shown)
     expect(onChange).toHaveBeenLastCalledWith(committed)
+  })
+
+  it('retyping a fractional count that is shown keeps it', () => {
+    const { onChange } = renderStateful({ sizeNumber: 2.5, sizeText: 'Portionen', factor: 1 })
+    type('2.5')
+    expect(onChange).not.toHaveBeenCalled()
   })
 
   it('a value that snaps to the shown one commits nothing', () => {

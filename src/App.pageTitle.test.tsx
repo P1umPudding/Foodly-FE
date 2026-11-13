@@ -26,6 +26,7 @@ vi.mock('./catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
   useMe: () => ({ id: 1, name: 'Kolja', profilePicture: null }),
   useUser: () => undefined,
+  useUsers: () => [],
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),
   useCategories: () => {

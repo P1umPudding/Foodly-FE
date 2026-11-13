@@ -1,8 +1,8 @@
+import { cn } from '@postxl/ui-components'
 import { RecipeImage } from './RecipeImage'
 import { TriggerButton } from '../TriggerButton'
 import { imageName } from '../../api/assets'
 import type { ImageRef } from '../../api/protocol'
-import { cn } from '@postxl/ui-components'
 
 // Images get a muted backdrop so transparent PNGs don't show the page through them.
 const BACKDROP = 'bg-foreground/5 dark:bg-muted'

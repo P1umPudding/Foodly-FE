@@ -21,7 +21,7 @@ vi.mock('../catalog/CatalogProvider', () => ({
   useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
-  useUser: () => undefined,
+  useUsers: () => [],
 }))
 
 const recipe: Recipe = {

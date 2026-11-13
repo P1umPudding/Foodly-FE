@@ -5,7 +5,6 @@
 import { hasPortions } from '../api/views'
 
 export const FACTOR_SERIES = [0.25, 0.5, 0.75, 1, 1.5, 2] as const
-export const MAX_SERVINGS = 99
 
 const SERVINGS = 'servings'
 const FACTOR = 'factor'
@@ -15,21 +14,21 @@ export function parseSize(params: URLSearchParams, sizeNumber: number | null): n
     const raw = params.get(SERVINGS)
     if (raw === null || !/^\d+$/.test(raw)) return 1
     const servings = Number(raw)
-    return servings >= 1 && servings <= MAX_SERVINGS ? servings / sizeNumber : 1
+    return servings >= 1 && Number.isSafeInteger(servings) ? servings / sizeNumber : 1
   }
+  // As strict as servings: plain decimals only, no "0x2", "2e0" or "+1.5".
   const raw = params.get(FACTOR)
-  // Number('') is 0, which is not in the series either; the explicit check just keeps that obvious.
-  if (raw === null || raw.trim() === '') return 1
+  if (raw === null || !/^\d+(\.\d+)?$/.test(raw)) return 1
   const factor = Number(raw)
   return isInSeries(factor) ? factor : 1
 }
 
-// The param that represents `factor`, or null when none does: servings that aren't a whole count 1…99 (only
+// The param that represents `factor`, or null when none does: servings that aren't a whole count ≥ 1 (only
 // possible at the default with old non-integer sizeNumbers) or a factor outside the series.
 function sizeParam(factor: number, sizeNumber: number | null): [string, string] | null {
   if (hasPortions(sizeNumber) && sizeNumber !== null) {
     const servings = round2(factor * sizeNumber)
-    return Number.isInteger(servings) && servings >= 1 && servings <= MAX_SERVINGS ? [SERVINGS, String(servings)] : null
+    return Number.isSafeInteger(servings) && servings >= 1 ? [SERVINGS, String(servings)] : null
   }
   return factor !== 1 && isInSeries(factor) ? [FACTOR, String(factor)] : null
 }
@@ -63,13 +62,13 @@ export function snapFactor(value: number): number {
 }
 
 export function clampServings(value: number): number {
-  return Math.min(MAX_SERVINGS, Math.max(1, Math.round(value)))
+  return Math.max(1, Math.round(value))
 }
 
 // Whole servings around `current`, which may be fractional with old data (e.g. 2.5 → 3 up, 2 down).
 export function stepServings(current: number, direction: 1 | -1): number {
   const next = direction === 1 ? Math.floor(current) + 1 : Math.ceil(current) - 1
-  return Math.min(MAX_SERVINGS, Math.max(1, next))
+  return Math.max(1, next)
 }
 
 function isInSeries(value: number): boolean {

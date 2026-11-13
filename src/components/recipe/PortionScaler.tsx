@@ -2,13 +2,12 @@ import { useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
 import { Button, NumberInput, cn } from '@postxl/ui-components'
 import { hasPortions } from '../../api/views'
-import { FACTOR_SERIES, MAX_SERVINGS, clampServings, snapFactor, stepFactor, stepServings } from '../../cook/size'
+import { FACTOR_SERIES, clampServings, snapFactor, stepFactor, stepServings } from '../../cook/size'
 import { TagText } from '../TagText'
 
-// The size stepper in the detail action row: [−] value label [+]. Two modes off one set of pieces so nothing
-// reflows as the value changes:
+// The size stepper in the detail action row: [−] value label [+]. Two modes:
 //   • portions-mode (sizeNumber > 0, see hasPortions): the box is the desired portion count and
-//     factor = desired / sizeNumber. Whole counts 1…99 only.
+//     factor = desired / sizeNumber. Whole counts ≥ 1 only.
 //   • multiplier-mode (otherwise): the box is the × factor itself, marked with a leading "×", limited to the
 //     series ×¼ … ×2.
 // Both limits match what src/cook/size.ts accepts from the URL, so every value set here survives a reload.
@@ -45,6 +44,7 @@ export function PortionScaler({
   const commit = (value: number | null) => {
     if (value !== null && (value < 0 || !Number.isFinite(value))) return
     if (value === null || round2(value) === 0) return onChange(1)
+    if (round2(value) === current) return
     const allowed = portions ? clampServings(value) : snapFactor(value)
     if (allowed === current) return
     apply(allowed)
@@ -55,7 +55,7 @@ export function PortionScaler({
   }
   const stepUp = () => apply(portions ? stepServings(current, 1) : stepFactor(current, 1))
   const stepDown = () => apply(portions ? stepServings(current, -1) : stepFactor(current, -1))
-  const canIncrement = portions ? current < MAX_SERVINGS : current < FACTOR_SERIES[FACTOR_SERIES.length - 1]
+  const canIncrement = portions || current < FACTOR_SERIES[FACTOR_SERIES.length - 1]
   const canDecrement = portions ? current > 1 : current > FACTOR_SERIES[0]
 
   // Phones get 40 px tap targets (docs/design.md §7); desktop keeps the compact iconSm.
