@@ -199,7 +199,8 @@ Freigegeben von Kolja am 2026-10-29. Reihenfolge:
    Zustände, #239 Sheet-Kopf, #240 Timer-Panel, #241 Timer-Chip, #242 Seitentitel; Shell #243 `/categories`, #244
    Kategorie-Formular, #245 Profilseite, #246 Shell-Feinschliff; Detail #247 Kopf-Feinschliff, #248 Lightbox; Editor
    #249 „Mehrere einfügen“ (vor #217). Nachträge in #207–#210, #217, #218, #227–#232. design.md §5/§7 auf das Mockup
-   umgestellt.
+   umgestellt. Start (Daniel, 13.11.): eine Reihe „Zuletzt bearbeitet“ ersetzt „Zuletzt erstellt“ (#196) und
+   „Zuletzt angesehen“ → #250 (nach #196, blockiert durch Backend #16); „Geteilt mit dir“ → #251.
 
 Parallel nach Token und Shell: ✅ Timer-Knopf + Zeit-Chips **#29** (PR #48),
 ✅ Editor-Zusatz-Spalte **#28** (PR #44). Trefferzahlen im Filter erst mit Backend #17 (B16).
