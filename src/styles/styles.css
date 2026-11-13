@@ -80,6 +80,10 @@
   --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-divider: var(--divider);
+  --color-hover: var(--hover);
+  --color-tag: var(--tag-bg);
+  --color-seg: var(--seg-bg);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -121,6 +125,7 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+  --shadow-seg: var(--seg-shadow);
 }
 
 /* Compact TEXT SCALE — Tailwind's text tokens are redefined smaller than the
