@@ -189,6 +189,12 @@ Freigegeben von Kolja am 2026-10-29. Reihenfolge:
    `docs/superpowers/specs/2026-11-13-detail-cook-redesign-design.md`, Issues R1–R5 in
    `docs/superpowers/plans/2026-11-13-detail-cook-redesign.md`.
 
+7. **App = Mockup** (Daniel, 2026-11-13): Die App soll aussehen wie `docs/design/redesign` (Desktop und Handy),
+   Feinschliff danach. Der Abgleich von main (dda7820) per Screenshot zeigt Abweichungen bei Grundbausteinen,
+   Kopfzeile, Rezeptzeilen (bisher „Aufbau wie heute“) und Editor. Issues V1–V6: #227 Grundbausteine → #229 Zeilen und
+   Gruppen; #228 Shell/Seitenkopf (nach #207/#208); #230 Start/Kategorie-Kopf (nach #196); #231 Editor-Aufbau →
+   #232 Editor-Abschnitte, danach erst #217/#218. Bug #233 (Mock-Build weiß).
+
 Parallel nach Token und Shell: ✅ Timer-Knopf + Zeit-Chips **#29** (PR #48),
 ✅ Editor-Zusatz-Spalte **#28** (PR #44). Trefferzahlen im Filter erst mit Backend #17 (B16).
 
