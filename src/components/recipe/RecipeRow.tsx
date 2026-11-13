@@ -65,7 +65,7 @@ export function RecipeRow({
   // Tags are hidden on phones; no wrapper at all without tags, so no empty flex gap.
   const tags = recipe.tags.length > 0 && (
     <div className="phone:hidden">
-      <TagChips tags={recipe.tags} align="end" />
+      <TagChips tags={recipe.tags} max={2} align="end" />
     </div>
   )
 
