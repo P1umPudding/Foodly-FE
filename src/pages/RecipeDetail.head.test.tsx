@@ -325,3 +325,26 @@ describe('RecipeDetail states', () => {
     expect(await screen.findByText('Rezept nicht gefunden')).toBeTruthy()
   })
 })
+
+describe('RecipeDetail sections', () => {
+  const teig = { id: 1, name: 'Teig', steps: ['Rühren', 'Ruhen lassen'], ingredients: [] }
+  const sosse = { id: 2, name: 'Soße', steps: ['Aufkochen'], ingredients: [] }
+
+  it('shows no section title for a single named section', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ sections: [teig] }) })
+    await screen.findByRole('heading', { level: 1, name: 'Pancakes' })
+    expect(screen.queryByRole('heading', { name: 'Teig' })).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Zubereitung' })).toBeTruthy()
+  })
+
+  it('shows every section title once there are two, and numbers steps across them', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ sections: [teig, sosse] }) })
+    await screen.findByRole('heading', { level: 1, name: 'Pancakes' })
+    expect(screen.getByRole('heading', { level: 2, name: 'Teig' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 2, name: 'Soße' })).toBeTruthy()
+    expect(screen.getAllByRole('heading', { name: 'Zubereitung' })).toHaveLength(2)
+
+    const sosseSection = screen.getByRole('heading', { name: 'Soße' }).closest('section')!
+    expect(within(sosseSection).getByRole('listitem').firstElementChild?.textContent).toBe('3')
+  })
+})
