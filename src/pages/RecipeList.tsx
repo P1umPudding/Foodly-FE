@@ -273,7 +273,8 @@ export function RecipeList() {
           {/* Loading or failed: count 0 + more is the hidden placeholder — no number we don't know. */}
           <ResultCount count={listReady ? visible.length : 0} more={!listReady || search.hasMore} />
           {facetActive && (
-            // Mockup link-btn: quiet text with a hover fill (design.md keeps accent colour off links).
+            // Mockup link-btn: quiet 12 px text with a hover fill (design.md keeps accent colour off links), hence the
+            // text-xs over the size's text-base. On phones the ::after widens the hit area to 40 px (design.md §7).
             <Button
               variant="ghost"
               size="xs"
@@ -283,7 +284,7 @@ export function RecipeList() {
                 // Not on phones, where focusing the search would pop the keyboard over the list.
                 if (isDesktop) searchInputRef.current?.focus({ preventScroll: true })
               }}
-              className="h-[26px] px-1.5 text-xs font-medium text-muted-foreground hover:bg-hover hover:text-foreground dark:hover:bg-hover"
+              className="relative h-[26px] px-1.5 text-xs font-medium text-muted-foreground hover:bg-hover hover:text-foreground dark:hover:bg-hover phone:after:absolute phone:after:-inset-y-[7px] phone:after:inset-x-0"
             >
               Alle Filter zurücksetzen
             </Button>

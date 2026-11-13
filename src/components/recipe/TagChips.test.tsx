@@ -42,6 +42,7 @@ describe('TagChips in REST mode', () => {
     vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise((r) => (resolve = r)))
     const { container } = render(<TagChips tags={['vegan', 'scharf']} />)
     expect(container.querySelector('img')).toBeNull()
+    expect(chip('vegan').children).toHaveLength(1) // no slot while the icon loads
 
     resolve(icon as unknown as Response)
     await vi.waitFor(() => expect(chip('vegan').querySelector('img')?.getAttribute('src')).toBe('blob:vegan'))
@@ -57,13 +58,19 @@ describe('TagChips in REST mode', () => {
     fireEvent.error(container.querySelector('img')!)
     expect(container.querySelector('img')).toBeNull()
     expect(container.textContent).toBe('vegan')
+    // No empty icon slot left behind (it would add a gap in front of the name).
+    expect(chip('vegan').children).toHaveLength(1)
   })
 
-  it('truncates a long name inside a capped chip', () => {
+  it('truncates a long name: within the row cap in lists, within the available width elsewhere', () => {
     vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise(() => undefined))
-    render(<TagChips tags={['scharf']} />)
+    const { unmount } = render(<TagChips tags={['scharf']} max={2} />)
     expect(screen.getByText('scharf').className).toContain('truncate')
-    expect(screen.getByText('scharf').parentElement!.className).toContain('max-w-40')
+    expect(chip('scharf').className).toContain('max-w-40')
+    unmount()
+    render(<TagChips tags={['scharf']} />)
+    expect(chip('scharf').className).not.toContain('max-w-40')
+    expect(chip('scharf').className).toContain('max-w-full')
   })
 
   it('caps the chips at `max`', () => {
