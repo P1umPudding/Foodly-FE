@@ -79,3 +79,6 @@ Row layout/group headers (#229), header (#228), sort menu/heights 38 px/vsep (is
 
 ## Review log (cont.)
 - Review pass 2 (fresh subagent): 0 blockers, 1 major (subtle label contrast vs design.md), 7 minors, 3 nits — adopted as R14–R23.
+
+## Clarification (owner decision, 2026-11-13)
+- Daniel: placeholder for now „Rezept suchen“ instead of „Rezept oder Zutat suchen“ (the search does not cover ingredients yet); no follow-up issue.

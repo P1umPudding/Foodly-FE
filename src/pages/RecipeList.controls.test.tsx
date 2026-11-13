@@ -46,9 +46,9 @@ describe('RecipeList controls on desktop', () => {
     expect(focus).toHaveBeenCalledWith({ preventScroll: true })
   })
 
-  it('asks for a recipe or ingredient and shows a magnifier in the search', () => {
+  it('asks for a recipe and shows a magnifier in the search', () => {
     renderList()
-    expect(searchField().getAttribute('placeholder')).toBe('Rezept oder Zutat suchen')
+    expect(searchField().getAttribute('placeholder')).toBe('Rezept suchen')
     expect(searchRow().querySelector('svg.lucide-search')).toBeTruthy()
   })
 
