@@ -18,7 +18,7 @@ async function loadRecipes(userId: UserId, ids: RecipeId[]): Promise<Recipe[]> {
   const loaded = results.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []))
   // The transport's errors carry no status, so a deleted recipe looks like being offline. Only forget the failed
   // ids when another one loaded, so a dead connection doesn't wipe the list; a one-off 5xx next to a success does
-  // drop that recipe (accepted). Recipes deleted here are forgotten by RecipeDetail. (Runs twice under StrictMode;
+  // drop that recipe (accepted). Recipes deleted in this app are removed by RecipeDetail's delete handler. (Runs twice under StrictMode;
   // harmless, removing re-reads and filters.)
   if (loaded.length > 0 && loaded.length < ids.length) {
     removeRecentlyViewed(

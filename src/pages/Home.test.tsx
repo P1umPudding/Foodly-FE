@@ -12,6 +12,8 @@ vi.mock('../catalog/CatalogProvider', () => ({
   useMe: () => me.current,
   useCurrentUserId: () => 1,
   useCategories: () => categories.current,
+  useUser: () => undefined,
+  useTags: () => ({ byId: {}, status: 'ready' }),
 }))
 
 function renderHome() {

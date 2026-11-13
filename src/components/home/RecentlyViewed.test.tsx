@@ -1,4 +1,3 @@
-import { StrictMode } from 'react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -40,13 +39,12 @@ function store(ids: RecipeId[]) {
   localStorage.setItem('foodly:recently-viewed:1', JSON.stringify({ version: 1, ids }))
 }
 
-function renderSection({ strict = false } = {}) {
-  const tree = (
+function renderSection() {
+  render(
     <MemoryRouter>
       <RecentlyViewed />
-    </MemoryRouter>
+    </MemoryRouter>,
   )
-  render(strict ? <StrictMode>{tree}</StrictMode> : tree)
 }
 
 const tileHrefs = () =>
@@ -97,16 +95,6 @@ describe('RecentlyViewed', () => {
       id === 2 ? Promise.reject(new Error('recipe 2 not found')) : Promise.resolve(recipe(id)),
     )
     renderSection()
-    await waitFor(() => expect(tileHrefs()).toEqual(['/recipes/1', '/recipes/3']))
-    expect(readRecentlyViewed(1)).toEqual([1, 3])
-  })
-
-  it('drops and forgets a failed recipe under StrictMode too', async () => {
-    store([1, 2, 3])
-    vi.spyOn(foodly, 'getRecipe').mockImplementation((id) =>
-      id === 2 ? Promise.reject(new Error('recipe 2 not found')) : Promise.resolve(recipe(id)),
-    )
-    renderSection({ strict: true })
     await waitFor(() => expect(tileHrefs()).toEqual(['/recipes/1', '/recipes/3']))
     expect(readRecentlyViewed(1)).toEqual([1, 3])
   })

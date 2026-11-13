@@ -69,7 +69,7 @@ describe('RecipeDetail remembers the recipe as recently viewed', () => {
     expect(readRecentlyViewed(1)).toEqual([5])
   })
 
-  it('does not store a recipe that failed to load (e.g. 404)', async () => {
+  it('does not store a recipe that failed to load', async () => {
     vi.spyOn(foodly, 'getRecipe').mockRejectedValue(new Error('recipe 5 not found'))
     renderDetail()
     await waitFor(() => screen.getByText('Rezept nicht gefunden'))
