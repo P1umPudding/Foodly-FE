@@ -166,7 +166,7 @@ function withOrder(list: UserCategory[], ids: UserCategoryId[]): UserCategory[] 
 
 // Names for owners, editors and raters. useUser reports ids it doesn't know; all reported in one render are
 // fetched in one request (microtask). An id is asked for once per page load: found, not found or failed alike,
-// so an unknown id doesn't refetch on every render. The provider is keyed by user, so a switch starts empty.
+// so an unknown id doesn't refetch on every render. RequireAuth keys the provider by user, so a switch starts empty.
 // No unmount guard: the refs survive StrictMode's double effect, and a guard would drop the in-flight answer.
 function useUserDirectory(me: User | null) {
   const [byId, setById] = useState<Record<UserId, User>>({})

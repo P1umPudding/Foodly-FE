@@ -192,8 +192,6 @@ export const foodly = {
     USE_MOCKS ? socket.request<UploadedImage>('images.upload') : rest.postBinary<UploadedImage>('/images', file),
 }
 
-// The write already landed in localStorage; a failed refetch must not read as
-// a failed save.
 // The backend answers 422 beyond 100 ids (or a 2 KB query). A failed chunk only loses its own users; with one
 // chunk this behaves like a plain call.
 const USERS_PER_REQUEST = 100
@@ -208,6 +206,8 @@ async function getUsersInChunks(ids: UserId[]): Promise<User[]> {
   return results.flatMap((r) => (r.status === 'fulfilled' ? r.value.data : []))
 }
 
+// The write already landed in localStorage; a failed refetch must not read as
+// a failed save.
 function refetchAfterStubWrite(id: RecipeId): Promise<Recipe> {
   return foodly.getRecipe(id).catch(() => {
     throw new Error('Gespeichert – die Anzeige aktualisiert sich nach dem Neuladen')

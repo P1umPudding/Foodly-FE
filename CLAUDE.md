@@ -90,7 +90,8 @@ There's no server code and no secrets in the repo.
 - `src/catalog/` — `CatalogProvider` (tags, users, ingredients as `byId`
   maps, plus `me` and the user's categories; users are fetched on demand:
   `useUser(id)` reports unknown ids, batched into one `foodly.getUsers` call).
-  `src/list/` — recipe-list state (filters, sort, search, URL, persistence). `src/editor/` — recipe-editor draft + autosave. `src/timers/` —
+  `src/list/` — recipe-list state (filters, sort, search, URL, persistence).
+  `src/editor/` — recipe-editor draft + autosave. `src/timers/` —
   cooking timers per user. `src/home/` — recently viewed recipes per user (start page).
 - `src/hooks/` — `useRequest` (run a request, track loading/ready/error),
   `useRecipeSearch` (cursor-paginated recipe search, infinite scroll),
