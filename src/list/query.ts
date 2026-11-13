@@ -16,8 +16,8 @@ export const PAGE_SIZE = 100
 
 const SORT_FIELD: Record<ListState['sortKey'], RecipeSortField> = {
   name: 'name',
-  work: 'worktime',
-  overall: 'totaltime',
+  work: 'workTime',
+  overall: 'totalTime',
   rating: 'rating',
 }
 
@@ -48,9 +48,9 @@ function sortValue(recipe: Recipe, field: RecipeSortField): number | string | nu
   switch (field) {
     case 'name':
       return recipe.name.toLowerCase()
-    case 'worktime':
+    case 'workTime':
       return recipe.workMinutes
-    case 'totaltime':
+    case 'totalTime':
       return recipe.overallMinutes
     case 'rating':
       return averageRating(recipe)
