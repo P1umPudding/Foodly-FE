@@ -8,17 +8,26 @@ import type { Recipe } from '../api/protocol'
 // The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
 vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
 
-vi.mock('react-router-dom', () => ({
-  useLocation: () => ({ key: 'default' }),
-  useParams: () => ({ id: '5' }),
-  useNavigate: () => vi.fn(),
-  Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a>,
-}))
+// The size lives in the URL; this keeps it in component state, so the steppers re-render the amounts.
+vi.mock('react-router-dom', async () => {
+  const { useState } = await vi.importActual<typeof import('react')>('react')
+  return {
+    useSearchParams: () => {
+      const [params, setParams] = useState(() => new URLSearchParams())
+      return [params, (next: (p: URLSearchParams) => URLSearchParams) => setParams(next)]
+    },
+    useLocation: () => ({ key: 'default' }),
+    useParams: () => ({ id: '5' }),
+    useNavigate: () => vi.fn(),
+    Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a>,
+  }
+})
 
 vi.mock('../catalog/CatalogProvider', () => ({
   useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
+  useUser: () => undefined,
 }))
 
 function recipe(over: Partial<Recipe> = {}): Recipe {
@@ -71,7 +80,7 @@ describe('RecipeDetail with a portion count of 0 or below', () => {
     expect(screen.queryByLabelText('Portionen')).toBeNull()
 
     fireEvent.click(screen.getByLabelText('Mehr'))
-    expect(screen.getByText(/300/)).toBeTruthy()
+    expect(screen.getByText(/300/)).toBeTruthy() // ×1.5
     const text = document.body.textContent ?? ''
     expect(text).not.toMatch(/Infinity|NaN|[-−]\d/)
   })

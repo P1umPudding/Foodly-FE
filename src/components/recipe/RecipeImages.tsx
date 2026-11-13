@@ -2,93 +2,66 @@ import { RecipeImage } from './RecipeImage'
 import { TriggerButton } from '../TriggerButton'
 import { imageName } from '../../api/assets'
 import type { ImageRef } from '../../api/protocol'
+import { cn } from '@postxl/ui-components'
 
-// Image area for the recipe detail view: the main image and the right-edge
-// tiles sit next to each other as one group, centred in the row. The hardcoded
-// row height drives the geometry: stacked tiles are half of it; a lone extra
-// image fills the full height (twice the size of a stacked tile). Images get a
-// muted backdrop so transparent PNGs don't show the page through them.
-const ROW_H = 'h-[400px]'
-const GAP = 'gap-3' // one gap everywhere: main↔tiles, between stacked tiles; its px (0.75rem) is baked into the max-width calc below
+// Images get a muted backdrop so transparent PNGs don't show the page through them.
+const BACKDROP = 'bg-foreground/5 dark:bg-muted'
 
-export function RecipeImages({
-  images,
+// The detail head's main image: 4:3, opens the lightbox at the first image.
+export function RecipeHero({
+  image,
   alt,
   onOpen,
-}: {
-  images: ImageRef[]
-  alt: string
-  onOpen: (index: number) => void
-}) {
-  if (images.length === 0) return null
-
-  const [hero, ...rest] = images
-  const extra = rest.length
-
-  // The main image fills the row height; its width follows the aspect ratio.
-  // Cap that width so [image + gap + tiles] never overflows the row — the tile
-  // column and gap are fixed, so this stays a static calc (no measuring).
-  const mainMaxW =
-    extra === 0 ? 'max-w-full' : extra === 1 ? 'max-w-[calc(100%-392px-0.75rem)]' : 'max-w-[calc(100%-196px-0.75rem)]'
-
-  return (
-    <div className={`mt-6 flex justify-center ${GAP} ${ROW_H}`}>
-      <RecipeImage
-        image={hero}
-        alt={hero.name ?? alt}
-        onClick={() => onOpen(0)}
-        className={`h-full w-auto ${mainMaxW} cursor-zoom-in rounded-lg bg-foreground/5 object-contain dark:bg-muted`}
-        // w-auto would collapse the placeholder, so it gets a photo-like 4:3 box under the same width cap.
-        fallbackClassName={`aspect-[4/3] h-full ${mainMaxW} cursor-zoom-in rounded-lg bg-foreground/5 dark:bg-muted`}
-      />
-
-      {/* One extra image → a single tile at full row height (≈ 2× a stacked tile). */}
-      {extra === 1 && <Tile image={rest[0]} className="w-[392px] shrink-0" onClick={() => onOpen(1)} />}
-
-      {/* Two or more → two stacked half-height tiles; the second shows "+N" for
-          any images beyond the two on display. */}
-      {extra >= 2 && (
-        <div className={`flex w-[196px] shrink-0 flex-col ${GAP}`}>
-          <Tile image={rest[0]} className="min-h-0 flex-1" onClick={() => onOpen(1)} />
-          <Tile
-            image={rest[1]}
-            className="min-h-0 flex-1"
-            onClick={() => onOpen(2)}
-            more={extra > 2 ? extra - 2 : undefined}
-          />
-        </div>
-      )}
-    </div>
-  )
-}
-
-const moreLabel = (n: number) => (n === 1 ? '1 weiteres Bild' : `${n} weitere Bilder`)
-
-function Tile({
-  image,
   className,
-  onClick,
-  more,
 }: {
   image: ImageRef
-  className: string
-  onClick: () => void
-  more?: number
+  alt: string
+  onOpen: () => void
+  className?: string
 }) {
   return (
     <TriggerButton
       variant="bare"
-      onClick={onClick}
-      // The image itself is decorative (alt=""), so the button carries the name, including the "+N" hint.
-      aria-label={more !== undefined ? `${imageName(image)}, ${moreLabel(more)}` : imageName(image)}
-      className={`relative cursor-zoom-in overflow-hidden rounded-lg bg-foreground/5 focus-visible:ring-ring dark:bg-muted ${className}`}
-    >
-      <RecipeImage image={image} alt="" className="h-full w-full object-cover" fallbackClassName="h-full w-full" />
-      {more !== undefined && (
-        <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-2xl font-medium text-white">
-          +{more}
-        </span>
+      onClick={onOpen}
+      aria-label="Foto groß ansehen"
+      className={cn(
+        'block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-lg focus-visible:ring-ring',
+        BACKDROP,
+        className,
       )}
+    >
+      <RecipeImage
+        image={image}
+        alt={image.name ?? alt}
+        className="h-full w-full object-cover"
+        fallbackClassName="aspect-[4/3] h-full w-full"
+      />
     </TriggerButton>
+  )
+}
+
+// The other images below the head, every one as a square tile. A stopgap until the one-row gallery (R3);
+// `onOpen` gets the index within `images`.
+export function RecipeImages({ images, onOpen }: { images: ImageRef[]; onOpen: (index: number) => void }) {
+  if (images.length === 0) return null
+
+  return (
+    <div className="mt-6 grid grid-cols-4 gap-2 phone:grid-cols-3">
+      {images.map((image, i) => (
+        <TriggerButton
+          key={`${image.id}-${i}`}
+          variant="bare"
+          onClick={() => onOpen(i)}
+          // The image itself is decorative (alt=""), so the button carries the name.
+          aria-label={imageName(image)}
+          className={cn(
+            'relative aspect-square cursor-zoom-in overflow-hidden rounded-lg focus-visible:ring-ring',
+            BACKDROP,
+          )}
+        >
+          <RecipeImage image={image} alt="" className="h-full w-full object-cover" fallbackClassName="h-full w-full" />
+        </TriggerButton>
+      ))}
+    </div>
   )
 }

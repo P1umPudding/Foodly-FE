@@ -11,6 +11,7 @@ vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChi
 
 const navigate = vi.fn()
 vi.mock('react-router-dom', () => ({
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
   useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),
   useNavigate: () => navigate,
@@ -22,6 +23,7 @@ vi.mock('../catalog/CatalogProvider', () => ({
   useRefreshCategories: () => refreshCategories,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
+  useUser: () => undefined,
 }))
 
 function recipe(over: Partial<Recipe> = {}): Recipe {

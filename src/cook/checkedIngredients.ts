@@ -40,10 +40,7 @@ export function useCheckedIngredients(recipeId: number) {
   // Another recipe's state reads as EMPTY, a stable snapshot, so its ticks never flash before openRecipe runs.
   const snapshot = useSyncExternalStore(subscribe, () => (state.recipeId === recipeId ? state : EMPTY))
 
-  const setCheckable = useCallback(
-    (checkable: boolean) => set({ ...stateFor(recipeId), checkable }),
-    [recipeId],
-  )
+  const setCheckable = useCallback((checkable: boolean) => set({ ...stateFor(recipeId), checkable }), [recipeId])
   const toggle = useCallback(
     (id: RecipeIngredientId) => {
       const current = stateFor(recipeId)

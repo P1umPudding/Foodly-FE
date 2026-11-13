@@ -20,6 +20,7 @@ vi.mock('./components/category/RecipeCategoryChips', () => ({ RecipeCategoryChip
 vi.mock('./catalog/CatalogProvider', () => ({
   useRefreshCategories: () => () => {},
   useCurrentUserId: () => 1,
+  useUser: () => undefined,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),
   // Goes through the real foodly.listCategories, so each test's spy decides the categories.

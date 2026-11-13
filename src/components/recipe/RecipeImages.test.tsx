@@ -1,46 +1,41 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { RecipeImages } from './RecipeImages'
+import { RecipeHero, RecipeImages } from './RecipeImages'
 import { ref } from '../../test/images'
 
 const classesOf = (el: HTMLElement) => el.className.split(/\s+/)
 
+describe('RecipeHero', () => {
+  it('is a 4:3 button that opens the lightbox', () => {
+    const onOpen = vi.fn()
+    render(<RecipeHero image={ref(1)} alt="Rezept" onOpen={onOpen} />)
+
+    const hero = screen.getByRole('button', { name: 'Foto groß ansehen' })
+    expect(classesOf(hero)).toContain('aspect-[4/3]')
+    fireEvent.click(hero)
+    expect(onOpen).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('RecipeImages tiles', () => {
-  it('a single extra image is one named tile button that opens it', () => {
+  it('shows every image as a named tile button that opens its own index', () => {
     const onOpen = vi.fn()
-    render(<RecipeImages images={[ref(1), ref(2)]} alt="Rezept" onOpen={onOpen} />)
+    render(<RecipeImages images={[ref(2), ref(3), ref(4), ref(5), ref(6)]} onOpen={onOpen} />)
 
-    const tile = screen.getByRole('button', { name: 'Bild 2' })
-    expect(tile.getAttribute('type')).toBe('button')
-    fireEvent.click(tile)
-    expect(onOpen).toHaveBeenCalledWith(1)
-  })
-
-  it('two stacked tiles; the second names the hidden images and opens index 2', () => {
-    const onOpen = vi.fn()
-    render(<RecipeImages images={[ref(1), ref(2), ref(3), ref(4), ref(5)]} alt="Rezept" onOpen={onOpen} />)
-
+    expect(screen.getAllByRole('button')).toHaveLength(5)
     fireEvent.click(screen.getByRole('button', { name: 'Bild 2' }))
-    expect(onOpen).toHaveBeenLastCalledWith(1)
-
-    const second = screen.getByRole('button', { name: 'Bild 3, 2 weitere Bilder' })
-    expect(second.textContent).toBe('+2')
-    fireEvent.click(second)
-    expect(onOpen).toHaveBeenLastCalledWith(2)
+    expect(onOpen).toHaveBeenLastCalledWith(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Bild 6' }))
+    expect(onOpen).toHaveBeenLastCalledWith(4)
   })
 
-  it('one hidden image is named in the singular', () => {
-    render(<RecipeImages images={[ref(1), ref(2), ref(3), ref(4)]} alt="Rezept" onOpen={() => {}} />)
-    expect(screen.getByRole('button', { name: 'Bild 3, 1 weiteres Bild' }).textContent).toBe('+1')
-  })
-
-  it('without hidden images the second tile has no "+N" overlay', () => {
-    render(<RecipeImages images={[ref(1), ref(2), ref(3)]} alt="Rezept" onOpen={() => {}} />)
-    expect(screen.getByRole('button', { name: 'Bild 3' }).textContent).toBe('')
+  it('renders nothing without images', () => {
+    const { container } = render(<RecipeImages images={[]} onOpen={() => {}} />)
+    expect(container.firstChild).toBeNull()
   })
 
   it('has the 3 px focus ring in the full-opacity ring token (design.md)', () => {
-    render(<RecipeImages images={[ref(1), ref(2)]} alt="Rezept" onOpen={() => {}} />)
+    render(<RecipeImages images={[ref(2)]} onOpen={() => {}} />)
     const classes = classesOf(screen.getByRole('button', { name: 'Bild 2' }))
     expect(classes).toEqual(expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-ring']))
     expect(classes).not.toContain('focus-visible:ring-ring/50')

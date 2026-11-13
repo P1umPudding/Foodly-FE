@@ -10,6 +10,7 @@ vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChi
 
 const navigate = vi.fn()
 vi.mock('react-router-dom', () => ({
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
   useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),
   useNavigate: () => navigate,
@@ -23,6 +24,7 @@ vi.mock('../catalog/CatalogProvider', () => ({
   useRefreshCategories: () => refreshCategories,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
+  useUser: () => undefined,
 }))
 
 function recipe(id: number): Recipe {
@@ -65,7 +67,7 @@ describe('RecipeDetail clone', () => {
     )
     await waitFor(() => screen.getByText('Base'))
 
-    fireEvent.click(screen.getByRole('button', { name: /duplizieren/i }))
+    fireEvent.click(screen.getByRole('button', { name: /kopie erstellen/i }))
 
     await waitFor(() => expect(foodly.copyRecipe).toHaveBeenCalledWith(5))
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/recipes/99'))
@@ -83,7 +85,7 @@ describe('RecipeDetail clone', () => {
     )
     await waitFor(() => screen.getByText('Base'))
 
-    fireEvent.click(screen.getByRole('button', { name: /duplizieren/i }))
+    fireEvent.click(screen.getByRole('button', { name: /kopie erstellen/i }))
 
     await screen.findByText('Kaputt')
     expect(refreshCategories).not.toHaveBeenCalled()

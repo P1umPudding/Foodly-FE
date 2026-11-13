@@ -29,9 +29,7 @@ export function parseSize(params: URLSearchParams, sizeNumber: number | null): n
 function sizeParam(factor: number, sizeNumber: number | null): [string, string] | null {
   if (hasPortions(sizeNumber) && sizeNumber !== null) {
     const servings = round2(factor * sizeNumber)
-    return Number.isInteger(servings) && servings >= 1 && servings <= MAX_SERVINGS
-      ? [SERVINGS, String(servings)]
-      : null
+    return Number.isInteger(servings) && servings >= 1 && servings <= MAX_SERVINGS ? [SERVINGS, String(servings)] : null
   }
   return factor !== 1 && isInSeries(factor) ? [FACTOR, String(factor)] : null
 }
