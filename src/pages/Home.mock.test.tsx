@@ -55,6 +55,18 @@ describe('Start page, Zuletzt angesehen (mock mode)', () => {
   )
 
   it(
+    'names the owner of a foreign recipe',
+    async () => {
+      // 3 = Pfannkuchen, owned by Mara (user 2), shared with user 1.
+      localStorage.setItem('foodly:recently-viewed:1', JSON.stringify({ version: 1, ids: [3] }))
+      await renderHome()
+      const section = await screen.findByRole('region', { name: 'Zuletzt angesehen' }, WAIT)
+      await within(section).findByText('von Mara', {}, WAIT)
+    },
+    SLOW,
+  )
+
+  it(
     'has no section without stored recipes',
     async () => {
       await renderHome()

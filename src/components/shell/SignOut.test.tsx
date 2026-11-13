@@ -26,7 +26,7 @@ const lee = { id: 2, name: 'Lee', profilePicture: null }
 
 function spyCatalogs() {
   vi.spyOn(foodly, 'listTags').mockResolvedValue([])
-  vi.spyOn(foodly, 'listUsers').mockResolvedValue([])
+  vi.spyOn(foodly, 'getUsers').mockResolvedValue([])
   vi.spyOn(foodly, 'listIngredients').mockResolvedValue([])
   vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
   return vi.spyOn(foodly, 'me').mockResolvedValueOnce(kim).mockResolvedValue(lee)

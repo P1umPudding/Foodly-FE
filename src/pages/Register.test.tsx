@@ -105,7 +105,7 @@ describe('Register', () => {
   it('on 201 signs in and goes to next', async () => {
     vi.spyOn(foodly, 'me').mockResolvedValue(user)
     vi.spyOn(foodly, 'listTags').mockResolvedValue([])
-    vi.spyOn(foodly, 'listUsers').mockResolvedValue([])
+    vi.spyOn(foodly, 'getUsers').mockResolvedValue([])
     vi.spyOn(foodly, 'listIngredients').mockResolvedValue([])
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
     const fetchSpy = reply(() => jsonResponse(201, { user, accessToken: jwt(900), refreshToken: 'r1' }))

@@ -4,23 +4,12 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeTile } from './RecipeTile'
 import type { Recipe, User, UserCategory } from '../../api/protocol'
 
-// Set per test: whether the user list is real (mock mode) or the REST stand-in.
-const users = vi.hoisted(() => ({ known: true }))
-vi.mock('../../api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../../api')>()),
-  knowsUserNames: () => users.known,
-}))
-
 const USERS: Record<number, User> = { 2: { id: 2, name: 'Mara', profilePicture: null } }
 vi.mock('../../catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
   useUser: (id: number) => USERS[id],
   useTags: () => ({ byId: {} }),
 }))
-
-afterEach(() => {
-  users.known = true
-})
 
 const base: Recipe = {
   id: 1,
@@ -116,12 +105,6 @@ describe('"von <Name>"', () => {
 
   it('shows nothing for an owner missing from the catalog', () => {
     renderTile({ ...base, owner: 42, viewers: [1] })
-    expect(screen.queryByText(/^von /)).toBeNull()
-  })
-
-  it('shows nothing in REST mode, where the user list is only mock data (B2)', () => {
-    users.known = false
-    renderTile({ ...base, owner: 2, viewers: [1] })
     expect(screen.queryByText(/^von /)).toBeNull()
   })
 

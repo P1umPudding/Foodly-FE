@@ -36,7 +36,7 @@ host).
 | Var | Default | Purpose |
 |-----|---------|---------|
 | `VITE_API_URL` | `/api/v1` | REST base URL. The relative default goes through the Vite dev proxy to `http://localhost:8080`. |
-| `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST (only `listUsers` stays mocked). |
+| `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST. |
 | `VITE_WS_URL` | `''` | Reserved for future live editing. Passed to `SocketClient` but never connected. |
 | `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and makes mock data the default (injects `VITE_MOCK=1` via `define`) unless `VITE_API_URL` or `VITE_MOCK` is set, in the process environment or a `.env*` file. |
 
@@ -60,10 +60,10 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
   one refresh at a time (also across tabs). Exposed as `foodly.auth`
   (`signIn`, `signUp`, `signOut`, `session`, `subscribe`); with `VITE_MOCK=1`
   you are always signed in as user 1.
-- `src/api/index.ts` — the typed API surface `foodly.*`. Each method except
-  `listUsers` has a REST and a mock branch, chosen by the build-time
-  `VITE_MOCK`; response wrappers (`{ data }`, cursors) are unwrapped here, so
-  pages only see domain types.
+- `src/api/index.ts` — the typed API surface `foodly.*`. Each method has a
+  REST and a mock branch, chosen by the build-time `VITE_MOCK`; response
+  wrappers (`{ data }`, cursors) are unwrapped here, so pages only see domain
+  types.
 - `src/api/adapters.ts` — shape fixes at the API boundary (e.g.
   `previewToRecipe` for search results). Wire types are in
   `src/api/protocol.ts`.
@@ -83,7 +83,7 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
 | `createRecipe` | `POST /recipes` |
 | `updateRecipe` | `PUT /recipes/{id}` |
 | `uploadImage` | `POST /images` (raw binary body) |
-| `listUsers` | **mocked** — the backend has no list endpoint yet (`docs/backend-questions.md` B2) |
+| `getUsers` | `GET /users?ids=…` (chunks of 100, in parallel) |
 
 With `VITE_MOCK=1` every method is answered by `src/mocks`.
 

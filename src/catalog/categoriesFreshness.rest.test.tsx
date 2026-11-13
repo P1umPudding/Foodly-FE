@@ -66,7 +66,7 @@ it('updates the sidebar count after deleting a recipe (REST)', async () => {
     return jsonResponse(404, { message: 'not found' })
   })
   vi.spyOn(foodly, 'me').mockResolvedValue({ id: 1, name: 'Kolja', profilePicture: null })
-  vi.spyOn(foodly, 'listUsers').mockResolvedValue([])
+  vi.spyOn(foodly, 'getUsers').mockResolvedValue([])
   vi.spyOn(foodly, 'listTags').mockResolvedValue([])
   vi.spyOn(foodly, 'listIngredients').mockResolvedValue([])
   vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe)
