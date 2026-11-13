@@ -22,7 +22,11 @@ const OWN_NEWEST_FIRST: RecipeSearchQuery = {
 export function RecentCreations() {
   const userId = useCurrentUserId()
   const categories = useCategories()
-  const { status, data, error, reload } = useRequest(() => foodly.searchRecipes(OWN_NEWEST_FIRST, 1), [])
+  const { status, data, error, reload } = useRequest(
+    () => foodly.searchRecipes(OWN_NEWEST_FIRST, 1),
+    // "Own" is the signed-in user's, so a different user loads again.
+    [userId],
+  )
   const recipes = data?.items.slice(0, SHOWN) ?? []
   const state = status === 'ready' && recipes.length === 0 ? 'empty' : status
   // Same view prefs as the nav's "Rezepte" link (useNavState), narrowed to the user's own recipes.

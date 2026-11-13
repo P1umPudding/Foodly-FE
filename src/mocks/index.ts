@@ -42,8 +42,9 @@ const delay = (ms = 250) => new Promise((r) => setTimeout(r, ms))
 
 let nextId = 10_000
 
-// The backend's timestamp shape (`+00:00`, not `Z`). The mock sorts 'accessSince' by comparing strings, which only
-// works when every value has that shape; milliseconds stay so two recipes created within a second don't tie.
+// The backend's timestamp shape (`+00:00`, not `Z`), because the mock sorts 'accessSince' by comparing strings.
+// Milliseconds stay so two recipes created within a second don't tie. Mixed with the seconds-only fixtures the
+// order still holds ('+' < '.'); only the same instant written both ways would compare unequal.
 function nowIso(): string {
   return new Date().toISOString().replace(/Z$/, '+00:00')
 }
