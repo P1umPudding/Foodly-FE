@@ -16,7 +16,7 @@ packages, no new components/routes.
   h1 is 'Favoriten'; `unmount()` doesn't throw. On the unfixed code React's StrictMode cleanup calls the Promise and
   `render` itself throws ("destroy is not a function") — that's the expected red.
 - Test B (production path, "leaving the page"): plain `render(page())`, h1 'Favoriten', `expect(() => unmount()).not.toThrow()`.
-  On the unfixed code React 18 only logs at mount and throws at unmount — red at the unmount assertion.
+  On the unfixed code React 18 logs at mount and throws at unmount (see expected red below).
 - Both: `vi.spyOn(console, 'error').mockImplementation(() => {})` and assert no call has ANY argument containing
   'must not return anything besides a function' (React 18.3 logs a format string + args, so a single
   stringContaining matcher via toHaveBeenCalledWith would never match):
@@ -39,7 +39,7 @@ packages, no new components/routes.
 - Verify before fixing useSocketStatus: eslint flags exactly useSocketStatus.ts:7 (and CategoryPage:49 if checked on the old code via `git stash`/old blob), nothing else.
 - `useSocketStatus.ts:7` -> `useEffect(() => { return socket.onStatus(setStatus) }, [])` (same behaviour).
 - `docs/architecture.md` §6 table (~line 143): add row
-  "`no-restricted-syntax` gegen Effekt-Callbacks ohne Block-Body | Ein Effekt gibt React nur bewusst eine Cleanup-Funktion zurück (#211)".
+  "`no-restricted-syntax` gegen Effekt-Callbacks ohne Block-Body (`useEffect`, `useLayoutEffect`, `useInsertionEffect`, auch als `React.*`) | Ein Effekt gibt React nur bewusst eine Cleanup-Funktion zurück (#211)".
 - Never add to eslint-suppressions.json.
 
 ## Step 4: Checks (AC2, AC3)
@@ -53,3 +53,4 @@ packages, no new components/routes.
 2. `chore(lint): forbid expression-bodied effect callbacks (#211)` — eslint.config.js + useSocketStatus.ts + docs/architecture.md
 PR text names all five checks as green.
 
+Review rounds added two follow-up commits: the selector also catches `React.useEffect`-style calls, and the docs were aligned with it.

@@ -88,7 +88,7 @@ describe('CategoryPage', () => {
     expect(screen.queryByText(/Noch nichts in/)).toBeNull()
   })
 
-  it('opens and leaves a category when scrollTo returns a Promise (StrictMode runs the cleanup at once)', () => {
+  it('opens and leaves a category when scrollTo returns a Promise (StrictMode runs the cleanup on mount)', () => {
     mockScrollToReturningPromise()
     catalog.categories = { status: 'ready', list: [CATEGORY] }
     const { unmount } = render(<StrictMode>{page()}</StrictMode>)
