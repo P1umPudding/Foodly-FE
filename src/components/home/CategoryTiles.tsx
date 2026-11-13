@@ -8,7 +8,7 @@ import { categoryPageHref } from '../shell/nav'
 import { HomeSection } from './HomeSection'
 import type { SectionState } from './HomeSections'
 
-const GRID = 'grid grid-cols-4 gap-3 phone:grid-cols-2'
+const GRID = 'grid grid-cols-4 gap-2 phone:grid-cols-2'
 
 const recipeCount = (n: number) => `${n} ${n === 1 ? 'Rezept' : 'Rezepte'}`
 
