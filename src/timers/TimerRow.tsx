@@ -50,9 +50,7 @@ export function TimerRow({ timer }: { timer: Timer }) {
         )}
       >
         <div className="min-w-0 flex-1">
-          <div className={cn('truncate font-medium', named ? 'text-foreground' : 'text-muted-foreground')}>
-            {label}
-          </div>
+          <div className={cn('truncate font-medium', named ? 'text-foreground' : 'text-muted-foreground')}>{label}</div>
           <progress
             max={1}
             value={elapsedShare(timer)}
