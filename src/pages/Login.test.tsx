@@ -21,7 +21,7 @@ afterEach(() => {
 function mockCatalogs() {
   vi.spyOn(foodly, 'me').mockResolvedValue(user)
   vi.spyOn(foodly, 'listTags').mockResolvedValue([])
-  vi.spyOn(foodly, 'listUsers').mockResolvedValue([])
+  vi.spyOn(foodly, 'getUsers').mockResolvedValue([])
   vi.spyOn(foodly, 'listIngredients').mockResolvedValue([])
   vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
 }

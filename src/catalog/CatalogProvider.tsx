@@ -1,6 +1,6 @@
-// Loads the app-wide lookup catalogs (tags, users, current user, categories) at
-// startup. Tag *images* are never bulk-loaded — Tag.svg is only a hash; the
-// image would be fetched lazily per tag when actually rendered.
+// Loads the app-wide lookup catalogs (tags, current user, ingredients, categories) at
+// startup; users are fetched on demand (useUser). Tag *images* are never bulk-loaded —
+// Tag.svg is only a hash; the image would be fetched lazily per tag when actually rendered.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Loader } from '@postxl/ui-components'
 import { foodly } from '../api'
@@ -14,7 +14,7 @@ export type CategoriesStatus = 'loading' | 'ready' | 'error'
 
 type Catalog = {
   tags: { byId: Record<TagId, Tag>; status: CatalogStatus }
-  users: { byId: Record<UserId, User>; status: CatalogStatus }
+  users: { byId: Record<UserId, User>; request: (id: UserId) => void }
   me: User | null
   ingredients: { byId: Record<IngredientId, Ingredient>; status: CatalogStatus }
   categories: { list: UserCategory[]; status: CategoriesStatus; error: Error | null; retry: () => void }
@@ -164,18 +164,51 @@ function withOrder(list: UserCategory[], ids: UserCategoryId[]): UserCategory[] 
   return withOrders(list, new Map(ids.map((id, index) => [id, index])))
 }
 
+// Names for owners, editors and raters. useUser reports ids it doesn't know; all reported in one render are
+// fetched in one request (microtask). An id is asked for once per page load: found, not found or failed alike,
+// so an unknown id doesn't refetch on every render. The provider is keyed by user, so a switch starts empty.
+// No unmount guard: the refs survive StrictMode's double effect, and a guard would drop the in-flight answer.
+function useUserDirectory(me: User | null) {
+  const [byId, setById] = useState<Record<UserId, User>>({})
+  const asked = useRef(new Set<UserId>())
+  const queue = useRef<UserId[]>([])
+
+  const flush = useCallback(() => {
+    const ids = queue.current
+    queue.current = []
+    foodly
+      .getUsers(ids)
+      .then((users) => setById((known) => ({ ...known, ...indexBy(users, (u) => u.id) })))
+      .catch(() => {}) // the ids count as not found until the next page load
+  }, [])
+
+  const meId = me?.id
+  const request = useCallback(
+    (id: UserId) => {
+      if (id === meId || asked.current.has(id)) return
+      asked.current.add(id)
+      queue.current.push(id)
+      if (queue.current.length === 1) queueMicrotask(flush)
+    },
+    [meId, flush],
+  )
+
+  const withMe = useMemo(() => (me ? { ...byId, [me.id]: me } : byId), [byId, me])
+  return { byId: withMe, request }
+}
+
 export function CatalogProvider({ children }: { children: ReactNode }) {
   const tagsReq = useRequest(() => foodly.listTags(), [])
-  const usersReq = useRequest(() => foodly.listUsers(), [])
   const meReq = useRequest(() => foodly.me(), [])
+  const users = useUserDirectory(meReq.data)
   const ingredientsReq = useRequest(() => foodly.listIngredients(), [])
   // Not part of the settled gate below: the sidebar and the list show their own loading state.
   const categories = useCategoriesState()
 
   // Graceful degrade: render children once every load has *settled* (ready or
   // error). A failed catalog just yields an empty map + 'error' status; the UI
-  // degrades (tokens stay literal, user names fall back) rather than crashing.
-  const settled = [tagsReq, usersReq, meReq, ingredientsReq].every((r) => r.status !== 'loading')
+  // degrades (tokens stay literal) rather than crashing. Users aren't waited for: names fill in as they arrive.
+  const settled = [tagsReq, meReq, ingredientsReq].every((r) => r.status !== 'loading')
   if (!settled) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
@@ -197,7 +230,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
 
   const value: Catalog = {
     tags: { byId: indexBy(tagsReq.data, (t) => t.id), status: tagsReq.status === 'error' ? 'error' : 'ready' },
-    users: { byId: indexBy(usersReq.data, (u) => u.id), status: usersReq.status === 'error' ? 'error' : 'ready' },
+    users,
     me: meReq.data,
     ingredients: {
       byId: indexBy(ingredientsReq.data, (i) => i.id),
@@ -220,14 +253,13 @@ function useCatalog(): Catalog {
 export function useTags() {
   return useCatalog().tags
 }
-export function useUsers() {
-  return useCatalog().users
-}
 export function useTag(id: TagId): Tag | undefined {
   return useCatalog().tags.byId[id]
 }
 export function useUser(id: UserId): User | undefined {
-  return useCatalog().users.byId[id]
+  const { byId, request } = useCatalog().users
+  useEffect(() => request(id), [id, request])
+  return byId[id]
 }
 export function useCurrentUserId(): UserId | null {
   return useCatalog().me?.id ?? null

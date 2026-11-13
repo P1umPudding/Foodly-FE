@@ -4,7 +4,6 @@ import { TagText } from '../TagText'
 import { RatingMeta } from './Stars'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import { CategoryLine } from './CategoryDots'
-import { knowsUserNames } from '../../api'
 import { visibleRating } from '../../api/views'
 import { recipeImageSrc } from '../../api/assets'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
@@ -26,7 +25,7 @@ export function RecipeTile({ recipe, categories = [] }: { recipe: Recipe; catego
   // A photo that fails to load turns the tile into the typographic one.
   const { failed, onError } = useImageFailed(src)
   const photo = failed ? null : src
-  const ownerName = recipe.owner !== me && knowsUserNames() ? owner?.name : undefined
+  const ownerName = recipe.owner !== me ? owner?.name : undefined
 
   return (
     <Link

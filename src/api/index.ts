@@ -34,10 +34,10 @@ const USE_MOCKS = import.meta.env.VITE_MOCK === '1'
 export const socket = new SocketClient(WS_URL)
 export { type SocketStatus } from './socket'
 
-// The mock responder is attached in BOTH modes: with VITE_MOCK=1 every request
-// goes to it; in REST mode only listUsers does (see below). No WebSocket is
-// opened — that's for the future live editing.
+// With VITE_MOCK=1 every request goes to the mock responder; REST mode doesn't load it.
+// No WebSocket is opened — that's for the future live editing.
 export async function bootstrap(): Promise<void> {
+  if (!USE_MOCKS) return
   const { mockRequest } = await import('../mocks')
   socket.useMocks(mockRequest)
 }
@@ -81,10 +81,6 @@ const auth = {
 
 // Reads and writes go over REST; with VITE_MOCK=1 (opt-in; Skaile preview default)
 // everything goes through the socket's mock responder instead.
-//
-// `listUsers` stays mocked: the backend offers only typeahead /users/search
-// (no list-all, no /users/{id}), which can't back the bulk byId map that
-// CatalogProvider uses to resolve owner/editor names.
 export const foodly = {
   auth,
   me: (): Promise<User> =>
@@ -100,7 +96,6 @@ export const foodly = {
             throw error
           },
         ),
-  listUsers: () => socket.request<User[]>('users.list'),
   // Unknown ids are simply missing from the result, in any order.
   getUsers: (ids: UserId[]): Promise<User[]> => {
     const unique = [...new Set(ids)]
@@ -222,12 +217,6 @@ function refetchAfterStubWrite(id: RecipeId): Promise<Recipe> {
 function withStubRatings(page: PaginatedRecipes, query: RecipeSearchQuery): PaginatedRecipes {
   const items = page.items.map(mergeMyRating)
   return { ...page, items: query.sort?.field === 'rating' ? sortByRating(items, query.sort.order) : items }
-}
-
-// listUsers is mock data in REST too, and real user ids are small numbers that could match a mock
-// user — so names like "von Mara" are only trustworthy where the whole app runs on mocks.
-export function knowsUserNames(): boolean {
-  return USE_MOCKS
 }
 
 export type { PaginatedRecipes } from './protocol'
