@@ -12,10 +12,11 @@ import { ref } from '../test/images'
 vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
 
 const names: Record<number, string> = { 1: 'Ich', 2: 'Mara', 3: 'Jonas' }
+const session = vi.hoisted(() => ({ me: 1 as number | null }))
 vi.mock('../catalog/CatalogProvider', () => ({
   useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
-  useCurrentUserId: () => 1,
+  useCurrentUserId: () => session.me,
   useUsers: (ids: number[]): User[] =>
     ids.filter((id) => names[id]).map((id) => ({ id, name: names[id], profilePicture: null })),
 }))
@@ -82,7 +83,10 @@ const heading = () => screen.findByRole('heading', { name: /Pancakes|Waffeln/ })
 const classesOf = (el: Element) => el.className.split(/\s+/)
 const header = () => document.querySelector<HTMLElement>('article > header')!
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  session.me = 1
+})
 
 describe('RecipeDetail head layout', () => {
   it('with a photo: stacked below 1100 px, two columns from there, hero opens the lightbox at image 1', async () => {
@@ -154,6 +158,13 @@ describe('RecipeDetail origin', () => {
     expect(screen.getByText('von Mara')).toBeTruthy()
   })
 
+  it('leaves the origin out while the current user is still unknown', async () => {
+    session.me = null
+    renderDetail('/recipes/5', { 5: recipe({ owner: 1, editors: [2] }) })
+    await heading()
+    expect(screen.queryByText(/^(von|mit) /)).toBeNull()
+  })
+
   it('leaves the origin out while no name is known', async () => {
     renderDetail('/recipes/5', { 5: recipe({ owner: 7, viewers: [1] }) })
     await heading()
@@ -189,6 +200,7 @@ describe('RecipeDetail „Kochen“', () => {
     renderDetail('/recipes/5?factor=1.5', { 5: recipe({ sizeNumber: null, sizeText: '26 cm Springform' }) })
     await heading()
     expect(screen.getByRole('link', { name: /Kochen/ }).getAttribute('href')).toBe('/recipes/5/cook?factor=1.5')
+    expect(screen.getByText('300 g')).toBeTruthy()
   })
 })
 

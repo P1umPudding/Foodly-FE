@@ -342,8 +342,10 @@ export function RecipeDetail() {
 // "von <owner>" on someone else's recipe, "mit <editors>" on my own shared one; nothing otherwise, and nothing
 // until at least one name has loaded.
 function RecipeOrigin({ recipe, me }: { recipe: Recipe; me: UserId | null }) {
-  const notMine = me === null || recipe.owner !== me
-  const users = useUsers(notMine ? [recipe.owner] : recipe.editors.filter((id) => id !== me))
+  // Until I'm known (me still loading), my own recipe would read "von <me>", so nothing shows yet.
+  const notMine = me !== null && recipe.owner !== me
+  const ids = me === null ? [] : notMine ? [recipe.owner] : recipe.editors.filter((id) => id !== me)
+  const users = useUsers(ids)
   if (users.length === 0) return null
   return (
     <span className="inline-flex items-center gap-1.5">
