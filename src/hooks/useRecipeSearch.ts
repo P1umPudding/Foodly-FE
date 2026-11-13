@@ -33,6 +33,9 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
   const [nonce, setNonce] = useState(0)
   // Bumped on every query-epoch change so stale loadMore responses are dropped.
   const epoch = useRef(0)
+  // A page request is running. Two callers (the list's sentinel and its scroll restore) can call loadMore in the
+  // same commit, before loadingMore reaches their closures; this keeps that to one request per page.
+  const inFlight = useRef(false)
 
   useEffect(() => {
     const mine = ++epoch.current
@@ -42,6 +45,7 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
     setCursor(null)
     setLoadingMore(false)
     setLoadMoreError(null)
+    inFlight.current = false
     foodly
       .searchRecipes(query, 1)
       .then((res) => {
@@ -61,6 +65,7 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
   const fetchPage = useCallback(
     (page: number) => {
       const mine = epoch.current
+      inFlight.current = true
       setLoadingMore(true)
       foodly
         .searchRecipes(query, page)
@@ -73,7 +78,9 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
           if (mine === epoch.current) setLoadMoreError(toError(e))
         })
         .finally(() => {
-          if (mine === epoch.current) setLoadingMore(false)
+          if (mine !== epoch.current) return
+          inFlight.current = false
+          setLoadingMore(false)
         })
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- key tracks query by value; a per-render fetchPage would re-subscribe the sentinel and refire loadMore
@@ -81,13 +88,13 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
   )
 
   const loadMore = useCallback(() => {
-    if (cursor === null || loadingMore || loadMoreError !== null) return
+    if (cursor === null || loadingMore || loadMoreError !== null || inFlight.current) return
     fetchPage(cursor)
   }, [cursor, loadingMore, loadMoreError, fetchPage])
 
   // Clearing the error and setting loadingMore in one batch keeps the sentinel's next loadMore a no-op.
   const retryLoadMore = useCallback(() => {
-    if (cursor === null || loadingMore || loadMoreError === null) return
+    if (cursor === null || loadingMore || loadMoreError === null || inFlight.current) return
     setLoadMoreError(null)
     fetchPage(cursor)
   }, [cursor, loadingMore, loadMoreError, fetchPage])

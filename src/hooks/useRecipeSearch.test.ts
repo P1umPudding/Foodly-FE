@@ -211,4 +211,26 @@ describe('useRecipeSearch', () => {
     expect(result.current.loadingMore).toBe(false)
     expect(result.current.hasMore).toBe(false)
   })
+  it('starts one request when loadMore is called twice before re-rendering, then pages on', async () => {
+    const spy = vi
+      .spyOn(foodly, 'searchRecipes')
+      .mockResolvedValueOnce({ items: [rec(1)], cursor: 2 })
+      .mockResolvedValueOnce({ items: [rec(2)], cursor: 3 })
+      .mockResolvedValueOnce({ items: [rec(3)], cursor: null })
+
+    const { result } = renderHook(() => useRecipeSearch({ sort: { field: 'name', order: 'asc' } }))
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    // Both callers hold the same render's loadMore (the list's sentinel and its scroll restore).
+    const { loadMore } = result.current
+    act(() => {
+      loadMore()
+      loadMore()
+    })
+    await waitFor(() => expect(result.current.recipes.map((r) => r.id)).toEqual([1, 2]))
+    expect(spy).toHaveBeenCalledTimes(2)
+
+    act(() => result.current.loadMore())
+    await waitFor(() => expect(result.current.recipes.map((r) => r.id)).toEqual([1, 2, 3]))
+    expect(spy).toHaveBeenNthCalledWith(3, expect.anything(), 3)
+  })
 })
