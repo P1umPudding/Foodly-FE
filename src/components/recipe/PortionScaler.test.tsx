@@ -55,7 +55,7 @@ function type(value: string) {
 
 describe('PortionScaler — portions mode', () => {
   it('shows the base portion count and its label, no × sign', () => {
-    renderScaler({ part: 'input', sizeNumber: 4, sizeText: 'Portionen', factor: 1 })
+    renderScaler({ sizeNumber: 4, sizeText: 'Portionen', factor: 1 })
     expect(box().value).toBe('4')
     expect(screen.getByText('Portionen')).toBeTruthy()
     expect(screen.queryByText('×')).toBeNull()
@@ -70,23 +70,23 @@ describe('PortionScaler — portions mode', () => {
   })
 
   it('typing a desired count commits as desired ÷ base', () => {
-    const { onChange } = renderScaler({ part: 'input', sizeNumber: 4, sizeText: 'Portionen', factor: 1 })
+    const { onChange } = renderScaler({ sizeNumber: 4, sizeText: 'Portionen', factor: 1 })
     type('6')
     expect(onChange).toHaveBeenLastCalledWith(6 / 4)
   })
 
   it('reflects a non-default factor as the scaled portion count', () => {
-    renderScaler({ part: 'input', sizeNumber: 4, sizeText: 'Portionen', factor: 1.5 })
+    renderScaler({ sizeNumber: 4, sizeText: 'Portionen', factor: 1.5 })
     expect(box().value).toBe('6')
   })
 })
 
 describe('PortionScaler — multiplier mode', () => {
-  it('shows a leading × sign, no inline descriptor (it lives in the meta row)', () => {
+  it('shows a leading × sign and the size descriptor', () => {
     renderScaler({ sizeNumber: null, sizeText: '26 cm Springform', factor: 1 })
     expect(box().value).toBe('1')
     expect(screen.getByText('×')).toBeTruthy()
-    expect(screen.queryByText('26 cm Springform')).toBeNull()
+    expect(screen.getByText('26 cm Springform')).toBeTruthy()
   })
 
   it('steps by 0.5 at and above ×1', () => {
@@ -120,9 +120,62 @@ describe('PortionScaler — floors', () => {
   })
 })
 
+describe('PortionScaler — ceilings', () => {
+  it('portions have no upper limit (e.g. 120 cookies)', () => {
+    const { onChange } = renderScaler({ sizeNumber: 120, sizeText: 'Plätzchen', factor: 1 })
+    fireEvent.click(screen.getByLabelText('Mehr'))
+    expect(onChange).toHaveBeenLastCalledWith(121 / 120)
+    fireEvent.click(screen.getByLabelText('Weniger'))
+    expect(onChange).toHaveBeenLastCalledWith(119 / 120)
+  })
+
+  it('multiplier plus is disabled at ×2, the end of the series', () => {
+    renderScaler({ sizeNumber: null, factor: 2 })
+    expect((screen.getByLabelText('Mehr') as HTMLButtonElement).disabled).toBe(true)
+  })
+})
+
+// Only values the URL accepts (src/cook/size.ts) may be committed, so a reload keeps them.
+describe('PortionScaler — typed values snap to allowed sizes', () => {
+  it.each([
+    ['portions: rounds to a whole count', { sizeNumber: 4 }, 1, '2.4', '2', 2 / 4],
+    ['portions: no cap', { sizeNumber: 4 }, 1, '150', '150', 150 / 4],
+    ['multiplier: nearest series value', { sizeNumber: null }, 1, '1.3', '1.5', 1.5],
+    ['multiplier: caps at ×2', { sizeNumber: null }, 1, '5', '2', 2],
+    ['multiplier: floors at ×¼', { sizeNumber: null }, 1, '0.1', '0.25', 0.25],
+  ])('%s', (_, props, factor, typed, shown, committed) => {
+    const { onChange } = renderStateful({ ...props, factor })
+    type(typed)
+    expect(box().value).toBe(shown)
+    expect(onChange).toHaveBeenLastCalledWith(committed)
+  })
+
+  it('retyping a fractional count that is shown keeps it', () => {
+    const { onChange } = renderStateful({ sizeNumber: 2.5, sizeText: 'Portionen', factor: 1 })
+    type('2.5')
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('a value that snaps to the shown one commits nothing', () => {
+    const { onChange } = renderStateful({ sizeNumber: null, factor: 1.5 })
+    type('1.6')
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('steps a fractional old count to whole ones and back through it', () => {
+    renderStateful({ sizeNumber: 2.5, sizeText: 'Portionen', factor: 1 })
+    fireEvent.click(screen.getByLabelText('Mehr'))
+    expect(box().value).toBe('3')
+    fireEvent.click(screen.getByLabelText('Weniger'))
+    expect(box().value).toBe('2.5')
+    fireEvent.click(screen.getByLabelText('Weniger'))
+    expect(box().value).toBe('2')
+  })
+})
+
 describe('PortionScaler — commit rules', () => {
   it('clearing the field resets to the default (factor 1)', () => {
-    const { onChange } = renderScaler({ part: 'input', sizeNumber: 4, sizeText: 'Portionen', factor: 1.5 })
+    const { onChange } = renderScaler({ sizeNumber: 4, sizeText: 'Portionen', factor: 1.5 })
     type('')
     expect(onChange).toHaveBeenLastCalledWith(1)
   })
@@ -130,8 +183,8 @@ describe('PortionScaler — commit rules', () => {
 
 // #71: after a commit the box shows the applied value, even when the factor didn't change.
 describe('PortionScaler — field shows the applied value', () => {
-  const portions = { part: 'input' as const, sizeNumber: 4, sizeText: 'Portionen' }
-  const multiplier = { part: 'full' as const, sizeNumber: null }
+  const portions = { sizeNumber: 4, sizeText: 'Portionen' }
+  const multiplier = { sizeNumber: null }
 
   it.each([
     ['portions, unscaled: cleared', portions, 1, '', '4', 1],
@@ -195,34 +248,9 @@ describe('PortionScaler — field shows the applied value', () => {
   })
 })
 
-// RecipeDetail splits portions-mode across two instances: the box (meta row) and
-// its steppers (tools row), both driven by one factor.
-describe('PortionScaler — split layout', () => {
+describe('PortionScaler — pending edits', () => {
   it('a stepper change drops a pending edit, so the next blur cannot overwrite it', () => {
-    const onChange = vi.fn()
-    function Split() {
-      const [factor, setFactor] = useState(1)
-      const props = {
-        factor,
-        sizeNumber: 4,
-        sizeText: 'Portionen',
-        onChange: (f: number) => {
-          onChange(f)
-          setFactor(f)
-        },
-      }
-      return (
-        <>
-          <PortionScaler {...props} part="input" />
-          <PortionScaler {...props} part="steppers" />
-        </>
-      )
-    }
-    render(
-      <TooltipProvider>
-        <Split />
-      </TooltipProvider>,
-    )
+    const { onChange } = renderStateful({ sizeNumber: 4, sizeText: 'Portionen', factor: 1 })
     fireEvent.change(box(), { target: { value: '7' } })
     fireEvent.click(screen.getByLabelText('Mehr'))
     expect(box().value).toBe('5')
@@ -242,23 +270,14 @@ describe('PortionScaler — tap targets', () => {
   const has = (el: Element, token: string) => el.classList.contains(token)
 
   it.each([
-    ['portions steppers', { part: 'steppers' as const, sizeNumber: 4 }],
-    ['multiplier scaler', { part: 'full' as const }],
+    ['portions', { sizeNumber: 4 }],
+    ['multiplier', { sizeNumber: null }],
   ])('%s: keeps iconSm and adds the phone tap-target classes', (_, props) => {
     renderScaler(props)
     for (const name of ['Weniger', 'Mehr']) {
       const button = screen.getByRole('button', { name })
       expect(has(button, 'size-7.5')).toBe(true)
       expect(has(button, 'phone:size-10')).toBe(true)
-    }
-    // Keep the row from growing next to the 32 px toggles, and the column from widening.
-    const pair = screen.getByRole('button', { name: 'Weniger' }).parentElement!
-    expect(has(pair, 'gap-1')).toBe(true)
-    expect(has(pair, 'phone:-my-1')).toBe(true)
-    expect(has(pair, 'phone:gap-0')).toBe(true)
-    if (props.part === 'full') {
-      expect(has(pair, 'ml-2')).toBe(true)
-      expect(has(pair, 'phone:ml-0')).toBe(true)
     }
   })
 })

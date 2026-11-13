@@ -93,6 +93,8 @@ There's no server code and no secrets in the repo.
   `src/list/` — recipe-list state (filters, sort, search, URL, persistence).
   `src/editor/` — recipe-editor draft + autosave. `src/timers/` —
   cooking timers per user. `src/home/` — recently viewed recipes per user (start page).
+  `src/cook/` — state shared by recipe detail and cook mode: the size in the URL
+  (`size.ts`) and ticked ingredients in memory (`checkedIngredients.ts`).
 - `src/hooks/` — `useRequest` (run a request, track loading/ready/error),
   `useRecipeSearch` (cursor-paginated recipe search, infinite scroll),
   `useWakeLock`. `useSocketStatus` belongs to the future live editing: `ConnectionDot`

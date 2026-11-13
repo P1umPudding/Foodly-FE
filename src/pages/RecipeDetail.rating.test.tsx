@@ -9,6 +9,7 @@ import type { Recipe } from '../api/protocol'
 vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
 
 vi.mock('react-router-dom', () => ({
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
   useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),
   useNavigate: () => vi.fn(),
@@ -19,6 +20,7 @@ vi.mock('../catalog/CatalogProvider', () => ({
   useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
+  useUsers: () => [],
 }))
 
 function recipe(rating: Recipe['rating']): Recipe {

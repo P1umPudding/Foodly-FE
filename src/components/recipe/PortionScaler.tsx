@@ -2,36 +2,29 @@ import { useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
 import { Button, NumberInput, cn } from '@postxl/ui-components'
 import { hasPortions } from '../../api/views'
+import { FACTOR_SERIES, clampServings, round2, snapFactor, stepFactor, stepServings } from '../../cook/size'
 import { TagText } from '../TagText'
 
-// The portion-scaling field in the recipe meta row. Two modes off one set of
-// pieces so nothing reflows as the value changes:
-//   • portions-mode (sizeNumber > 0, see hasPortions): the box is the desired
-//     portion count and factor = desired / sizeNumber.
-//   • multiplier-mode (otherwise): the box is the × factor itself, marked with a
-//     leading "×".
-// The factor lives in RecipeDetail. The box buffers the edit in `draft` and
-// commits on blur/Enter, so it can be cleared while typing; afterwards it always
-// shows the applied value again, even when the factor didn't change (the lib's
-// DeferredNumberInput only re-syncs when its value prop changes, #71). Steppers
-// are our own — the app hides native number spinners globally (styles.css).
-//
-// `part` lets the caller split the pieces across two rows: portions-mode keeps
-// the box up in the meta row (`input`) and drops its steppers into the
-// Koch-Modus tools row (`steppers`); multiplier-mode renders everything together
-// (`full`).
+// The size stepper in the detail action row: [−] value label [+]. Two modes:
+//   • portions-mode (sizeNumber > 0, see hasPortions): the box is the desired portion count and
+//     factor = desired / sizeNumber. Whole counts ≥ 1 only.
+//   • multiplier-mode (otherwise): the box is the × factor itself, marked with a leading "×", limited to the
+//     series ×¼ … ×2.
+// Both limits match what src/cook/size.ts accepts from the URL, so every value set here survives a reload.
+// The factor lives in the URL (RecipeDetail). The box buffers the edit in `draft` and commits on blur/Enter, so
+// it can be cleared while typing; afterwards it always shows the applied value again, even when the factor
+// didn't change (the lib's DeferredNumberInput only re-syncs when its value prop changes, #71). Steppers are our
+// own — the app hides native number spinners globally (styles.css).
 export function PortionScaler({
   factor,
   onChange,
   sizeNumber,
   sizeText,
-  part = 'full',
 }: {
   factor: number
   onChange: (factor: number) => void
   sizeNumber: number | null
   sizeText: string | null
-  part?: 'full' | 'input' | 'steppers'
 }) {
   const portions = hasPortions(sizeNumber)
   const base = portions && sizeNumber !== null ? sizeNumber : 1
@@ -45,25 +38,25 @@ export function PortionScaler({
   // Map a box value back to a factor: portions divide by the base, the
   // multiplier is the factor itself.
   const apply = (value: number) => onChange(portions ? value / base : value)
-  // Commit (blur/Enter): negative or non-finite → ignore; empty / 0 → reset to
-  // default. So the factor never becomes 0 or NaN (both would show as amounts). A
-  // value that rounds to the shown one is ignored too, so 4.001 doesn't quietly rescale.
+  // Commit (blur/Enter): negative or non-finite → ignore; empty / 0 → reset to default. So the factor never
+  // becomes 0 or NaN (both would show as amounts). Otherwise snap to an allowed value first, then ignore it when
+  // it is the shown one, so 4.001 or ×1.6 at ×1.5 doesn't quietly rescale.
   const commit = (value: number | null) => {
     if (value !== null && (value < 0 || !Number.isFinite(value))) return
     if (value === null || round2(value) === 0) return onChange(1)
     if (round2(value) === current) return
-    apply(value)
+    const allowed = portions ? clampServings(value) : snapFactor(value)
+    if (allowed === current) return
+    apply(allowed)
   }
   const finishEdit = () => {
     if (draft) commit(draft.typed)
     setDraft(null)
   }
-  // Portions step whole counts (floor 1). The multiplier steps 0.5 at/above ×1
-  // and 0.25 below it (…0.25, 0.5, 0.75, 1, 1.5, 2…), floored at ×0.25.
-  const stepUp = () => apply(portions ? current + 1 : round2(current + (current < 1 ? 0.25 : 0.5)))
-  const stepDown = () =>
-    apply(portions ? Math.max(1, current - 1) : Math.max(0.25, round2(current - (current <= 1 ? 0.25 : 0.5))))
-  const canDecrement = portions ? current > 1 : current > 0.25
+  const stepUp = () => apply(portions ? stepServings(current, 1, base) : stepFactor(current, 1))
+  const stepDown = () => apply(portions ? stepServings(current, -1, base) : stepFactor(current, -1))
+  const canIncrement = portions || current < FACTOR_SERIES[FACTOR_SERIES.length - 1]
+  const canDecrement = portions ? current > Math.min(1, base) : current > FACTOR_SERIES[0]
 
   // Phones get 40 px tap targets (docs/design.md §7); desktop keeps the compact iconSm.
   const stepperClass = 'rounded-md text-muted-foreground hover:text-foreground phone:size-10'
@@ -83,7 +76,15 @@ export function PortionScaler({
   )
 
   const plus = (
-    <Button type="button" variant="ghost" size="iconSm" onClick={stepUp} aria-label="Mehr" className={stepperClass}>
+    <Button
+      type="button"
+      variant="ghost"
+      size="iconSm"
+      onClick={stepUp}
+      disabled={!canIncrement}
+      aria-label="Mehr"
+      className={stepperClass}
+    >
       <Plus className="size-4" />
     </Button>
   )
@@ -100,61 +101,26 @@ export function PortionScaler({
       aria-label={portions ? 'Portionen' : 'Mengen-Faktor'}
       // Outline + shadow only on hover; the border width stays put (transparent
       // → visible) so nothing shifts. Focus still shows its ring.
-      wrapperClassName="h-7 w-12 shrink-0 border-transparent shadow-none transition-[color,box-shadow] hover:border-input hover:shadow-xs"
-      // Portions match the meta-row size text (text-xl); the multiplier sits a
-      // notch smaller (text-lg, like its "×"). Input ships a `md:text-sm` that
-      // would shrink the value on desktop; override at the same breakpoint.
-      // bg-transparent so the field matches the wrapper (the lib otherwise leaves
-      // dark:bg-input/30 on the input).
-      className={cn(
-        'bg-transparent px-0.5 text-center tabular-nums dark:bg-transparent',
-        portions ? 'text-xl md:text-xl' : 'text-lg md:text-lg',
-      )}
+      wrapperClassName="h-7 w-10 shrink-0 border-transparent shadow-none transition-[color,box-shadow] hover:border-input hover:shadow-xs"
+      // Input ships a `md:text-sm` that would shrink the value on desktop; override at the same breakpoint.
+      // bg-transparent so the field matches the wrapper (the lib otherwise leaves dark:bg-input/30 on the input).
+      className="bg-transparent px-0.5 text-center text-base font-semibold tabular-nums md:text-base dark:bg-transparent"
     />
   )
 
-  if (part === 'input') {
-    return (
-      <div className="inline-flex items-center gap-1">
+  return (
+    <div className="inline-flex items-center gap-1 phone:gap-0">
+      {minus}
+      <span className="inline-flex items-center gap-1 px-1 text-base">
+        {!portions && <span className="font-semibold">×</span>}
         {input}
-        {/* Only portions-mode carries its label inline; in multiplier-mode the
-            size descriptor lives in the meta row above the stepper. */}
-        {portions && sizeText && (
-          <span className="ml-0.5 text-xl">
+        {sizeText && (
+          <span className={cn(!portions && 'text-muted-foreground')}>
             <TagText value={sizeText} size="md" />
           </span>
         )}
-      </div>
-    )
-  }
-
-  const steppers = (
-    // In multiplier-mode a little air sets the steppers off from the value; the
-    // gap between − and + itself stays the same as the standalone portions ones. On phones the
-    // 40 px buttons outgrow the row's 32 px toggles: the negative margin keeps the row height, and
-    // their own padding replaces gap and air so the size column widens only slightly (squeezing
-    // the 1fr rating/time column next to it as little as possible).
-    <div className={cn('inline-flex items-center gap-1 phone:-my-1 phone:gap-0', part === 'full' && 'ml-2 phone:ml-0')}>
-      {minus}
+      </span>
       {plus}
     </div>
   )
-
-  if (part === 'steppers') {
-    return steppers
-  }
-
-  // full — multiplier-mode: the "×" leads (close to the value), then the value,
-  // then the ±steppers set a touch apart from it.
-  return (
-    <div className="inline-flex items-center">
-      {!portions && <span className="mr-1 text-lg text-muted-foreground">×</span>}
-      {input}
-      {steppers}
-    </div>
-  )
-}
-
-function round2(n: number): number {
-  return Math.round(n * 100) / 100
 }

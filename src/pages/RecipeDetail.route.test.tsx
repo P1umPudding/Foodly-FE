@@ -19,6 +19,7 @@ vi.mock('../catalog/CatalogProvider', () => ({
   useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
+  useUsers: () => [],
 }))
 
 function recipe(id: number): Recipe {
@@ -63,14 +64,14 @@ function renderAt(path: string) {
   )
 }
 
-const cloneButton = () => screen.getByRole('button', { name: /duplizieren/i }) as HTMLButtonElement
+const cloneButton = () => screen.getByRole('button', { name: /kopie erstellen/i }) as HTMLButtonElement
 
 afterEach(() => {
   vi.restoreAllMocks()
 })
 
 describe('RecipeDetail clone · real route change', () => {
-  it('re-enables Duplizieren in the opened copy and after Back to the original', async () => {
+  it('re-enables Kopie erstellen in the opened copy and after Back to the original', async () => {
     vi.spyOn(foodly, 'copyRecipe').mockResolvedValue(recipe(99))
     renderAt('/recipes/5')
     await screen.findByText('Rezept 5')
