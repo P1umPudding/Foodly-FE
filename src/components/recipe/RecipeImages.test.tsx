@@ -35,7 +35,7 @@ describe('RecipeImages gallery', () => {
     const more = screen.getByRole('button', { name: 'Alle 6 Fotos ansehen' })
     const overlay = within(more).getByText('+3')
     expect(overlay.getAttribute('aria-hidden')).toBe('true')
-    expect(classesOf(overlay)).toContain('text-[20px]')
+    expect(classesOf(overlay)).toEqual(expect.arrayContaining(['text-[20px]', 'font-semibold']))
     fireEvent.click(more)
     expect(onOpen).toHaveBeenLastCalledWith(3)
 

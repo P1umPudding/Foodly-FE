@@ -54,6 +54,7 @@ export function RecipeImages({ images, onOpen }: { images: ImageRef[]; onOpen: (
     <div className="mt-8">
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="text-lg font-semibold">Fotos</h2>
+        {/* Muted, not the mockup's subtle: subtle misses AA for small text (docs/design.md §2). */}
         <span className="text-sm tabular-nums text-muted-foreground">
           {images.length}
           <span className="sr-only"> Fotos insgesamt</span>
@@ -82,7 +83,7 @@ export function RecipeImages({ images, onOpen }: { images: ImageRef[]; onOpen: (
               />
               {isMore && (
                 // Same dark scrim in light and dark mode, like the lightbox, so raw black/white rather than tokens. 20 px is a
-                // mockup exception to the type scale (docs/design.md §5).
+                // mockup exception to the type scale (docs/design.md §2, Schrift).
                 <span
                   aria-hidden="true"
                   className="absolute inset-0 grid place-items-center bg-black/50 text-[20px] font-semibold tabular-nums text-white"
