@@ -11,7 +11,8 @@ Teilen (#12), Gruppen (#13), „hinzugefügt am“ (#14), Login (#15). Die UI da
 soll trotzdem gebaut und bedienbar sein.
 
 Den Weg gibt es schon für einen Fall: `foodly.listUsers` geht auch im REST-Modus
-an den Mock-Responder (`src/api/index.ts`).
+an den Mock-Responder (`src/api/index.ts`). (Nachtrag: entfallen mit FE #193,
+Namen kommen seitdem über `foodly.getUsers` → `GET /users?ids=`.)
 
 ## Entscheidung
 

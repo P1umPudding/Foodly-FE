@@ -62,9 +62,8 @@ There's no server code and no secrets in the repo.
 - `src/` — the React app. Routing in `src/App.tsx`, theming in
   `src/theme/ThemeProvider.tsx`.
 - `src/api/` — **the only place that talks to the backend.**
-  - `index.ts` — the typed API surface (`foodly.*`). Each method except
-    `listUsers` has a REST and a mock branch, chosen by the build-time
-    `VITE_MOCK`.
+  - `index.ts` — the typed API surface (`foodly.*`). Each method has a REST
+    and a mock branch, chosen by the build-time `VITE_MOCK`.
   - `rest.ts` — REST transport (`fetch`): base URL, bearer from the session
     (`auth.ts`) with one refresh + one retry on 401 (none for `/auth/*`), error
     contract (throws `Error(message)`; `ApiError` from `http.ts` for sign-in/up),
@@ -86,17 +85,18 @@ There's no server code and no secrets in the repo.
     correlation, events), **reserved for future live editing** and never
     connected today. Its `{ id, type, payload }` envelope is unused today; the
     mock responder short-circuits `request()`.
-- `src/mocks/` — mock responder + JSON data (`src/mocks/data/`), used for
-  `VITE_MOCK=1` and for methods the backend doesn't offer yet.
+- `src/mocks/` — mock responder + JSON data (`src/mocks/data/`), used only for
+  `VITE_MOCK=1` (`bootstrap()` doesn't load it in REST mode).
 - `src/catalog/` — `CatalogProvider` (tags, users, ingredients as `byId`
-  maps, plus `me` and the user's categories). `src/list/` — recipe-list state (filters, sort, search, URL,
-  persistence). `src/editor/` — recipe-editor draft + autosave. `src/timers/` —
+  maps, plus `me` and the user's categories; users are fetched on demand:
+  `useUser(id)` reports unknown ids, batched into one `foodly.getUsers` call).
+  `src/list/` — recipe-list state (filters, sort, search, URL, persistence). `src/editor/` — recipe-editor draft + autosave. `src/timers/` —
   cooking timers per user. `src/home/` — recently viewed recipes per user (start page).
 - `src/hooks/` — `useRequest` (run a request, track loading/ready/error),
   `useRecipeSearch` (cursor-paginated recipe search, infinite scroll),
   `useWakeLock`. `useSocketStatus` belongs to the future live editing: `ConnectionDot`
   (not rendered in the shell today) shows connected whenever the mock responder
-  is installed (it sets the socket to open) and does **not** reflect REST/backend health.
+  is installed (mock mode only; it sets the socket to open) and does **not** reflect REST/backend health.
 - `src/components/` — shared UI, plus `editor/`, `home/`, `list/`, `recipe/`, `shell/`
   (app shell and navigation);
   `src/pages/` — `Home`, `RecipeList`, `RecipeDetail`, `RecipeEditor`, `NotFound`,
@@ -121,11 +121,9 @@ In short:
   `VITE_API_URL` needs the app's origin in the backend's
   `CORS_ALLOWED_ORIGINS`). **Never hardcode URLs** — they come from env only.
 - `VITE_MOCK=1` serves **everything** from `src/mocks`.
-- Every `foodly.*` method has a mock branch; all except `listUsers` also have a
-  REST branch (`USE_MOCKS ? socket.request(...) : rest.*`). `listUsers` is
-  mock-only until the backend offers a list endpoint
-  (`docs/backend-questions.md` B2). A new method gets both branches and a mock
-  handler.
+- Every `foodly.*` method has a mock and a REST branch
+  (`USE_MOCKS ? socket.request(...) : rest.*`). A new method gets both
+  branches and a mock handler.
 - Missing backend endpoint in REST mode (Alpha): stub it inside `src/api`
   (localStorage, `src/api/stubs.ts`, "Demo" hint in the UI) — see
   [`docs/decisions/0003-backend-gap-stubs.md`](docs/decisions/0003-backend-gap-stubs.md).
@@ -158,7 +156,7 @@ client; all of them are build-time, non-secret values.
 | Var | Default | Purpose |
 |-----|---------|---------|
 | `VITE_API_URL` | `/api/v1` | REST base URL. The relative default goes through the Vite dev proxy to `http://localhost:8080`. |
-| `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST (only `listUsers` stays mocked). |
+| `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST. |
 | `VITE_WS_URL` | `''` | Reserved for future live editing. Passed to `SocketClient` but never connected. |
 | `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and makes mock data the default (injects `VITE_MOCK=1` via `define`) unless `VITE_API_URL` or `VITE_MOCK` is set, in the process environment or a `.env*` file. |
 

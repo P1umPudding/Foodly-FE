@@ -17,8 +17,7 @@ werden hier nicht wiederholt.
   - **Mocks** (`src/mocks/index.ts`) über den `SocketClient`-Mock-Responder. Mit
     `VITE_MOCK=1` (die Skaile-Preview setzt das automatisch, außer `VITE_API_URL`
     oder `VITE_MOCK` sind in Env oder `.env*` gesetzt) läuft **alles** über Mocks;
-    ohne nur die Methoden, für die das Backend noch nichts hat (aktuell
-    `listUsers`, siehe `docs/backend-questions.md` B2).
+    ohne wird der Mock-Responder gar nicht geladen (fehlende Endpoints: Stubs, s. u.).
   - **Stubs** für fehlende Endpoints im REST-Modus (Alpha): Zweig in der
     `foodly.*`-Methode, Daten in `localStorage` (`foodly.stub.*`), Register
     `src/api/stubs.ts` (`isStubbed`), UI-Hinweis „Demo“. Regeln:
