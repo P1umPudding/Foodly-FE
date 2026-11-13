@@ -5,7 +5,10 @@ import stylesCss from './styles.css?raw'
 import indexHtml from '../../index.html?raw'
 
 const css = stylesCss.replace(/\/\*[\s\S]*?\*\//g, '')
-const RULE = /@media (\([^)]*\)) \{\s*:is\(input, textarea, \[contenteditable\]\)[^{]*\{\s*font-size: 16px;/
+// The :not() list is the opt-out for fields that are already larger (PortionScaler's text-xl); keep it in sync with
+// the comment in styles.css.
+const RULE =
+  /@media (\([^)]*\)) \{\s*:is\(input, textarea, \[contenteditable\]\):not\(\.text-xl, \.text-2xl, \.text-3xl\) \{\s*font-size: 16px;/
 
 it('defines one touch variant with the same query as the 16px field rule', () => {
   const variants = [...css.matchAll(/@custom-variant touch \(@media (\([^)]*\))\);/g)]

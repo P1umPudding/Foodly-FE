@@ -46,7 +46,8 @@
    Guarded by phoneVariant.test.ts. */
 @custom-variant phone (@media (width < 761px)); /* NOSONAR - Tailwind v4 at-rule */
 
-/* Touch devices (primary pointer is coarse). Same query as the 16px field rule below; guarded by touchInputs.test.ts. */
+/* Touch devices (primary pointer is coarse), for touch-only sizing (M5). Same query as the 16px field rule below;
+   guarded by touchInputs.test.ts. */
 @custom-variant touch (@media (pointer: coarse)); /* NOSONAR - Tailwind v4 at-rule */
 
 /* Map semantic tokens -> Tailwind v4 utility namespaces. `inline` so var()
