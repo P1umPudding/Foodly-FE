@@ -23,13 +23,13 @@ const images = (n: number) => Array.from({ length: n }, (_, i) => ref(i + 1))
 afterEach(() => setViewport(1024))
 
 describe('RecipeImages gallery', () => {
-  it('desktop, 6 images: heading with the count, 4 tiles, the 4th reads "+3" and opens image 4', () => {
+  it('desktop, 6 images: heading with the count, 4 tiles, the 4th reads "+3" and opens lightbox index 3', () => {
     setViewport(1280)
     const onOpen = vi.fn()
     render(<RecipeImages images={images(6)} onOpen={onOpen} />)
 
-    expect(screen.getByRole('heading', { name: 'Fotos' })).toBeTruthy()
-    expect(screen.getByText('6')).toBeTruthy()
+    const heading = screen.getByRole('heading', { name: 'Fotos' })
+    expect(within(heading.parentElement!).getByText('6')).toBeTruthy()
     expect(screen.getAllByRole('button')).toHaveLength(4)
 
     const more = screen.getByRole('button', { name: 'Alle 6 Fotos ansehen' })
@@ -53,6 +53,16 @@ describe('RecipeImages gallery', () => {
     expect(within(more).getByText('+4')).toBeTruthy()
     fireEvent.click(more)
     expect(onOpen).toHaveBeenLastCalledWith(2)
+  })
+
+  it('follows a viewport change while shown', () => {
+    setViewport(1280)
+    render(<RecipeImages images={images(6)} onOpen={() => {}} />)
+    expect(screen.getAllByRole('button')).toHaveLength(4)
+
+    setViewport(390)
+    expect(screen.getAllByRole('button')).toHaveLength(3)
+    expect(screen.getByRole('button', { name: 'Alle 6 Fotos ansehen' }).textContent).toContain('+4')
   })
 
   it('4 images: no "+N" on the desktop, "+2" on the phone', () => {
@@ -86,7 +96,7 @@ describe('RecipeImages gallery', () => {
 
     const tiles = screen.getAllByRole('button')
     expect(tiles).toHaveLength(2)
-    expect(screen.getByText('2')).toBeTruthy()
+    expect(within(screen.getByRole('heading', { name: 'Fotos' }).parentElement!).getByText('2')).toBeTruthy()
     expect(classesOf(tiles[0])).toContain('aspect-square')
     expect(classesOf(tiles[0].parentElement!)).toContain('gap-2')
   })

@@ -54,7 +54,10 @@ export function RecipeImages({ images, onOpen }: { images: ImageRef[]; onOpen: (
     <div className="mt-8">
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="text-lg font-semibold">Fotos</h2>
-        <span className="text-sm tabular-nums text-muted-foreground">{images.length}</span>
+        <span className="text-sm tabular-nums text-muted-foreground">
+          {images.length}
+          <span className="sr-only"> Fotos insgesamt</span>
+        </span>
       </div>
       <div className="grid grid-cols-4 gap-2 phone:grid-cols-3">
         {visible.map((image, i) => {
@@ -78,9 +81,10 @@ export function RecipeImages({ images, onOpen }: { images: ImageRef[]; onOpen: (
                 fallbackClassName="h-full w-full"
               />
               {isMore && (
+                // Same dark scrim in light and dark mode, like the lightbox, so raw black/white rather than tokens.
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 grid place-items-center bg-black/50 text-xl font-semibold tabular-nums text-white"
+                  className="absolute inset-0 grid place-items-center bg-black/50 text-lg font-semibold tabular-nums text-white"
                 >
                   +{more}
                 </span>
