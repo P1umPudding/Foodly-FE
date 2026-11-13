@@ -27,6 +27,9 @@ import { isShellNavState } from '../components/shell/nav'
 import { RetryAlert } from '../components/RetryAlert'
 
 const SCROLL_KEY = 'recipeList:scroll'
+// Pages the scroll restore loads at most to reach a saved position. Pages that add no height (client-side category
+// or text filter) would otherwise load the whole list.
+const MAX_RESTORE_PAGES = 10
 
 // The list a scroll position belongs to: its filters/sort/view/search, ignoring how the URL spells them
 // (a nav link writes `group=1`, the list itself omits defaults).
@@ -126,19 +129,26 @@ export function RecipeList() {
   // the live position, then re-apply it once the list has rendered. sessionStorage so
   // a fresh load starts at the top. Only for the same list: the shell's sidebar can open
   // a different category from a recipe page, which must start at the top.
+  // A position beyond the loaded pages loads more pages first: the browser would cut the scroll to the
+  // current page height.
   const scrollRestored = useRef(false)
+  const restoreTarget = useRef<{ list: string; y: number } | null>(null)
+  const restoreLoads = useRef(0)
   const { search: urlSearch, key: locationKey, state: locationState } = useLocation()
   const listRef = useRef(listIdentity(urlSearch))
   listRef.current = listIdentity(urlSearch)
+  const { hasMore, loadMore, loadingMore, loadMoreError } = search
 
   // A sidebar/tab-bar link opens a list from its start, also while this list stays mounted (where the
   // window would otherwise keep the previous list's position). Only on the click itself: Back to that
-  // history entry brings its state along, and must restore.
+  // history entry brings its state along, and must restore. A restore still loading pages ends here.
   const navigationType = useNavigationType()
   const fromShellNav = isShellNavState(locationState) && navigationType !== 'POP'
   const openedFromShellNav = useRef(fromShellNav)
   useEffect(() => {
-    if (fromShellNav) window.scrollTo(0, 0)
+    if (!fromShellNav) return
+    scrollRestored.current = true
+    window.scrollTo(0, 0)
   }, [locationKey, fromShellNav])
   useEffect(() => {
     const onScroll = () => {
@@ -151,17 +161,40 @@ export function RecipeList() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // Runs again after every page the restore loads. A reload of the list (listReady false) only pauses it;
+  // another list ends it without scrolling. The browser clamps the final scroll when the position stays out of
+  // reach (list end, failed page, page cap).
   useEffect(() => {
     if (scrollRestored.current || !listReady) return
-    scrollRestored.current = true
-    try {
-      const saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null') as { list: string; y: number } | null
-      const sameList = saved !== null && saved.list === listRef.current
-      if (sameList && saved.y > 0 && !openedFromShellNav.current) window.scrollTo(0, saved.y)
-    } catch {
-      // unreadable entry → start at the top
+    if (restoreTarget.current === null) {
+      let saved: { list: string; y: number } | null = null
+      try {
+        saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null') as { list: string; y: number } | null
+      } catch {
+        // unreadable entry → start at the top
+      }
+      if (saved === null || saved.list !== listRef.current || !(saved.y > 0) || openedFromShellNav.current) {
+        scrollRestored.current = true
+        return
+      }
+      restoreTarget.current = saved
     }
-  }, [listReady])
+    const { list, y } = restoreTarget.current
+    if (list !== listRef.current) {
+      scrollRestored.current = true
+      return
+    }
+    // The skeleton below the list makes the page taller than it is.
+    if (loadingMore) return
+    const reachable = y <= document.documentElement.scrollHeight - window.innerHeight
+    if (!reachable && hasMore && loadMoreError === null && restoreLoads.current < MAX_RESTORE_PAGES) {
+      restoreLoads.current++
+      loadMore()
+      return
+    }
+    scrollRestored.current = true
+    window.scrollTo(0, y)
+  }, [listReady, hasMore, loadingMore, loadMoreError, loadMore])
 
   // Desktop: the search is ready to type into when the page opens. Not on phones, where focusing would pop the
   // keyboard over the list. Only the first render's viewport counts, so resizing never steals focus.
@@ -177,7 +210,6 @@ export function RecipeList() {
   // a page that adds no visible row leaves the sentinel in view, so the next page loads by itself.
   // After a failed page loadMore is a no-op until the retry, so this does not loop.
   const sentinelRef = useRef<HTMLDivElement>(null)
-  const { hasMore, loadMore } = search
   useEffect(() => {
     const el = sentinelRef.current
     if (!el || !hasMore || awaitingCategories) return
