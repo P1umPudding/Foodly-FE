@@ -26,10 +26,17 @@ it('finishes importing while bootstrap is pending and renders once it settles', 
   root.id = 'root'
   document.body.append(root)
 
-  const blocked = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error('main.tsx import blocked on bootstrap (top-level await?)')), 500),
-  )
-  await Promise.race([import('./main'), blocked])
+  // Load the heavy dependencies first, so the budget below times main.tsx itself, not a cold transform.
+  await Promise.all([import('react-dom/client'), import('react-router-dom'), import('./theme/ThemeProvider')])
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const blocked = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('main.tsx import blocked on bootstrap (top-level await?)')), 2000)
+  })
+  try {
+    await Promise.race([import('./main'), blocked])
+  } finally {
+    clearTimeout(timer)
+  }
   await flush()
   expect(screen.queryByText('App rendered')).toBeNull()
 
