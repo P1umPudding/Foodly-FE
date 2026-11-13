@@ -5,7 +5,7 @@ import { Button, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetT
 export type BottomSheetProps = Omit<ComponentPropsWithoutRef<typeof SheetContent>, 'side' | 'title'> & {
   title: ReactNode
   description: string
-  // Off: the caller lays out its own scroll region (TimerPanel keeps its form fixed above a scrolling list).
+  // Off: the caller lays out its own scroll region (e.g. a fixed part above a scrolling one).
   scroll?: boolean
 }
 
