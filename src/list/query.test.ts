@@ -23,8 +23,12 @@ describe('buildSearchQuery', () => {
         accessRights: ['owner'],
         shareStates: ['shared'],
       },
-      sort: { field: 'totaltime', order: 'desc' },
+      sort: { field: 'totalTime', order: 'desc' },
     })
+  })
+
+  it("maps sortKey 'work' to the workTime sort field", () => {
+    expect(buildSearchQuery({ ...DEFAULT_STATE, sortKey: 'work' }).sort?.field).toBe('workTime')
   })
 
   it('omits the filters object entirely when no facet is active, and never sends categories', () => {
@@ -76,5 +80,24 @@ describe('applyQuery', () => {
   it('sorts by name ascending', () => {
     const out = applyQuery(recipes, { sort: { field: 'name', order: 'asc' } }, 1)
     expect(out.map((r) => r.id)).toEqual([2, 1])
+  })
+})
+
+describe('applyQuery time sorts', () => {
+  // Work and overall orders differ on purpose, so swapping the two fields fails.
+  const timed = [
+    recipe({ id: 1, workMinutes: 40, overallMinutes: 50 }),
+    recipe({ id: 2, workMinutes: 10, overallMinutes: 90 }),
+    recipe({ id: 3 }),
+  ]
+
+  it('sorts by workTime ascending, unknown last', () => {
+    const out = applyQuery(timed, { sort: { field: 'workTime', order: 'asc' } }, 1)
+    expect(out.map((r) => r.id)).toEqual([2, 1, 3])
+  })
+
+  it('sorts by totalTime descending, unknown still last', () => {
+    const out = applyQuery(timed, { sort: { field: 'totalTime', order: 'desc' } }, 1)
+    expect(out.map((r) => r.id)).toEqual([2, 1, 3])
   })
 })
