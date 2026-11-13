@@ -24,7 +24,7 @@ export function RecentCreations() {
   const categories = useCategories()
   const { status, data, error, reload } = useRequest(
     () => foodly.searchRecipes(OWN_NEWEST_FIRST, 1),
-    // "Own" is the signed-in user's, so a different user loads again.
+    // Safeguard: CatalogProvider renders us only once the user is known, but "own" must follow a user switch.
     [userId],
   )
   const recipes = data?.items.slice(0, SHOWN) ?? []

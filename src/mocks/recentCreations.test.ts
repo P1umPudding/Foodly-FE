@@ -6,7 +6,7 @@ import type { PaginatedRecipes } from '../api/protocol'
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+00:00$/
 
 describe('mock recipe timestamps', () => {
-  it('gives every recipe the three timestamps in the backend format', () => {
+  it('gives every seed recipe the three timestamps (seconds, +00:00)', () => {
     for (const r of mockData.recipes) {
       expect(r.createdAt).toMatch(ISO)
       expect(r.updatedAt).toMatch(ISO)
