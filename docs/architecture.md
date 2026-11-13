@@ -63,7 +63,8 @@ werden hier nicht wiederholt.
   Redux/Zustand) ohne Decision-Note.
 - Feature-State als reine Reducer/Funktionen + Hook: Liste in `src/list/`
   (`state.ts`, `query.ts`, `url.ts`, `persistence.ts`, `useListState.ts`), Editor in
-  `src/editor/` (`draft.ts`, `useAutosave.ts`, `access.ts`).
+  `src/editor/` (`draft.ts`, `useAutosave.ts`, `access.ts`), zuletzt angesehene Rezepte in
+  `src/home/recentlyViewed.ts`.
 - Persistenz im Browser nur über versionierte `localStorage`-Keys pro User
   (Muster: `src/list/persistence.ts`, `foodly:<feature>:<userId>`, `VERSION`).
 - URL ist Quelle für teilbaren State (Filter in `src/list/url.ts`).

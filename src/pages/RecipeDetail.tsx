@@ -34,6 +34,7 @@ import { TriggerButton } from '../components/TriggerButton'
 import { RecipeCategoryChips } from '../components/category/RecipeCategoryChips'
 import type { Recipe, RecipeIngredientId } from '../api/protocol'
 import { hasPortions } from '../api/views'
+import { pushRecentlyViewed, removeRecentlyViewed } from '../home/recentlyViewed'
 
 function isUrl(s: string): boolean {
   return /^https?:\/\//i.test(s.trim())
@@ -92,6 +93,13 @@ export function RecipeDetail() {
     cloneAttempt.current++
   }, [recipeId])
 
+  // Keyed on the loaded id only, so portion or rating changes don't push again; a repeat push just moves it to
+  // the front, so StrictMode's double run is harmless.
+  const loadedId = status === 'ready' && recipe ? recipe.id : null
+  useEffect(() => {
+    if (loadedId !== null && currentUserId !== null) pushRecentlyViewed(currentUserId, loadedId)
+  }, [loadedId, currentUserId])
+
   const toggleChecked = (id: RecipeIngredientId) =>
     setCheckedIds((prev) => {
       const next = new Set(prev)
@@ -131,6 +139,9 @@ export function RecipeDetail() {
                 name={plainName}
                 // replace: Back must not lead to the deleted recipe's "not found" page.
                 onDeleted={() => {
+                  // Otherwise six deleted recipes in front would keep "Zuletzt angesehen" empty for good (failed
+                  // loads are only forgotten when another one loaded).
+                  if (currentUserId !== null) removeRecentlyViewed(currentUserId, [recipe.id])
                   refreshCategories()
                   navigate('/recipes', { replace: true })
                 }}
