@@ -1,6 +1,14 @@
 import { StrictMode } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { CatalogProvider, useCategories, useIngredient, useMe, useRefreshCategories, useUser } from './CatalogProvider'
+import {
+  CatalogProvider,
+  useCategories,
+  useIngredient,
+  useMe,
+  useRefreshCategories,
+  useUser,
+  useUsers,
+} from './CatalogProvider'
 
 vi.mock('../api', () => ({
   foodly: {
@@ -320,5 +328,32 @@ describe('users on demand', () => {
     await act(async () => {})
     expect(screen.getAllByText('user2:-')).toHaveLength(2)
     expect(getUsers).toHaveBeenCalledTimes(1)
+  })
+
+  function UsersProbe({ ids }: { ids: number[] }) {
+    return (
+      <span>
+        users:
+        {useUsers(ids)
+          .map((u) => u.name)
+          .join(',') || '-'}
+      </span>
+    )
+  }
+
+  it('useUsers returns the known users in id order, in one request, not again for an equal new array', async () => {
+    const tree = (ids: number[]) => (
+      <StrictMode>
+        <CatalogProvider>
+          <UsersProbe ids={ids} />
+        </CatalogProvider>
+      </StrictMode>
+    )
+    const view = render(tree([3, 9, 2]))
+    await waitFor(() => screen.getByText('users:Jonas,Mara'))
+    view.rerender(tree([3, 9, 2]))
+    await act(async () => {})
+    expect(getUsers).toHaveBeenCalledTimes(1)
+    expect(getUsers).toHaveBeenCalledWith([3, 9, 2])
   })
 })

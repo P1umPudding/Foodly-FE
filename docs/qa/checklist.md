@@ -24,7 +24,7 @@ Grundlage für die Broad Runs von Foodly QA (am 1. und 15. jedes Monats). Jede J
 - Bilder, Lightbox (Pfeile, Escape, Thumbnails); REST-Modus ohne Fotos (Platzhalter)
 - Tags als Icon oder Name; Tag-Tokens im Text
 - Zeit-Chips in Schritten starten einen Timer bzw. öffnen das Panel
-- Quelle als Link; Duplizieren (auch mehrfach hintereinander); Löschen mit Dialog (inkl. Fehlerfall); Bearbeiten nur mit Rechten; ungültige ID
+- Quelle als Link; Kopie erstellen (auch mehrfach hintereinander); Löschen mit Dialog (inkl. Fehlerfall); Bearbeiten nur mit Rechten; ungültige ID
 
 ## Editor
 - Neu: Anlegen nur mit Titel, Verwerfen

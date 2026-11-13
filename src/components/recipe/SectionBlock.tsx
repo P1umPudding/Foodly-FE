@@ -19,7 +19,7 @@ export function SectionBlock({
   stepOffset: number
   factor?: number
   checkable?: boolean
-  checkedIds?: Set<RecipeIngredientId>
+  checkedIds?: ReadonlySet<RecipeIngredientId>
   onToggle?: (id: RecipeIngredientId) => void
 }) {
   return (

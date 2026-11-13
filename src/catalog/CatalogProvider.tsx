@@ -263,6 +263,15 @@ export function useUser(id: UserId): User | undefined {
   }, [id, request])
   return byId[id]
 }
+// The known users among `ids`, in order; unknown ones are requested and left out until they load.
+export function useUsers(ids: readonly UserId[]): User[] {
+  const { byId, request } = useCatalog().users
+  const key = ids.join(',')
+  useEffect(() => {
+    if (key) for (const id of key.split(',')) request(Number(id))
+  }, [key, request])
+  return ids.flatMap((id) => (byId[id] ? [byId[id]] : []))
+}
 export function useCurrentUserId(): UserId | null {
   return useCatalog().me?.id ?? null
 }

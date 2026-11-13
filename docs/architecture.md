@@ -63,10 +63,13 @@ werden hier nicht wiederholt.
 - Feature-State als reine Reducer/Funktionen + Hook: Liste in `src/list/`
   (`state.ts`, `query.ts`, `url.ts`, `persistence.ts`, `useListState.ts`), Editor in
   `src/editor/` (`draft.ts`, `useAutosave.ts`, `access.ts`), zuletzt angesehene Rezepte in
-  `src/home/recentlyViewed.ts`.
+  `src/home/recentlyViewed.ts`, Detail und Koch-Modus in `src/cook/` (`size.ts`: Größe als
+  `?servings`/`?factor`; `checkedIngredients.ts`: abgehakte Zutaten als kleiner In-Memory-Store mit
+  `useSyncExternalStore`, pro Rezept, ohne Web Storage — festgelegt in
+  `docs/superpowers/specs/2026-11-13-detail-cook-redesign-design.md`).
 - Persistenz im Browser nur über versionierte `localStorage`-Keys pro User
   (Muster: `src/list/persistence.ts`, `foodly:<feature>:<userId>`, `VERSION`).
-- URL ist Quelle für teilbaren State (Filter in `src/list/url.ts`).
+- URL ist Quelle für teilbaren State (Filter in `src/list/url.ts`, Rezeptgröße in `src/cook/size.ts`).
 
 ## 4. Hooks & Lade-/Fehler-/Leer-Zustände
 
@@ -81,7 +84,7 @@ werden hier nicht wiederholt.
     Rezeptliste je Ansicht), postxl `Loader` nur für kleine Einzelbereiche,
   - Fehler → postxl `Alert` (Muster: `src/pages/RecipeDetail.tsx`),
   - Leer → expliziter Leer-Text, nie eine leere Fläche.
-- Einzelaktionen (Upload, Duplizieren) melden Fehler per `Toaster`-Toast.
+- Einzelaktionen (Upload, Kopie erstellen) melden Fehler per `Toaster`-Toast.
 - Berechtigungen im UI sind UX, nicht Sicherheit: reine Prädikate (`canEdit`,
   `canViewRecipe`) neben den Views; das Backend erzwingt per 403.
 
