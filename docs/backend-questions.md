@@ -4,8 +4,8 @@ Lebende Liste aller Fragen an den Backend-Vertrag (`klassenserver7b/Foodly-backe
 Branch `main`, `resources/md/02_API_Design.md` + `03_Data_Models.md`), je mit
 Vorschlag und Status. Gepflegt vom Lead.
 
-Abgeglichen am **2026-11-12** gegen `main` @ `4cbbb55` (PR #20 gemergt als `097b69d`) und den offenen
-PR #22 @ `b39c380` (Review unten, „Review Backend-PR #22“),
+Abgeglichen am **2026-11-13** gegen `main` @ `767603e` (PR #22 gemergt, Review unten,
+„Review Backend-PR #22“),
 Doku **und** Code unter `src/api/rest/`. `web-api` ist
 seit PR #18 (2026-11-04) in `main` gemergt; `main` ist der Default-Branch, neue
 Backend-PRs gehen gegen `main`.
@@ -20,11 +20,11 @@ Kolja) · `später` (nicht blockierend).
 | #   | Thema                                   | Status      | Blockiert FE?           | Backend-Issue |
 | --- | --------------------------------------- | ----------- | ----------------------- | ------------- |
 | B1  | Bild-URL: `ImageId` → Datei             | gelöst      | –                       | [#9](https://github.com/klassenserver7b/Foodly-backend/issues/9) |
-| B2  | User-Lookup für Namen (owner/editors)   | PR #22 offen | ja (FE U2)             | [#10](https://github.com/klassenserver7b/Foodly-backend/issues/10) |
+| B2  | User-Lookup für Namen (owner/editors)   | FE-Arbeit   | nein (FE #193)          | [#10](https://github.com/klassenserver7b/Foodly-backend/issues/10) |
 | B3  | Ratings-Endpoints fehlen im Code        | offen       | ja (Phase 4 Rating)     | [#11](https://github.com/klassenserver7b/Foodly-backend/issues/11) |
 | B4  | Sharing-Endpoints fehlen im Code        | offen       | ja (Phase 4 Teilen)     | [#12](https://github.com/klassenserver7b/Foodly-backend/issues/12) |
 | B5  | Groups-Endpoints fehlen im Code         | offen       | ja (Phase 5 M2)         | [#13](https://github.com/klassenserver7b/Foodly-backend/issues/13) |
-| B6  | „added-at" pro viewer/editor + Feed     | PR #22 offen | ja (FE D3)             | [#14](https://github.com/klassenserver7b/Foodly-backend/issues/14) |
+| B6  | „added-at" pro viewer/editor + Feed     | FE-Arbeit (Feed offen) | nein (FE #196) | [#14](https://github.com/klassenserver7b/Foodly-backend/issues/14) |
 | B7  | Echte Auth + CORS `Authorization`       | FE-Arbeit   | ja (REST-Modus braucht Login) | [#15](https://github.com/klassenserver7b/Foodly-backend/issues/15) |
 | B8  | Tags anlegen (Katalog read-only)        | Entscheidung | nein                   | –             |
 | B9  | `tagId = name`                          | später      | nein                    | –             |
@@ -74,9 +74,8 @@ weniger Requests; A ist flexibler.
 
 **Entsperrt:** `listUsers`-Mock entfernen; Rollen-/Rating-Anzeige mit echten Namen.
 
-**Stand 2026-11-12:** Umgesetzt in Backend-PR #22 (offen) wie vorgeschlagen, aber **ohne** Beschränkung auf
-Nutzer, mit denen man teilt (Review-Hinweis 2 unten). FE-Issue U2 (`superpowers/plans/2026-11-12-backend-22-followups.md`),
-`backend-blocked` bis zum Merge.
+**Stand 2026-11-13:** Umgesetzt in Backend-PR #22 (gemergt 2026-11-13 als `767603e`) wie vorgeschlagen, aber **ohne** Beschränkung auf
+Nutzer, mit denen man teilt (Review-Hinweis 2 unten). FE-Issue U2 = #193 (`superpowers/plans/2026-11-12-backend-22-followups.md`), seit dem Merge agent-ready.
 
 ### B3 — Ratings-Endpoints
 
@@ -165,9 +164,9 @@ Der Activity-/Notification-Feed ist im Backend als „DB schema TBD" offen.
    `{ id, type: "recipe.shared" | "group.added" | …, actor, recipe?, group?, at, read }`.
    Nicht nötig für Phase 5, gemeinsam modellieren, wenn Notifications dran sind.
 
-**Stand 2026-11-12:** Stufe 1 in Backend-PR #22 (offen): `added_at` in beiden Tabellen, `myAccessSince` an Preview
+**Stand 2026-11-13:** Stufe 1 in Backend-PR #22 (gemergt als `767603e`): `added_at` in beiden Tabellen, `myAccessSince` an Preview
 und Detail (Owner = `createdAt`, Editor vor Viewer), `sort.field = "accessSince"` (camelCase, nicht `access_since`).
-Nebeneffekt: `accessRights:[owner]` + `accessSince desc` = „zuletzt erstellt“ serverseitig (FE D3). Die Kachel
+Nebeneffekt: `accessRights:[owner]` + `accessSince desc` = „zuletzt erstellt“ serverseitig (FE D3 = #196, agent-ready nach #192). Die Kachel
 „Kürzlich mit dir geteilt“ wird erst mit Teilen (B4, #12) geschnitten (Daniel, 2026-11-12): Ohne Teilen-Endpunkte
 wird niemand Editor/Viewer.
 
@@ -217,14 +216,15 @@ Routen, `DEV_TOKEN` aus `src/api/rest.ts` entfernen. Entschieden (Daniel, 2026-1
 offene Registrierung, Tokens in `localStorage`. Spec:
 `superpowers/specs/2026-11-08-auth-login-design.md`.
 
-### Review Backend-PR #22 (2026-11-12, Lead)
+### Review Backend-PR #22 (2026-11-12, Lead; Re-Check 2026-11-13, gemergt als `767603e`)
 
 PR [#22](https://github.com/klassenserver7b/Foodly-backend/pull/22) „bulk user lookup and access-since tracking“
 @ `b39c380`, 28 Dateien. Geprüft gegen den FE-Code auf `main`. Folgen fürs FE:
 `superpowers/plans/2026-11-12-backend-22-followups.md` (U1, U2) und Phase-5-Plan (D3).
 
 1. **Sortierfelder (bricht das FE bis U1):** Unbekannte `sort.field` → 422 statt Fallback auf `id`; `worktime`/
-   `totaltime` sind keine Aliase mehr. FE sendet sie heute. → U1 direkt nach dem Merge.
+   `totaltime` sind keine Aliase mehr. FE sendet sie heute. → U1 (#192) direkt nach dem Merge, seit 2026-11-13
+   agent-ready mit Vorrang.
 2. **Datenschutz `GET /users?ids=`:** Jeder angemeldete Nutzer kann beliebige IDs (bis 100 pro Request, beliebig oft)
    zu Name und Profilbild auflösen und so alle Nutzer durchzählen. Für die Alpha unkritisch, vor einem öffentlichen
    Betrieb aber zu klären.
@@ -320,9 +320,9 @@ Backend-Umbau der Zugriffsabfrage.
 - **G4 Kategorien:** `GET /categories` existiert (paginiert); FE nutzt es seit
   `feat/rest-backend-wiring`. Kategorie-Filter kann jetzt serverseitig laufen.
 - **G5 Sortfelder:** Auf `main` akzeptiert das Backend `worktime|work_time` und
-  `totaltime|total_time`; FE sendet `worktime`/`totaltime`. **Mit PR #22** gilt camelCase: nur noch
-  `workTime|work_time`, `totalTime|total_time` (+ `accessSince`), alles andere 422. FE-Issue U1 stellt um und geht
-  direkt nach dem Merge von #22 rein (Daniel, 2026-11-12).
+  `totaltime|total_time`; FE sendet `worktime`/`totaltime`. **Seit PR #22 (gemergt 2026-11-13)** gilt camelCase: nur noch
+  `workTime|work_time`, `totalTime|total_time` (+ `accessSince`), alles andere 422. FE-Issue U1 (#192) stellt um und hat
+  Vorrang; bis dahin liefert die Zeit-Sortierung 422 (Daniel, 2026-11-12).
 
 ---
 
