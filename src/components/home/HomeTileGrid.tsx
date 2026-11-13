@@ -3,5 +3,7 @@
 import type { ReactNode } from 'react'
 
 export function HomeTileGrid({ children }: { children: ReactNode }) {
-  return <div className="grid grid-cols-3 gap-x-5 gap-y-7 phone:grid-cols-2 phone:gap-x-3 phone:gap-y-5">{children}</div>
+  return (
+    <div className="grid grid-cols-3 gap-x-5 gap-y-7 phone:grid-cols-2 phone:gap-x-3 phone:gap-y-5">{children}</div>
+  )
 }
