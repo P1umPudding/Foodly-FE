@@ -137,7 +137,7 @@ export type PaginatedResponse<T> = { data: T[]; cursor: string | null }
 
 export type RecipeAccessRight = 'owner' | 'editor' | 'viewer'
 export type RecipeShareStateWire = 'private' | 'shared' | 'collaborative'
-export type RecipeSortField = 'name' | 'worktime' | 'totaltime' | 'rating'
+export type RecipeSortField = 'name' | 'workTime' | 'totalTime' | 'rating'
 export type SortOrder = 'asc' | 'desc'
 
 export type RecipeFilters = {
