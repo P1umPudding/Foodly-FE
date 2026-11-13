@@ -38,7 +38,7 @@ it('finishes importing while bootstrap is pending and renders once it settles', 
     clearTimeout(timer)
   }
   await flush()
-  expect(screen.queryByText('App rendered')).toBeNull()
+  expect(root.childNodes).toHaveLength(0)
 
   await act(async () => {
     bootstrap.resolve()

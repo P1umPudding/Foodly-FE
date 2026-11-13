@@ -28,3 +28,4 @@ function render() {
 void bootstrap()
   .catch((error: unknown) => console.error(error))
   .then(render)
+  .catch((error: unknown) => console.error(error))
