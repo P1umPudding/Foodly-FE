@@ -267,7 +267,7 @@ export function RecipeList() {
           />
         </div>
 
-        {/* min-h fits the 26 px reset link and ResultCount always renders (invisible while unknown), so the row, and
+        {/* min-h fits the 26 px reset link (mockup .link-btn) and ResultCount always renders (invisible while unknown), so the row, and
             with it --list-sticky-top, keeps its height whether or not the link shows. */}
         <div className="mt-3 flex min-h-[26px] items-center gap-2.5 text-sm text-muted-foreground">
           {/* Loading or failed: count 0 + more is the hidden placeholder — no number we don't know. */}

@@ -35,8 +35,9 @@ export function FilterButton({
     // Open: Popover/SheetTrigger set data-state=open on the trigger itself (no Tooltip wraps it here, unlike the view
     // toggles), so the frame can follow it via :has.
     <div
+      data-slot="filter-button"
       className={cn(
-        'inline-flex h-[30px] items-stretch overflow-hidden rounded-md border bg-card phone:h-10',
+        'inline-flex h-[30px] items-stretch overflow-hidden rounded-md border bg-card phone:h-10', // 30 px: mockup .fbtn
         active && 'border-border-strong',
         'has-[[data-state=open]]:border-subtle-foreground',
       )}
@@ -55,7 +56,7 @@ export function FilterButton({
             {active ? (
               <>
                 <span className="shrink-0">{label}:</span>{' '}
-                <span className="min-w-0 max-w-[180px] truncate font-semibold text-foreground">{value.first}</span>
+                <span className="min-w-0 max-w-45 truncate font-semibold text-foreground">{value.first}</span>
                 {value.more > 0 && (
                   <>
                     {' '}
@@ -98,7 +99,9 @@ export function FilterButton({
           size="icon"
           aria-label={`${label} entfernen`}
           onClick={clear}
-          className="h-full w-auto rounded-none border-l px-[7px] text-muted-foreground hover:bg-hover hover:text-foreground focus-visible:ring-inset dark:hover:bg-hover phone:w-10"
+          // size-auto: postxl's icon size ships size-9, which twMerge keeps next to h-full/w-auto. px-[7px]: mockup .fb-x.
+          // border-border on focus: postxl turns the border ring-coloured, which would recolour the hairline.
+          className="size-auto h-full w-auto rounded-none border-l px-[7px] text-muted-foreground hover:bg-hover hover:text-foreground focus-visible:border-border focus-visible:ring-inset dark:hover:bg-hover phone:w-10"
         >
           <X className="size-3.5" />
         </Button>

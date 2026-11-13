@@ -45,7 +45,7 @@ gilt: nichts Neues im alten Stil bauen.
 | `text-muted-foreground` | Sekundärtext (Untertitel, Beschreibungen) und Meta: Zähler („14 Rezepte“), Zeiten, selbst gerenderte Platzhalter |
 | `text-subtle-foreground` | nur Nicht-Text und großer Text (kein AA für kleinen Text, ≥ 3:1, Ausnahme siehe unten): Fortschrittsbalken eines pausierten Timers, Icons und Chevron der Filterknöpfe, Rahmen des geöffneten Filterknopfs |
 | `border-border` (Standard) / `border-border-strong` | Haarlinie (auch das ✕ im Filterknopf) / Hover- und Checkbox-Rand, aktiver Filterknopf |
-| `border-divider` | leise Trennlinie zwischen Listenzeilen und Abschnitten (Mockup `--divider`, schwächer als `border`) |
+| `border-divider` | leise Trennlinie zwischen Listenzeilen und Abschnitten (Mockup `--divider`, schwächer als `border`); genutzt ab V3 #229 |
 | `bg-sidebar`, `bg-sidebar-accent` | Seitenleiste, aktiver Navigationspunkt |
 | `bg-primary text-primary-foreground` | **eine** Hauptaktion pro Ansicht („Neues Rezept“, „Speichern“) |
 | `text-star` | Bewertungssterne |

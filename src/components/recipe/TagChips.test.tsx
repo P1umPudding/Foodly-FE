@@ -28,7 +28,7 @@ afterEach(() => {
 afterAll(() => vi.unstubAllEnvs())
 
 const icon = { ok: true, status: 200, blob: async () => new Blob(['<svg/>'], { type: 'image/svg+xml' }) }
-const chip = (name: string) => screen.getByText(name).closest('span')!
+const chip = (name: string) => screen.getByText(name).parentElement!
 
 describe('TagChips in REST mode', () => {
   it('renders every tag as a grey chip with its name', () => {
@@ -57,6 +57,13 @@ describe('TagChips in REST mode', () => {
     fireEvent.error(container.querySelector('img')!)
     expect(container.querySelector('img')).toBeNull()
     expect(container.textContent).toBe('vegan')
+  })
+
+  it('truncates a long name inside a capped chip', () => {
+    vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise(() => undefined))
+    render(<TagChips tags={['scharf']} />)
+    expect(screen.getByText('scharf').className).toContain('truncate')
+    expect(screen.getByText('scharf').parentElement!.className).toContain('max-w-40')
   })
 
   it('caps the chips at `max`', () => {

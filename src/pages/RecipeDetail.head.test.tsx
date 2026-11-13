@@ -147,7 +147,8 @@ describe('RecipeDetail head layout', () => {
   it('shows all tags as chips in the head', async () => {
     renderDetail('/recipes/5', { 5: recipe({ tags: ['Vegan', 'Scharf', 'Schnell'] }) })
     await screen.findByRole('heading', { level: 1, name: 'Pancakes' })
-    for (const tag of ['Vegan', 'Scharf', 'Schnell']) expect(screen.getByText(tag).className).toContain('bg-tag')
+    for (const tag of ['Vegan', 'Scharf', 'Schnell'])
+      expect(screen.getByText(tag).parentElement!.className).toContain('bg-tag')
   })
 
   it('has no inline styles in the head', async () => {

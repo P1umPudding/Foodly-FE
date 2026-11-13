@@ -121,8 +121,8 @@ describe('category dots and tags', () => {
 
   it.each([false, true])('compact=%s shows at most two tags as chips', (compact) => {
     renderRow({ ...base, tags: ['Vegan', 'Scharf', 'Schnell'] }, { compact })
-    expect(screen.getByText('Vegan').className).toContain('bg-tag')
-    expect(screen.getByText('Scharf').className).toContain('bg-tag')
+    expect(screen.getByText('Vegan').parentElement!.className).toContain('bg-tag')
+    expect(screen.getByText('Scharf').parentElement!.className).toContain('bg-tag')
     expect(screen.queryByText('Schnell')).toBeNull()
   })
 

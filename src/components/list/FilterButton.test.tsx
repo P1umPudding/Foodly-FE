@@ -63,7 +63,7 @@ describe('inactive / active', () => {
     expect(trigger.querySelector('svg')).toBeNull()
     expect(within(trigger).getByText('Vegetarisch').className).toContain('font-semibold')
     // One frame around both, in border-strong; the ✕ sits behind a hairline. 40 px on phones.
-    const frame = trigger.parentElement!
+    const frame = trigger.closest('[data-slot=filter-button]')!
     expect(frame).toBe(clear.parentElement)
     expect(frame.className.split(/\s+/)).toEqual(
       expect.arrayContaining(['border', 'border-border-strong', 'phone:h-10']),
@@ -129,7 +129,9 @@ describe('desktop', () => {
     expect(within(popover).getByText('Tag-Liste')).toBeTruthy()
     // Open look: the frame's border follows the trigger's data-state via :has (jsdom can't evaluate :has itself).
     expect(trigger.getAttribute('data-state')).toBe('open')
-    expect(trigger.parentElement!.className).toContain('has-[[data-state=open]]:border-subtle-foreground')
+    expect(trigger.closest('[data-slot=filter-button]')!.className).toContain(
+      'has-[[data-state=open]]:border-subtle-foreground',
+    )
 
     fireEvent.keyDown(popover, { key: 'Escape' })
     expect(screen.queryByText('Tag-Liste')).toBeNull()
