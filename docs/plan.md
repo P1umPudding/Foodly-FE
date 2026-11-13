@@ -164,7 +164,7 @@ Backend, Rating als Stub (#35). Offen für die Alpha: Kategorien verwalten,
 Teilen (Stub), Tag-Picker. Siehe „Meilenstein Alpha“.
 
 - Formular für Rezept (Sections, Zutaten, Schritte).
-- Rezept duplizieren (Kopie, bei der man selbst owner wird).
+- Kopie erstellen (Rezept-Kopie, bei der man selbst owner wird).
 - Rating abgeben, Notizen bearbeiten.
 - **Tag-/Emoji-Picker** (jederzeit öffenbar; bei `recipe.tags` am präsentesten,
   aber auch in `time`, `steps` etc. verfügbar): zeigt **alle** Tags (erst die mit
