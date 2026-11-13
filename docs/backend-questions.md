@@ -33,7 +33,7 @@ Kolja) · `später` (nicht blockierend).
 | B12 | Gruppen ↔ Rezepte-Modell                | Entscheidung | nein                   | –             |
 | B13 | Verwaiste Bilder (GC)                   | später      | nein                    | –             |
 | B14 | Doku-Drift (Status-Codes, Pagination)   | später      | nein                    | –             |
-| B15 | Sortierung nach `created_at`/`updated_at` | offen     | nein (Workaround FE)    | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
+| B15 | Sortierung nach `created_at`/`updated_at` | offen     | **ja: #250** (Start „Zuletzt bearbeitet“, Daniel 13.11.) | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
 | B16 | Trefferzahlen/Facetten in der Suche      | offen       | nein (FE ohne Zahlen)   | [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17) |
 | G1  | `createdAt` / `updatedAt` an Recipe     | FE-Arbeit   | –                       | –             |
 | G2  | `UserRating` DB-only                    | gelöst      | –                       | –             |
