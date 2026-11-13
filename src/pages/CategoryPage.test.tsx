@@ -1,8 +1,9 @@
 // The page against a catalog that changes under it: the mock-mode tests can only remount the page.
+import { StrictMode } from 'react'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CategoryPage } from './CategoryPage'
 import type { UserCategory } from '../api/protocol'
 
@@ -46,7 +47,22 @@ const page = () => (
   </TooltipProvider>
 )
 
+// jsdom's scrollTo returns undefined; some browsers return a Promise, which an expression-bodied effect hands to React
+// as its cleanup (#211).
+function mockScrollToReturningPromise() {
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => Promise.resolve() as unknown as void)
+  vi.spyOn(console, 'error').mockImplementation(() => undefined)
+}
+const effectReturnWarnings = () =>
+  vi
+    .mocked(console.error)
+    .mock.calls.filter((args) =>
+      args.some((arg) => String(arg).includes('must not return anything besides a function')),
+    )
+
 describe('CategoryPage', () => {
+  afterEach(() => vi.restoreAllMocks())
+
   it('turns into "Kategorie nicht gefunden" when the open category leaves the catalog', () => {
     catalog.categories = { status: 'ready', list: [CATEGORY] }
     const { rerender } = render(page())
@@ -70,5 +86,23 @@ describe('CategoryPage', () => {
     render(page())
     expect(screen.getByText('Keine Rezepte, die du sehen kannst.')).toBeTruthy()
     expect(screen.queryByText(/Noch nichts in/)).toBeNull()
+  })
+
+  it('opens and leaves a category when scrollTo returns a Promise (StrictMode runs the cleanup at once)', () => {
+    mockScrollToReturningPromise()
+    catalog.categories = { status: 'ready', list: [CATEGORY] }
+    const { unmount } = render(<StrictMode>{page()}</StrictMode>)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Favoriten')
+    expect(() => unmount()).not.toThrow()
+    expect(effectReturnWarnings()).toHaveLength(0)
+  })
+
+  it('leaves a category without an error when scrollTo returns a Promise', () => {
+    mockScrollToReturningPromise()
+    catalog.categories = { status: 'ready', list: [CATEGORY] }
+    const { unmount } = render(page())
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Favoriten')
+    expect(effectReturnWarnings()).toHaveLength(0)
+    expect(() => unmount()).not.toThrow()
   })
 })
