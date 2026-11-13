@@ -8,7 +8,11 @@ const me = vi.hoisted(() => ({ current: { id: 1, name: 'Kolja Beispiel', profile
 const categories = vi.hoisted(() => ({
   current: { list: [] as UserCategory[], status: 'ready', error: null as Error | null, retry: () => {} },
 }))
-vi.mock('../catalog/CatalogProvider', () => ({ useMe: () => me.current, useCategories: () => categories.current }))
+vi.mock('../catalog/CatalogProvider', () => ({
+  useMe: () => me.current,
+  useCurrentUserId: () => 1,
+  useCategories: () => categories.current,
+}))
 
 function renderHome() {
   render(
@@ -19,6 +23,7 @@ function renderHome() {
 }
 
 beforeEach(() => {
+  localStorage.clear()
   // Only Date: faking the timers too would stall Testing Library's polling.
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 10, 12, 12))
