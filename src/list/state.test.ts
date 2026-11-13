@@ -1,4 +1,4 @@
-import { DEFAULT_STATE, isFilterActive, clearedState } from './state'
+import { DEFAULT_STATE, isFacetActive, isFilterActive, clearedState } from './state'
 
 describe('list state helpers', () => {
   it('DEFAULT_STATE has no active filters', () => {
@@ -9,6 +9,20 @@ describe('list state helpers', () => {
     expect(isFilterActive({ ...DEFAULT_STATE, search: 'apf' })).toBe(true)
     expect(isFilterActive({ ...DEFAULT_STATE, role: 'owner' })).toBe(true)
     expect(isFilterActive({ ...DEFAULT_STATE, durationMax: 30 })).toBe(true)
+  })
+  it('counts facets without the search text (the reset link shows only for facets)', () => {
+    expect(isFacetActive(DEFAULT_STATE)).toBe(false)
+    expect(isFacetActive({ ...DEFAULT_STATE, search: 'apf' })).toBe(false)
+    for (const patch of [
+      { categories: [1] },
+      { tags: ['Vegan'] },
+      { ingredients: [3] },
+      { durationMax: 30 },
+      { role: 'owner' as const },
+      { collab: 'shared' as const },
+    ]) {
+      expect(isFacetActive({ ...DEFAULT_STATE, ...patch })).toBe(true)
+    }
   })
   it('no work-time limit (slider at the far right) is not a filter (#119)', () => {
     expect(isFilterActive({ ...DEFAULT_STATE, durationMax: null })).toBe(false)

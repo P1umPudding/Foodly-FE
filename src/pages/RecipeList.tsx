@@ -11,7 +11,7 @@ import { buildSearchQuery } from '../list/query'
 import { matchesSearch } from '../list/search'
 import { usedIngredients } from '../list/counts'
 import { canViewRecipe } from '../api/views'
-import { isFilterActive } from '../list/state'
+import { isFacetActive, isFilterActive } from '../list/state'
 import { loadCollapsed, saveCollapsed } from '../list/persistence'
 import { FilterBar } from '../components/list/FilterBar'
 import { MobileListOptions } from '../components/list/MobileListOptions'
@@ -88,6 +88,8 @@ export function RecipeList() {
   const loadMoreFailed = listReady && search.loadMoreError !== null
   const loadingAnnounced = (listReady && search.loadingMore) || (pending && visible.length === 0 && !loadMoreFailed)
   const filterActive = isFilterActive(categoryState)
+  // The reset link names filters, so a plain search doesn't bring it up (the search has its own ✕).
+  const facetActive = isFacetActive(categoryState)
 
   // Per-category collapse state (clicking a sticky group header folds that group),
   // persisted per user. Closed group keys; empty = all open. First visit (nothing
@@ -265,32 +267,26 @@ export function RecipeList() {
           />
         </div>
 
-        {/* Both items are one text-sm line and ResultCount always renders (invisible while unknown), so the
-            row, and with it --list-sticky-top, keeps its height whether or not the reset link shows. */}
-        <div className="mt-3 flex items-baseline gap-2 text-sm text-muted-foreground">
+        {/* min-h fits the 26 px reset link and ResultCount always renders (invisible while unknown), so the row, and
+            with it --list-sticky-top, keeps its height whether or not the link shows. */}
+        <div className="mt-3 flex min-h-[26px] items-center gap-2.5 text-sm text-muted-foreground">
           {/* Loading or failed: count 0 + more is the hidden placeholder — no number we don't know. */}
           <ResultCount count={listReady ? visible.length : 0} more={!listReady || search.hasMore} />
-          {filterActive && (
-            <>
-              {/* Invisible next to the invisible count placeholder, so the link never shifts sideways. */}
-              <span aria-hidden className={listReady ? undefined : 'invisible'}>
-                ·
-              </span>
-              {/* The link variant is text-primary; design.md keeps accent colour off links. */}
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => {
-                  clear()
-                  // The link unmounts with the filters; keep focus on the page rather than lose it to <body>.
-                  // Not on phones, where focusing the search would pop the keyboard over the list.
-                  if (isDesktop) searchInputRef.current?.focus({ preventScroll: true })
-                }}
-                className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground"
-              >
-                Alle Filter zurücksetzen
-              </Button>
-            </>
+          {facetActive && (
+            // Mockup link-btn: quiet text with a hover fill (design.md keeps accent colour off links).
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => {
+                clear()
+                // The link unmounts with the filters; keep focus on the page rather than lose it to <body>.
+                // Not on phones, where focusing the search would pop the keyboard over the list.
+                if (isDesktop) searchInputRef.current?.focus({ preventScroll: true })
+              }}
+              className="h-[26px] px-1.5 text-xs font-medium text-muted-foreground hover:bg-hover hover:text-foreground dark:hover:bg-hover"
+            >
+              Alle Filter zurücksetzen
+            </Button>
           )}
         </div>
       </div>

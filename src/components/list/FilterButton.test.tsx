@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { Tag } from 'lucide-react'
 import { FilterButton } from './FilterButton'
 import type { FilterValue } from '../../list/filterLabels'
 
@@ -15,7 +16,7 @@ function Clearable({ onClear }: { onClear: () => void }) {
   const [value, setValue] = useState<FilterValue | null>({ first: 'Vegetarisch', more: 1 })
   return (
     <FilterButton
-      label="Tags"
+      label="Tags" icon={Tag}
       value={value}
       onClear={() => {
         onClear()
@@ -30,7 +31,7 @@ function Clearable({ onClear }: { onClear: () => void }) {
 describe('inactive / active', () => {
   it('shows only the filter name while inactive', () => {
     render(
-      <FilterButton label="Tags" value={null} onClear={() => {}}>
+      <FilterButton label="Tags" icon={Tag} value={null} onClear={() => {}}>
         <p>Tag-Liste</p>
       </FilterButton>,
     )
@@ -38,19 +39,33 @@ describe('inactive / active', () => {
     expect(screen.queryByRole('button', { name: 'Tags entfernen' })).toBeNull()
   })
 
-  it('shows "<Filter>: <Wert>" and a separate ✕ while active, both muted and 40 px on phones', () => {
+  it('shows its icon and a chevron while inactive', () => {
     render(
-      <FilterButton label="Tags" value={{ first: 'Vegetarisch', more: 1 }} onClear={() => {}}>
+      <FilterButton label="Tags" icon={Tag} value={null} onClear={() => {}}>
+        <p>Tag-Liste</p>
+      </FilterButton>,
+    )
+    const trigger = screen.getByRole('button', { name: 'Tags' })
+    expect(trigger.querySelector('svg.lucide-tag')).toBeTruthy()
+    expect(trigger.querySelector('svg.lucide-chevron-down')).toBeTruthy()
+  })
+
+  it('shows "<Filter>: <Wert>" and a separate ✕ in one frame while active, without icon or chevron', () => {
+    render(
+      <FilterButton label="Tags" icon={Tag} value={{ first: 'Vegetarisch', more: 1 }} onClear={() => {}}>
         <p>Tag-Liste</p>
       </FilterButton>,
     )
     const trigger = screen.getByRole('button', { name: 'Tags: Vegetarisch +1' })
     const clear = screen.getByRole('button', { name: 'Tags entfernen' })
     expect(trigger.contains(clear)).toBe(false)
-    expect(trigger.className).toContain('bg-muted')
-    expect(trigger.className).toContain('phone:h-10')
-    expect(clear.className).toContain('bg-muted')
-    expect(clear.className).toContain('phone:size-10')
+    expect(trigger.querySelector('svg')).toBeNull()
+    expect(within(trigger).getByText('Vegetarisch').className).toContain('font-semibold')
+    // One frame around both, in border-strong; the ✕ sits behind a hairline. 40 px on phones.
+    const frame = trigger.parentElement!
+    expect(frame).toBe(clear.parentElement)
+    expect(frame.className.split(/\s+/)).toEqual(expect.arrayContaining(['border', 'border-border-strong', 'phone:h-10']))
+    expect(clear.className.split(/\s+/)).toEqual(expect.arrayContaining(['border-l', 'phone:w-10']))
   })
 
   it.each([true, false])('✕ only clears: nothing opens and focus moves to the trigger (desktop: %s)', (isDesktop) => {
@@ -68,7 +83,7 @@ describe('inactive / active', () => {
 
   it('truncates only the first name, never "<Filter>:" or "+n"', () => {
     render(
-      <FilterButton label="Kategorie" value={{ first: 'Sehr lange Kategoriebezeichnung', more: 2 }} onClear={() => {}}>
+      <FilterButton label="Kategorie" icon={Tag} value={{ first: 'Sehr lange Kategoriebezeichnung', more: 2 }} onClear={() => {}}>
         <p>Liste</p>
       </FilterButton>,
     )
@@ -85,7 +100,7 @@ describe('inactive / active', () => {
 
   it('shows no "+n" when only one value is selected', () => {
     render(
-      <FilterButton label="Arbeitszeit" value={{ first: '≤ 30 min', more: 0 }} onClear={() => {}}>
+      <FilterButton label="Arbeitszeit" icon={Tag} value={{ first: '≤ 30 min', more: 0 }} onClear={() => {}}>
         <p>Regler</p>
       </FilterButton>,
     )
@@ -96,7 +111,7 @@ describe('inactive / active', () => {
 describe('desktop', () => {
   it('opens a popover with the content; Esc closes it and returns focus to the trigger', async () => {
     render(
-      <FilterButton label="Tags" value={null} onClear={() => {}}>
+      <FilterButton label="Tags" icon={Tag} value={null} onClear={() => {}}>
         <p>Tag-Liste</p>
       </FilterButton>,
     )
@@ -104,6 +119,9 @@ describe('desktop', () => {
     fireEvent.click(trigger)
     const popover = screen.getByRole('dialog', { name: 'Tags' })
     expect(within(popover).getByText('Tag-Liste')).toBeTruthy()
+    // Open look: the frame's border follows the trigger's data-state via :has (jsdom can't evaluate :has itself).
+    expect(trigger.getAttribute('data-state')).toBe('open')
+    expect(trigger.parentElement!.className).toContain('has-[[data-state=open]]:border-subtle-foreground')
 
     fireEvent.keyDown(popover, { key: 'Escape' })
     expect(screen.queryByText('Tag-Liste')).toBeNull()
@@ -116,7 +134,7 @@ describe('phone', () => {
   it('opens a bottom sheet titled by the filter; "Anzeigen" closes it', async () => {
     desktop.value = false
     render(
-      <FilterButton label="Tags" value={null} onClear={() => {}}>
+      <FilterButton label="Tags" icon={Tag} value={null} onClear={() => {}}>
         <p>Tag-Liste</p>
       </FilterButton>,
     )

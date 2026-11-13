@@ -419,7 +419,7 @@ describe('RecipeList (filter bar)', () => {
     expect(screen.getByTestId('recipe-list-page').classList.contains('grid')).toBe(false)
   })
 
-  it('offers "Alle Filter zurücksetzen" only while a filter or the search is active', async () => {
+  it('offers "Alle Filter zurücksetzen" only while a facet is active, not for a plain search', async () => {
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
 
@@ -428,12 +428,16 @@ describe('RecipeList (filter bar)', () => {
     expect(screen.queryByRole('button', { name: 'Alle Filter zurücksetzen' })).toBeNull()
     plain.unmount()
 
-    for (const url of ['/recipes?group=0&tag=Vegan', '/recipes?group=0&q=pan']) {
-      const view = renderList(url)
-      await waitFor(() => screen.getByText('Pancakes'))
-      expect(screen.getByRole('button', { name: 'Alle Filter zurücksetzen' })).toBeTruthy()
-      view.unmount()
-    }
+    const searchOnly = renderList('/recipes?group=0&q=pan')
+    await waitFor(() => screen.getByText('Pancakes'))
+    expect(screen.queryByRole('button', { name: 'Alle Filter zurücksetzen' })).toBeNull()
+    searchOnly.unmount()
+
+    renderList('/recipes?group=0&tag=Vegan')
+    await waitFor(() => screen.getByText('Pancakes'))
+    const link = screen.getByRole('button', { name: 'Alle Filter zurücksetzen' })
+    // No "·" separator any more (mockup link-btn).
+    expect(link.parentElement?.textContent).not.toContain('·')
   })
 
   it('"Alle Filter zurücksetzen" clears every filter and the search, but keeps the sort', async () => {
