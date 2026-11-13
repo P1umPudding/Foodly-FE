@@ -58,11 +58,8 @@ describe('Start page, Zuletzt angesehen (mock mode)', () => {
     'has no section without stored recipes',
     async () => {
       await renderHome()
-      await screen.findByText(
-        'Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.',
-        {},
-        WAIT,
-      )
+      // The page has settled once the categories (D2) are shown; user 1 has some in the mock data.
+      await screen.findByRole('region', { name: 'Kategorien' }, WAIT)
       expect(screen.queryByRole('heading', { name: 'Zuletzt angesehen' })).toBeNull()
     },
     SLOW,
