@@ -123,7 +123,8 @@ describe('RecipeList (scroll restore beyond the first page)', () => {
     window.dispatchEvent(new Event('scroll'))
     expect(JSON.parse(sessionStorage.getItem('recipeList:scroll') ?? 'null')).toEqual({ list: 'group=0', y: 900 })
 
-    await act(async () => page2.resolve(page(2, null)))
+    // More pages follow, but page 2 makes 900 reachable (20 rows → 2000 − 768 = 1232).
+    await act(async () => page2.resolve(page(2, 3)))
     await waitFor(() => screen.getByText('Rezept 20'))
     expect(scrollTo).toHaveBeenCalledTimes(1)
     expect(scrollTo).toHaveBeenCalledWith(0, 900)
@@ -171,7 +172,11 @@ describe('RecipeList (scroll restore beyond the first page)', () => {
     const search = vi
       .spyOn(foodly, 'searchRecipes')
       .mockImplementation((q, n) =>
-        n === 1 ? Promise.resolve(page(1, q.sort?.order === 'desc' ? null : 2)) : page2.promise,
+        q.sort?.order === 'desc'
+          ? Promise.resolve({ items: [rec(101)], cursor: null })
+          : n === 1
+            ? Promise.resolve(page(1, 2))
+            : page2.promise,
       )
     const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
     savePosition(900)
@@ -179,22 +184,39 @@ describe('RecipeList (scroll restore beyond the first page)', () => {
     renderList()
     await waitFor(() => expect(search).toHaveBeenCalledWith(expect.anything(), 2))
     act(() => navigate('/recipes?group=0&dir=desc'))
+    await waitFor(() => screen.getByText('Rezept 101'))
     await act(async () => page2.resolve(page(2, 3)))
-    await waitFor(() => expect(search).toHaveBeenCalledTimes(3))
     expect(scrollTo).not.toHaveBeenCalledWith(0, 900)
-    expect(search).not.toHaveBeenCalledWith(expect.anything(), 3)
   })
 
-  it('a shell nav tap during the restore keeps the list at the top', async () => {
+  // The free-text search filters on the client: the query stays, the list stays ready, only its identity changes.
+  it('ends the restore without scrolling when the search changes while a page loads', async () => {
     const page2 = deferred()
-    vi.spyOn(foodly, 'searchRecipes').mockImplementation((_q, n) =>
-      n === 1 ? Promise.resolve(page(1, 2)) : page2.promise,
-    )
+    const search = vi
+      .spyOn(foodly, 'searchRecipes')
+      .mockImplementation((_q, n) => (n === 1 ? Promise.resolve(page(1, 2)) : page2.promise))
     const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
     savePosition(900)
 
     renderList()
-    await waitFor(() => screen.getByText('Rezept 1'))
+    await waitFor(() => expect(search).toHaveBeenCalledWith(expect.anything(), 2))
+    act(() => navigate('/recipes?group=0&q=Rezept'))
+    await act(async () => page2.resolve(page(2, 3)))
+    await waitFor(() => screen.getByText('Rezept 20'))
+    expect(scrollTo).not.toHaveBeenCalledWith(0, 900)
+    expect(search).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the list at the top when a shell nav tap ends the restore', async () => {
+    const page2 = deferred()
+    const search = vi
+      .spyOn(foodly, 'searchRecipes')
+      .mockImplementation((_q, n) => (n === 1 ? Promise.resolve(page(1, 2)) : page2.promise))
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+    savePosition(900)
+
+    renderList()
+    await waitFor(() => expect(search).toHaveBeenCalledWith(expect.anything(), 2))
     fireEvent.click(screen.getByText('shell link'))
     expect(scrollTo).toHaveBeenCalledWith(0, 0)
     await act(async () => page2.resolve(page(2, null)))
