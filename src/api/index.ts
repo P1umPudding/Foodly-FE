@@ -25,6 +25,7 @@ import type {
   User,
   UserCategory,
   UserCategoryId,
+  UserId,
 } from './protocol'
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? ''
@@ -100,6 +101,12 @@ export const foodly = {
           },
         ),
   listUsers: () => socket.request<User[]>('users.list'),
+  // Unknown ids are simply missing from the result, in any order.
+  getUsers: (ids: UserId[]): Promise<User[]> => {
+    const unique = [...new Set(ids)]
+    if (unique.length === 0) return Promise.resolve([])
+    return USE_MOCKS ? socket.request<User[]>('users.get', { ids: unique }) : getUsersInChunks(unique)
+  },
   listCategories: (): Promise<UserCategory[]> =>
     USE_MOCKS
       ? socket.request<UserCategory[]>('categories.list')
@@ -192,6 +199,20 @@ export const foodly = {
 
 // The write already landed in localStorage; a failed refetch must not read as
 // a failed save.
+// The backend answers 422 beyond 100 ids (or a 2 KB query). A failed chunk only loses its own users; with one
+// chunk this behaves like a plain call.
+const USERS_PER_REQUEST = 100
+async function getUsersInChunks(ids: UserId[]): Promise<User[]> {
+  const chunks: UserId[][] = []
+  for (let i = 0; i < ids.length; i += USERS_PER_REQUEST) chunks.push(ids.slice(i, i + USERS_PER_REQUEST))
+  const results = await Promise.allSettled(
+    chunks.map((chunk) => rest.get<{ data: User[] }>(`/users?ids=${chunk.join(',')}`)),
+  )
+  const failed = results.filter((r) => r.status === 'rejected')
+  if (failed.length === results.length) throw failed[0].reason
+  return results.flatMap((r) => (r.status === 'fulfilled' ? r.value.data : []))
+}
+
 function refetchAfterStubWrite(id: RecipeId): Promise<Recipe> {
   return foodly.getRecipe(id).catch(() => {
     throw new Error('Gespeichert – die Anzeige aktualisiert sich nach dem Neuladen')

@@ -12,6 +12,7 @@ import type {
   User,
   UserCategory,
   UserCategoryId,
+  UserId,
 } from '../api/protocol'
 import { applyQuery, PAGE_SIZE } from '../list/query'
 import { assertRating } from '../api/views'
@@ -160,6 +161,10 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       return mockData.ingredients
     case 'users.list':
       return mockData.users
+    case 'users.get': {
+      const { ids } = payload as { ids: UserId[] }
+      return mockData.users.filter((u) => ids.includes(u.id))
+    }
     case 'me':
       return mockData.users.find((u) => u.id === CURRENT_USER_ID) ?? null
     case 'recipes.search': {
