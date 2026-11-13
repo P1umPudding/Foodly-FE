@@ -192,8 +192,8 @@ export const foodly = {
     USE_MOCKS ? socket.request<UploadedImage>('images.upload') : rest.postBinary<UploadedImage>('/images', file),
 }
 
-// The backend answers 422 beyond 100 ids (or a 2 KB query). A failed chunk only loses its own users; with one
-// chunk this behaves like a plain call.
+// The backend answers 422 beyond 100 ids or a 2 KB query (100 ids of up to 19 digits stay just under).
+// A failed chunk only loses its own users; with one chunk this behaves like a plain call.
 const USERS_PER_REQUEST = 100
 async function getUsersInChunks(ids: UserId[]): Promise<User[]> {
   const chunks: UserId[][] = []

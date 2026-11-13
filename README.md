@@ -61,8 +61,9 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
   (`signIn`, `signUp`, `signOut`, `session`, `subscribe`); with `VITE_MOCK=1`
   you are always signed in as user 1.
 - `src/api/index.ts` — the typed API surface `foodly.*`. Each method has a
-  REST and a mock branch, chosen by the build-time `VITE_MOCK`; response wrappers (`{ data }`, cursors) are unwrapped here, so
-  pages only see domain types.
+  REST and a mock branch, chosen by the build-time `VITE_MOCK`; response
+  wrappers (`{ data }`, cursors) are unwrapped here, so pages only see domain
+  types.
 - `src/api/adapters.ts` — shape fixes at the API boundary (e.g.
   `previewToRecipe` for search results). Wire types are in
   `src/api/protocol.ts`.
