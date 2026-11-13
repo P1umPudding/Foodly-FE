@@ -5,7 +5,7 @@ import { TILE_META_TEXT, TILE_TITLE_TEXT } from '../recipe/RecipeTile'
 import { GroupIndent, TileGrid } from './RecipeListView'
 
 // Laid out like a photo RecipeTile: each bar sits in a box one text line of the tile tall.
-function TileSkeleton() {
+export function TileSkeleton() {
   return (
     <div data-testid="tile-skeleton" className="flex min-w-0 flex-col gap-2">
       <Skeleton className="aspect-[4/3] w-full rounded-lg" />
