@@ -194,6 +194,12 @@ Freigegeben von Kolja am 2026-10-29. Reihenfolge:
    Kopfzeile, Rezeptzeilen (bisher „Aufbau wie heute“) und Editor. Issues V1–V6: #227 Grundbausteine → #229 Zeilen und
    Gruppen; #228 Shell/Seitenkopf (nach #207/#208); #230 Start/Kategorie-Kopf (nach #196); #231 Editor-Aufbau →
    #232 Editor-Abschnitte, danach erst #217/#218. Bug #233 (Mock-Build weiß).
+   Vollständiger Abgleich inkl. Popover, Sheets, Menüs: `docs/design/redesign/audit/` (Liste, Shell, Detail, Editor).
+   Weitere Issues: Liste #235 Sortieren/Ansicht, #236 Filter-Inhalte, #237 Listenkopf scrollt mit; übergreifend #238
+   Zustände, #239 Sheet-Kopf, #240 Timer-Panel, #241 Timer-Chip, #242 Seitentitel; Shell #243 `/categories`, #244
+   Kategorie-Formular, #245 Profilseite, #246 Shell-Feinschliff; Detail #247 Kopf-Feinschliff, #248 Lightbox; Editor
+   #249 „Mehrere einfügen“ (vor #217). Nachträge in #207–#210, #217, #218, #227–#232. design.md §5/§7 auf das Mockup
+   umgestellt.
 
 Parallel nach Token und Shell: ✅ Timer-Knopf + Zeit-Chips **#29** (PR #48),
 ✅ Editor-Zusatz-Spalte **#28** (PR #44). Trefferzahlen im Filter erst mit Backend #17 (B16).
