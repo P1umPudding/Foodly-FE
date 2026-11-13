@@ -38,4 +38,11 @@ describe('SearchInput — input', () => {
     render(<SearchInput value="" onChange={vi.fn()} placeholder="Suchen…" />)
     expect(screen.getByPlaceholderText('Suchen…').classList.contains('phone:h-10')).toBe(true)
   })
+
+  it('shows a magnifier in front of the text', () => {
+    const { container } = render(<SearchInput value="" onChange={vi.fn()} placeholder="Rezept oder Zutat suchen" />)
+    const icon = container.querySelector('svg.lucide-search')
+    expect(icon?.getAttribute('aria-hidden')).toBe('true')
+    expect(screen.getByPlaceholderText('Rezept oder Zutat suchen').classList.contains('pl-9')).toBe(true)
+  })
 })
