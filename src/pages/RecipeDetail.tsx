@@ -303,6 +303,7 @@ export function RecipeDetail() {
             <SectionBlock
               key={section.id}
               section={section}
+              showTitle={recipe.sections.length > 1}
               recipeName={plainName}
               stepOffset={recipe.sections.slice(0, k).reduce((n, s) => n + s.steps.length, 0)}
               factor={factor}
