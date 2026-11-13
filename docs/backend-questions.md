@@ -65,17 +65,17 @@ umgesetzt in FE #144; Profilbilder laufen über dieselbe Route.
 **Problem.** Das Frontend löst `owner`/`editors`/`viewers` und `rating[].user` über
 eine `byId`-Map auf (`CatalogProvider`). Das Backend hat nur `GET /users/me` und
 `GET /users/search?q=` (Typeahead, schließt einen selbst aus) — kein Bulk-Lookup.
-`listUsers` bleibt daher gemockt; im REST-Modus fehlen Namen.
+`listUsers` blieb daher gemockt; im REST-Modus fehlten Namen (bis FE #193).
 
 **Vorschlag:** `GET /api/v1/users?ids=2,3,5` → `{ data: [{ id, name, profilePicture }] }`
 (nur kompakte Felder, nur User, mit denen man ein Rezept/eine Gruppe teilt).
 Alternativ Recipe expandiert `owner/editors/viewers` als `{ id, name }` — mehr Payload,
 weniger Requests; A ist flexibler.
 
-**Entsperrt:** `listUsers`-Mock entfernen; Rollen-/Rating-Anzeige mit echten Namen.
+**Entsperrt (erledigt in FE #193):** `listUsers`-Mock entfernen; Rollen-/Rating-Anzeige mit echten Namen.
 
 **Stand 2026-11-13:** Umgesetzt in Backend-PR #22 (gemergt 2026-11-13 als `767603e`) wie vorgeschlagen, aber **ohne** Beschränkung auf
-Nutzer, mit denen man teilt (Review-Hinweis 2 unten). FE-Issue U2 = #193 (`superpowers/plans/2026-11-12-backend-22-followups.md`), seit dem Merge agent-ready.
+Nutzer, mit denen man teilt (Review-Hinweis 2 unten). FE-Issue U2 = #193 (`superpowers/plans/2026-11-12-backend-22-followups.md`): Das FE lädt Namen bei Bedarf über `foodly.getUsers`, der `listUsers`-Mock ist entfernt.
 
 ### B3 — Ratings-Endpoints
 
@@ -222,9 +222,8 @@ PR [#22](https://github.com/klassenserver7b/Foodly-backend/pull/22) „bulk user
 @ `b39c380`, 28 Dateien. Geprüft gegen den FE-Code auf `main`. Folgen fürs FE:
 `superpowers/plans/2026-11-12-backend-22-followups.md` (U1, U2) und Phase-5-Plan (D3).
 
-1. **Sortierfelder (bricht das FE bis U1):** Unbekannte `sort.field` → 422 statt Fallback auf `id`; `worktime`/
-   `totaltime` sind keine Aliase mehr. FE sendet sie heute. → U1 (#192) direkt nach dem Merge, seit 2026-11-13
-   agent-ready mit Vorrang.
+1. **Sortierfelder:** Unbekannte `sort.field` → 422 statt Fallback auf `id`; `worktime`/`totaltime` sind keine Aliase
+   mehr. Das FE sendet mit U1 (#192) `workTime`/`totalTime`.
 2. **Datenschutz `GET /users?ids=`:** Jeder angemeldete Nutzer kann beliebige IDs (bis 100 pro Request, beliebig oft)
    zu Name und Profilbild auflösen und so alle Nutzer durchzählen. Für die Alpha unkritisch, vor einem öffentlichen
    Betrieb aber zu klären.
@@ -285,7 +284,7 @@ Backend-Umbau der Zugriffsabfrage.
   (ODER) bleibt deshalb clientseitig. Zahlen/Facetten weiter offen.
   → [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17)
 - **B15 Sortierung nach Timestamps:** `POST /recipes/search` sortiert nur nach
-  name/worktime/totaltime/rating, alles andere fällt auf `id ASC` zurück. Phase-5-Kachel
+  name/workTime/totalTime/rating/accessSince, alles andere → 422. Phase-5-Kachel
   „Your recent creations" sortiert bis dahin clientseitig hinter einem Helper
   (`recentCreations`). Vorschlag: `created_at` / `updated_at` als Sortfelder, plus
   `id` als Tie-Breaker. → [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16)
@@ -319,10 +318,9 @@ Backend-Umbau der Zugriffsabfrage.
   einem Ladefehler steht der Tag-Name.
 - **G4 Kategorien:** `GET /categories` existiert (paginiert); FE nutzt es seit
   `feat/rest-backend-wiring`. Kategorie-Filter kann jetzt serverseitig laufen.
-- **G5 Sortfelder:** Auf `main` akzeptiert das Backend `worktime|work_time` und
-  `totaltime|total_time`; FE sendet `worktime`/`totaltime`. **Seit PR #22 (gemergt 2026-11-13)** gilt camelCase: nur noch
-  `workTime|work_time`, `totalTime|total_time` (+ `accessSince`), alles andere 422. FE-Issue U1 (#192) stellt um und hat
-  Vorrang; bis dahin liefert die Zeit-Sortierung 422 (Daniel, 2026-11-12).
+- **G5 Sortfelder:** Vor PR #22 akzeptierte das Backend `worktime|work_time` und `totaltime|total_time`.
+  **Seit PR #22 (gemergt 2026-11-13)** gilt camelCase: nur noch `workTime|work_time`, `totalTime|total_time`
+  (+ `accessSince`), alles andere 422. Das FE sendet mit U1 (#192) `workTime`/`totalTime`.
 
 ---
 

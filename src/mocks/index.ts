@@ -1,5 +1,5 @@
-// In-browser mock backend. bootstrap() lazy-loads it (own chunk) on every boot:
-// with VITE_MOCK=1 every request is routed here, in REST mode only listUsers.
+// In-browser mock backend for VITE_MOCK=1. bootstrap() lazy-loads it (own chunk) and
+// every request is routed here.
 
 import type {
   CategoryInput,
@@ -12,6 +12,7 @@ import type {
   User,
   UserCategory,
   UserCategoryId,
+  UserId,
 } from '../api/protocol'
 import { applyQuery, PAGE_SIZE } from '../list/query'
 import { assertRating } from '../api/views'
@@ -158,8 +159,10 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       return mockData.tags
     case 'ingredients.list':
       return mockData.ingredients
-    case 'users.list':
-      return mockData.users
+    case 'users.get': {
+      const { ids } = payload as { ids: UserId[] }
+      return mockData.users.filter((u) => ids.includes(u.id))
+    }
     case 'me':
       return mockData.users.find((u) => u.id === CURRENT_USER_ID) ?? null
     case 'recipes.search': {

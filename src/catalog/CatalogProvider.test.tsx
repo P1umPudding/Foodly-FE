@@ -1,11 +1,19 @@
 import { StrictMode } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { CatalogProvider, useCategories, useIngredient, useMe, useRefreshCategories } from './CatalogProvider'
+import {
+  CatalogProvider,
+  useCategories,
+  useIngredient,
+  useMe,
+  useRefreshCategories,
+  useUser,
+  useUsers,
+} from './CatalogProvider'
 
 vi.mock('../api', () => ({
   foodly: {
     listTags: () => Promise.resolve([]),
-    listUsers: () => Promise.resolve([]),
+    getUsers: (ids: number[]) => getUsers(ids),
     me: () => me(),
     listIngredients: () => Promise.resolve([{ id: 5, name: 'Zwiebel' }]),
     listCategories: () => categories(),
@@ -16,7 +24,14 @@ vi.mock('../api', () => ({
 let categories: () => Promise<unknown[]> = () => Promise.resolve([])
 const kolja = { id: 1, name: 'Kolja', profilePicture: null }
 let me: () => Promise<unknown> = () => Promise.resolve(kolja)
+const knownUsers = [
+  { id: 2, name: 'Mara', profilePicture: null },
+  { id: 3, name: 'Jonas', profilePicture: null },
+]
+const getUsers = vi.fn((ids: number[]) => Promise.resolve(knownUsers.filter((u) => ids.includes(u.id))))
 afterEach(() => {
+  getUsers.mockClear()
+  getUsers.mockImplementation((ids) => Promise.resolve(knownUsers.filter((u) => ids.includes(u.id))))
   categories = () => Promise.resolve([])
   me = () => Promise.resolve(kolja)
 })
@@ -251,4 +266,94 @@ it('only lets the remounted load land in StrictMode', async () => {
   screen.getByText('cats:ready:1/1')
   await act(async () => calls[0].resolve([category(1, [])]))
   screen.getByText('cats:ready:1/1')
+})
+
+describe('users on demand', () => {
+  function UserProbe({ id }: { id: number }) {
+    return (
+      <span>
+        user{id}:{useUser(id)?.name ?? '-'}
+      </span>
+    )
+  }
+
+  // Keyed by position: rerendering with an id appended mounts a fresh probe, whose effect asks again.
+  function renderProbes(ids: number[]) {
+    const tree = (list: number[]) => (
+      <StrictMode>
+        <CatalogProvider>
+          {list.map((id, index) => (
+            <UserProbe key={index} id={id} />
+          ))}
+        </CatalogProvider>
+      </StrictMode>
+    )
+    const view = render(tree(ids))
+    return { ...view, rerenderWith: (list: number[]) => view.rerender(tree(list)) }
+  }
+
+  it('fetches the ids of one render in one request, and not again on a rerender', async () => {
+    const view = renderProbes([2, 3])
+    await waitFor(() => screen.getByText('user2:Mara'))
+    screen.getByText('user3:Jonas')
+    view.rerenderWith([2, 3, 2])
+    await act(async () => {})
+    expect(getUsers).toHaveBeenCalledTimes(1)
+    expect(getUsers).toHaveBeenCalledWith([2, 3])
+  })
+
+  it('asks for an unknown id only once', async () => {
+    const view = renderProbes([9])
+    await waitFor(() => expect(getUsers).toHaveBeenCalledTimes(1))
+    await act(async () => {})
+    view.rerenderWith([9, 9])
+    await act(async () => {})
+    expect(screen.getAllByText('user9:-')).toHaveLength(2)
+    expect(getUsers).toHaveBeenCalledTimes(1)
+  })
+
+  it('knows the current user without a request', async () => {
+    renderProbes([1])
+    await waitFor(() => screen.getByText('user1:Kolja'))
+    await act(async () => {})
+    expect(getUsers).not.toHaveBeenCalled()
+  })
+
+  it('shows no name after a failed request and does not retry', async () => {
+    getUsers.mockImplementation(() => Promise.reject(new Error('boom')))
+    const view = renderProbes([2])
+    await waitFor(() => expect(getUsers).toHaveBeenCalledTimes(1))
+    await act(async () => {})
+    view.rerenderWith([2, 2])
+    await act(async () => {})
+    expect(screen.getAllByText('user2:-')).toHaveLength(2)
+    expect(getUsers).toHaveBeenCalledTimes(1)
+  })
+
+  function UsersProbe({ ids }: { ids: number[] }) {
+    return (
+      <span>
+        users:
+        {useUsers(ids)
+          .map((u) => u.name)
+          .join(',') || '-'}
+      </span>
+    )
+  }
+
+  it('useUsers returns the known users in id order, in one request, not again for an equal new array', async () => {
+    const tree = (ids: number[]) => (
+      <StrictMode>
+        <CatalogProvider>
+          <UsersProbe ids={ids} />
+        </CatalogProvider>
+      </StrictMode>
+    )
+    const view = render(tree([3, 9, 2]))
+    await waitFor(() => screen.getByText('users:Jonas,Mara'))
+    view.rerender(tree([3, 9, 2]))
+    await act(async () => {})
+    expect(getUsers).toHaveBeenCalledTimes(1)
+    expect(getUsers).toHaveBeenCalledWith([3, 9, 2])
+  })
 })

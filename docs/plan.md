@@ -76,7 +76,7 @@ sofort, D2 nach #183, D4 nach D1; U1, U2, D3 nach dem Merge von Backend #22 (U1 
 geteilt“ kommt mit Teilen (#12).
 
 **Stand 2026-11-13:** Backend-PR #22 gemergt, #192/#193/#196 entsperrt (#192 zuerst, #196 nach #192). D1, D2, D4
-gemergt. Neue Reihenfolge (Daniel): **Redesign Schritt 6** (Detail + Koch-Modus, R1–R5, kein Backend-Block) →
+gemergt. Neue Reihenfolge (Daniel): **Redesign Schritt 6** (Detail + Koch-Modus, R1–R5 = #206–#210, kein Backend-Block) →
 **Phase 6 Mobile** → **Teilen erst mit Backend #12** (kein Demo-Stub vorab). Gruppen warten auf Backend #13.
 
 Details je Phase in `phases/`.
@@ -164,7 +164,7 @@ Backend, Rating als Stub (#35). Offen für die Alpha: Kategorien verwalten,
 Teilen (Stub), Tag-Picker. Siehe „Meilenstein Alpha“.
 
 - Formular für Rezept (Sections, Zutaten, Schritte).
-- Rezept duplizieren (Kopie, bei der man selbst owner wird).
+- Kopie erstellen (Rezept-Kopie, bei der man selbst owner wird).
 - Rating abgeben, Notizen bearbeiten.
 - **Tag-/Emoji-Picker** (jederzeit öffenbar; bei `recipe.tags` am präsentesten,
   aber auch in `time`, `steps` etc. verfügbar): zeigt **alle** Tags (erst die mit
@@ -208,6 +208,10 @@ Routing `/` → Dashboard, `/recipes` → Liste. **Blockiert:** Gruppen (B12 + B
 - ggf. weitere Kacheln.
 
 ## Phase 6 — Mobile optimieren
+
+Geschnitten (Daniel, 2026-11-13) nach QA-Mobile-Audit: Spec `docs/superpowers/specs/2026-11-13-phase-6-mobile-design.md`,
+Issues M1–M8 in `docs/superpowers/plans/2026-11-13-phase-6-mobile.md` (16-px-Eingaben, Scroll-Restore, Editor Handy,
+Tippflächen 40 px auf Touch, PWA-Manifest ohne Service Worker + Safe Areas, Code-Splitting, Tablet-Seitenleiste).
 
 Die Web-App für Mobile schärfen: Touch-Targets, responsives Layout, Performance,
 ggf. PWA-Grundlagen. Voraussetzung fürs native Wrappen.

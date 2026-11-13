@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Clock, Copy, Info, ListChecks, Pencil } from 'lucide-react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { ChefHat, Clock, Copy, ListChecks, Pencil, Users } from 'lucide-react'
 import {
   Alert,
   AlertDescription,
@@ -19,7 +19,7 @@ import { errorMessage } from '../lib/errorMessage'
 import { useRequest } from '../hooks/useRequest'
 import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { canEdit, isOwner } from '../editor/access'
-import { useCurrentUserId, useRefreshCategories, useTags } from '../catalog/CatalogProvider'
+import { useCurrentUserId, useRefreshCategories, useTags, useUsers } from '../catalog/CatalogProvider'
 import { TagText } from '../components/TagText'
 import { plainTagText } from '../components/tagTokens'
 import { Rating } from '../components/recipe/Rating'
@@ -27,14 +27,19 @@ import { TagChips } from '../components/recipe/TagChips'
 import { SectionBlock } from '../components/recipe/SectionBlock'
 import { PortionScaler } from '../components/recipe/PortionScaler'
 import { WakeLockToggle } from '../components/WakeLockToggle'
-import { RecipeImages } from '../components/recipe/RecipeImages'
+import { RecipeHero, RecipeImages } from '../components/recipe/RecipeImages'
 import { DeleteRecipeButton } from '../components/recipe/DeleteRecipeButton'
 import { Lightbox } from '../components/recipe/Lightbox'
 import { TriggerButton } from '../components/TriggerButton'
 import { RecipeCategoryChips } from '../components/category/RecipeCategoryChips'
-import type { Recipe, RecipeIngredientId } from '../api/protocol'
-import { hasPortions } from '../api/views'
+import type { Recipe, UserId } from '../api/protocol'
+import { cookHref, parseSize, withSize } from '../cook/size'
+import { openRecipe, useCheckedIngredients } from '../cook/checkedIngredients'
 import { pushRecentlyViewed, removeRecentlyViewed } from '../home/recentlyViewed'
+
+// With a photo: image and infos side by side from 1100 px, stacked below (image max. 640 px wide).
+const HEAD_GRID = 'grid items-start gap-5 min-[1100px]:grid-cols-2 min-[1100px]:gap-8'
+const HERO_WIDTH = 'max-w-[640px] min-[1100px]:max-w-none'
 
 function isUrl(s: string): boolean {
   return /^https?:\/\//i.test(s.trim())
@@ -66,7 +71,7 @@ export function RecipeDetail() {
       navigate(`/recipes/${copy.id}`)
     } catch (e) {
       if (attempt !== cloneAttempt.current) return
-      setCloneError(errorMessage(e, 'Duplizieren fehlgeschlagen'))
+      setCloneError(errorMessage(e, 'Kopie erstellen fehlgeschlagen'))
       setCloning(false)
     }
   }
@@ -76,17 +81,17 @@ export function RecipeDetail() {
   // The recipe a rating write resolved to; only applies to the recipe it belongs to.
   const [ratedRecipe, setRatedRecipe] = useState<Recipe | null>(null)
 
-  // Koch-Modus state is recipe-local and never persisted: switching recipes
-  // clears the factor, the check-off mode and all ticks. /recipes/:id keeps this
-  // instance across ids, so the clone state is reset here as well.
-  const [factor, setFactor] = useState(1)
-  const [checkable, setCheckable] = useState(false)
-  const [checkedIds, setCheckedIds] = useState<Set<RecipeIngredientId>>(new Set())
+  // Size and ticks are shared with the cook mode: the size lives in the URL (src/cook/size.ts), the ticks in a
+  // memory store that only another recipe clears. /recipes/:id keeps this instance across ids, so the rating and
+  // clone state are reset here.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { checkable, checkedIds, setCheckable, toggle: toggleChecked } = useCheckedIngredients(recipeId)
 
   useEffect(() => {
-    setFactor(1)
-    setCheckable(false)
-    setCheckedIds(new Set())
+    openRecipe(recipeId)
+  }, [recipeId])
+
+  useEffect(() => {
     setRatedRecipe(null)
     setCloning(false)
     setCloneError(null)
@@ -100,14 +105,6 @@ export function RecipeDetail() {
     if (loadedId !== null && currentUserId !== null) pushRecentlyViewed(currentUserId, loadedId)
   }, [loadedId, currentUserId])
 
-  const toggleChecked = (id: RecipeIngredientId) =>
-    setCheckedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-
   // Came from inside the app: go back like the browser does, so the list keeps its search, filters and scroll
   // and no extra history entry piles up. Otherwise (direct link) the plain link to /recipes applies.
   const onBack = (e: MouseEvent<HTMLAnchorElement>) => {
@@ -119,8 +116,16 @@ export function RecipeDetail() {
 
   // Timer labels are plain text, so tag tokens in the name become the tag's name.
   const plainName = recipe ? plainTagText(recipe.name, tags) : ''
-  // All images of the recipe in viewer order: main first, then the gallery. Empty → no hero, no lightbox.
+  // All images of the recipe in viewer order: main first, then the gallery. Empty → no hero, no gallery.
   const allImages = recipe ? (recipe.mainImage !== null ? [recipe.mainImage, ...recipe.images] : recipe.images) : []
+  const sizeNumber = recipe?.sizeNumber ?? null
+  const factor = parseSize(searchParams, sizeNumber)
+  // replace: stepping the size must not pile up history entries.
+  const setFactor = (next: number) => setSearchParams((p) => withSize(p, next, sizeNumber), { replace: true })
+
+  const editable = recipe ? canEdit(recipe, currentUserId) : false
+  const hasPhoto = allImages.length > 0
+  const hasSteps = recipe ? recipe.sections.some((s) => s.steps.length > 0) : false
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -147,25 +152,24 @@ export function RecipeDetail() {
                 }}
               />
             )}
-            {/* On phones all three actions are icon-only 40×40 tap targets (design.md §7), labelled via
-                tooltip. */}
+            {/* On phones every action is an icon-only 40×40 tap target (design.md §7). Editors get only the
+                pencil there; viewers get "Kopie erstellen" in its place, their way to an editable version. */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <TriggerButton
                   variant="outline"
-                  size="sm"
-                  aria-label="Duplizieren"
+                  size="icon"
+                  aria-label="Kopie erstellen"
                   onClick={() => void onClone()}
                   disabled={cloning}
-                  className="gap-1.5 phone:size-10"
+                  className={cn('phone:size-10', editable && 'phone:hidden')}
                 >
                   <Copy className="h-4 w-4" />
-                  <span className="phone:hidden">Duplizieren</span>
                 </TriggerButton>
               </TooltipTrigger>
-              <TooltipContent>Rezept duplizieren</TooltipContent>
+              <TooltipContent>Kopie erstellen</TooltipContent>
             </Tooltip>
-            {canEdit(recipe, currentUserId) && (
+            {editable && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   {/* A Link styled via buttonVariants, not <Button asChild>: the postxl Button would drop the
@@ -188,10 +192,14 @@ export function RecipeDetail() {
       </div>
 
       {status === 'loading' && (
-        <div className="space-y-4">
-          <Skeleton className="h-9 w-2/3" />
-          <Skeleton className="h-5 w-1/2" />
-          <Skeleton className="h-40 w-full" />
+        <div data-testid="detail-skeleton" className={HEAD_GRID}>
+          <Skeleton className={cn('aspect-[4/3] w-full rounded-lg', HERO_WIDTH)} />
+          <div className="space-y-3">
+            <Skeleton className="h-5 w-1/3" />
+            <Skeleton className="h-8 w-2/3" />
+            <Skeleton className="h-5 w-1/2" />
+            <Skeleton className="mt-5 h-8 w-3/4" />
+          </div>
         </div>
       )}
 
@@ -209,51 +217,57 @@ export function RecipeDetail() {
 
       {status === 'ready' && recipe && (
         <article>
-          <header>
-            <RecipeCategoryChips key={recipe.id} recipe={recipe} />
-            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-              <h1 className="font-display text-4xl text-foreground">
+          <header className={hasPhoto ? HEAD_GRID : 'max-w-[720px]'}>
+            {hasPhoto && (
+              <RecipeHero
+                image={allImages[0]}
+                alt={recipe.name}
+                onOpen={() => setLightboxIndex(0)}
+                className={HERO_WIDTH}
+              />
+            )}
+            <div>
+              <RecipeCategoryChips key={recipe.id} recipe={recipe} />
+              {/* 26 px matches the text-2xl token; the 32 px of the photo-less head and the 650 weight are spec
+                  values without a token. */}
+              <h1 className={cn('font-[650] text-foreground', hasPhoto ? 'text-2xl' : 'text-[32px]')}>
                 <TagText value={recipe.name} size="lg" />
               </h1>
-              <TagChips tags={recipe.tags} hoverName size="lg" />
-            </div>
 
-            {/* Two rows, aligned as a grid so the size column stays put:
-                row 1 is rating + time (left) and the size display (right),
-                row 2 is the Koch-Modus tools (left) and the scaler's steppers
-                (right, centred under the size box above). Portions-mode shows
-                the editable count up top and its ± steppers below; multiplier
-                -mode shows the size descriptor up top and the whole × scaler
-                below. */}
-            <div className="mt-1 grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-3 text-xl">
-              <div className="flex items-center gap-4">
-                <div className="shrink-0">
-                  <Rating recipe={ratedRecipe?.id === recipe.id ? ratedRecipe : recipe} onChange={setRatedRecipe} />
-                </div>
-                <div className="flex-1 text-center">
-                  {recipe.time && (
-                    <span className="inline-flex items-center gap-2">
-                      <Clock className="h-5 w-5 shrink-0 text-foreground/75" />
-                      <TagText value={recipe.time} size="md" />
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex justify-center">
-                {hasPortions(recipe.sizeNumber) ? (
-                  <PortionScaler
-                    part="input"
-                    factor={factor}
-                    onChange={setFactor}
-                    sizeNumber={recipe.sizeNumber}
-                    sizeText={recipe.sizeText}
-                  />
-                ) : (
-                  recipe.sizeText && <TagText value={recipe.sizeText} size="md" />
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
+                <Rating recipe={ratedRecipe?.id === recipe.id ? ratedRecipe : recipe} onChange={setRatedRecipe} />
+                {recipe.time && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="size-4 shrink-0" />
+                    <TagText value={recipe.time} />
+                  </span>
                 )}
+                <RecipeOrigin recipe={recipe} me={currentUserId} />
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5">
+              {recipe.tags.length > 0 && (
+                <div className="mt-3">
+                  <TagChips tags={recipe.tags} hoverName />
+                </div>
+              )}
+
+              {recipe.notes.length > 0 && (
+                <ul className="mt-4 space-y-1 text-base text-muted-foreground">
+                  {recipe.notes.map((note, i) => (
+                    <li key={i}>
+                      <TagText value={note} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                <PortionScaler
+                  factor={factor}
+                  onChange={setFactor}
+                  sizeNumber={recipe.sizeNumber}
+                  sizeText={recipe.sizeText}
+                />
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Toggle
@@ -264,51 +278,26 @@ export function RecipeDetail() {
                       className="gap-1.5 rounded-md text-muted-foreground data-[state=on]:text-primary phone:h-10"
                     >
                       <ListChecks className="size-5" />
-                      <span className="text-lg">Abhaken</span>
+                      <span>Abhaken</span>
                     </Toggle>
                   </TooltipTrigger>
                   <TooltipContent>Zutaten abhaken</TooltipContent>
                 </Tooltip>
                 <WakeLockToggle />
-              </div>
-              <div
-                className={cn(
-                  'flex justify-center',
-                  // Nudge up (via transform, so the row height — and Abhaken/
-                  // Wachhalten with it — stays put) and slightly right of centre
-                  // for a deliberately asymmetric look. The portions steppers go
-                  // further on both axes; the multiplier scaler only a little. On phones the
-                  // portions steppers' 40 px hit area would reach into the box above, so less.
-                  hasPortions(recipe.sizeNumber)
-                    ? '-translate-y-3 translate-x-2 phone:-translate-y-2'
-                    : '-translate-y-1.5 translate-x-1',
+                {hasSteps && (
+                  <Link
+                    to={cookHref(recipe.id, factor, recipe.sizeNumber)}
+                    className={cn(buttonVariants(), 'ml-auto gap-1.5 phone:h-10')}
+                  >
+                    <ChefHat className="size-4" />
+                    Kochen
+                  </Link>
                 )}
-              >
-                <PortionScaler
-                  part={hasPortions(recipe.sizeNumber) ? 'steppers' : 'full'}
-                  factor={factor}
-                  onChange={setFactor}
-                  sizeNumber={recipe.sizeNumber}
-                  sizeText={recipe.sizeText}
-                />
               </div>
             </div>
           </header>
 
-          <RecipeImages images={allImages} alt={recipe.name} onOpen={setLightboxIndex} />
-
-          {recipe.notes.length > 0 && (
-            <div className="mt-6 space-y-1.5">
-              {recipe.notes.map((note, i) => (
-                <p key={i} className="flex items-center gap-2 text-foreground/75">
-                  <Info className="h-5 w-5 shrink-0" />
-                  <span>
-                    <TagText value={note} />
-                  </span>
-                </p>
-              ))}
-            </div>
-          )}
+          <RecipeImages images={allImages.slice(1)} onOpen={(i) => setLightboxIndex(i + 1)} />
 
           {recipe.sections.map((section, k) => (
             <SectionBlock
@@ -347,5 +336,21 @@ export function RecipeDetail() {
         </article>
       )}
     </div>
+  )
+}
+
+// "von <owner>" on someone else's recipe, "mit <editors>" on my own shared one; nothing otherwise, and nothing
+// until at least one name has loaded.
+function RecipeOrigin({ recipe, me }: { recipe: Recipe; me: UserId | null }) {
+  // Until I'm known (me still loading), my own recipe would read "von <me>", so nothing shows yet.
+  const notMine = me !== null && recipe.owner !== me
+  const ids = me === null ? [] : notMine ? [recipe.owner] : recipe.editors.filter((id) => id !== me)
+  const users = useUsers(ids)
+  if (users.length === 0) return null
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Users className="size-4 shrink-0" />
+      {`${notMine ? 'von' : 'mit'} ${users.map((u) => u.name).join(', ')}`}
+    </span>
   )
 }

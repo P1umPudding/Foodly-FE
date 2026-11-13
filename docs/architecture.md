@@ -17,8 +17,7 @@ werden hier nicht wiederholt.
   - **Mocks** (`src/mocks/index.ts`) über den `SocketClient`-Mock-Responder. Mit
     `VITE_MOCK=1` (die Skaile-Preview setzt das automatisch, außer `VITE_API_URL`
     oder `VITE_MOCK` sind in Env oder `.env*` gesetzt) läuft **alles** über Mocks;
-    ohne nur die Methoden, für die das Backend noch nichts hat (aktuell
-    `listUsers`, siehe `docs/backend-questions.md` B2).
+    ohne wird der Mock-Responder gar nicht geladen (fehlende Endpoints: Stubs, s. u.).
   - **Stubs** für fehlende Endpoints im REST-Modus (Alpha): Zweig in der
     `foodly.*`-Methode, Daten in `localStorage` (`foodly.stub.*`), Register
     `src/api/stubs.ts` (`isStubbed`), UI-Hinweis „Demo“. Regeln:
@@ -64,10 +63,13 @@ werden hier nicht wiederholt.
 - Feature-State als reine Reducer/Funktionen + Hook: Liste in `src/list/`
   (`state.ts`, `query.ts`, `url.ts`, `persistence.ts`, `useListState.ts`), Editor in
   `src/editor/` (`draft.ts`, `useAutosave.ts`, `access.ts`), zuletzt angesehene Rezepte in
-  `src/home/recentlyViewed.ts`.
+  `src/home/recentlyViewed.ts`, Detail und Koch-Modus in `src/cook/` (`size.ts`: Größe als
+  `?servings`/`?factor`; `checkedIngredients.ts`: abgehakte Zutaten als kleiner In-Memory-Store mit
+  `useSyncExternalStore`, pro Rezept, ohne Web Storage — festgelegt in
+  `docs/superpowers/specs/2026-11-13-detail-cook-redesign-design.md`).
 - Persistenz im Browser nur über versionierte `localStorage`-Keys pro User
   (Muster: `src/list/persistence.ts`, `foodly:<feature>:<userId>`, `VERSION`).
-- URL ist Quelle für teilbaren State (Filter in `src/list/url.ts`).
+- URL ist Quelle für teilbaren State (Filter in `src/list/url.ts`, Rezeptgröße in `src/cook/size.ts`).
 
 ## 4. Hooks & Lade-/Fehler-/Leer-Zustände
 
@@ -82,7 +84,7 @@ werden hier nicht wiederholt.
     Rezeptliste je Ansicht), postxl `Loader` nur für kleine Einzelbereiche,
   - Fehler → postxl `Alert` (Muster: `src/pages/RecipeDetail.tsx`),
   - Leer → expliziter Leer-Text, nie eine leere Fläche.
-- Einzelaktionen (Upload, Duplizieren) melden Fehler per `Toaster`-Toast.
+- Einzelaktionen (Upload, Kopie erstellen) melden Fehler per `Toaster`-Toast.
 - Berechtigungen im UI sind UX, nicht Sicherheit: reine Prädikate (`canEdit`,
   `canViewRecipe`) neben den Views; das Backend erzwingt per 403.
 
@@ -141,6 +143,7 @@ Altlasten in `eslint-suppressions.json`):
 | `react/forbid-elements` (`button`, `input`, `select`, `textarea`, `dialog`) | Controls nur aus `@postxl/ui-components` |
 | `react/forbid-dom-props` (`style`, `title`) | Tailwind statt Inline-Style; postxl `Tooltip` statt `title=""` (der `--cat-*`-Helper wird gespreizt und fällt nicht darunter) |
 | `no-restricted-syntax` gegen `as Error` | Fehlertexte nicht per Cast lesen |
+| `no-restricted-syntax` gegen Effekt-Callbacks ohne Block-Body (`useEffect`, `useLayoutEffect`, `useInsertionEffect`, auch als `React.*`) | Ein Effekt gibt React nur bewusst eine Cleanup-Funktion zurück (#211) |
 | `@typescript-eslint/no-floating-promises`, `no-misused-promises` | Promises behandeln (§4), keine async-Handler, deren Fehler verloren gehen |
 | `react-hooks/rules-of-hooks`, `exhaustive-deps` | Hook-Regeln |
 | `import-x/no-extraneous-dependencies` | jeder Import steht in `package.json`, devDependencies nur in Tests/Configs |
