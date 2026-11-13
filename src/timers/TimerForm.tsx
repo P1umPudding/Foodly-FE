@@ -27,6 +27,7 @@ export function TimerForm() {
     const seconds = parseDurationInput(duration)
     if (seconds === null) {
       setInvalid(true)
+      // Focus plus aria-describedby reads the error once; a role="alert" on top would read it twice.
       durationRef.current?.focus()
       return
     }
@@ -45,7 +46,7 @@ export function TimerForm() {
         onChange={(e) => setLabel(e.target.value)}
         placeholder="Name (optional)"
         aria-label="Timer-Name"
-        className="mb-2 touch:h-10"
+        className="mb-2 phone:h-10 touch:h-10"
       />
 
       <div className="mb-2 grid grid-cols-4 gap-1.5">
@@ -56,7 +57,7 @@ export function TimerForm() {
             variant="outline"
             size="smLow"
             onClick={() => changeDuration(formatDurationInput(min * 60))}
-            className="touch:h-10"
+            className="phone:h-10 touch:h-10"
           >
             {min} min
           </Button>
@@ -69,18 +70,19 @@ export function TimerForm() {
           value={duration}
           onChange={(e) => changeDuration(e.target.value)}
           placeholder="0:12:00"
+          autoComplete="off"
           aria-label="Dauer"
           aria-invalid={invalid || undefined}
           aria-describedby={invalid ? errorId : undefined}
-          className="flex-1 tabular-nums touch:h-10"
+          className="flex-1 tabular-nums phone:h-10 touch:h-10"
         />
-        <Button type="submit" className="touch:h-10">
+        <Button type="submit" className="phone:h-10 touch:h-10">
           <Play />
           Starten
         </Button>
       </div>
       {invalid && (
-        <p id={errorId} role="alert" className="mt-1 text-xs text-destructive">
+        <p id={errorId} className="mt-1 text-xs text-destructive">
           Ungültige Dauer, z. B. 12 oder 0:12:00
         </p>
       )}
