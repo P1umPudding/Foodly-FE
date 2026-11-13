@@ -53,3 +53,20 @@ it('leaves out the layout toggles when the page has none (category page)', () =>
   expect(screen.queryByRole('group', { name: 'Gliederung' })).toBeNull()
   expect(screen.getByRole('group', { name: 'Ansicht' })).toBeTruthy()
 })
+
+// Radix's single ToggleGroup renders radios (aria-checked); the wrapping Tooltip owns data-state, so the look hangs on
+// a JS flag, which the classes below check.
+it('renders each group as a segment track with the active segment as a raised surface', () => {
+  renderToggles({ ...base, detail: 'detailed' })
+  const group = screen.getByRole('group', { name: 'Ansicht' })
+  expect(group.className.split(/\s+/)).toEqual(expect.arrayContaining(['bg-seg', 'p-0.5', 'rounded-lg']))
+
+  const active = screen.getByRole('radio', { name: 'Detailliert' })
+  expect(active.getAttribute('aria-checked')).toBe('true')
+  expect(active.className.split(/\s+/)).toEqual(expect.arrayContaining(['bg-card', 'shadow-seg', 'text-foreground']))
+
+  const inactive = screen.getByRole('radio', { name: 'Kompakt' })
+  expect(inactive.getAttribute('aria-checked')).toBe('false')
+  expect(inactive.className.split(/\s+/)).toContain('text-muted-foreground')
+  expect(inactive.className.split(/\s+/)).not.toContain('bg-card')
+})
