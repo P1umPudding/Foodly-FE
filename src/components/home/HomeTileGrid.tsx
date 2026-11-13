@@ -1,5 +1,5 @@
 // Recipe tiles on the start page: a fixed 3 columns (2 on phones) per the design spec, unlike the list's
-// auto-fill grid, so a section of 6 fills two even rows.
+// auto-fill grid, so a section of 6 fills two even rows. Gaps match the list's TileGrid (RecipeListView).
 import type { ReactNode } from 'react'
 
 export function HomeTileGrid({ children }: { children: ReactNode }) {

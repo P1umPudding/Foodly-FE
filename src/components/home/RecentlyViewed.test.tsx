@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -39,15 +40,16 @@ function store(ids: RecipeId[]) {
   localStorage.setItem('foodly:recently-viewed:1', JSON.stringify({ version: 1, ids }))
 }
 
-function renderSection() {
-  render(
+function renderSection({ strict = false } = {}) {
+  const tree = (
     <MemoryRouter>
       <RecentlyViewed />
-    </MemoryRouter>,
+    </MemoryRouter>
   )
+  render(strict ? <StrictMode>{tree}</StrictMode> : tree)
 }
 
-const tileNames = () =>
+const tileHrefs = () =>
   within(screen.getByRole('region', { name: 'Zuletzt angesehen' }))
     .getAllByRole('link')
     .map((a) => a.getAttribute('href'))
@@ -77,15 +79,15 @@ describe('RecentlyViewed', () => {
       (id) => new Promise((resolve) => setTimeout(() => resolve(recipe(id)), id === 3 ? 30 : 0)),
     )
     renderSection()
-    await waitFor(() => expect(tileNames()).toEqual(['/recipes/3', '/recipes/1', '/recipes/2']))
+    await waitFor(() => expect(tileHrefs()).toEqual(['/recipes/3', '/recipes/1', '/recipes/2']))
   })
 
   it('asks for the first 6 only', async () => {
     store([1, 2, 3, 4, 5, 6, 7, 8])
     const get = vi.spyOn(foodly, 'getRecipe').mockImplementation((id) => Promise.resolve(recipe(id)))
     renderSection()
-    await waitFor(() => expect(tileNames()).toHaveLength(6))
-    expect(get.mock.calls.map((c) => c[0]).sort()).toEqual([1, 2, 3, 4, 5, 6])
+    await waitFor(() => expect(tileHrefs()).toHaveLength(6))
+    expect(get.mock.calls.map((c) => c[0]).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6])
     for (const call of get.mock.calls) expect(call).toHaveLength(1)
   })
 
@@ -95,7 +97,17 @@ describe('RecentlyViewed', () => {
       id === 2 ? Promise.reject(new Error('recipe 2 not found')) : Promise.resolve(recipe(id)),
     )
     renderSection()
-    await waitFor(() => expect(tileNames()).toEqual(['/recipes/1', '/recipes/3']))
+    await waitFor(() => expect(tileHrefs()).toEqual(['/recipes/1', '/recipes/3']))
+    expect(readRecentlyViewed(1)).toEqual([1, 3])
+  })
+
+  it('drops and forgets a failed recipe under StrictMode too', async () => {
+    store([1, 2, 3])
+    vi.spyOn(foodly, 'getRecipe').mockImplementation((id) =>
+      id === 2 ? Promise.reject(new Error('recipe 2 not found')) : Promise.resolve(recipe(id)),
+    )
+    renderSection({ strict: true })
+    await waitFor(() => expect(tileHrefs()).toEqual(['/recipes/1', '/recipes/3']))
     expect(readRecentlyViewed(1)).toEqual([1, 3])
   })
 

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
@@ -11,7 +11,7 @@ vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChi
 vi.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),
-  useNavigate: () => vi.fn(),
+  useNavigate: () => () => {},
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a>,
 }))
 
@@ -85,5 +85,17 @@ describe('RecipeDetail remembers the recipe as recently viewed', () => {
     fireEvent.click(screen.getByLabelText('Mehr'))
     await waitFor(() => screen.getByText(/300/))
     expect(readRecentlyViewed(1)).toEqual([99, 5])
+  })
+
+  it('forgets the recipe once it is deleted', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
+    vi.spyOn(foodly, 'deleteRecipe').mockResolvedValue()
+    renderDetail()
+    await waitFor(() => screen.getByText('Base'))
+    pushRecentlyViewed(1, 99)
+    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    const dialog = within(await screen.findByRole('alertdialog'))
+    fireEvent.click(dialog.getByRole('button', { name: 'Löschen' }))
+    await waitFor(() => expect(readRecentlyViewed(1)).toEqual([99]))
   })
 })

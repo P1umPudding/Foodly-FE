@@ -34,7 +34,7 @@ import { TriggerButton } from '../components/TriggerButton'
 import { RecipeCategoryChips } from '../components/category/RecipeCategoryChips'
 import type { Recipe, RecipeIngredientId } from '../api/protocol'
 import { hasPortions } from '../api/views'
-import { pushRecentlyViewed } from '../home/recentlyViewed'
+import { pushRecentlyViewed, removeRecentlyViewed } from '../home/recentlyViewed'
 
 function isUrl(s: string): boolean {
   return /^https?:\/\//i.test(s.trim())
@@ -139,6 +139,9 @@ export function RecipeDetail() {
                 name={plainName}
                 // replace: Back must not lead to the deleted recipe's "not found" page.
                 onDeleted={() => {
+                  // Otherwise six deleted recipes in front would keep "Zuletzt angesehen" empty for good (failed
+                  // loads are only forgotten when another one loaded).
+                  if (currentUserId !== null) removeRecentlyViewed(currentUserId, [recipe.id])
                   refreshCategories()
                   navigate('/recipes', { replace: true })
                 }}
