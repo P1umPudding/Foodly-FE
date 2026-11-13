@@ -1,6 +1,7 @@
 // The start page: greeting plus the sections (D2–D4). While no section has content it shows the
 // "nothing to show" card instead.
 import { useMe } from '../catalog/CatalogProvider'
+import { CategoryTiles } from '../components/home/CategoryTiles'
 import { HomeSectionsProvider, NothingToShow } from '../components/home/HomeSections'
 import { formatHomeDate, greeting } from '../components/home/greeting'
 
@@ -14,7 +15,8 @@ export function Home() {
           <p className="text-muted-foreground">{formatHomeDate(new Date())}</p>
           <h1 className="font-display text-4xl text-foreground">{greeting(me?.name)}</h1>
         </div>
-        {/* Sections (D2–D4) go here, each a HomeSection. */}
+        {/* Sections, each a HomeSection (D3–D4 follow). */}
+        <CategoryTiles />
         <NothingToShow />
       </div>
     </HomeSectionsProvider>
