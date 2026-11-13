@@ -33,9 +33,9 @@ packages, no new components/routes.
 
 ## Step 3: Lint guard — `eslint.config.js`, `src/hooks/useSocketStatus.ts`, `docs/architecture.md`
 - Append to the existing `no-restricted-syntax` array:
-  selector `CallExpression[callee.name=/^use(Layout|Insertion)?Effect$/] > ArrowFunctionExpression[body.type!='BlockStatement']`,
+  selector `CallExpression:matches([callee.name=/^use(Layout|Insertion)?Effect$/], [callee.property.name=/^use(Layout|Insertion)?Effect$/]) > ArrowFunctionExpression[body.type!='BlockStatement']`
+  (bare hook calls and `React.useEffect`-style member calls),
   message: "An expression-bodied effect callback hands its value to React as the cleanup; use a block body (and an explicit `return` for a real cleanup)."
-  (No code uses `React.useEffect`, so callee.name suffices.)
 - Verify before fixing useSocketStatus: eslint flags exactly useSocketStatus.ts:7 (and CategoryPage:49 if checked on the old code via `git stash`/old blob), nothing else.
 - `useSocketStatus.ts:7` -> `useEffect(() => { return socket.onStatus(setStatus) }, [])` (same behaviour).
 - `docs/architecture.md` §6 table (~line 143): add row
