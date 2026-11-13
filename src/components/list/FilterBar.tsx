@@ -69,7 +69,12 @@ export function FilterBar({
           <TagFilter tags={tags} selected={state.tags} set={set} />
         )}
       </FilterButton>
-      <FilterButton label="Zutaten" icon={ListChecks} value={labels.ingredients} onClear={() => set({ ingredients: [] })}>
+      <FilterButton
+        label="Zutaten"
+        icon={ListChecks}
+        value={labels.ingredients}
+        onClear={() => set({ ingredients: [] })}
+      >
         {ingredients.length === 0 ? (
           <NoMatches>Keine Zutaten</NoMatches>
         ) : (
@@ -79,7 +84,12 @@ export function FilterBar({
       <FilterButton label="Arbeitszeit" icon={Clock} value={labels.duration} onClear={() => set({ durationMax: null })}>
         <DurationFilter value={state.durationMax} set={set} />
       </FilterButton>
-      <FilterButton label="Zugriff" icon={Users} value={labels.access} onClear={() => set({ role: 'any', collab: 'any' })}>
+      <FilterButton
+        label="Zugriff"
+        icon={Users}
+        value={labels.access}
+        onClear={() => set({ role: 'any', collab: 'any' })}
+      >
         <AccessFilter role={state.role} collab={state.collab} set={set} />
       </FilterButton>
     </div>

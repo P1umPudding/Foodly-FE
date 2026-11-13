@@ -16,7 +16,8 @@ function Clearable({ onClear }: { onClear: () => void }) {
   const [value, setValue] = useState<FilterValue | null>({ first: 'Vegetarisch', more: 1 })
   return (
     <FilterButton
-      label="Tags" icon={Tag}
+      label="Tags"
+      icon={Tag}
       value={value}
       onClear={() => {
         onClear()
@@ -64,7 +65,9 @@ describe('inactive / active', () => {
     // One frame around both, in border-strong; the ✕ sits behind a hairline. 40 px on phones.
     const frame = trigger.parentElement!
     expect(frame).toBe(clear.parentElement)
-    expect(frame.className.split(/\s+/)).toEqual(expect.arrayContaining(['border', 'border-border-strong', 'phone:h-10']))
+    expect(frame.className.split(/\s+/)).toEqual(
+      expect.arrayContaining(['border', 'border-border-strong', 'phone:h-10']),
+    )
     expect(clear.className.split(/\s+/)).toEqual(expect.arrayContaining(['border-l', 'phone:w-10']))
   })
 
@@ -83,7 +86,12 @@ describe('inactive / active', () => {
 
   it('truncates only the first name, never "<Filter>:" or "+n"', () => {
     render(
-      <FilterButton label="Kategorie" icon={Tag} value={{ first: 'Sehr lange Kategoriebezeichnung', more: 2 }} onClear={() => {}}>
+      <FilterButton
+        label="Kategorie"
+        icon={Tag}
+        value={{ first: 'Sehr lange Kategoriebezeichnung', more: 2 }}
+        onClear={() => {}}
+      >
         <p>Liste</p>
       </FilterButton>,
     )
