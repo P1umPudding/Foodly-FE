@@ -20,14 +20,11 @@ function render() {
   )
 }
 
-// Install the mock responder before mounting (mock mode only; a no-op in REST).
-// It's a dynamic import, so rendering first lets the first mocked
-// requests race ahead of the responder and reject with "socket not connected".
-// Waiting for bootstrap to settle avoids that. If it fails, the error is logged
-// and the app renders anyway.
-try {
-  await bootstrap()
-} catch (error) {
-  console.error(error)
-}
-render()
+// Render runs only after bootstrap settles: it installs the mock responder (mock mode only; a no-op in REST)
+// via a dynamic import, and rendering first would let the first mocked requests race ahead of it and reject
+// with "socket not connected". If bootstrap fails, the error is logged and the app renders anyway.
+// No top-level await: in the production build the mock chunk imports modules it shares with this entry chunk,
+// so awaiting here deadlocks (the entry never finishes evaluating) and the page stays blank (#233).
+void bootstrap()
+  .catch((error: unknown) => console.error(error))
+  .then(render)

@@ -19,7 +19,11 @@ it('logs a failed bootstrap and still renders the app', async () => {
   root.id = 'root'
   document.body.append(root)
 
-  await act(() => import('./main'))
+  // Render follows bootstrap a few microtasks after the import; a macrotask drains them inside act.
+  await act(async () => {
+    await import('./main')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  })
 
   expect(error.mock.calls).toEqual([[failure]])
   expect(screen.getByText('App rendered')).toBeTruthy()
