@@ -421,7 +421,7 @@ describe('Timer button in the header', () => {
     openTimers()
     const panel = await screen.findByRole('dialog', { name: 'Timer' })
     fireEvent.click(within(panel).getByRole('button', { name: '10 min' }))
-    fireEvent.click(within(panel).getByRole('button', { name: 'Timer starten' }))
+    fireEvent.click(within(panel).getByRole('button', { name: 'Starten' }))
     expect(screen.getByRole('button', { name: 'Timer' }).textContent).toBe('10:00')
   })
 })

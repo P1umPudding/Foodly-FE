@@ -7,8 +7,7 @@ import { TagText } from '../TagText'
 import { move, newNote, sizeNumberError } from '../../editor/draft'
 import type { Draft } from '../../editor/draft'
 
-// Minutes are plain number inputs: the existing DurationPicker is the timer's
-// h:m:s drum wheel, which is the wrong control for a form field.
+// Minutes are plain number inputs: a recipe's times are whole minutes, no h:m:s entry needed.
 function MinutesField({
   id,
   label,
