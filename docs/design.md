@@ -4,6 +4,9 @@ Verbindlich für jeden UI-PR, genau wie [`architecture.md`](architecture.md) fü
 `src/styles/theme.css` (Hell `:root`, Dunkel `.dark`) und `src/styles/styles.css` (`@theme`); diese Datei erklärt,
 **wann** welcher Wert und welches Muster gilt. Zielbild und Screens im Detail: die klickbaren Mockups und ihre
 Spezifikation unter `docs/design/redesign/` (`README.md` dort; `index.html` lokal über einen statischen Server öffnen).
+**Weichen App und Mockup voneinander ab, gilt das Mockup** (Daniel, 2026-11-13). Ausnahmen nur, wo diese Datei eine
+spätere Owner-Entscheidung festhält (z. B. §7 Tippflächen) oder ein Issue sie ausdrücklich nennt. Der Abgleich vom
+13.11. steht in `docs/design/redesign/audit/`.
 
 Eigentümer: Foodly Designer. Änderungen nur per PR (`lead/design-<slug>`), Entscheidungen von Kolja.
 
@@ -168,12 +171,13 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 
 - **Laden:** postxl `Skeleton` in der Form des Inhalts (Zeilen, Kacheln), kein Vollbild-Spinner. `Loader` nur in
   Buttons während einer Aktion.
-- **Leer:** ein Satz, was fehlt, plus genau eine Aktion („Noch keine Rezepte. Neues Rezept“). Kein großes Icon,
-  keine Illustration.
+- **Leer:** Leerzustand-Karte wie im Mockup (`#/states`): Icon im Kreis, Titel, ein Satz, höchstens eine Aktion
+  (Daniel, 2026-11-13: Mockup gilt; vorher „kein großes Icon“).
 - **Keine Treffer (Filter):** „Keine Treffer für die aktuellen Filter.“ + „Filter zurücksetzen“ – erst, wenn keine
   Seiten mehr ausstehen. Filtert der Client über geladene Seiten und es kommen noch welche, eine Skelett-Zeile statt
   Leer-Text (`RecipeList.tsx`).
-- **Fehler:** postxl `Alert` inline mit der Meldung und „Erneut versuchen“ (Nachladen fehlgeschlagen: unter der Liste).
+- **Fehler:** neutrale Karte wie im Mockup (`#/states`) mit Icon, Satz und „↺ Erneut versuchen“, kein roter Alert
+  (Daniel, 2026-11-13). Nachladen fehlgeschlagen: unter der Liste.
   Aktion fehlgeschlagen: `toast`.
 - **Kein Zugriff / nicht gefunden:** eigene Seite mit Weg zurück (`NotFound.tsx`).
 
@@ -194,7 +198,7 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
   `dvh`, ihre Aktionen bleiben über der Bildschirmtastatur.
 - Unterseiten mit eigener Abschluss-Aktion (Editor „Fertig“, Koch-Modus) zeigen auf dem Handy keine Tab-Leiste.
 - Popover mit Inhalt (Filter, Timer, Formulare) werden auf dem Handy zu Bottom-Sheets mit Griff, Titel und ✕;
-  Filter-Sheets haben unten nur „Anzeigen“. Kurze Aktionsmenüs (bis 5 Einträge, z. B. das Profil-Menü) bleiben auch
+  Filter-Sheets haben unten „Zurücksetzen“ und „Anzeigen“ wie im Mockup (Daniel, 2026-11-13). Kurze Aktionsmenüs (bis 5 Einträge, z. B. das Profil-Menü) bleiben auch
   auf dem Handy ein `DropdownMenu`.
 - Horizontal scrollen nur für die Filterleiste und Chip-Reihen, nie für Inhalt.
 - Kein Hover-only: alles, was ein Tooltip erklärt, braucht ein Label oder ist selbsterklärend.
