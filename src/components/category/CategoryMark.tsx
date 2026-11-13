@@ -29,9 +29,11 @@ export function categoryInitial(name: string): string {
 export function CategoryMark({
   category,
   size,
+  className,
 }: {
   category: Pick<UserCategory, 'name'> & CategoryColorInput
   size: keyof typeof SIZE
+  className?: string
 }) {
   return (
     <span
@@ -40,6 +42,7 @@ export function CategoryMark({
       className={cn(
         'inline-flex shrink-0 items-center justify-center rounded-sm bg-cat-soft font-medium text-cat-ink',
         SIZE[size],
+        className,
       )}
     >
       {categoryInitial(category.name)}
