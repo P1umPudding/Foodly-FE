@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SectionBlock } from './SectionBlock'
 import { TimerProvider, useTimers } from '../../timers/TimerProvider'
@@ -70,8 +70,10 @@ describe('SectionBlock', () => {
 
   it('numbers steps across sections and labels timers alike', () => {
     renderBlock({ stepOffset: 2 })
-    const numbers = screen.getAllByRole('listitem').map((li) => li.firstElementChild?.textContent)
-    expect(numbers).toEqual(['3', '4'])
+    const [first, second] = screen.getAllByRole('listitem')
+    expect(within(first).getByText('3')).toBeTruthy()
+    expect(within(second).getByText('4')).toBeTruthy()
+    expect(screen.queryByText('1')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Timer starten: 10 Minuten' }))
     expect(screen.getByTestId('timers').textContent).toBe('Gulasch · Schritt 4')
@@ -87,6 +89,11 @@ describe('SectionBlock', () => {
     renderBlock({ section: section({ steps: [] }) })
     expect(heading('Zubereitung')).toBeNull()
     expect(heading('Zutaten')).not.toBeNull()
+  })
+
+  it('renders only the title for a section without ingredients and steps', () => {
+    renderBlock({ section: section({ ingredients: [], steps: [] }) })
+    expect(screen.getAllByRole('heading').map((h) => h.textContent)).toEqual(['Teig'])
   })
 
   it('reports a ticked ingredient', () => {

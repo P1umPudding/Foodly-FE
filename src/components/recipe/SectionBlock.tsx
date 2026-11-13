@@ -25,16 +25,16 @@ export function SectionBlock({
   checkedIds?: ReadonlySet<RecipeIngredientId>
   onToggle?: (id: RecipeIngredientId) => void
 }) {
-  const titled = showTitle && Boolean(section.name)
+  const title = showTitle ? section.name : null
   // Column titles sit one level below the section title, or take its place, so heading levels never skip.
-  const columnLevel = titled ? 3 : 2
+  const columnLevel = title ? 3 : 2
 
   return (
     <section className="mt-10">
-      {titled && (
+      {title && (
         // 19 px has no token in the text scale.
         <h2 className="mb-3.5 font-display text-[19px] leading-tight text-foreground">
-          <TagText value={section.name ?? ''} size="md" />
+          <TagText value={title} size="md" />
         </h2>
       )}
 
@@ -44,11 +44,11 @@ export function SectionBlock({
           // self-start: a stretched table spreads the extra height across its rows.
           <div className="self-start">
             <ColumnTitle level={columnLevel}>Zutaten</ColumnTitle>
-            {/* border-collapse is what lets the rows draw their hairlines. Under table-fixed the quantity column's
-                width includes the cell's pr-3, so its content gets 84 px plus a 12 px gap. */}
+            {/* border-collapse is what lets the rows draw their hairlines. */}
             <table className="w-full table-fixed border-collapse">
               <colgroup>
                 {checkable && <col className="w-8" />}
+                {/* Under table-fixed the width includes the cell's pr-3: 84 px content plus a 12 px gap. */}
                 <col className="w-24" />
                 <col />
               </colgroup>
@@ -71,7 +71,8 @@ export function SectionBlock({
         {section.steps.length > 0 && (
           <div className="lg:col-start-2">
             <ColumnTitle level={columnLevel}>Zubereitung</ColumnTitle>
-            <ol className="space-y-3.5 leading-[1.55]">
+            {/* role: Safari drops list semantics from a list-style: none list. */}
+            <ol role="list" className="space-y-3.5 leading-[1.55]">
               {section.steps.map((step, i) => {
                 const n = stepOffset + i + 1
                 return (

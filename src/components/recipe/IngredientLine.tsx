@@ -41,7 +41,7 @@ export function IngredientLine({
         <TagText value={quantity} />
       </td>
       <td className={cn('py-[7px] align-baseline', dim)}>
-        {line.ingredient && line.text ? (
+        {line.ingredient && line.text?.trim() ? (
           <>
             <TagText value={line.ingredient.name} />{' '}
             <span className="text-muted-foreground">
