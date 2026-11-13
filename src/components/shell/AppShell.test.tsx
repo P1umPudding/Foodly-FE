@@ -416,12 +416,31 @@ describe('Timer button in the header', () => {
     expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('false')
   })
 
+  it('closes the desktop popover from its ✕ and returns focus to the header button', async () => {
+    const panel = await openPopover()
+    fireEvent.click(within(panel).getByRole('button', { name: 'Schließen' }))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
+  })
+
+  it('lists a started timer above the form and removes it with ✕', async () => {
+    const panel = await openPopover()
+    fireEvent.click(within(panel).getByRole('button', { name: 'Starten' }))
+    const bar = within(panel).getByRole('progressbar', { name: 'Fortschritt Timer' })
+    const form = within(panel).getByRole('form', { name: 'Neuer Timer' })
+    expect(bar.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+    fireEvent.click(within(panel).getByRole('button', { name: 'Entfernen' }))
+    within(panel).getByText('Kein Timer läuft.')
+    expect(within(panel).queryByRole('progressbar')).toBeNull()
+  })
+
   it('shows the countdown of a started timer', async () => {
     renderAt('/recipes')
     openTimers()
     const panel = await screen.findByRole('dialog', { name: 'Timer' })
     fireEvent.click(within(panel).getByRole('button', { name: '10 min' }))
-    fireEvent.click(within(panel).getByRole('button', { name: 'Timer starten' }))
+    fireEvent.click(within(panel).getByRole('button', { name: 'Starten' }))
     expect(screen.getByRole('button', { name: 'Timer' }).textContent).toBe('10:00')
   })
 })
