@@ -35,7 +35,7 @@ export class SocketClient {
   constructor(private readonly url: string) {}
 
   // Answer requests from a local responder (src/mocks) — no real WebSocket;
-  // status goes straight to 'open'. Used in both modes (REST still mocks listUsers).
+  // status goes straight to 'open'. Only with VITE_MOCK=1.
   useMocks(responder: (type: string, payload?: unknown) => Promise<unknown>): void {
     this.mockResponder = responder
     this.setStatus('open')

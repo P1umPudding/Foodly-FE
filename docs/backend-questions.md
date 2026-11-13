@@ -65,17 +65,17 @@ umgesetzt in FE #144; Profilbilder laufen über dieselbe Route.
 **Problem.** Das Frontend löst `owner`/`editors`/`viewers` und `rating[].user` über
 eine `byId`-Map auf (`CatalogProvider`). Das Backend hat nur `GET /users/me` und
 `GET /users/search?q=` (Typeahead, schließt einen selbst aus) — kein Bulk-Lookup.
-`listUsers` bleibt daher gemockt; im REST-Modus fehlen Namen.
+`listUsers` blieb daher gemockt; im REST-Modus fehlten Namen (bis FE #193).
 
 **Vorschlag:** `GET /api/v1/users?ids=2,3,5` → `{ data: [{ id, name, profilePicture }] }`
 (nur kompakte Felder, nur User, mit denen man ein Rezept/eine Gruppe teilt).
 Alternativ Recipe expandiert `owner/editors/viewers` als `{ id, name }` — mehr Payload,
 weniger Requests; A ist flexibler.
 
-**Entsperrt:** `listUsers`-Mock entfernen; Rollen-/Rating-Anzeige mit echten Namen.
+**Entsperrt (erledigt in FE #193):** `listUsers`-Mock entfernen; Rollen-/Rating-Anzeige mit echten Namen.
 
 **Stand 2026-11-13:** Umgesetzt in Backend-PR #22 (gemergt 2026-11-13 als `767603e`) wie vorgeschlagen, aber **ohne** Beschränkung auf
-Nutzer, mit denen man teilt (Review-Hinweis 2 unten). FE-Issue U2 = #193 (`superpowers/plans/2026-11-12-backend-22-followups.md`), seit dem Merge agent-ready.
+Nutzer, mit denen man teilt (Review-Hinweis 2 unten). FE-Issue U2 = #193 (`superpowers/plans/2026-11-12-backend-22-followups.md`): Das FE lädt Namen bei Bedarf über `foodly.getUsers`, der `listUsers`-Mock ist entfernt.
 
 ### B3 — Ratings-Endpoints
 

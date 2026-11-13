@@ -16,7 +16,7 @@ const api = vi.hoisted(() => ({
 vi.mock('../api', () => ({
   foodly: {
     listTags: () => Promise.resolve([]),
-    listUsers: () => Promise.resolve([]),
+    getUsers: () => Promise.resolve([]),
     me: () => Promise.resolve({ id: 1, name: 'Kolja', profilePicture: null }),
     listIngredients: () => Promise.resolve([]),
     ...api,

@@ -145,7 +145,7 @@ describe('timers per signed-in user', () => {
   function spyCatalogs() {
     vi.spyOn(foodly, 'me').mockResolvedValue({ id: 1, name: 'Kim', profilePicture: null })
     vi.spyOn(foodly, 'listTags').mockResolvedValue([])
-    vi.spyOn(foodly, 'listUsers').mockResolvedValue([])
+    vi.spyOn(foodly, 'getUsers').mockResolvedValue([])
     vi.spyOn(foodly, 'listIngredients').mockResolvedValue([])
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
   }
