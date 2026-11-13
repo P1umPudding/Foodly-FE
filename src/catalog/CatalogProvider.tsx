@@ -258,7 +258,9 @@ export function useTag(id: TagId): Tag | undefined {
 }
 export function useUser(id: UserId): User | undefined {
   const { byId, request } = useCatalog().users
-  useEffect(() => request(id), [id, request])
+  useEffect(() => {
+    request(id)
+  }, [id, request])
   return byId[id]
 }
 export function useCurrentUserId(): UserId | null {

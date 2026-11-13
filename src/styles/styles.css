@@ -46,6 +46,10 @@
    Guarded by phoneVariant.test.ts. */
 @custom-variant phone (@media (width < 761px)); /* NOSONAR - Tailwind v4 at-rule */
 
+/* Touch devices (primary pointer is coarse), for touch-only sizing (M5). Same query as the 16px field rule below;
+   guarded by touchInputs.test.ts. */
+@custom-variant touch (@media (pointer: coarse)); /* NOSONAR - Tailwind v4 at-rule */
+
 /* Map semantic tokens -> Tailwind v4 utility namespaces. `inline` so var()
    values resolve at the utility's usage site (respects the .dark override). */
 @theme inline {
@@ -215,6 +219,16 @@
 input[data-slot='input']:focus-visible,
 div:has(> input[data-slot='input']):focus-within {
   --tw-ring-shadow: 0 0 #0000;
+}
+
+/* iOS Safari zooms on focus into fields under 16px, and page zoom stays allowed (index.html), so on touch fields get
+   16px: one central rule (docs/design.md §2 Schrift), not per-field classes. Fields already larger (PortionScaler's
+   text-xl) keep their size; only bare, unprefixed text-xl/2xl/3xl opt out. UNLAYERED because postxl's text-*
+   utilities live in @layer utilities and would beat a layered rule. */
+@media (pointer: coarse) {
+  :is(input, textarea, [contenteditable]):not(.text-xl, .text-2xl, .text-3xl) {
+    font-size: 16px;
+  }
 }
 
 /* postxl's ring-ring/50 halves --ring to about 2:1 (#77); on focus use the full token. aria-invalid is
