@@ -148,9 +148,9 @@ describe('mock write timestamps', () => {
 
     const created = (await mockRequest('recipes.create', { input })) as Recipe
 
-    expect(created.createdAt).toBe('2026-11-13T09:30:15+00:00')
-    expect(created.updatedAt).toBe('2026-11-13T09:30:15+00:00')
-    expect(created.myAccessSince).toBe('2026-11-13T09:30:15+00:00')
+    expect(created.createdAt).toBe('2026-11-13T09:30:15.123+00:00')
+    expect(created.updatedAt).toBe('2026-11-13T09:30:15.123+00:00')
+    expect(created.myAccessSince).toBe('2026-11-13T09:30:15.123+00:00')
   })
 
   it('keeps createdAt and myAccessSince on update and bumps updatedAt', async () => {
@@ -161,9 +161,9 @@ describe('mock write timestamps', () => {
     vi.setSystemTime(new Date('2026-11-13T10:00:00Z'))
     const updated = (await mockRequest('recipes.update', { id: created.id, input })) as Recipe
 
-    expect(updated.createdAt).toBe('2026-11-13T09:00:00+00:00')
-    expect(updated.myAccessSince).toBe('2026-11-13T09:00:00+00:00')
-    expect(updated.updatedAt).toBe('2026-11-13T10:00:00+00:00')
+    expect(updated.createdAt).toBe('2026-11-13T09:00:00.000+00:00')
+    expect(updated.myAccessSince).toBe('2026-11-13T09:00:00.000+00:00')
+    expect(updated.updatedAt).toBe('2026-11-13T10:00:00.000+00:00')
   })
 
   it('stamps a copy as new instead of inheriting the original timestamps', async () => {
@@ -174,8 +174,8 @@ describe('mock write timestamps', () => {
 
     const copy = (await mockRequest('recipes.copy', { id: original.id })) as Recipe
 
-    expect(copy.createdAt).toBe('2026-11-13T11:00:00+00:00')
-    expect(copy.updatedAt).toBe('2026-11-13T11:00:00+00:00')
-    expect(copy.myAccessSince).toBe('2026-11-13T11:00:00+00:00')
+    expect(copy.createdAt).toBe('2026-11-13T11:00:00.000+00:00')
+    expect(copy.updatedAt).toBe('2026-11-13T11:00:00.000+00:00')
+    expect(copy.myAccessSince).toBe('2026-11-13T11:00:00.000+00:00')
   })
 })

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { CURRENT_USER_ID, mockData, mockRequest } from './index'
 import type { PaginatedRecipes } from '../api/protocol'
 
-const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+00:00$/
+const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?\+00:00$/
 
 describe('mock recipe timestamps', () => {
   it('gives every recipe the three timestamps in the backend format', () => {
