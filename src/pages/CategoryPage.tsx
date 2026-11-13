@@ -46,7 +46,9 @@ export function CategoryPage() {
 
   // The window is the scroll container: opening a category (keyed by id in App.tsx, so a fresh mount) starts at the
   // top. The second effect is for a sidebar click on the category already open, which doesn't remount.
-  useEffect(() => window.scrollTo(0, 0), [])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
   const { key: locationKey, state: locationState } = useLocation()
   const navigationType = useNavigationType()
   const fromShellNav = isShellNavState(locationState) && navigationType !== 'POP'
