@@ -14,7 +14,7 @@ vi.mock('react-router-dom', async () => {
   return {
     useSearchParams: () => {
       const [params, setParams] = useState(() => new URLSearchParams())
-      return [params, (next: (p: URLSearchParams) => URLSearchParams) => setParams(next)]
+      return [params, (next: URLSearchParams | ((p: URLSearchParams) => URLSearchParams)) => setParams(next)]
     },
     useLocation: () => ({ key: 'default' }),
     useParams: () => ({ id: '5' }),

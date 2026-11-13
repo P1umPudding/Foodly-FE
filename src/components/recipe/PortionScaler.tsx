@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
 import { Button, NumberInput, cn } from '@postxl/ui-components'
 import { hasPortions } from '../../api/views'
-import { FACTOR_SERIES, clampServings, snapFactor, stepFactor, stepServings } from '../../cook/size'
+import { FACTOR_SERIES, clampServings, round2, snapFactor, stepFactor, stepServings } from '../../cook/size'
 import { TagText } from '../TagText'
 
 // The size stepper in the detail action row: [−] value label [+]. Two modes:
@@ -53,10 +53,10 @@ export function PortionScaler({
     if (draft) commit(draft.typed)
     setDraft(null)
   }
-  const stepUp = () => apply(portions ? stepServings(current, 1) : stepFactor(current, 1))
-  const stepDown = () => apply(portions ? stepServings(current, -1) : stepFactor(current, -1))
+  const stepUp = () => apply(portions ? stepServings(current, 1, base) : stepFactor(current, 1))
+  const stepDown = () => apply(portions ? stepServings(current, -1, base) : stepFactor(current, -1))
   const canIncrement = portions || current < FACTOR_SERIES[FACTOR_SERIES.length - 1]
-  const canDecrement = portions ? current > 1 : current > FACTOR_SERIES[0]
+  const canDecrement = portions ? current > Math.min(1, base) : current > FACTOR_SERIES[0]
 
   // Phones get 40 px tap targets (docs/design.md §7); desktop keeps the compact iconSm.
   const stepperClass = 'rounded-md text-muted-foreground hover:text-foreground phone:size-10'
@@ -123,8 +123,4 @@ export function PortionScaler({
       {plus}
     </div>
   )
-}
-
-function round2(n: number): number {
-  return Math.round(n * 100) / 100
 }

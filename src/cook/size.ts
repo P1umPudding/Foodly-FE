@@ -12,7 +12,7 @@ const FACTOR = 'factor'
 export function parseSize(params: URLSearchParams, sizeNumber: number | null): number {
   if (hasPortions(sizeNumber) && sizeNumber !== null) {
     const raw = params.get(SERVINGS)
-    if (raw === null || !/^\d+$/.test(raw)) return 1
+    if (raw === null || !/^[1-9]\d*$/.test(raw)) return 1
     const servings = Number(raw)
     return servings >= 1 && Number.isSafeInteger(servings) ? servings / sizeNumber : 1
   }
@@ -43,7 +43,8 @@ export function withSize(params: URLSearchParams, factor: number, sizeNumber: nu
   return next
 }
 
-// The cook-mode link keeps the size. A portions recipe names its servings even at the default (AC3).
+// The cook-mode link keeps the size. A portions recipe names its servings even at the default (AC3), unless that
+// default is fractional (old data, e.g. 2.5): no whole count stands for it, and a missing param is factor 1 anyway.
 export function cookHref(recipeId: number, factor: number, sizeNumber: number | null): string {
   const param = sizeParam(factor, sizeNumber)
   const query = param ? `?${new URLSearchParams([param]).toString()}` : ''
@@ -65,16 +66,18 @@ export function clampServings(value: number): number {
   return Math.max(1, Math.round(value))
 }
 
-// Whole servings around `current`, which may be fractional with old data (e.g. 2.5 → 3 up, 2 down).
-export function stepServings(current: number, direction: 1 | -1): number {
+// Whole servings around `current`. Old data can have a fractional base (e.g. 2.5): stepping passes through it
+// (3 → 2.5 → 2), so the original size stays reachable.
+export function stepServings(current: number, direction: 1 | -1, base: number): number {
   const next = direction === 1 ? Math.floor(current) + 1 : Math.ceil(current) - 1
-  return Math.max(1, next)
+  const passesBase = direction === 1 ? current < base && base < next : next < base && base < current
+  return passesBase ? base : Math.max(1, next)
 }
 
 function isInSeries(value: number): boolean {
   return (FACTOR_SERIES as readonly number[]).includes(value)
 }
 
-function round2(n: number): number {
+export function round2(n: number): number {
   return Math.round(n * 100) / 100
 }

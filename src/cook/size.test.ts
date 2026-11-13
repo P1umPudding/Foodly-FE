@@ -19,7 +19,7 @@ describe('parseSize, portions recipe (sizeNumber 4)', () => {
     expect(parseSize(params('servings=240'), 120)).toBe(2)
   })
 
-  it.each(['', 'abc', '0', '-2', '2.5', '1e1', ' 3', '99999999999999999999'])(
+  it.each(['', 'abc', '0', '007', '-2', '2.5', '1e1', ' 3', '99999999999999999999'])(
     'treats servings=%j as factor 1',
     (value) => {
       expect(parseSize(params(`servings=${encodeURIComponent(value)}`), 4)).toBe(1)
@@ -123,10 +123,18 @@ describe('steppers', () => {
     expect(clampServings(2.4)).toBe(2)
     expect(clampServings(0.3)).toBe(1)
     expect(clampServings(150)).toBe(150)
-    expect(stepServings(2.5, 1)).toBe(3)
-    expect(stepServings(2.5, -1)).toBe(2)
-    expect(stepServings(1, -1)).toBe(1)
-    expect(stepServings(120, 1)).toBe(121)
-    expect(stepServings(120, -1)).toBe(119)
+    expect(stepServings(4, 1, 4)).toBe(5)
+    expect(stepServings(1, -1, 4)).toBe(1)
+    expect(stepServings(120, 1, 120)).toBe(121)
+    expect(stepServings(120, -1, 120)).toBe(119)
+  })
+
+  it('passes through a fractional base, so it stays reachable', () => {
+    expect(stepServings(2.5, 1, 2.5)).toBe(3)
+    expect(stepServings(3, -1, 2.5)).toBe(2.5)
+    expect(stepServings(2.5, -1, 2.5)).toBe(2)
+    expect(stepServings(2, 1, 2.5)).toBe(2.5)
+    expect(stepServings(1, -1, 0.5)).toBe(0.5)
+    expect(stepServings(0.5, 1, 0.5)).toBe(1)
   })
 })

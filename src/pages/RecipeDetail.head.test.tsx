@@ -200,7 +200,7 @@ describe('RecipeDetail size in the URL', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Mehr' }))
 
     expect(location()).toBe('/recipes/5?q=x&servings=5 REPLACE')
-    expect(screen.getByText(/250/)).toBeTruthy()
+    expect(screen.getByText('250 g')).toBeTruthy()
   })
 
   it('the stepper writes ?factor for a fixed-size recipe and drops it again at ×1', async () => {
@@ -219,7 +219,7 @@ describe('RecipeDetail size in the URL', () => {
     renderDetail('/recipes/5?servings=8', { 5: recipe() })
     await heading()
     expect((screen.getByLabelText('Portionen') as HTMLInputElement).value).toBe('8')
-    expect(screen.getByText(/400/)).toBeTruthy()
+    expect(screen.getByText('400 g')).toBeTruthy()
   })
 
   it.each(['servings=abc', 'servings=0', 'servings=-2', 'servings=2.5', 'factor=2'])(
@@ -228,7 +228,7 @@ describe('RecipeDetail size in the URL', () => {
       renderDetail(`/recipes/5?${query}`, { 5: recipe() })
       await heading()
       expect((screen.getByLabelText('Portionen') as HTMLInputElement).value).toBe('4')
-      expect(screen.getByText(/200/)).toBeTruthy()
+      expect(screen.getByText('200 g')).toBeTruthy()
     },
   )
 })

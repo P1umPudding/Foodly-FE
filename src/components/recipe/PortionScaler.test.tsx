@@ -162,12 +162,14 @@ describe('PortionScaler — typed values snap to allowed sizes', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
-  it('steps fractional old counts to whole ones', () => {
-    const { onChange } = renderScaler({ sizeNumber: 2.5, sizeText: 'Portionen', factor: 1 })
+  it('steps a fractional old count to whole ones and back through it', () => {
+    renderStateful({ sizeNumber: 2.5, sizeText: 'Portionen', factor: 1 })
     fireEvent.click(screen.getByLabelText('Mehr'))
-    expect(onChange).toHaveBeenLastCalledWith(3 / 2.5)
+    expect(box().value).toBe('3')
     fireEvent.click(screen.getByLabelText('Weniger'))
-    expect(onChange).toHaveBeenLastCalledWith(2 / 2.5)
+    expect(box().value).toBe('2.5')
+    fireEvent.click(screen.getByLabelText('Weniger'))
+    expect(box().value).toBe('2')
   })
 })
 
