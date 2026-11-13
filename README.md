@@ -50,10 +50,16 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
 [`docs/decisions/0001-rest-transport.md`](docs/decisions/0001-rest-transport.md).
 
 - `src/api/rest.ts` — the REST client (`fetch`). Base URL from `VITE_API_URL`,
-  a static dev bearer token (`Authorization: Bearer dev-token`; the backend
-  maps any bearer to user 1). On failure it throws `Error(message)` with the
-  backend's `error.message`, else `HTTP <status>`. `collectPages` drains small
+  bearer token from the session in `src/api/auth.ts`; a 401 triggers one token
+  refresh and one retry. On failure it throws `Error(message)` with the
+  backend's `error.message`, else `HTTP <status>` (sign-in and sign-up throw
+  `ApiError` with `status` and `code`). `collectPages` drains small
   cursor-paginated lists.
+- `src/api/auth.ts` — the session: access and refresh token in
+  `localStorage["foodly.auth"]`, refreshed shortly before they expire, at most
+  one refresh at a time (also across tabs). Exposed as `foodly.auth`
+  (`signIn`, `signUp`, `signOut`, `session`, `subscribe`); with `VITE_MOCK=1`
+  you are always signed in as user 1.
 - `src/api/index.ts` — the typed API surface `foodly.*`. Each method except
   `listUsers` has a REST and a mock branch, chosen by the build-time
   `VITE_MOCK`; response wrappers (`{ data }`, cursors) are unwrapped here, so
@@ -82,8 +88,22 @@ themselves. Binding patterns are in [`docs/architecture.md`](docs/architecture.m
 With `VITE_MOCK=1` every method is answered by `src/mocks`.
 
 **Dev proxy.** `vite.config.ts` proxies `/api` to `http://localhost:8080`, so
-the browser talks same-origin. That's needed because the backend's CORS
-`Allow-Headers: *` doesn't cover the `Authorization` header cross-origin.
+the browser talks same-origin and CORS doesn't come into play.
+
+**Signing in.** In REST mode every page except `/login` and `/register` needs a
+session. Against a local backend, create the seed users with
+`cargo run --bin seed` in the backend repo and sign in as `user1@example.com`
+(also `user2`, `user3`); the password is in the
+[backend README](https://github.com/klassenserver7b/Foodly-backend#readme), or
+register a new account. "Abmelden" sits in the profile menu (REST mode only).
+
+- **Cross-origin backend:** with a `VITE_API_URL` on another origin, add the
+  app's origin to the backend's `CORS_ALLOWED_ORIGINS` (default
+  `http://localhost:5173`). The backend allows `Authorization` and
+  `Content-Type` for those origins.
+- **HTTPS:** access and refresh token live in `localStorage` and go out as
+  bearer headers, so serve both app and backend over HTTPS anywhere but
+  `localhost`.
 
 **WebSocket.** `src/api/socket.ts` (`SocketClient`) is reserved for future live
 editing and is never connected today; the mock responder runs through it. The
@@ -151,9 +171,11 @@ pushing, in this order:
 2. `npm run build`
 3. `npm test -- --passWithNoTests`
 4. `npm run format:check`
+5. `npm run lint`
 
 The Node version comes from `.nvmrc`. If `format:check` fails, run
-`npm run format` and commit.
+`npm run format` and commit. `npm run lint` must exit 0; known legacy violations
+are listed in `eslint-suppressions.json` (see CLAUDE.md, Linting).
 
 ## Deployment (static)
 
@@ -165,6 +187,6 @@ Cloudflare Pages).
 - Needs an **SPA fallback** (serve `index.html` for unknown routes).
   `public/_redirects` (`/* /index.html 200`) covers Cloudflare-style hosts; on a
   plain server configure the equivalent (e.g. nginx `try_files`).
-- Serve `/api` **same-origin** (reverse proxy to the backend). A cross-origin
-  `VITE_API_URL` won't work until the backend allows `Authorization` in CORS
-  (`docs/backend-questions.md` B7).
+- Serve `/api` **same-origin** (reverse proxy to the backend), or point
+  `VITE_API_URL` at the backend and add the app's origin to its
+  `CORS_ALLOWED_ORIGINS` (see "Signing in" above). HTTPS only.

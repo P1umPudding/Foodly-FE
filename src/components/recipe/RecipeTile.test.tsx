@@ -1,16 +1,8 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeTile } from './RecipeTile'
-import type { StubFeature } from '../../api/stubs'
 import type { Recipe, User, UserCategory } from '../../api/protocol'
-
-// Only the images stub is toggled, so the real showsRecipeImages/recipeImageSrc decide what renders.
-const imageStub = vi.hoisted(() => ({ stubbed: true }))
-vi.mock('../../api/stubs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../api/stubs')>()
-  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
-})
 
 // Set per test: whether the user list is real (mock mode) or the REST stand-in.
 const users = vi.hoisted(() => ({ known: true }))
@@ -27,7 +19,6 @@ vi.mock('../../catalog/CatalogProvider', () => ({
 }))
 
 afterEach(() => {
-  imageStub.stubbed = true
   users.known = true
 })
 
@@ -77,12 +68,19 @@ it('links to the recipe detail', () => {
   expect(screen.getByRole('link').getAttribute('href')).toBe('/recipes/1')
 })
 
-it('with a photo shows the image and the title once', () => {
-  imageStub.stubbed = false
-  const { container } = renderTile({ ...base, mainImage: 1 })
-  expect(container.querySelector('img')).not.toBeNull()
+it('with a photo shows the backend image and the title once', () => {
+  const { container } = renderTile({ ...base, mainImage: { id: 1, hash: 'ab12', name: null } })
+  expect(container.querySelector('img')?.getAttribute('src')).toBe('/api/v1/images/ab12')
   expect(screen.getAllByText('Linsensuppe')).toHaveLength(1)
   expect(screen.queryByTestId('tile-type-name')).toBeNull()
+})
+
+it('a photo that fails to load turns into the typographic tile', () => {
+  const { container } = renderTile({ ...base, mainImage: { id: 1, hash: 'ab12', name: null } })
+  fireEvent.error(container.querySelector('img')!)
+  expect(container.querySelector('img')).toBeNull()
+  expect(screen.getByTestId('tile-type-name').textContent).toBe('Linsensuppe')
+  expect(screen.getAllByText('Linsensuppe')).toHaveLength(1)
 })
 
 it('without a photo shows the typographic tile and no second title', () => {
@@ -90,13 +88,6 @@ it('without a photo shows the typographic tile and no second title', () => {
   expect(container.querySelector('img')).toBeNull()
   expect(screen.getByTestId('tile-type-name').textContent).toBe('Linsensuppe')
   expect(screen.getAllByText('Linsensuppe')).toHaveLength(1)
-})
-
-it('treats a photo it cannot display (REST, B1) as no photo', () => {
-  imageStub.stubbed = true
-  const { container } = renderTile({ ...base, mainImage: 1 })
-  expect(container.querySelector('img')).toBeNull()
-  expect(screen.getByTestId('tile-type-name')).toBeTruthy()
 })
 
 it('names the first category and counts the others', () => {

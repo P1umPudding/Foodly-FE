@@ -5,6 +5,11 @@ import themeCss from './theme.css?raw'
 import stylesCss from './styles.css?raw'
 import postxlJs from '@postxl/ui-components?raw'
 import { contrastRatio, oklchToHex } from '../lib/categoryColor'
+import { FOCUS_RING } from '../components/focusRing'
+import ratingTsx from '../components/recipe/Rating.tsx?raw'
+import sidebarTsx from '../components/shell/Sidebar.tsx?raw'
+import lightboxTsx from '../components/recipe/Lightbox.tsx?raw'
+import durationPickerTsx from '../components/DurationPicker.tsx?raw'
 
 const RINGS = ['ring', 'sidebar-ring']
 const SURFACES = ['background', 'card', 'popover', 'muted', 'accent', 'sidebar', 'sidebar-accent']
@@ -168,5 +173,53 @@ describe('postxl toggle-group item ring width (#95)', () => {
     expect(postxlJs).toMatch(
       /const ToggleGroupItem = [\s\S]{0,300}?className: cn\(toggleVariants\(\{[\s\S]{0,120}?\}\), className\)/,
     )
+  })
+})
+
+// Hand-written focus rings must use the shared 3-px width (#90/#95) rather than their own; the colour stays per
+// place. Render checks in Rating.test, AppShell.test and Lightbox.test cover the resulting classes; DurationPicker
+// keeps its own `focus:` inset ring (#158) and only takes the width.
+describe('hand-written focus rings (#133)', () => {
+  it('FOCUS_RING has the width postxl buttonVariants ships', () => {
+    const base = postxlJs.match(/const buttonVariants = cva\("([^"]*)"/)?.[1]
+    expect(base?.split(/\s+/)).toContain('focus-visible:ring-[3px]')
+    expect(FOCUS_RING.split(/\s+/)).toContain('focus-visible:ring-[3px]')
+  })
+
+  // Any ring width behind a focus variant (also stacked, e.g. `focus-visible:dark:ring-2`); colours don't count.
+  // Only focus widths: the Lightbox thumbnail's selection ring (`ring-2 ring-white`) is not a focus ring.
+  const focusWidths = (source: string) =>
+    (
+      source.match(
+        /focus(?:-visible|-within)?:(?:[\w-]+:)*ring(?:-(?:\[[^\]]+\]|\([^)]+\)|\d+(?:\.\d+)?))?(?=[\s'"`!]|$)/g,
+      ) ?? []
+    ).filter((w) => !/ring-(?:\[(?:#|color:|var\(|oklch\()|\((?:color:|--))/.test(w))
+
+  it.each([
+    ['focus-visible:ring-2', ['focus-visible:ring-2']],
+    ['focus-visible:ring', ['focus-visible:ring']],
+    ['focus-within:ring-2', ['focus-within:ring-2']],
+    ['focus-visible:dark:ring-[2px]', ['focus-visible:dark:ring-[2px]']],
+    ['focus:ring-1.5', ['focus:ring-1.5']],
+    ['focus-visible:ring-(length:--w)', ['focus-visible:ring-(length:--w)']],
+    ['focus-visible:ring-(--brand) focus-visible:ring-[oklch(0.5_0_0)]', []],
+    ['focus-visible:ring-[3px] focus-visible:ring-ring ring-2 ring-white', ['focus-visible:ring-[3px]']],
+    ['focus-visible:ring-white/60 focus-visible:ring-sidebar-ring', []],
+  ])('the width finder reads %j', (source, expected) => {
+    expect(focusWidths(source)).toEqual(expected)
+  })
+
+  it.each([
+    ['Rating', ratingTsx, 'variant="bare"'],
+    ['Sidebar', sidebarTsx, 'FOCUS_RING'],
+    ['Lightbox', lightboxTsx, 'FOCUS_RING'],
+  ])('%s takes the shared width', (_name, source, marker) => {
+    expect(source).toContain(marker)
+    expect(focusWidths(source).filter((w) => w !== 'focus-visible:ring-[3px]')).toEqual([])
+  })
+
+  it('DurationPicker takes the shared width on its focus (not focus-visible) inset ring', () => {
+    expect(durationPickerTsx).toContain('focus:ring-inset')
+    expect(focusWidths(durationPickerTsx)).toEqual(['focus:ring-[3px]'])
   })
 })

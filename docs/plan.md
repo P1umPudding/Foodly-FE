@@ -1,7 +1,7 @@
 # Foodly Frontend — Bau-Plan
 
 Lebendes Dokument. Die Phasen 0–3 sind mit Mock-Daten aus `src/mocks` entstanden.
-Seit dem REST-Wiring läuft die App gegen das echte Backend (`web-api`); was dort
+Seit dem REST-Wiring läuft die App gegen das echte Backend (`main`, früher `web-api`); was dort
 fehlt, wird gestubbt (ADR [0003](decisions/0003-backend-gap-stubs.md)).
 
 ## Leitplanken
@@ -12,19 +12,21 @@ fehlt, wird gestubbt (ADR [0003](decisions/0003-backend-gap-stubs.md)).
   Fehlt ein Endpoint: Stub in `src/api`, in der UI mit Hinweis „Demo“ (ADR 0003).
 - UI ausschließlich mit `@postxl/ui-components` + Tailwind-Tokens, Look nach
   `docs/design.md`.
-- Kein Login: REST nutzt den statischen Dev-Token, Mocks `CURRENT_USER_ID = 1`.
-  Echte Auth kommt mit Backend #15 (B7).
+- Echte Nutzer: Seit Backend-PR #20 (gemergt 2026-11-09) nimmt das Backend nur noch echte
+  JWTs an. Der REST-Modus hat Anmelden, Registrieren und Abmelden (#141–#143); Tokens nur
+  über `src/api/auth.ts`. Mocks (`VITE_MOCK=1`, Skaile-Vorschau) bleiben ohne Login, Nutzer 1.
 
 ## Meilenstein Alpha  (Ziel, Stand 2026-10-29)
 
-Bedienbare App gegen das echte Backend, ohne echte Nutzer (Daniel, 2026-10-29).
+Bedienbare App gegen das echte Backend (Daniel, 2026-10-29). Seit 2026-11-09 mit echten
+Nutzern und Login (Backend-PR #20).
 Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 
 **Echt gegen das Backend:**
 - Redesign „Ruhig“ komplett (Abschnitt unten): Shell, Liste, Detail, Koch-Modus, Timer.
 - Phase 4 ohne Teilen: Rezept anlegen, bearbeiten, kopieren (✅ vorhanden),
   **löschen**, Kategorien verwalten (anlegen, umbenennen, sortieren, Rezepte zuordnen),
-  Bild-Upload, Tag-Icons über `GET /tags/{id}/icon` (G3).
+  Bild-Upload und -Anzeige (`GET /images/{hash}`, FE #144), Tag-Icons über `GET /tags/{id}/icon` (G3).
 - Phase 5 ohne Gruppen und „kürzlich hinzugefügt“: Kategorien, eigene zuletzt
   erstellte, „Jump back in“.
 - Phase 6 Mobile komplett.
@@ -32,14 +34,13 @@ Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 **Gestubbt (ADR 0003), später auf REST umstellen:**
 | Funktion | Stub | Backend |
 |---|---|---|
-| Rezeptbilder anzeigen | wie ohne Foto (Editor: Platzhalter) | #9 (B1) |
 | Namen von Owner/Editoren | Mock-Liste wie heute | #10 (B2) |
 | Rating abgeben | localStorage | #11 (B3) |
 | Teilen (Editoren/Viewer) | localStorage | #12 (B4) |
 | Gruppen-Kachel | localStorage | #13 (B5, Entscheidung B12) |
 | „Kürzlich hinzugefügt“ | ausgeblendet bis #14 | #14 (B6) |
 
-**Nach der Alpha:** Login (#15), Phase 7 (native App), Phase 8 (Offline), Phase 9.
+**Nach der Alpha:** Phase 7 (native App), Phase 8 (Offline), Phase 9.
 
 **Reihenfolge:** Redesign wie unten → parallel ab Shell: Stub-Basis + Rating,
 Löschen, Bild-Platzhalter, Tag-Icons → Kategorien verwalten → Phase 5 → Teilen →
@@ -49,6 +50,30 @@ Phase 6. Breakdown je Block über den Lead.
 (#37) und Tag-Icons (#38) sind gemergt, dazu QA-Fixes bis PR #101. Rezeptliste
 (Redesign Schritt 4) ist geschnitten (7 Issues, freigegeben von Daniel am 2026-11-05).
 Nächster Breakdown: Kategorien verwalten.
+
+**Stand 2026-11-08:** Backend PR #19 (Bilder, B1) ist gemergt, PR #20 (Auth, B7) offen
+und geprüft (Befunde in `backend-questions.md`). Daraus folgen: Issue #140 „ImageRef
+übernehmen“ (dringend, Speichern mit Bild bricht gegen `main`), danach Bilder anzeigen;
+Auth geschnitten (Daniel, 2026-11-08: offene Registrierung, Anmeldung bleibt 30 Tage in
+`localStorage`): Spec `superpowers/specs/2026-11-08-auth-login-design.md`, Issues A1–A4 (#141–#144) in
+`superpowers/plans/2026-11-08-auth-login.md`, alle blockiert durch Backend-PR #20.
+
+**Stand 2026-11-09:** Backend-PR #20 (Auth, B7) ist auf `main`; alle Review-Befunde sind
+vor dem Merge behoben. #141–#144 entblockt, neu #146 (Timer pro Nutzer). Reihenfolge:
+#140 (dringend) und #141 parallel → #142 direkt danach → #143, #146; #144 nach #140.
+Danach weiter mit Kategorien verwalten.
+
+**Stand 2026-11-12:** PRs bis #177 gemergt. Kategorien verwalten ist geschnitten (freigegeben von Daniel am 2026-11-12):
+Spec `superpowers/specs/2026-11-12-categories-manage-design.md`, Issues K1–K6 (#178–#183, Ziehen später #184) in
+`superpowers/plans/2026-11-12-categories-manage.md`, kein Backend-Block (alle Endpunkte auf Backend-`main`). Enthält
+die Kategorie-Seite aus Redesign Schritt 4. Danach Phase 5 (Dashboard).
+
+**Stand 2026-11-12 (abends):** Kategorien bis auf #181/#183 gemergt (bis PR #191). Backend-PR #22 (Bulk-User B2,
+`myAccessSince` B6, Sortierfelder in camelCase) geprüft, Befunde in `backend-questions.md`. Geschnitten und freigegeben
+(Daniel): Phase 5 Start D1–D4 (#194–#197, `superpowers/plans/2026-11-12-phase-5-dashboard.md`, Spec rev. 3) und die Folgen aus
+#22, U1 Sortierfelder (#192) + U2 Benutzernamen (#193, `superpowers/plans/2026-11-12-backend-22-followups.md`). Reihenfolge: D1
+sofort, D2 nach #183, D4 nach D1; U1, U2, D3 nach dem Merge von Backend #22 (U1 direkt danach). „Kürzlich mit dir
+geteilt“ kommt mit Teilen (#12).
 
 Details je Phase in `phases/`.
 
@@ -154,7 +179,7 @@ Freigegeben von Kolja am 2026-10-29. Reihenfolge:
 3. ✅ App-Shell **#27** (PR #41; Start ausgeblendet bis zum Dashboard).
 4. Rezeptliste (Filterleiste, Kacheln): Spec
    `docs/superpowers/specs/2026-11-05-recipe-list-redesign-design.md`, 7 Issues #103–#109
-   (Label `redesign`), läuft. Kategorie-Seite gehört zu „Kategorien verwalten“.
+   (Label `redesign`), läuft. Kategorie-Seite gehört zu „Kategorien verwalten“ (K6, 2026-11-12).
 5. Start/Dashboard = Phase 5 (ohne B4–B6-Blöcke), Breakdown offen.
 6. Detail, dann Koch-Modus.
 
@@ -164,7 +189,8 @@ Parallel nach Token und Shell: ✅ Timer-Knopf + Zeit-Chips **#29** (PR #48),
 ## Phase 5 — Dashboard / Startseite  (braucht Backend)
 
 Überblicks-Startseite mit Kacheln. Spec: `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`
-(rev. 2, 2026-10-28). `createdAt`/`updatedAt` liefert das Backend inzwischen (G1);
+(rev. 3, 2026-11-12), Issues D1–D4 in `docs/superpowers/plans/2026-11-12-phase-5-dashboard.md`. Der Rest dieses
+Abschnitts ist der Stand von rev. 2. `createdAt`/`updatedAt` liefert das Backend inzwischen (G1);
 umsetzbar sind App-Shell, Dashboard (Kategorien, eigene kürzlich erstellte, „Jump back in"),
 Routing `/` → Dashboard, `/recipes` → Liste. **Blockiert:** Gruppen (B12 + Backend #13),
 „kürzlich hinzugefügt" (Backend #14).
@@ -279,8 +305,6 @@ speichern — mit der Option, die erkannten Felder vor dem Speichern zu
 
 ## Offene Punkte (später)
 
-- Login-/Auth-Workflow (Voraussetzung für Phase 4 und echtes Multi-User).
-- Bilder: `image.hash` → echte Image-URL (Backend-abhängig).
 - Tag-SVGs (`tag.svg` Hash) rendern.
 
 ### Daten-/Protokoll-Fragen (mit Backend klären)

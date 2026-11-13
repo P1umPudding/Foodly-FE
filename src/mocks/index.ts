@@ -1,9 +1,21 @@
 // In-browser mock backend. bootstrap() lazy-loads it (own chunk) on every boot:
 // with VITE_MOCK=1 every request is routed here, in REST mode only listUsers.
 
-import type { CreateRecipe, Ingredient, Recipe, RecipeId, Tag, User, UserCategory } from '../api/protocol'
+import type {
+  CategoryInput,
+  CreateRecipe,
+  ImageId,
+  Ingredient,
+  Recipe,
+  RecipeId,
+  Tag,
+  User,
+  UserCategory,
+  UserCategoryId,
+} from '../api/protocol'
 import { applyQuery, PAGE_SIZE } from '../list/query'
 import { assertRating } from '../api/views'
+import { imageRef, withImageRefs } from './images'
 import type { PaginatedRecipes, RecipeSearchQuery } from '../api/protocol'
 
 import recipes from './data/recipes.json'
@@ -12,8 +24,10 @@ import tags from './data/tags.json'
 import ingredients from './data/ingredients.json'
 import categories from './data/categories.json'
 
+type RawRecipe = Omit<Recipe, 'mainImage' | 'images'> & { mainImage: ImageId | null; images: ImageId[] }
+
 export const mockData = {
-  recipes: recipes as Recipe[],
+  recipes: (recipes as RawRecipe[]).map((r): Recipe => ({ ...r, ...withImageRefs(r) })),
   users: users as User[],
   tags: tags as Tag[],
   ingredients: ingredients as Ingredient[],
@@ -46,8 +60,7 @@ function expand(input: CreateRecipe, id: RecipeId, owner: number): Recipe {
     sizeNumber: input.sizeNumber,
     sizeText: input.sizeText,
     notes: input.notes,
-    mainImage: input.mainImage,
-    images: input.images,
+    ...withImageRefs(input),
     sections: input.sections.map((section) => ({
       id: nextId++,
       name: section.name,
@@ -65,6 +78,18 @@ function expand(input: CreateRecipe, id: RecipeId, owner: number): Recipe {
   }
 }
 
+// Same rules as the backend (422 there), English like its messages.
+function assertCategoryInput(input: CategoryInput): void {
+  if (!input.name.trim()) throw new Error('Name must not be empty')
+  if (!input.color) throw new Error('Color must not be empty')
+}
+
+function findCategory(id: UserCategoryId | undefined): UserCategory {
+  const category = mockData.categories.find((c) => c.id === id)
+  if (!category) throw new Error('Category not found')
+  return category
+}
+
 export async function mockRequest(type: string, payload?: unknown): Promise<unknown> {
   await delay()
   const id = (payload as { id?: number } | undefined)?.id
@@ -78,7 +103,57 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       return recipe
     }
     case 'categories.list':
-      return mockData.categories
+      // A snapshot, like a REST response: copy/delete change the live arrays in place. Sorted like the backend.
+      return structuredClone(mockData.categories).sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.id - b.id)
+    case 'categories.create': {
+      const { input } = payload as { input: CategoryInput }
+      assertCategoryInput(input)
+      // Like the backend: the new category goes to the end.
+      const order = Math.max(-1, ...mockData.categories.map((c) => c.order ?? 0)) + 1
+      const created: UserCategory = {
+        id: nextId++,
+        user: CURRENT_USER_ID,
+        name: input.name,
+        recipes: [],
+        order,
+        color: input.color,
+        colorLight: input.colorLight,
+        colorDark: input.colorDark,
+      }
+      mockData.categories.push(created)
+      return structuredClone(created)
+    }
+    case 'categories.update': {
+      const { input } = payload as { input: CategoryInput }
+      const category = findCategory(id)
+      assertCategoryInput(input)
+      Object.assign(category, {
+        name: input.name,
+        color: input.color,
+        colorLight: input.colorLight,
+        colorDark: input.colorDark,
+      })
+      return structuredClone(category)
+    }
+    case 'categories.delete': {
+      mockData.categories.splice(mockData.categories.indexOf(findCategory(id)), 1)
+      return undefined
+    }
+    case 'categories.setRecipes': {
+      const { recipeIds } = payload as { recipeIds: RecipeId[] }
+      const category = findCategory(id)
+      const unknown = recipeIds.find((recipeId) => !mockData.recipes.some((r) => r.id === recipeId))
+      if (unknown !== undefined) throw new Error(`recipe ${unknown} not found`)
+      category.recipes = [...recipeIds]
+      return structuredClone(category)
+    }
+    case 'categories.reorder': {
+      const { categoryIds } = payload as { categoryIds: UserCategoryId[] }
+      // Check every id first, so a bad one changes nothing.
+      const listed = categoryIds.map(findCategory)
+      listed.forEach((category, index) => (category.order = index))
+      return undefined
+    }
     case 'tags.list':
       return mockData.tags
     case 'ingredients.list':
@@ -89,7 +164,15 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       return mockData.users.find((u) => u.id === CURRENT_USER_ID) ?? null
     case 'recipes.search': {
       const { query, page } = payload as { query: RecipeSearchQuery; page: number }
-      const all = applyQuery(mockData.recipes, query, CURRENT_USER_ID)
+      // The backend filters by category; applyQuery can't, it doesn't know the categories. A recipe in any of them
+      // matches (only the category page sends one, so AND vs. OR, Backend #17, doesn't matter yet).
+      const wanted = query.filters?.categories ?? []
+      const inCategories = wanted.length
+        ? mockData.recipes.filter((r) =>
+            mockData.categories.some((c) => wanted.includes(c.id) && c.recipes.includes(r.id)),
+          )
+        : mockData.recipes
+      const all = applyQuery(inCategories, query, CURRENT_USER_ID)
       const start = (page - 1) * PAGE_SIZE
       const items = all.slice(start, start + PAGE_SIZE)
       const cursor = start + PAGE_SIZE < all.length ? page + 1 : null
@@ -156,8 +239,7 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       return { ...recipe }
     }
     case 'images.upload': {
-      const imageId = nextId++
-      return { id: imageId, hash: `mock-${imageId}`, name: null }
+      return imageRef(nextId++)
     }
     default:
       throw new Error(`[mock] no handler for message type "${type}"`)

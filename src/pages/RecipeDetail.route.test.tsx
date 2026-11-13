@@ -9,10 +9,14 @@ import { mockData, mockRequest } from '../mocks'
 import { TimerProvider } from '../timers/TimerProvider'
 import type { Recipe } from '../api/protocol'
 
+// The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
+vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
+
 // Real react-router here (unlike RecipeDetail.clone.test.tsx): /recipes/:id keeps one
 // RecipeDetail instance across ids, and only a real route change reproduces stale clone state.
 
 vi.mock('../catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => 1,
 }))
@@ -131,7 +135,7 @@ describe('RecipeDetail clone · StrictMode with the mock backend', () => {
       .mockImplementation((id) => mockRequest('recipes.copy', { id }) as Promise<Recipe>)
     render(
       <StrictMode>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <TooltipProvider>
             <MemoryRouter initialEntries={[`/recipes/${original.id}`]}>
               <Routes>

@@ -26,7 +26,7 @@ function Probe() {
 
 function renderStep() {
   return render(
-    <TimerProvider>
+    <TimerProvider userId={1}>
       <TimerPanelProvider>
         <StepText value={STEP} timerLabel={LABEL} />
         <Probe />
@@ -79,7 +79,9 @@ describe('StepText', () => {
     renderStep()
     const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
     fireEvent.click(chip)
-    act(() => vi.advanceTimersByTime(30 * 60_000 + 500))
+    act(() => {
+      vi.advanceTimersByTime(30 * 60_000 + 500)
+    })
     expect(probe().timers).toEqual([[LABEL, 30 * 60_000, 'expired']])
 
     fireEvent.click(chip)
@@ -92,7 +94,7 @@ describe('StepText', () => {
   it('gives focus back to the chip when the panel it opened closes', async () => {
     render(
       <TooltipProvider>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <TimerPanelProvider>
             <TimerPanel />
             <StepText value={STEP} timerLabel={LABEL} />

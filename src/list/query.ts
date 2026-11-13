@@ -28,9 +28,9 @@ export function buildSearchQuery(state: ListState): RecipeSearchQuery {
   if (state.durationMax !== null) filters.maxWorkTime = state.durationMax
   if (state.role !== 'any') filters.accessRights = [state.role as RecipeAccessRight]
   if (state.collab !== 'any') filters.shareStates = [state.collab as RecipeShareStateWire]
-  // Category facet is intentionally NOT sent: categories are still mocked, so
-  // their ids don't map to real backend categories — sending them would filter
-  // the real list to empty. (Grouping-by-category stays a client-only view.)
+  // Category facet is intentionally NOT sent: whether several categories combine
+  // with AND or OR on the server is still open (Backend #17), so the list filters
+  // them client-side. (Grouping-by-category stays a client-only view.)
 
   const query: RecipeSearchQuery = { sort: { field: SORT_FIELD[state.sortKey], order: state.sortDir } }
   if (Object.keys(filters).length > 0) query.filters = filters

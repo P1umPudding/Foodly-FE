@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { afterEach, expect, it } from 'vitest'
+import { afterEach, it } from 'vitest'
 import { useIsDesktop } from './useIsDesktop'
 import { setViewport } from '../test/viewport'
 

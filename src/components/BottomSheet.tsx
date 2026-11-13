@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { Button, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, cn } from '@postxl/ui-components'
 
-type BottomSheetProps = Omit<ComponentPropsWithoutRef<typeof SheetContent>, 'side' | 'title'> & {
+export type BottomSheetProps = Omit<ComponentPropsWithoutRef<typeof SheetContent>, 'side' | 'title'> & {
   title: ReactNode
   description: string
   // Off: the caller lays out its own scroll region (TimerPanel keeps its form fixed above a scrolling list).

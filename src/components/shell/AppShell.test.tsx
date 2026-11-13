@@ -44,7 +44,7 @@ function renderAt(entry: string) {
   return render(
     <ThemeProvider>
       <TooltipProvider>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <MemoryRouter initialEntries={[entry]}>
             <AppShell>
               <Routes>
@@ -52,6 +52,8 @@ function renderAt(entry: string) {
                 <Route path="/recipes" element={<Counter />} />
                 <Route path="/recipes/new" element={<p>editor page</p>} />
                 <Route path="/recipes/:id" element={<p>detail page</p>} />
+                <Route path="/categories" element={<p>categories page</p>} />
+                <Route path="/categories/:id" element={<p>category page</p>} />
               </Routes>
             </AppShell>
           </MemoryRouter>
@@ -76,12 +78,25 @@ describe('AppShell on the desktop', () => {
     const side = within(sidebar())
     expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
     expect(side.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
-    expect(side.queryByRole('link', { name: 'Start' })).toBeNull()
-    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('href')).toBe('/recipes?cat=2&group=1')
+    const destinations = within(mainNav())
+      .getAllByRole('link')
+      .map((l) => l.textContent)
+    expect(destinations.indexOf('Start')).toBeLessThan(destinations.indexOf('Rezepte'))
+    expect(side.getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBeNull()
+    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('href')).toBe('/categories/2')
     side.getByText('3')
     // phone-only pieces are absent
     expect(screen.getAllByRole('navigation', { name: 'Hauptnavigation' })).toHaveLength(1)
     expect(screen.queryByRole('button', { name: 'Profil & Einstellungen' })).toBeNull()
+  })
+
+  it('marks Start current on / only', () => {
+    renderAt('/')
+    const nav = within(mainNav())
+    expect(nav.getByRole('link', { name: 'Start' }).getAttribute('href')).toBe('/')
+    expect(nav.getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBe('page')
+    expect(nav.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBeNull()
+    within(screen.getByRole('banner')).getByText('Start')
   })
 
   it('collapses to icons, remembers it, and expands again', () => {
@@ -110,23 +125,46 @@ describe('AppShell on the desktop', () => {
     screen.getByText('start page')
   })
 
+  it('gives the wordmark the 3 px focus ring in the sidebar ring colour (#90/#95)', () => {
+    renderAt('/recipes')
+    const classes = within(sidebar()).getByRole('link', { name: 'Foodly' }).className.split(/\s+/)
+    expect(classes).toEqual(expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-sidebar-ring']))
+    expect(classes).not.toContain('focus-visible:ring-2')
+  })
+
   it('highlights the single shown category instead of "Rezepte"', () => {
     renderAt('/recipes?cat=2')
     const side = within(sidebar())
-    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('aria-current')).toBe('page')
-    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('aria-current')).not.toBe('page')
+    // Highlighted, but its link leads to the category page, which this is not.
+    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('aria-current')).toBe('location')
+    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('aria-current')).toBeNull()
     expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).not.toBe('page')
   })
 
-  it('keeps the view prefs in nav links but drops the filters', () => {
+  it('keeps the view prefs in the "Rezepte" link but drops the filters; category links are plain', () => {
     renderAt('/recipes?sort=rating&view=compact&cat=2&tag=x')
     const side = within(sidebar())
     expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('href')).toBe(
       '/recipes?sort=rating&view=compact&group=1',
     )
-    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('href')).toBe(
-      '/recipes?cat=5&sort=rating&view=compact&group=1',
-    )
+    expect(side.getByRole('link', { name: /Schnell/ }).getAttribute('href')).toBe('/categories/5')
+  })
+
+  it('highlights the category on its page and shows "Rezepte / <Name>" in the header', () => {
+    renderAt('/categories/2')
+    screen.getByText('category page')
+    const side = within(sidebar())
+    expect(side.getByRole('link', { name: /Favoriten/ }).getAttribute('aria-current')).toBe('page')
+    expect(side.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).not.toBe('page')
+    const crumb = within(screen.getByRole('navigation', { name: 'Pfad' }))
+    expect(crumb.getByRole('link', { name: 'Rezepte' }).getAttribute('href')).toBe('/recipes?group=1')
+    expect(crumb.getByText('Favoriten').getAttribute('aria-current')).toBe('page')
+  })
+
+  it('shows only "Rezepte" in the header while the category is unknown', () => {
+    renderAt('/categories/999')
+    const crumb = screen.getByRole('navigation', { name: 'Pfad' })
+    expect(crumb.textContent).toBe('Rezepte')
   })
 
   it('keeps "Rezepte" current for a category that is not listed', () => {
@@ -138,7 +176,12 @@ describe('AppShell on the desktop', () => {
     catalog.categories = { status: 'loading', list: [] }
     renderAt('/recipes?cat=2')
     const section = screen.getByRole('navigation', { name: 'Kategorien' })
-    expect(section.querySelectorAll('a')).toHaveLength(0)
+    // Only the gear: no category entries yet.
+    expect(
+      within(section)
+        .getAllByRole('link')
+        .map((a) => a.getAttribute('aria-label')),
+    ).toEqual(['Kategorien verwalten'])
     expect(within(section).getAllByTestId('category-skeleton')).toHaveLength(3)
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
   })
@@ -168,10 +211,43 @@ describe('AppShell on the desktop', () => {
     within(menu).getByText('Kolja')
     within(menu).getByRole('menuitem', { name: /Theme/ })
   })
+
+  it('leads to the categories page from the gear next to "Kategorien"', () => {
+    renderAt('/recipes')
+    const gear = within(sidebar()).getByRole('link', { name: 'Kategorien verwalten' })
+    expect(gear.getAttribute('href')).toBe('/categories')
+    fireEvent.click(gear)
+    screen.getByText('categories page')
+    expect(screen.getByRole('banner').textContent).toContain('Kategorien')
+  })
+
+  it('has no gear in the collapsed sidebar', () => {
+    renderAt('/recipes')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    expect(within(sidebar()).queryByRole('link', { name: 'Kategorien verwalten' })).toBeNull()
+  })
+
+  it('leads to the categories page from the profile menu', async () => {
+    renderAt('/recipes')
+    fireEvent.keyDown(within(sidebar()).getByRole('button', { name: 'Kolja – Profil & Einstellungen' }), {
+      key: 'Enter',
+    })
+    const item = await screen.findByRole('menuitem', { name: 'Kategorien' })
+    expect(item.getAttribute('href')).toBe('/categories')
+    fireEvent.click(item)
+    screen.getByText('categories page')
+  })
 })
 
 describe('AppShell on the phone', () => {
   beforeEach(() => setViewport(375))
+
+  it('leads to the categories page from the avatar menu', async () => {
+    renderAt('/recipes')
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Profil & Einstellungen' }), { key: 'Enter' })
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Kategorien' }))
+    screen.getByText('categories page')
+  })
 
   it('shows tab bar, "+" button and avatar on the list; "+" opens the editor', () => {
     renderAt('/recipes')
@@ -182,9 +258,33 @@ describe('AppShell on the phone', () => {
     screen.getByText('editor page')
   })
 
+  it('shows Start active, the wordmark, "+" button and avatar on /', () => {
+    renderAt('/')
+    expect(within(mainNav()).getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBe('page')
+    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBeNull()
+    const banner = within(screen.getByRole('banner'))
+    banner.getByText('Foodly')
+    expect(banner.queryByText('Start')).toBeNull()
+    banner.getByRole('button', { name: 'Profil & Einstellungen' })
+    expect(screen.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
+  })
+
+  it('does not mark Start current on the list', () => {
+    renderAt('/recipes')
+    expect(within(mainNav()).getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBeNull()
+  })
+
   it('keeps "Rezepte" current on a category view (no category tabs)', () => {
     renderAt('/recipes?cat=2')
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
+  })
+
+  it('keeps "Rezepte" active on a category page, with the "+" button', () => {
+    renderAt('/categories/2')
+    const tab = within(mainNav()).getByRole('link', { name: 'Rezepte' })
+    expect(tab.getAttribute('aria-current')).toBe('location')
+    expect(tab.className).toContain('text-foreground')
+    expect(screen.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
   })
 
   it('has no "+" button and no avatar on sub-pages', () => {
@@ -252,6 +352,15 @@ describe('Timer button in the header', () => {
     return panel
   }
 
+  it('closes the phone sheet from the header button without reopening it', async () => {
+    await openSheet()
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Timer' }))
+    openTimers()
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('false')
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
+  })
+
   it('keeps the phone sheet non-modal', async () => {
     await openSheet()
     // A modal sheet would hide the page from the accessibility tree and switch off its pointer events.
@@ -281,6 +390,30 @@ describe('Timer button in the header', () => {
     fireEvent.click(within(panel).getByRole('button', { name: 'Schließen' }))
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
     await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
+  })
+
+  // Desktop focus return goes straight to the header button (it used to be looked up inside a span wrapper).
+  const openPopover = async () => {
+    renderAt('/recipes')
+    openTimers()
+    const panel = await screen.findByRole('dialog', { name: 'Timer' })
+    await act(() => new Promise((r) => setTimeout(r, 0)))
+    return panel
+  }
+
+  it('returns focus to the header button when the desktop popover closes with Escape', async () => {
+    await openPopover()
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
+  })
+
+  it('closes the desktop popover from the header button without reopening it', async () => {
+    await openPopover()
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Timer' }))
+    openTimers()
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('false')
   })
 
   it('shows the countdown of a started timer', async () => {

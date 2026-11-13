@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Clock, Copy, Info, ListChecks, Pencil } from 'lucide-react'
 import {
@@ -15,9 +15,11 @@ import {
   cn,
 } from '@postxl/ui-components'
 import { foodly } from '../api'
+import { errorMessage } from '../lib/errorMessage'
 import { useRequest } from '../hooks/useRequest'
+import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { canEdit, isOwner } from '../editor/access'
-import { useCurrentUserId, useTags } from '../catalog/CatalogProvider'
+import { useCurrentUserId, useRefreshCategories, useTags } from '../catalog/CatalogProvider'
 import { TagText } from '../components/TagText'
 import { plainTagText } from '../components/tagTokens'
 import { Rating } from '../components/recipe/Rating'
@@ -28,8 +30,11 @@ import { WakeLockToggle } from '../components/WakeLockToggle'
 import { RecipeImages } from '../components/recipe/RecipeImages'
 import { DeleteRecipeButton } from '../components/recipe/DeleteRecipeButton'
 import { Lightbox } from '../components/recipe/Lightbox'
-import { showsRecipeImages } from '../api/assets'
+import { TriggerButton } from '../components/TriggerButton'
+import { RecipeCategoryChips } from '../components/category/RecipeCategoryChips'
 import type { Recipe, RecipeIngredientId } from '../api/protocol'
+import { hasPortions } from '../api/views'
+import { pushRecentlyViewed, removeRecentlyViewed } from '../home/recentlyViewed'
 
 function isUrl(s: string): boolean {
   return /^https?:\/\//i.test(s.trim())
@@ -43,6 +48,8 @@ export function RecipeDetail() {
   const { byId: tags } = useTags()
 
   const navigate = useNavigate()
+  const refreshCategories = useRefreshCategories()
+  const hasAppHistory = useHasAppHistory()
   const [cloning, setCloning] = useState(false)
   const [cloneError, setCloneError] = useState<string | null>(null)
   // Bumped per clone attempt and on every recipe switch, so a late failure of an outdated clone is ignored.
@@ -55,10 +62,11 @@ export function RecipeDetail() {
     setCloneError(null)
     try {
       const copy = await foodly.copyRecipe(recipe.id)
+      refreshCategories() // the copy joins the original's categories
       navigate(`/recipes/${copy.id}`)
     } catch (e) {
       if (attempt !== cloneAttempt.current) return
-      setCloneError((e as Error).message)
+      setCloneError(errorMessage(e, 'Duplizieren fehlgeschlagen'))
       setCloning(false)
     }
   }
@@ -85,6 +93,13 @@ export function RecipeDetail() {
     cloneAttempt.current++
   }, [recipeId])
 
+  // Keyed on the loaded id only, so portion or rating changes don't push again; a repeat push just moves it to
+  // the front, so StrictMode's double run is harmless.
+  const loadedId = status === 'ready' && recipe ? recipe.id : null
+  useEffect(() => {
+    if (loadedId !== null && currentUserId !== null) pushRecentlyViewed(currentUserId, loadedId)
+  }, [loadedId, currentUserId])
+
   const toggleChecked = (id: RecipeIngredientId) =>
     setCheckedIds((prev) => {
       const next = new Set(prev)
@@ -93,21 +108,27 @@ export function RecipeDetail() {
       return next
     })
 
+  // Came from inside the app: go back like the browser does, so the list keeps its search, filters and scroll
+  // and no extra history entry piles up. Otherwise (direct link) the plain link to /recipes applies.
+  const onBack = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    if (!hasAppHistory()) return
+    e.preventDefault()
+    navigate(-1)
+  }
+
   // Timer labels are plain text, so tag tokens in the name become the tag's name.
   const plainName = recipe ? plainTagText(recipe.name, tags) : ''
   // All images of the recipe in viewer order: main first, then the gallery. Empty → no hero, no lightbox.
-  const allImages =
-    recipe && showsRecipeImages()
-      ? recipe.mainImage !== null
-        ? [recipe.mainImage, ...recipe.images]
-        : recipe.images
-      : []
+  const allImages = recipe ? (recipe.mainImage !== null ? [recipe.mainImage, ...recipe.images] : recipe.images) : []
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
       <div className="mb-4 flex items-center justify-between gap-3">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/recipes">← Zurück</Link>
+          <Link to="/recipes" onClick={onBack}>
+            ← Zurück
+          </Link>
         </Button>
         {status === 'ready' && recipe && (
           <div className="flex items-center gap-2">
@@ -117,29 +138,41 @@ export function RecipeDetail() {
                 recipeId={recipe.id}
                 name={plainName}
                 // replace: Back must not lead to the deleted recipe's "not found" page.
-                onDeleted={() => navigate('/recipes', { replace: true })}
+                onDeleted={() => {
+                  // Otherwise six deleted recipes in front would keep "Zuletzt angesehen" empty for good (failed
+                  // loads are only forgotten when another one loaded).
+                  if (currentUserId !== null) removeRecentlyViewed(currentUserId, [recipe.id])
+                  refreshCategories()
+                  navigate('/recipes', { replace: true })
+                }}
               />
             )}
             {/* On phones all three actions are icon-only 40×40 tap targets (design.md §7), labelled via
-                tooltip. The triggers are styled via buttonVariants: postxl Button isn't forwardRef, so the
-                tooltip couldn't anchor to it. */}
+                tooltip. */}
             <Tooltip>
-              <TooltipTrigger
-                aria-label="Duplizieren"
-                onClick={onClone}
-                disabled={cloning}
-                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 phone:size-10')}
-              >
-                <Copy className="h-4 w-4" />
-                <span className="phone:hidden">Duplizieren</span>
+              <TooltipTrigger asChild>
+                <TriggerButton
+                  variant="outline"
+                  size="sm"
+                  aria-label="Duplizieren"
+                  onClick={() => void onClone()}
+                  disabled={cloning}
+                  className="gap-1.5 phone:size-10"
+                >
+                  <Copy className="h-4 w-4" />
+                  <span className="phone:hidden">Duplizieren</span>
+                </TriggerButton>
               </TooltipTrigger>
               <TooltipContent>Rezept duplizieren</TooltipContent>
             </Tooltip>
             {canEdit(recipe, currentUserId) && (
               <Tooltip>
                 <TooltipTrigger asChild>
+                  {/* A Link styled via buttonVariants, not <Button asChild>: the postxl Button would drop the
+                      tooltip's ref. TriggerButton is a <button>, so it can't stand in for a link. */}
                   <Link
                     to={`/recipes/${recipe.id}/edit`}
+                    state={{ fromDetail: true }}
                     aria-label="Bearbeiten"
                     className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 phone:size-10')}
                   >
@@ -177,6 +210,7 @@ export function RecipeDetail() {
       {status === 'ready' && recipe && (
         <article>
           <header>
+            <RecipeCategoryChips key={recipe.id} recipe={recipe} />
             <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
               <h1 className="font-display text-4xl text-foreground">
                 <TagText value={recipe.name} size="lg" />
@@ -206,7 +240,7 @@ export function RecipeDetail() {
                 </div>
               </div>
               <div className="flex justify-center">
-                {recipe.sizeNumber !== null ? (
+                {hasPortions(recipe.sizeNumber) ? (
                   <PortionScaler
                     part="input"
                     factor={factor}
@@ -245,13 +279,13 @@ export function RecipeDetail() {
                   // for a deliberately asymmetric look. The portions steppers go
                   // further on both axes; the multiplier scaler only a little. On phones the
                   // portions steppers' 40 px hit area would reach into the box above, so less.
-                  recipe.sizeNumber !== null
+                  hasPortions(recipe.sizeNumber)
                     ? '-translate-y-3 translate-x-2 phone:-translate-y-2'
                     : '-translate-y-1.5 translate-x-1',
                 )}
               >
                 <PortionScaler
-                  part={recipe.sizeNumber !== null ? 'steppers' : 'full'}
+                  part={hasPortions(recipe.sizeNumber) ? 'steppers' : 'full'}
                   factor={factor}
                   onChange={setFactor}
                   sizeNumber={recipe.sizeNumber}

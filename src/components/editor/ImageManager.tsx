@@ -2,31 +2,32 @@ import { useState } from 'react'
 import { Button, Label, toast } from '@postxl/ui-components'
 import { Star, Trash2, Upload } from 'lucide-react'
 import { foodly } from '../../api'
-import { recipeImageSrc } from '../../api/assets'
-import type { ImageId } from '../../api/protocol'
+import { errorMessage } from '../../lib/errorMessage'
+import { RecipeImage } from '../recipe/RecipeImage'
+import type { ImageRef } from '../../api/protocol'
 
-// Uploads land in the image store immediately (POST /images), and only the id is
-// held in the draft. An image whose recipe is never saved is simply orphaned —
+// Uploads land in the image store immediately (POST /images); the draft holds the
+// returned ref and only its id goes out on save. An image whose recipe is never saved is simply orphaned —
 // the backend has no cleanup, and that's an accepted gap.
 export function ImageManager({
   mainImage,
   images,
   onChange,
 }: {
-  mainImage: ImageId | null
-  images: ImageId[]
-  onChange: (patch: { mainImage?: ImageId | null; images?: ImageId[] }) => void
+  mainImage: ImageRef | null
+  images: ImageRef[]
+  onChange: (patch: { mainImage?: ImageRef | null; images?: ImageRef[] }) => void
 }) {
   const [uploading, setUploading] = useState(false)
 
   const upload = async (file: File) => {
     setUploading(true)
     try {
-      const { id } = await foodly.uploadImage(file)
-      if (mainImage === null) onChange({ mainImage: id, images })
-      else onChange({ images: [...images, id] })
+      const image = await foodly.uploadImage(file)
+      if (mainImage === null) onChange({ mainImage: image, images })
+      else onChange({ images: [...images, image] })
     } catch (e) {
-      toast.error(`Bild konnte nicht hochgeladen werden: ${(e as Error).message}`)
+      toast.error(`Bild konnte nicht hochgeladen werden: ${errorMessage(e, 'unbekannter Fehler')}`)
     } finally {
       setUploading(false)
     }
@@ -38,7 +39,12 @@ export function ImageManager({
       <div className="flex flex-wrap items-start gap-3">
         {mainImage !== null && (
           <figure className="flex flex-col items-center gap-1">
-            <img src={recipeImageSrc(mainImage)} alt="Hauptbild" className="size-20 rounded-md object-cover" />
+            <RecipeImage
+              image={mainImage}
+              alt="Hauptbild"
+              className="size-20 rounded-md object-cover"
+              fallbackClassName="size-20 rounded-md"
+            />
             <figcaption className="flex items-center gap-1 text-muted-foreground">
               <Star className="h-3 w-3 fill-star text-star" />
               Hauptbild
@@ -54,9 +60,14 @@ export function ImageManager({
           </figure>
         )}
 
-        {images.map((id) => (
-          <figure key={id} className="flex flex-col items-center gap-1">
-            <img src={recipeImageSrc(id)} alt="" className="size-20 rounded-md object-cover" />
+        {images.map((image) => (
+          <figure key={image.id} className="flex flex-col items-center gap-1">
+            <RecipeImage
+              image={image}
+              alt=""
+              className="size-20 rounded-md object-cover"
+              fallbackClassName="size-20 rounded-md"
+            />
             <figcaption className="flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -64,8 +75,8 @@ export function ImageManager({
                 aria-label="Als Hauptbild"
                 onClick={() =>
                   onChange({
-                    mainImage: id,
-                    images: [...images.filter((i) => i !== id), ...(mainImage === null ? [] : [mainImage])],
+                    mainImage: image,
+                    images: [...images.filter((i) => i.id !== image.id), ...(mainImage === null ? [] : [mainImage])],
                   })
                 }
               >
@@ -75,7 +86,7 @@ export function ImageManager({
                 variant="ghost"
                 size="sm"
                 aria-label="Bild entfernen"
-                onClick={() => onChange({ images: images.filter((i) => i !== id) })}
+                onClick={() => onChange({ images: images.filter((i) => i.id !== image.id) })}
               >
                 <Trash2 className="h-3 w-3" />
               </Button>
@@ -83,25 +94,27 @@ export function ImageManager({
           </figure>
         ))}
 
-        <Label
-          htmlFor="image-upload"
-          className="grid size-20 cursor-pointer place-items-center rounded-md border border-dashed text-muted-foreground"
-        >
-          <Upload className="h-5 w-5" />
-        </Label>
+        {/* eslint-disable-next-line react/forbid-elements -- native file picker, @postxl/ui-components has no file input */}
         <input
           id="image-upload"
           type="file"
           accept="image/png,image/jpeg,image/webp"
           aria-label="Bild hochladen"
           disabled={uploading}
-          className="hidden"
+          className="peer hidden"
           onChange={(e) => {
             const file = e.target.files?.[0]
             if (file) void upload(file)
             e.target.value = ''
           }}
         />
+        {/* After the input: peer-disabled dims the tile while uploading or while the editor is locked. */}
+        <Label
+          htmlFor="image-upload"
+          className="grid size-20 cursor-pointer place-items-center rounded-md border border-dashed text-muted-foreground peer-disabled:pointer-events-none peer-disabled:opacity-50"
+        >
+          <Upload className="h-5 w-5" />
+        </Label>
       </div>
     </div>
   )

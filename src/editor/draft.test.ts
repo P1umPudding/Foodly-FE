@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { emptyDraft, move, newIngredient, toCreateRecipe, toDraft } from './draft'
+import { emptyDraft, move, newIngredient, sizeNumberError, toCreateRecipe, toDraft } from './draft'
 import type { Recipe } from '../api/protocol'
+import { ref } from '../test/images'
 
 function recipe(over: Partial<Recipe> = {}): Recipe {
   return {
@@ -18,8 +19,8 @@ function recipe(over: Partial<Recipe> = {}): Recipe {
     sizeNumber: 4,
     sizeText: '{Portionen}',
     notes: ['Kalt besser.'],
-    mainImage: 1,
-    images: [2, 3],
+    mainImage: ref(1),
+    images: [ref(2), ref(3)],
     sections: [
       {
         id: 10,
@@ -58,6 +59,21 @@ describe('toDraft', () => {
 })
 
 describe('toCreateRecipe', () => {
+  // Reads carry ImageRefs (Backend #19), the write body takes bare ids.
+  it('sends image ids, not refs', () => {
+    const wire = toCreateRecipe(toDraft(recipe({ mainImage: ref(7), images: [ref(8), ref(9)] })))
+
+    expect(wire.mainImage).toBe(7)
+    expect(wire.images).toEqual([8, 9])
+  })
+
+  it('sends a null main image when there is none', () => {
+    const wire = toCreateRecipe(toDraft(recipe({ mainImage: null, images: [] })))
+
+    expect(wire.mainImage).toBeNull()
+    expect(wire.images).toEqual([])
+  })
+
   it('round-trips a recipe unchanged', () => {
     const original = recipe()
     const wire = toCreateRecipe(toDraft(original))
@@ -150,5 +166,20 @@ describe('move', () => {
     expect(move(rows, 1, -1).map((r) => r.key)).toEqual([1, 2])
     expect(move(rows, 2, 1).map((r) => r.key)).toEqual([1, 2])
     expect(rows.map((r) => r.key)).toEqual([1, 2])
+  })
+})
+
+describe('sizeNumberError', () => {
+  it('needs at least one portion in portions mode', () => {
+    expect(sizeNumberError({ sizeMode: 'portions', sizeNumber: null })).toBeNull()
+    expect(sizeNumberError({ sizeMode: 'portions', sizeNumber: 1 })).toBeNull()
+    expect(sizeNumberError({ sizeMode: 'portions', sizeNumber: 1.5 })).toBeNull()
+    expect(sizeNumberError({ sizeMode: 'portions', sizeNumber: 0 })).toBe('Mindestens 1 Portion.')
+    expect(sizeNumberError({ sizeMode: 'portions', sizeNumber: -2 })).toBe('Mindestens 1 Portion.')
+    expect(sizeNumberError({ sizeMode: 'portions', sizeNumber: NaN })).toBe('Mindestens 1 Portion.')
+  })
+
+  it('ignores the number in text mode', () => {
+    expect(sizeNumberError({ sizeMode: 'text', sizeNumber: 0 })).toBeNull()
   })
 })

@@ -5,23 +5,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
 import { foodly } from './api'
-import type { StubFeature } from './api/stubs'
 import { useRequest } from './hooks/useRequest'
 import type { Recipe } from './api/protocol'
+import { ref } from './test/images'
+
+// The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
+vi.mock('./components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
 
 // The Skaile preview serves the app under a sub-path: main.tsx sets the router
 // basename to BASE_URL. This checks that links and public-asset images pick up
 // that prefix. SKAILE_PREVIEW_BASE -> base -> BASE_URL is not covered here; it
 // was checked by hand with a preview build and the running Skaile preview.
 
-// Mock mode keeps the detail image, so its src can show the base-path prefix; REST shows none.
-const imageStub = vi.hoisted(() => ({ stubbed: false }))
-vi.mock('./api/stubs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('./api/stubs')>()
-  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
-})
-
 vi.mock('./catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useCurrentUserId: () => 1,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),
@@ -49,7 +46,7 @@ const recipe: Recipe = {
   sizeNumber: null,
   sizeText: null,
   notes: [],
-  mainImage: 3,
+  mainImage: ref(3),
   images: [],
   sections: [],
 }
@@ -80,29 +77,19 @@ afterEach(() => {
 })
 
 describe('routing under a sub-path basename', () => {
-  it('deep-links to the detail page with prefixed image and back link', async () => {
-    imageStub.stubbed = false
+  // Backend images come from VITE_API_URL, not from the app's basename; the mock-mode basename case is in assets.test.ts.
+  it('deep-links to the detail page with the backend image and a prefixed back link', async () => {
     const { container } = renderAt('/foo/recipes/1')
 
     await screen.findByRole('heading', { name: 'Pancakes' })
     const imgSrcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
-    expect(imgSrcs).toContain('/foo/recipes/3.svg')
-    expect(screen.getByRole('link', { name: '← Zurück' }).getAttribute('href')).toBe('/foo/recipes')
-  })
-
-  it('REST: deep-links to the detail page without an image', async () => {
-    imageStub.stubbed = true
-    const { container } = renderAt('/foo/recipes/1')
-
-    await screen.findByRole('heading', { name: 'Pancakes' })
-    expect(container.querySelector('img[src*="/recipes/"]')).toBeNull()
+    expect(imgSrcs).toContain('/api/v1/images/h3')
     expect(screen.getByRole('link', { name: '← Zurück' }).getAttribute('href')).toBe('/foo/recipes')
   })
 
   // group=0: categories=[] makes the recipe uncategorised, and that group
   // starts collapsed (see RecipeList.search.test.tsx).
   it('links list rows to the prefixed detail URL', async () => {
-    imageStub.stubbed = false
     renderAt('/foo/recipes?group=0')
 
     await screen.findByText('Pancakes')

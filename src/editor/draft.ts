@@ -7,7 +7,7 @@
 //    leaving the UI to infer it from nulls;
 //  - text fields are '' rather than null, so inputs stay controlled.
 
-import type { CreateRecipe, ImageId, IngredientId, Recipe, TagId } from '../api/protocol'
+import type { CreateRecipe, ImageRef, IngredientId, Recipe, TagId } from '../api/protocol'
 
 export type DraftIngredient = {
   key: number
@@ -40,8 +40,8 @@ export type Draft = {
   sizeText: string
   tags: TagId[]
   notes: DraftNote[]
-  mainImage: ImageId | null
-  images: ImageId[]
+  mainImage: ImageRef | null
+  images: ImageRef[]
   sections: DraftSection[]
   // Never edited: the detail page still renders `time`, and PUT is a full
   // replace — dropping it would wipe the string. Goes away once the detail page
@@ -116,6 +116,13 @@ export function toDraft(recipe: Recipe): Draft {
   }
 }
 
+// Empty stays allowed (no size given); text mode drops the number on save anyway.
+export function sizeNumberError(draft: Pick<Draft, 'sizeMode' | 'sizeNumber'>): string | null {
+  const n = draft.sizeNumber
+  if (draft.sizeMode !== 'portions' || n === null) return null
+  return !Number.isFinite(n) || n < 1 ? 'Mindestens 1 Portion.' : null
+}
+
 const orNull = (s: string): string | null => (s.trim() === '' ? null : s.trim())
 
 export function toCreateRecipe(draft: Draft): CreateRecipe {
@@ -129,8 +136,8 @@ export function toCreateRecipe(draft: Draft): CreateRecipe {
     sizeNumber: draft.sizeMode === 'portions' ? draft.sizeNumber : null,
     sizeText: orNull(draft.sizeText),
     notes: draft.notes.map((n) => n.text.trim()).filter((t) => t !== ''),
-    mainImage: draft.mainImage,
-    images: draft.images,
+    mainImage: draft.mainImage?.id ?? null,
+    images: draft.images.map((image) => image.id),
     sections: draft.sections.map((section) => ({
       name: orNull(section.name),
       steps: section.steps.map((s) => s.text.trim()).filter((t) => t !== ''),

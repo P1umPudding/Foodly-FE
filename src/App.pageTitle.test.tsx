@@ -6,6 +6,7 @@ import { RecipeEditorRoute } from './App'
 import { AppShell } from './components/shell/AppShell'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
+import { Home } from './pages/Home'
 import { ThemeProvider } from './theme/ThemeProvider'
 import { TimerProvider } from './timers/TimerProvider'
 import { foodly } from './api'
@@ -13,11 +14,15 @@ import { useRequest } from './hooks/useRequest'
 import { setViewport } from './test/viewport'
 import type { Recipe } from './api/protocol'
 
+// The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
+vi.mock('./components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
+
 // Shell and page together: the header shows the title, the page owns the one h1. jsdom applies no CSS, so
 // "visible once" means: once in the header, and in the page only as the sr-only h1. The sidebar's nav
 // links carry the same words, but they are links, not titles, so the checks stay inside header and main.
 
 vi.mock('./catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useCurrentUserId: () => 1,
   useMe: () => ({ id: 1, name: 'Kolja', profilePicture: null }),
   useUser: () => undefined,
@@ -59,10 +64,11 @@ async function renderAt(entry: string) {
   render(
     <ThemeProvider>
       <TooltipProvider>
-        <TimerProvider>
+        <TimerProvider userId={1}>
           <MemoryRouter initialEntries={[entry]}>
             <AppShell>
               <Routes>
+                <Route path="/" element={<Home />} />
                 <Route path="/recipes" element={<RecipeList />} />
                 <Route path="/recipes/new" element={<RecipeEditorRoute />} />
                 <Route path="/recipes/:id" element={<RecipeDetail />} />
@@ -128,6 +134,26 @@ describe('page title shown once', () => {
     await screen.findByText('Pancakes')
     expect(screen.queryByRole('complementary', { name: 'Seitenleiste' })).toBeNull()
     expectTitleOnce('Rezepte')
+    expect(h1s()).toHaveLength(1)
+  })
+})
+
+// Start greets in a visible h1 instead of repeating its title, so it has its own check.
+describe('start page title', () => {
+  it('desktop: "Start" in the header, the greeting as the one h1', async () => {
+    await renderAt('/')
+    expect(within(screen.getByRole('banner')).getAllByText('Start')).toHaveLength(1)
+    expect(within(screen.getByRole('main')).queryByText('Start')).toBeNull()
+    expect(h1s()).toHaveLength(1)
+    expect(within(screen.getByRole('main')).getByRole('heading', { level: 1 }).textContent).toBe('Hallo Kolja')
+  })
+
+  it('phone: the wordmark in the header instead of a title', async () => {
+    setViewport(375)
+    await renderAt('/')
+    const banner = within(screen.getByRole('banner'))
+    banner.getByText('Foodly')
+    expect(banner.queryByText('Start')).toBeNull()
     expect(h1s()).toHaveLength(1)
   })
 })

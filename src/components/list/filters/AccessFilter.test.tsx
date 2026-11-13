@@ -47,6 +47,20 @@ describe('AccessFilter', () => {
     expect(isGreyed(roleRadio(/Besitzer/))).toBe(false)
   })
 
+  // design.md §2: rows are controls (rounded-md), greyed or not.
+  it('rounds every option row like other controls', () => {
+    setup('viewer', 'shared')
+    for (const name of ['Meine Rolle', 'Freigabe']) {
+      const radios = group(name).getAllByRole('radio')
+      expect(radios).toHaveLength(4)
+      expect(radios.some(isGreyed)).toBe(true)
+      for (const radio of radios) {
+        expect(radio.parentElement!.classList.contains('rounded-md')).toBe(true)
+        expect(radio.parentElement!.classList.contains('rounded-sm')).toBe(false)
+      }
+    }
+  })
+
   it('describes why a greyed option does not fit, beyond the hover tooltip', () => {
     setup('editor')
     const privat = collabRadio(/Privat/)
@@ -132,5 +146,44 @@ describe('AccessFilter', () => {
     fireEvent.pointerDown(label)
     fireEvent.click(label)
     expect(set).toHaveBeenCalledWith({ role: 'editor', collab: 'any' })
+  })
+
+  // design.md §7: the reason must be visible without hover, so phones see it too.
+  describe('hint under a group with greyed options', () => {
+    const ROLE_HINT = 'Blasse Optionen passen nicht zur Freigabe. Auswählen setzt sie auf „Alle“.'
+    const COLLAB_HINT = 'Blasse Optionen passen nicht zur Rolle. Auswählen setzt sie auf „Alle“.'
+
+    it('shows the matching hint directly under each group that greys something', () => {
+      // viewer × shared greys Bearbeiter (role) and Privat (Freigabe).
+      setup('viewer', 'shared')
+      for (const [name, text] of [
+        ['Meine Rolle', ROLE_HINT],
+        ['Freigabe', COLLAB_HINT],
+      ]) {
+        const hint = screen.getByText(text)
+        expect(hint.previousElementSibling).toBe(screen.getByRole('radiogroup', { name }))
+        expect(hint.getAttribute('aria-hidden')).toBe('true')
+        expect([...hint.classList]).toEqual(expect.arrayContaining(['text-xs', 'text-muted-foreground', 'px-1']))
+      }
+    })
+
+    it('shows only the role hint for Besitzer × Geteilt, since Besitzer fits every Freigabe', () => {
+      setup('owner', 'shared')
+      expect(screen.getByText(ROLE_HINT).previousElementSibling).toBe(
+        screen.getByRole('radiogroup', { name: 'Meine Rolle' }),
+      )
+      expect(screen.queryByText(COLLAB_HINT)).toBeNull()
+    })
+
+    it('drops both hints once both axes are back on "Alle"', () => {
+      const { rerender } = render(<AccessFilter role="viewer" collab="shared" set={vi.fn()} />, {
+        wrapper: TooltipProvider,
+      })
+      expect(screen.getByText(ROLE_HINT)).toBeTruthy()
+      expect(screen.getByText(COLLAB_HINT)).toBeTruthy()
+      rerender(<AccessFilter role="any" collab="any" set={vi.fn()} />)
+      expect(screen.queryByText(ROLE_HINT)).toBeNull()
+      expect(screen.queryByText(COLLAB_HINT)).toBeNull()
+    })
   })
 })

@@ -6,3 +6,4 @@ node_modules
 
 # Generated / vendored
 package-lock.json
+eslint-suppressions.json

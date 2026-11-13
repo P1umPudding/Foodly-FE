@@ -1,12 +1,6 @@
 import { hasDisplayableImages, recipeCategories } from './rowData'
-import type { StubFeature } from '../api/stubs'
 import type { Recipe, UserCategory } from '../api/protocol'
-
-const imageStub = vi.hoisted(() => ({ stubbed: true }))
-vi.mock('../api/stubs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../api/stubs')>()
-  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
-})
+import { ref } from '../test/images'
 
 const recipe = { id: 1, mainImage: null } as Recipe
 
@@ -36,21 +30,14 @@ describe('recipeCategories', () => {
 })
 
 describe('hasDisplayableImages', () => {
-  const withPhoto = { ...recipe, id: 2, mainImage: 5 } as Recipe
+  const withPhoto = { ...recipe, id: 2, mainImage: ref(5) } as Recipe
 
   it('is false when no recipe has a photo', () => {
-    imageStub.stubbed = false
     expect(hasDisplayableImages([recipe])).toBe(false)
     expect(hasDisplayableImages([])).toBe(false)
   })
 
-  it('is true when one recipe has a photo and images are served', () => {
-    imageStub.stubbed = false
+  it('is true when one recipe has a photo', () => {
     expect(hasDisplayableImages([recipe, withPhoto])).toBe(true)
-  })
-
-  it('is false while the image route is stubbed', () => {
-    imageStub.stubbed = true
-    expect(hasDisplayableImages([recipe, withPhoto])).toBe(false)
   })
 })

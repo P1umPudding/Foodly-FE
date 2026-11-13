@@ -5,7 +5,11 @@ import { RecipeDetail } from './RecipeDetail'
 import { foodly } from '../api'
 import type { Recipe } from '../api/protocol'
 
+// The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
+vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
+
 vi.mock('react-router-dom', () => ({
+  useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),
   useNavigate: () => vi.fn(),
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a>,
@@ -13,6 +17,7 @@ vi.mock('react-router-dom', () => ({
 
 let currentUserId: number | null = 1
 vi.mock('../catalog/CatalogProvider', () => ({
+  useRefreshCategories: () => () => {},
   useTags: () => ({ byId: {}, status: 'ready' }),
   useCurrentUserId: () => currentUserId,
 }))

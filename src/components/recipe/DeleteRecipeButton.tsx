@@ -14,10 +14,10 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  buttonVariants,
-  cn,
 } from '@postxl/ui-components'
+import { TriggerButton } from '../TriggerButton'
 import { foodly } from '../../api'
+import { errorMessage } from '../../lib/errorMessage'
 import type { RecipeId } from '../../api/protocol'
 
 export function DeleteRecipeButton({
@@ -51,7 +51,7 @@ export function DeleteRecipeButton({
       await foodly.deleteRecipe(recipeId)
       onDeleted()
     } catch (e) {
-      setError((e as Error).message || 'Löschen fehlgeschlagen')
+      setError(errorMessage(e, 'Löschen fehlgeschlagen'))
       setPending(false)
       inFlight.current = false
     }
@@ -61,14 +61,11 @@ export function DeleteRecipeButton({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <Tooltip>
         <TooltipTrigger asChild>
-          {/* The trigger is styled via buttonVariants rather than wrapping a postxl Button: Button isn't
-              forwardRef, so neither the tooltip nor the dialog's focus return could reach it. */}
-          <AlertDialogTrigger
-            aria-label="Löschen"
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 phone:size-10')}
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="phone:hidden">Löschen</span>
+          <AlertDialogTrigger asChild>
+            <TriggerButton variant="outline" size="sm" aria-label="Löschen" className="gap-1.5 phone:size-10">
+              <Trash2 className="h-4 w-4" />
+              <span className="phone:hidden">Löschen</span>
+            </TriggerButton>
           </AlertDialogTrigger>
         </TooltipTrigger>
         <TooltipContent>Rezept löschen</TooltipContent>
@@ -90,7 +87,7 @@ export function DeleteRecipeButton({
               focus on the button while pending; a disabled button would drop it out of the dialog. */}
           <Button
             variant="destructive"
-            onClick={onConfirm}
+            onClick={() => void onConfirm()}
             aria-disabled={pending}
             className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
           >

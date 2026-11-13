@@ -6,16 +6,9 @@ import { RecipeList } from './RecipeList'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
 import { SHELL_NAV_STATE } from '../components/shell/nav'
-import type { StubFeature } from '../api/stubs'
 import type { Recipe, UserCategory } from '../api/protocol'
-
-// Only the images stub is toggled (default stubbed, as in REST); the real
-// showsRecipeImages decides whether the page shows an image column.
-const imageStub = vi.hoisted(() => ({ stubbed: true }))
-vi.mock('../api/stubs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../api/stubs')>()
-  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
-})
+import { ref } from '../test/images'
+import { TILE_META_TEXT, TILE_TITLE_TEXT } from '../components/recipe/RecipeTile'
 
 function cat(id: number, recipes: number[]): UserCategory {
   return { id, user: 1, name: `Cat ${id}`, recipes, order: id, color: '#000000', colorLight: null, colorDark: null }
@@ -72,7 +65,6 @@ function renderList(url = '/recipes?group=0') {
 
 afterEach(() => {
   vi.restoreAllMocks()
-  imageStub.stubbed = true
 })
 
 describe('RecipeList (server-side search)', () => {
@@ -80,13 +72,31 @@ describe('RecipeList (server-side search)', () => {
     const never = () => new Promise<never>(() => {})
     afterEach(() => vi.unstubAllGlobals())
 
-    it('tiles: 4:3 tile skeletons', async () => {
+    it('tiles: 4:3 block plus title and meta bars', async () => {
       vi.spyOn(foodly, 'searchRecipes').mockImplementation(never)
       vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
 
       renderList('/recipes?view=tiles&group=0')
 
-      await waitFor(() => expect(screen.getAllByTestId('tile-skeleton')).toHaveLength(4))
+      const tiles = await waitFor(() => {
+        const found = screen.getAllByTestId('tile-skeleton')
+        expect(found).toHaveLength(4)
+        return found
+      })
+      for (const tile of tiles) {
+        expect(tile.firstElementChild?.classList).toContain('aspect-[4/3]')
+        const [title, meta, ...rest] = within(tile).getAllByTestId('tile-skeleton-line')
+        expect(rest).toHaveLength(0)
+        expect([...title.classList]).toEqual(expect.arrayContaining(['h-4', 'w-3/4']))
+        expect([...meta.classList]).toEqual(expect.arrayContaining(['h-3', 'w-1/2']))
+        // The line boxes give the skeleton the tile's height (one text line each).
+        expect([...(title.parentElement?.classList ?? [])]).toEqual(
+          expect.arrayContaining(['h-lh', ...TILE_TITLE_TEXT.split(' ')]),
+        )
+        expect([...(meta.parentElement?.classList ?? [])]).toEqual(
+          expect.arrayContaining(['h-lh', ...TILE_META_TEXT.split(' ')]),
+        )
+      }
       expect(screen.queryAllByTestId('row-skeleton')).toHaveLength(0)
     })
 
@@ -127,6 +137,7 @@ describe('RecipeList (server-side search)', () => {
 
       const more = await waitFor(() => screen.getByTestId('list-more-skeleton'))
       expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(4)
+      expect(within(more).getAllByTestId('tile-skeleton-line')).toHaveLength(8)
       expect(within(more).getByTestId('tile-grid').className).toContain('auto-rows-[0]')
     })
 
@@ -384,10 +395,70 @@ describe('RecipeList (layout)', () => {
 
     // jsdom has no layout (and its width doesn't matter here), so the classes stand in for the geometry:
     // the FAB's top edge must stay below the last card when scrolled to the end (#74).
-    const wrapper = screen.getByRole('heading', { name: 'Rezepte' }).closest('.grid')
-    if (!wrapper) throw new Error('list wrapper (.grid) not found')
+    const wrapper = screen.getByTestId('recipe-list-page')
     expect(wrapper.classList.contains('pb-10')).toBe(true)
     expect(wrapper.classList.contains('phone:pb-[calc(6rem+env(safe-area-inset-bottom))]')).toBe(true)
+  })
+})
+
+describe('RecipeList (filter bar)', () => {
+  it('shows the five filter buttons in place of the filter rail; the list gets the full width', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+    await waitFor(() => screen.getByText('Pancakes'))
+
+    const bar = screen.getByRole('group', { name: 'Filter' })
+    for (const name of ['Kategorie', 'Tags', 'Zutaten', 'Arbeitszeit', 'Zugriff']) {
+      expect(within(bar).getByRole('button', { name })).toBeTruthy()
+    }
+    expect(document.querySelector('aside')).toBeNull()
+    // The phone filter sheet's trigger is gone too.
+    expect(screen.queryByRole('button', { name: 'Filter' })).toBeNull()
+    expect(screen.getByTestId('recipe-list-page').classList.contains('grid')).toBe(false)
+  })
+
+  it('offers "Alle Filter zurücksetzen" only while a filter or the search is active', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    const plain = renderList()
+    await waitFor(() => screen.getByText('Pancakes'))
+    expect(screen.queryByRole('button', { name: 'Alle Filter zurücksetzen' })).toBeNull()
+    plain.unmount()
+
+    for (const url of ['/recipes?group=0&tag=Vegan', '/recipes?group=0&q=pan']) {
+      const view = renderList(url)
+      await waitFor(() => screen.getByText('Pancakes'))
+      expect(screen.getByRole('button', { name: 'Alle Filter zurücksetzen' })).toBeTruthy()
+      view.unmount()
+    }
+  })
+
+  it('"Alle Filter zurücksetzen" clears every filter and the search, but keeps the sort', async () => {
+    const searchSpy = vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList('/recipes?group=0&sort=rating&tag=Vegan&dmax=30&q=pan')
+    await waitFor(() => screen.getByText('Pancakes'))
+    const bar = screen.getByRole('group', { name: 'Filter' })
+    expect(within(bar).getByRole('button', { name: 'Tags: Vegan' })).toBeTruthy()
+
+    // The page focused the search on open; start from the link, as a keyboard user would.
+    const reset = screen.getByRole('button', { name: 'Alle Filter zurücksetzen' })
+    reset.focus()
+    expect(document.activeElement).toBe(reset)
+    fireEvent.click(reset)
+
+    await waitFor(() => expect(searchSpy.mock.lastCall?.[0].filters).toBeUndefined())
+    expect(within(bar).getByRole('button', { name: 'Tags' })).toBeTruthy()
+    expect(within(bar).getByRole('button', { name: 'Arbeitszeit' })).toBeTruthy()
+    expect((screen.getByRole('textbox', { name: 'Rezepte suchen' }) as HTMLInputElement).value).toBe('')
+    expect(screen.queryByRole('button', { name: 'Alle Filter zurücksetzen' })).toBeNull()
+    // The link is gone, so focus moves to the search instead of falling to <body>.
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Rezepte suchen' }))
+    expect(screen.getByRole('button', { name: /^Sortieren: Bewertung/ })).toBeTruthy()
   })
 })
 
@@ -404,7 +475,97 @@ describe('RecipeList (result count and empty states)', () => {
     )
   }
 
-  afterEach(() => vi.unstubAllGlobals())
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    localStorage.clear()
+  })
+
+  function emptyStateIcon(text: string) {
+    return screen.getByText(text).parentElement?.querySelector('svg')
+  }
+
+  it('says "Keine Treffer" when a server-side filter leaves no recipe, and resetting shows the list (#128)', async () => {
+    const searchSpy = vi
+      .spyOn(foodly, 'searchRecipes')
+      .mockImplementation(async (q) =>
+        q.filters?.tags ? { items: [], cursor: null } : { items: [rec(1, 'Pancakes')], cursor: null },
+      )
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList('/recipes?group=0&tag=Vegan')
+
+    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+    const icon = emptyStateIcon('Keine Treffer für die aktuellen Filter.')
+    expect(icon?.classList.contains('size-5')).toBe(true)
+    expect(icon?.classList.contains('h-10')).toBe(false)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filter zurücksetzen' }))
+
+    await waitFor(() => screen.getByText('Pancakes'))
+    expect(searchSpy.mock.lastCall?.[0].filters).toBeUndefined()
+    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
+  })
+
+  it.each(['tag=Vegan', 'ing=1', 'dmax=30', 'role=owner', 'collab=shared'])(
+    'says "Keine Treffer", not "Noch keine Rezepte", for an empty result under %s',
+    async (param) => {
+      vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+      vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+      renderList(`/recipes?group=0&${param}`)
+
+      await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+      screen.getByRole('button', { name: 'Filter zurücksetzen' })
+      expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+    },
+  )
+
+  it('says "Keine Treffer" for a client-side category filter over an empty result', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [])])
+
+    renderList('/recipes?group=0&cat=1')
+
+    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+  })
+
+  it('says "Noch keine Rezepte" with a "Neues Rezept" link when no filter or search is active', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+
+    await waitFor(() => screen.getByText('Noch keine Rezepte.'))
+    expect(screen.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toMatch(/\/recipes\/new$/)
+    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Filter zurücksetzen' })).toBeNull()
+    const icon = emptyStateIcon('Noch keine Rezepte.')
+    expect(icon?.classList.contains('size-5')).toBe(true)
+    expect(icon?.classList.contains('h-10')).toBe(false)
+  })
+
+  it('says "Keine Treffer" for a search over an empty collection', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderSearch('zzz')
+
+    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+  })
+
+  it('shows neither empty text while a filtered result still has pages to come', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: 2 })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList('/recipes?group=0&tag=Vegan')
+
+    await waitFor(() => screen.getByTestId('list-pending-skeleton'))
+    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
+    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+  })
 
   it('shows a skeleton instead of "Keine Treffer" while more pages may hold matches', async () => {
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: 2 })
@@ -484,10 +645,9 @@ describe('RecipeList (result count and empty states)', () => {
 })
 
 describe('RecipeList (rows)', () => {
-  const withPhoto = { ...rec(1, 'Pancakes'), mainImage: 3 }
+  const withPhoto = { ...rec(1, 'Pancakes'), mainImage: ref(3) }
 
-  it('mock images: one photo gives every row an image cell', async () => {
-    imageStub.stubbed = false
+  it('one photo gives every row an image cell', async () => {
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [withPhoto, rec(2, 'Waffles')], cursor: null })
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
 
@@ -495,16 +655,6 @@ describe('RecipeList (rows)', () => {
 
     await waitFor(() => screen.getByText('Waffles'))
     expect(screen.getAllByTestId('recipe-thumb')).toHaveLength(2)
-  })
-
-  it('stubbed images (REST): no image column even with a main image', async () => {
-    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [withPhoto, rec(2, 'Waffles')], cursor: null })
-    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
-
-    renderList()
-
-    await waitFor(() => screen.getByText('Waffles'))
-    expect(screen.queryAllByTestId('recipe-thumb')).toHaveLength(0)
   })
 
   it("a category filter keeps the row's other category dots", async () => {

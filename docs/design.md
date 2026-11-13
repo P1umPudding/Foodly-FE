@@ -36,8 +36,8 @@ gilt: nichts Neues im alten Stil bauen.
 | `bg-muted` / `bg-secondary` | ruhige Flächen: Segment-Schalter, Tags, Skeletons, Foto-Platzhalter |
 | `bg-accent` | Hover-Fläche von Zeilen und Ghost-Buttons |
 | `text-foreground` | Text, Titel, Icons in Aktionen |
-| `text-muted-foreground` | Sekundärtext (Untertitel, Beschreibungen) |
-| `text-subtle-foreground` | Meta: Zähler („14 Rezepte“), Zeiten, Platzhalter |
+| `text-muted-foreground` | Sekundärtext (Untertitel, Beschreibungen) und Meta: Zähler („14 Rezepte“), Zeiten, selbst gerenderte Platzhalter |
+| `text-subtle-foreground` | derzeit ungenutzt; kein AA für kleinen Text – nur Nicht-Text und großer Text (≥ 3:1, Ausnahme siehe unten) |
 | `border-border` (Standard) / `border-border-strong` | Haarlinie / Hover- und Checkbox-Rand |
 | `bg-sidebar`, `bg-sidebar-accent` | Seitenleiste, aktiver Navigationspunkt |
 | `bg-primary text-primary-foreground` | **eine** Hauptaktion pro Ansicht („Neues Rezept“, „Speichern“) |
@@ -49,6 +49,13 @@ hierher, nicht als Einzelwert in den Code.
 
 Fokus-Ring (`--ring`, `--sidebar-ring`): bei voller Token-Deckkraft ≥ 3:1 auf allen Flächen, hell und dunkel
 (WCAG 1.4.11), geprüft in `src/styles/focusRing.test.ts`; postxl-`ring-ring/50` halbiert die Deckkraft noch (~1,7:1, #77).
+
+Meta-Text (Zähler, Zeiten): steht in `text-xs`/`text-sm`, also kleiner Text, für den AA ≥ 4,5:1 verlangt, und bleibt deshalb
+`text-muted-foreground`. Gemessen nach WCAG 2.x mit den Token-Werten aus `theme.css` auf `background`, `card`/`popover`,
+`muted`, `accent`, `sidebar` und `sidebar-accent`: `subtle-foreground` erreicht hell 2,96–3,64:1 und dunkel 3,34–4,20:1,
+`muted-foreground` hell 5,55–6,83:1 und dunkel 6,26–7,88:1. Schlechtester Fall ist der aktive Navigationspunkt
+(`bg-sidebar-accent`); hell liegt `subtle` dort mit 2,96:1 auch unter 3:1 und taugt dort nicht einmal für großen Text oder
+Nicht-Text. Siehe auch den Hinweis in `src/components/recipe/IngredientLine.tsx` (#116).
 
 ### Radien – genau drei
 
@@ -163,7 +170,8 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 - **Keine Treffer (Filter):** „Keine Treffer für die aktuellen Filter.“ + „Filter zurücksetzen“ – erst, wenn keine
   Seiten mehr ausstehen. Filtert der Client über geladene Seiten und es kommen noch welche, eine Skelett-Zeile statt
   Leer-Text (`RecipeList.tsx`).
-- **Fehler:** postxl `Alert` inline mit der Meldung und „Erneut versuchen“. Aktion fehlgeschlagen: `toast`.
+- **Fehler:** postxl `Alert` inline mit der Meldung und „Erneut versuchen“ (Nachladen fehlgeschlagen: unter der Liste).
+  Aktion fehlgeschlagen: `toast`.
 - **Kein Zugriff / nicht gefunden:** eigene Seite mit Weg zurück (`NotFound.tsx`).
 
 ## 6. Formulare
@@ -196,7 +204,7 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 | Do | Don't |
 |---|---|
 | Kategorie als Punkt/Chip/Linie (`bg-cat-dot`, `bg-cat-soft text-cat-ink`) | Kategoriefarbe als große Vollfläche oder Textfarbe auf Weiß |
-| Neutral für Bedienelemente (siehe Kommentar in `src/components/list/FilterControls.tsx`) | Lila oder eine andere Markenfarbe für Auswahl, Links, Fokus |
+| Neutral für Bedienelemente (siehe `SELECTED_CHIP` in `src/components/list/filters/DurationFilter.tsx`) | Lila oder eine andere Markenfarbe für Auswahl, Links, Fokus |
 | Eine `primary`-Aktion pro Ansicht, Rest `outline`/`ghost` | Mehrere schwarze Buttons nebeneinander |
 | `rounded-md` für Controls, `rounded-lg` für Karten | `rounded-xl`, `rounded-2xl`, Pillen-Buttons |
 | Haarlinie + `bg-card` | Schatten auf Karten |

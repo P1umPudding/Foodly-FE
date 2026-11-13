@@ -3,23 +3,28 @@ import {
   AvatarFallback,
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  buttonVariants,
   cn,
 } from '@postxl/ui-components'
+import { LogOut, Tags } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { foodly } from '../../api'
 import { useMe } from '../../catalog/CatalogProvider'
 import { ThemeSubmenu } from '../ThemeMenu'
 import { navItemClass } from './navItem'
+import { TriggerButton } from '../TriggerButton'
 
 const LABEL = 'Profil & Einstellungen'
 
 // Profile and settings behind the avatar (phone header) or the sidebar's bottom row. There is no profile
-// page yet; the menu holds the name and the theme. Wake-lock stays on the recipe page, where it acts.
+// page yet; the menu holds the name, the categories, the theme and (REST only) Abmelden. Wake-lock stays on the recipe
+// page, where it acts.
 //  • avatar — phone header, 40 px tap target
 //  • row    — expanded sidebar: avatar + name
 //  • icon   — collapsed sidebar: avatar only, tooltip
@@ -34,23 +39,25 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
     </Avatar>
   )
 
-  // DropdownMenuTrigger styled via buttonVariants rather than wrapping a postxl Button: Button isn't
-  // forwardRef, so Radix couldn't anchor the menu to it (same reason as in TimerToggle).
   const trigger =
     variant === 'row' ? (
-      <DropdownMenuTrigger aria-label={`${name} – ${LABEL}`} className={navItemClass(false, false)}>
-        {avatar}
-        <span className="truncate">{name}</span>
+      <DropdownMenuTrigger asChild>
+        <TriggerButton variant="ghost" aria-label={`${name} – ${LABEL}`} className={navItemClass(false, false)}>
+          {avatar}
+          <span className="truncate">{name}</span>
+        </TriggerButton>
       </DropdownMenuTrigger>
     ) : (
-      <DropdownMenuTrigger
-        aria-label={LABEL}
-        className={cn(
-          buttonVariants({ variant: 'ghost', size: 'icon' }),
-          variant === 'avatar' ? 'size-10 rounded-full' : navItemClass(false, true),
-        )}
-      >
-        {avatar}
+      <DropdownMenuTrigger asChild>
+        <TriggerButton
+          variant="ghost"
+          size="icon"
+          aria-label={LABEL}
+          // flex, not inline-flex: in the collapsed rail's block footer an inline box would gain the line's descender gap.
+          className={variant === 'avatar' ? 'size-10 rounded-full' : cn(navItemClass(false, true), 'flex')}
+        >
+          {avatar}
+        </TriggerButton>
       </DropdownMenuTrigger>
     )
 
@@ -58,9 +65,7 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
     <DropdownMenu>
       {variant === 'icon' ? (
         <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex">{trigger}</span>
-          </TooltipTrigger>
+          <TooltipTrigger asChild>{trigger}</TooltipTrigger>
           <TooltipContent side="right">{LABEL}</TooltipContent>
         </Tooltip>
       ) : (
@@ -73,7 +78,23 @@ export function ProfileMenu({ variant }: { variant: 'avatar' | 'row' | 'icon' })
       >
         <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="gap-2">
+          <Link to="/categories">
+            <Tags aria-hidden className="size-4" />
+            Kategorien
+          </Link>
+        </DropdownMenuItem>
         <ThemeSubmenu />
+        {foodly.auth.canSignOut && (
+          <>
+            <DropdownMenuSeparator />
+            {/* No confirm, no toast: the guard takes over to /login at once (design spec „Abmelden“). */}
+            <DropdownMenuItem className="gap-2" onSelect={() => void foodly.auth.signOut()}>
+              <LogOut aria-hidden className="size-4" />
+              Abmelden
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

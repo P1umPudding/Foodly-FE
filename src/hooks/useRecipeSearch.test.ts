@@ -96,4 +96,119 @@ describe('useRecipeSearch', () => {
     expect(result.current.recipes.map((r) => r.id)).toEqual([3, 4])
     expect(spy.mock.calls.length).toBe(callsBefore + 1)
   })
+
+  it('keeps paging state when the next page fails and loads it again on retry', async () => {
+    const spy = vi
+      .spyOn(foodly, 'searchRecipes')
+      .mockResolvedValueOnce({ items: [rec(1)], cursor: 2 })
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce({ items: [rec(2)], cursor: null })
+    const query: RecipeSearchQuery = { sort: { field: 'name', order: 'asc' } }
+
+    const { result } = renderHook(() => useRecipeSearch(query))
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    act(() => result.current.loadMore())
+    await waitFor(() => expect(result.current.loadMoreError?.message).toBe('offline'))
+    expect(result.current.hasMore).toBe(true)
+    expect(result.current.loadingMore).toBe(false)
+    expect(result.current.status).toBe('ready')
+    expect(result.current.recipes.map((r) => r.id)).toEqual([1])
+
+    // Paused: loadMore must not retry by itself while the error stands.
+    act(() => result.current.loadMore())
+    expect(spy).toHaveBeenCalledTimes(2)
+
+    act(() => result.current.retryLoadMore())
+    expect(result.current.loadMoreError).toBeNull()
+    expect(result.current.loadingMore).toBe(true)
+    await waitFor(() => expect(result.current.recipes.map((r) => r.id)).toEqual([1, 2]))
+    expect(spy).toHaveBeenCalledTimes(3)
+    expect(spy.mock.calls[2]?.[1]).toBe(2)
+    expect(result.current.hasMore).toBe(false)
+    expect(result.current.loadMoreError).toBeNull()
+  })
+
+  it('clears a load-more error on query change and on reload', async () => {
+    vi.spyOn(foodly, 'searchRecipes')
+      .mockResolvedValueOnce({ items: [rec(1)], cursor: 2 }) // q1 page 1
+      .mockRejectedValueOnce(new Error('offline')) // q1 page 2
+      .mockResolvedValueOnce({ items: [rec(3)], cursor: 2 }) // q2 page 1
+      .mockRejectedValueOnce(new Error('offline')) // q2 page 2
+      .mockResolvedValueOnce({ items: [rec(3)], cursor: 2 }) // q2 reload page 1
+
+    const q1: RecipeSearchQuery = { sort: { field: 'name', order: 'asc' } }
+    const q2: RecipeSearchQuery = { sort: { field: 'rating', order: 'desc' } }
+    const { result, rerender } = renderHook((q) => useRecipeSearch(q), { initialProps: q1 })
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    act(() => result.current.loadMore())
+    await waitFor(() => expect(result.current.loadMoreError).not.toBeNull())
+
+    rerender(q2)
+    await waitFor(() => expect(result.current.recipes.map((r) => r.id)).toEqual([3]))
+    expect(result.current.loadMoreError).toBeNull()
+
+    act(() => result.current.loadMore())
+    await waitFor(() => expect(result.current.loadMoreError).not.toBeNull())
+    act(() => result.current.reload())
+    expect(result.current.loadMoreError).toBeNull()
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    expect(result.current.loadMoreError).toBeNull()
+  })
+
+  it('ignores a load-more failure from a previous query', async () => {
+    let rejectStale: (e: Error) => void = () => {}
+    const stale = new Promise<PaginatedRecipes>((_, reject) => {
+      rejectStale = reject
+    })
+    vi.spyOn(foodly, 'searchRecipes')
+      .mockResolvedValueOnce({ items: [rec(1)], cursor: 2 }) // q1 page 1
+      .mockReturnValueOnce(stale) // q1 page 2 — fails after the query changed
+      .mockResolvedValueOnce({ items: [rec(3)], cursor: 2 }) // q2 page 1
+
+    const q1: RecipeSearchQuery = { sort: { field: 'name', order: 'asc' } }
+    const q2: RecipeSearchQuery = { sort: { field: 'rating', order: 'desc' } }
+    const { result, rerender } = renderHook((q) => useRecipeSearch(q), { initialProps: q1 })
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    act(() => result.current.loadMore())
+    rerender(q2)
+    await waitFor(() => expect(result.current.recipes.map((r) => r.id)).toEqual([3]))
+
+    await act(async () => {
+      rejectStale(new Error('offline'))
+      await stale.catch(() => {})
+    })
+    expect(result.current.loadMoreError).toBeNull()
+    expect(result.current.hasMore).toBe(true)
+  })
+
+  it('drops a retry still in flight when the query changes', async () => {
+    let releaseRetry: (res: PaginatedRecipes) => void = () => {}
+    const retry = new Promise<PaginatedRecipes>((resolve) => {
+      releaseRetry = resolve
+    })
+    vi.spyOn(foodly, 'searchRecipes')
+      .mockResolvedValueOnce({ items: [rec(1)], cursor: 2 }) // q1 page 1
+      .mockRejectedValueOnce(new Error('offline')) // q1 page 2
+      .mockReturnValueOnce(retry) // q1 page 2 retry — settles after the query changed
+      .mockResolvedValueOnce({ items: [rec(3)], cursor: null }) // q2 page 1
+
+    const q1: RecipeSearchQuery = { sort: { field: 'name', order: 'asc' } }
+    const q2: RecipeSearchQuery = { sort: { field: 'rating', order: 'desc' } }
+    const { result, rerender } = renderHook((q) => useRecipeSearch(q), { initialProps: q1 })
+    await waitFor(() => expect(result.current.status).toBe('ready'))
+    act(() => result.current.loadMore())
+    await waitFor(() => expect(result.current.loadMoreError).not.toBeNull())
+    act(() => result.current.retryLoadMore())
+    rerender(q2)
+    await waitFor(() => expect(result.current.recipes.map((r) => r.id)).toEqual([3]))
+
+    await act(async () => {
+      releaseRetry({ items: [rec(2)], cursor: 9 })
+      await retry
+    })
+    expect(result.current.recipes.map((r) => r.id)).toEqual([3])
+    expect(result.current.loadMoreError).toBeNull()
+    expect(result.current.loadingMore).toBe(false)
+    expect(result.current.hasMore).toBe(false)
+  })
 })

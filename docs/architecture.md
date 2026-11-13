@@ -44,7 +44,8 @@ werden hier nicht wiederholt.
   `collaborationState`, `averageRating`, `formatIngredient`, `scaleAmount`, …).
   Keine abgeleiteten Felder in die Wire-Typen schreiben.
 - Asset-URLs (Bilder, Tag-Icons) nur über `src/api/assets.ts` — eine Stelle für das
-  Backend-Schema (offen: B1). Tag-Icons braucht die REST-Route mit Bearer, darum lädt
+  Backend-Schema (Rezeptbilder: Lesen als `ImageRef`, Schreiben als IDs;
+  angezeigt über das öffentliche `GET /images/{hash}`, FE #144). Tag-Icons braucht die REST-Route mit Bearer, darum lädt
   `assets.ts` sie als Blob (`loadTagIcon`, gecacht); `useTagIcon` ist der eine Hook,
   der `assets.ts` statt `foodly.*` aufruft.
 
@@ -52,13 +53,18 @@ werden hier nicht wiederholt.
 
 - `src/catalog/CatalogProvider.tsx` lädt Tags, Users, Ingredients und `me` einmal und
   stellt `byId`-Maps bereit. Neue globale Lookup-Daten gehören hierhin, nicht in
-  Seiten-State.
-- App-weiter State als Provider in `src/App.tsx` (z. B. `TimerProvider`, der die
-  `AppShell` umschließt, damit Timer Navigation überleben). Kein globaler Store (kein
+  Seiten-State. Ohne `me` rendert er statt der App einen Fehler mit „Erneut versuchen“.
+  Die Kategorien des Nutzers lädt er beim Start und neu (im Hintergrund), wenn eine
+  Rezept-Änderung ihre Mitglieder ändert: wer anlegt, kopiert oder löscht, ruft
+  `useRefreshCategories()`.
+- App-weiter State als Provider in `src/App.tsx` oder, wenn er an der Sitzung hängt,
+  in `RequireAuth` (z. B. `TimerProvider`: pro Nutzer, mit `key` auf die User-ID, umschließt
+  die `AppShell`, damit Timer Navigation überleben). Kein globaler Store (kein
   Redux/Zustand) ohne Decision-Note.
 - Feature-State als reine Reducer/Funktionen + Hook: Liste in `src/list/`
   (`state.ts`, `query.ts`, `url.ts`, `persistence.ts`, `useListState.ts`), Editor in
-  `src/editor/` (`draft.ts`, `useAutosave.ts`, `access.ts`).
+  `src/editor/` (`draft.ts`, `useAutosave.ts`, `access.ts`), zuletzt angesehene Rezepte in
+  `src/home/recentlyViewed.ts`.
 - Persistenz im Browser nur über versionierte `localStorage`-Keys pro User
   (Muster: `src/list/persistence.ts`, `foodly:<feature>:<userId>`, `VERSION`).
 - URL ist Quelle für teilbaren State (Filter in `src/list/url.ts`).
@@ -67,7 +73,9 @@ werden hier nicht wiederholt.
 
 - One-shot-Reads: `useRequest(run, deps)` (`src/hooks/useRequest.ts`) →
   `loading | ready | error`.
-- Paginierte Reads: `useRecipeSearch` (akkumuliert Seiten, reset bei Query-Wechsel).
+- Paginierte Reads: `useRecipeSearch` (akkumuliert Seiten, reset bei Query-Wechsel). Schlägt eine Folgeseite
+  fehl, bleibt der Cursor (`hasMore`), `loadMoreError` ist gesetzt und das Paging pausiert bis `retryLoadMore`
+  (kein Auto-Retry über den Sentinel).
 - Schreiben mit Autosave: `useAutosave` (Debounce, single-flight, Koaleszenz).
 - Jede datengetriebene Ansicht rendert **alle drei** Zustände:
   - Laden → Skelette in der Form des Inhalts (postxl `Skeleton`, Redesign §1.7; z. B.
@@ -88,15 +96,30 @@ werden hier nicht wiederholt.
   `beforeunload` + Flush bei Unmount. Lesezugriffe (`getRecipe`, `searchRecipes`) warten auf den
   noch laufenden Unmount-Save (`src/api/pendingSaves.ts`, max. 10 s); Requests deshalb in Effects
   starten, nicht im Render. Migration nur mit Decision-Note.
-- Struktur (Phase 5 rev. 2, `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`;
+- Struktur (Phase 5 rev. 3, `docs/superpowers/specs/2026-07-07-phase-5-dashboard-app-restructure-design.md`;
   bei der Navigationsform hat das Redesign Vorrang, `docs/design/redesign/README.md` §1.6):
-  `/recipes` Liste; `/` leitet bis zum Dashboard-Issue mit Query auf `/recipes` weiter
-  (`RootRedirect`). Kategorien nur als Filter `/recipes?cat=<id>` (keine eigene Route).
+  `/recipes` Liste; `/` Start-Seite (`Home`, Spec rev. 3); mit mindestens einem Listen-Parameter
+  (`LIST_PARAM_KEYS` in `src/list/url.ts`) leitet `/` samt Query und Hash auf `/recipes` weiter
+  (`src/pages/RootRoute.tsx`). Abschnitte der Start-Seite sind `HomeSection`s
+  (`src/components/home/`); sie melden ihren Zustand an `HomeSectionsProvider`, der die Karte
+  „Nichts zu zeigen“ nur zeigt, solange keiner gemeldet ist oder alle leer sind. Kategorien nur
+  als Filter `/recipes?cat=<id>` (keine eigene Route).
   `src/components/shell/`: `AppShell` mit `NAV_DESTINATIONS` (`nav.ts`, einzige Quelle,
-  „Start“ vorbereitet, aber ausgeblendet); ab 761 px (`useIsDesktop`) Seitenleiste
+  „Start“ vor „Rezepte“); ab 761 px (`useIsDesktop`) Seitenleiste
   (einklappbar, Kategorien, Profil), darunter Tab-Leiste + „+“-FAB + Avatar. Das Fenster
   bleibt der Scroll-Container; feste Seitenleisten nutzen `--shell-left`/`--shell-bottom`.
   Groups-Routen erst nach B12 + Backend #13.
+- Anmeldung (#142): `/login` und `/register` liegen **außerhalb** von `AppShell` und
+  `CatalogProvider` (hinter `RedirectIfSignedIn`); alle anderen Routen inkl. 404 hängen an
+  `RequireAuth` (`src/components/shell/RequireAuth.tsx`), der ohne Sitzung synchron mit
+  `replace` auf `/login?next=<pfad+query+hash>` umleitet und `CatalogProvider` mit
+  `key={userId}` rendert. `next` nur app-intern (`src/lib/safeNext.ts`). Nach dem
+  Anmelden leitet `RedirectIfSignedIn` weiter, nicht die Seite. Im Mock-Modus ist immer
+  jemand angemeldet: nichts geschützt, `/login` → `/recipes`.
+- Sitzungsende (#143): Wie die Sitzung in diesem Tab endete, steht in
+  `foodly.auth.sessionEnd()`. Abmelden hier → `/login` ohne `next`; Ablauf (`expired`) →
+  `/login?next=…` mit Router-State `{ expired, email }` für Hinweis und Vorausfüllen; Abmelden in
+  einem anderen Tab → `/login?next=…` ohne Hinweis.
 
 ## 6. UI & Styling
 
@@ -110,6 +133,21 @@ Farbe, Rollen `dot/soft/ink/line` pro Theme aus `src/lib/categoryColor.ts`.
 Einzige Inline-Ausnahme: der eine Helper setzt `--cat-*`-Custom-Properties am
 Element, Komponenten nutzen nur `bg-cat-dot`, `bg-cat-soft`, `text-cat-ink`, `border-cat-line`.
 
+Maschinell geprüft (`npm run lint`, `eslint.config.js`, alle Regeln `error`,
+Altlasten in `eslint-suppressions.json`):
+
+| Regel | setzt durch |
+|---|---|
+| `react/forbid-elements` (`button`, `input`, `select`, `textarea`, `dialog`) | Controls nur aus `@postxl/ui-components` |
+| `react/forbid-dom-props` (`style`, `title`) | Tailwind statt Inline-Style; postxl `Tooltip` statt `title=""` (der `--cat-*`-Helper wird gespreizt und fällt nicht darunter) |
+| `no-restricted-syntax` gegen `as Error` | Fehlertexte nicht per Cast lesen |
+| `@typescript-eslint/no-floating-promises`, `no-misused-promises` | Promises behandeln (§4), keine async-Handler, deren Fehler verloren gehen |
+| `react-hooks/rules-of-hooks`, `exhaustive-deps` | Hook-Regeln |
+| `import-x/no-extraneous-dependencies` | jeder Import steht in `package.json`, devDependencies nur in Tests/Configs |
+
+Tests (`*.test.ts(x)`, `src/test/`) dürfen rohe Elemente und `style` nutzen.
+Begründete Einzelausnahme: `eslint-disable-next-line <regel> -- <grund>`.
+
 ## 7. Tests
 
 - Vitest + Testing Library, jsdom (`vite.config.ts`, Stubs in `src/test/setup.ts`).
@@ -119,8 +157,12 @@ Element, Komponenten nutzen nur `bg-cat-dot`, `bg-cat-soft`, `text-cat-ink`, `bo
   (Vorbild `src/pages/RecipeDetail.clone.test.tsx`, `RecipeEditor.test.tsx`).
 - REST-Client-Tests mocken `fetch` (`src/api/rest.test.ts`).
 - Visuelle Prüfung über Chrome MCP, nie Playwright ins Projekt.
-- Vor PR: `npm test`, `npm run build`, `npm run format`.
+- Vor PR: die fünf lokalen Checks aus `CLAUDE.md` (inkl. `npm run lint`).
 
 ## 8. Offene Architekturpunkte
 
-- Auth/Token-Handling fehlt (statischer `dev-token` in `rest.ts`), wartet auf B7.
+- Auth/Token-Handling: Backend fertig (B7, PR #20); FE baut es in #141–#143
+  (Spec `superpowers/specs/2026-11-08-auth-login-design.md`). Sitzung und
+  Token-Refresh liegen seit #141 in `src/api/auth.ts`; Anmelden, Registrieren und
+  Routen-Schutz seit #142 (§5), Abmelden im Profil-Menü und Hinweis bei
+  abgelaufener Sitzung seit #143.

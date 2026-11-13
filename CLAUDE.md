@@ -37,8 +37,8 @@ the Dispatcher, hands issues to worker agents and relays merge requests):
   GitHub-hosted CI to this repo (owner decision, see
   [`docs/decisions/0004-no-github-actions.md`](docs/decisions/0004-no-github-actions.md)).
   Checks run locally instead: `npm ci`, `npm run build`,
-  `npm test -- --passWithNoTests`, `npm run format:check`. A PR is only
-  "ready" once all four pass locally and the PR description says so.
+  `npm test -- --passWithNoTests`, `npm run format:check`, `npm run lint`. A PR
+  is only "ready" once all five pass locally and the PR description says so.
 
 ## Visual checks
 
@@ -65,8 +65,17 @@ There's no server code and no secrets in the repo.
   - `index.ts` — the typed API surface (`foodly.*`). Each method except
     `listUsers` has a REST and a mock branch, chosen by the build-time
     `VITE_MOCK`.
-  - `rest.ts` — REST transport (`fetch`): base URL, static dev bearer token,
-    error contract (throws `Error(message)`), `collectPages` for cursor pages.
+  - `rest.ts` — REST transport (`fetch`): base URL, bearer from the session
+    (`auth.ts`) with one refresh + one retry on 401 (none for `/auth/*`), error
+    contract (throws `Error(message)`; `ApiError` from `http.ts` for sign-in/up),
+    `collectPages` for cursor pages.
+  - `auth.ts` — the session: the only code that reads/writes the tokens
+    (`localStorage["foodly.auth"]`) and sends `/auth/*`. `getAccessToken`
+    refreshes 30 s before `exp`; at most one refresh at a time, across tabs via
+    `navigator.locks` (the backend rotates refresh tokens and rate-limits
+    refresh). `subscribe` reports changes and `signed-out` (`expired` |
+    `signed-out`), also from other tabs. Components use `foodly.auth.*`; in
+    mock mode it is always signed in as user 1.
   - `protocol.ts` — wire types, 1:1 with the backend. `adapters.ts` — shape
     fixes at the API boundary (e.g. `previewToRecipe`). `views.ts` — derived
     values as pure functions. `assets.ts` — image/icon URLs; tag icons load as cached blobs
@@ -82,15 +91,17 @@ There's no server code and no secrets in the repo.
 - `src/catalog/` — `CatalogProvider` (tags, users, ingredients as `byId`
   maps, plus `me` and the user's categories). `src/list/` — recipe-list state (filters, sort, search, URL,
   persistence). `src/editor/` — recipe-editor draft + autosave. `src/timers/` —
-  global cooking timers.
+  cooking timers per user. `src/home/` — recently viewed recipes per user (start page).
 - `src/hooks/` — `useRequest` (run a request, track loading/ready/error),
   `useRecipeSearch` (cursor-paginated recipe search, infinite scroll),
   `useWakeLock`. `useSocketStatus` belongs to the future live editing: `ConnectionDot`
   (not rendered in the shell today) shows connected whenever the mock responder
   is installed (it sets the socket to open) and does **not** reflect REST/backend health.
-- `src/components/` — shared UI, plus `editor/`, `list/`, `recipe/`, `shell/`
+- `src/components/` — shared UI, plus `editor/`, `home/`, `list/`, `recipe/`, `shell/`
   (app shell and navigation);
-  `src/pages/` — `RecipeList`, `RecipeDetail`, `RecipeEditor`, `NotFound`.
+  `src/pages/` — `Home`, `RecipeList`, `RecipeDetail`, `RecipeEditor`, `NotFound`,
+  `Login`, `Register` (outside the shell; every other route sits behind
+  `RequireAuth`, see `docs/architecture.md` §5).
 - `src/styles/theme.css` holds the design-token VALUES (direction "Ruhig":
   greyscale chrome, colour only from categories — rules in
   [`docs/design.md`](docs/design.md)). `src/styles/styles.css` holds the Tailwind v4
@@ -106,9 +117,9 @@ In short:
   `WebSocket` in components, hooks or pages.
 - Transport is **REST** via `src/api/rest.ts`. Base URL from
   `import.meta.env.VITE_API_URL` (default `/api/v1`); in dev the Vite proxy
-  forwards `/api` to `http://localhost:8080` (same-origin, because the
-  backend's CORS `Allow-Headers: *` doesn't cover `Authorization`). **Never
-  hardcode URLs** — they come from env only.
+  forwards `/api` to `http://localhost:8080` (same-origin; a cross-origin
+  `VITE_API_URL` needs the app's origin in the backend's
+  `CORS_ALLOWED_ORIGINS`). **Never hardcode URLs** — they come from env only.
 - `VITE_MOCK=1` serves **everything** from `src/mocks`.
 - Every `foodly.*` method has a mock branch; all except `listUsers` also have a
   REST branch (`USE_MOCKS ? socket.request(...) : rest.*`). `listUsers` is
@@ -118,10 +129,11 @@ In short:
 - Missing backend endpoint in REST mode (Alpha): stub it inside `src/api`
   (localStorage, `src/api/stubs.ts`, "Demo" hint in the UI) — see
   [`docs/decisions/0003-backend-gap-stubs.md`](docs/decisions/0003-backend-gap-stubs.md).
-- Errors: the transport throws `Error(message)`; handle it via the hooks
-  (`useRequest` / `useRecipeSearch` surface it as an error state;
-  in `useRecipeSearch` only for the first page — a failed `loadMore` stops
-  paging).
+- Errors: the transport throws `Error(message)` (sign-in and sign-up throw
+  `ApiError` with `status` and `code`, for the sign-in pages); handle it via
+  the hooks (`useRequest` / `useRecipeSearch` surface it as an error state;
+  in `useRecipeSearch` `error` is the first page; a failed `loadMore` keeps
+  the cursor, sets `loadMoreError` and pauses paging until `retryLoadMore`).
 - `socket.ts` is reserved for future live editing — don't build features on it.
 
 ## Commands
@@ -135,6 +147,7 @@ npm test             # vitest run (jsdom, src/test/setup.ts)
 npm run test:watch   # vitest in watch mode
 npm run format       # prettier --write . (Skaile config: prettier.config.cjs)
 npm run format:check # prettier --check . (no writes)
+npm run lint         # eslint . (exit 0 required; legacy violations sit in eslint-suppressions.json)
 ```
 
 ### Environment
@@ -187,6 +200,17 @@ nothing is fine.
 - `docs/superpowers/specs/` and `docs/superpowers/plans/` — design specs and
   implementation plans per feature (`YYYY-MM-DD-<slug>-design.md` /
   `YYYY-MM-DD-<slug>.md`).
+
+## Linting
+
+ESLint 9 (`eslint.config.js`) checks promise and hook bugs and the conventions
+that tooling can see (which rule enforces what: `docs/architecture.md` §6). All
+rules are `error`. Existing violations are counted in `eslint-suppressions.json`
+(bulk suppressions) — **never add to it** (`--suppress-all` / `--suppress-rule`
+are for the maintainer only). When you fix suppressed violations, run
+`npx eslint . --prune-suppressions` and commit the smaller file. A justified
+one-off exception is an `eslint-disable-next-line <rule> -- <reason>` comment on
+that line, never a folder-wide override.
 
 ## Comments
 

@@ -3,13 +3,15 @@
 // below it and a 64 px icon rail (docs/design/redesign §1.6).
 import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
-import { PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react'
+import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
+import { PanelLeftClose, PanelLeftOpen, Plus, Settings } from 'lucide-react'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { categoryColorVars } from '../../lib/categoryColor'
-import { SHELL_NAV_STATE, currentFor, visibleDestinations } from './nav'
+import { SHELL_NAV_STATE, NAV_DESTINATIONS, categoryPageHref, currentFor, isCategoryPage } from './nav'
 import { navItemClass } from './navItem'
 import { ProfileMenu } from './ProfileMenu'
+import { TriggerButton } from '../TriggerButton'
+import { FOCUS_RING } from '../focusRing'
 import { useNavState } from './useNavState'
 
 const COLLAPSED_KEY = 'foodly:sidebar-collapsed'
@@ -55,12 +57,14 @@ export function Sidebar({
   onCollapsedChange: (next: boolean) => void
   widthClass: string
 }) {
-  const { pathname, activeCategory, hrefFor, categoryHref } = useNavState()
+  const { pathname, activeCategory, hrefFor } = useNavState()
   const categories = useCategories()
   const ordered = [...categories.list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   // Only a category entry that is actually listed can take over the highlight (not ?cat=999, nor while
   // the categories are loading or failed).
   const highlightedCategory = ordered.some((c) => c.id === activeCategory) ? activeCategory : null
+  // Category entries lead to the category's page; the list filtered to one is a view of it, not that page.
+  const onCategoryPage = isCategoryPage(pathname)
   const toggleLabel = collapsed ? 'Seitenleiste ausklappen' : 'Seitenleiste einklappen'
   const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose
 
@@ -76,26 +80,23 @@ export function Sidebar({
         {!collapsed && (
           <Link
             to="/"
-            className="-ml-1 rounded-md px-1 font-display text-xl focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-hidden"
+            className={cn('-ml-1 rounded-md px-1 font-display text-xl focus-visible:ring-sidebar-ring', FOCUS_RING)}
           >
             Foodly
           </Link>
         )}
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="inline-flex">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={toggleLabel}
-                aria-expanded={!collapsed}
-                onClick={() => onCollapsedChange(!collapsed)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ToggleIcon className="size-4" />
-              </Button>
-            </span>
+            <TriggerButton
+              variant="ghost"
+              size="icon"
+              aria-label={toggleLabel}
+              aria-expanded={!collapsed}
+              onClick={() => onCollapsedChange(!collapsed)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ToggleIcon className="size-4" />
+            </TriggerButton>
           </TooltipTrigger>
           <TooltipContent side="right">{toggleLabel}</TooltipContent>
         </Tooltip>
@@ -111,10 +112,11 @@ export function Sidebar({
       </WithTip>
 
       <nav aria-label="Hauptnavigation" className="flex flex-col gap-0.5">
-        {visibleDestinations().map(({ label, path, icon: Icon }) => {
+        {NAV_DESTINATIONS.map(({ label, path, icon: Icon }) => {
           // Highlighted on its sub-pages too (a recipe belongs to "Rezepte"), but "page" only on itself.
           // NavLink's own active check ignores the query, so it can't tell "all recipes" from one category:
-          // while a single category is shown, that category is the current entry, not "Rezepte".
+          // while a single category is shown (its page, or the list filtered to it), that category is the current
+          // entry, not "Rezepte".
           const yieldsToCategory = path === '/recipes' && highlightedCategory !== null
           return (
             <WithTip key={path} collapsed={collapsed} label={label}>
@@ -137,7 +139,28 @@ export function Sidebar({
       {categories.status !== 'error' && (categories.status === 'loading' || ordered.length > 0) && (
         // Own scroll area, so a long category list never pushes the profile row off the screen.
         <nav aria-label="Kategorien" className="mt-4 flex min-h-0 flex-col gap-0.5 overflow-y-auto">
-          {!collapsed && <h2 className="px-2.5 pb-1.5 text-xs font-semibold text-muted-foreground">Kategorien</h2>}
+          {!collapsed && (
+            <div className="flex items-center justify-between pb-1.5 pl-2.5">
+              <h2 className="text-xs font-semibold text-muted-foreground">Kategorien</h2>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {/* A Link styled via buttonVariants, not <Button asChild>: the postxl Button would drop the
+                      tooltip's ref. */}
+                  <Link
+                    to="/categories"
+                    aria-label="Kategorien verwalten"
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'icon' }),
+                      'size-7 text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <Settings aria-hidden className="size-3.5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">Kategorien verwalten</TooltipContent>
+              </Tooltip>
+            </div>
+          )}
           {categories.status === 'loading'
             ? [0, 1, 2].map((i) => (
                 <Skeleton key={i} data-testid="category-skeleton" className="h-9 w-full rounded-md" />
@@ -148,10 +171,10 @@ export function Sidebar({
                 return (
                   <WithTip key={c.id} collapsed={collapsed} label={`${c.name} (${count})`}>
                     <Link
-                      to={categoryHref(c.id)}
+                      to={categoryPageHref(c.id)}
                       state={SHELL_NAV_STATE}
                       aria-label={collapsed ? `${c.name} (${count})` : undefined}
-                      aria-current={active ? 'page' : undefined}
+                      aria-current={active ? (onCategoryPage ? 'page' : 'location') : undefined}
                       className={navItemClass(active, collapsed)}
                     >
                       <span

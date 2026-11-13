@@ -1,18 +1,12 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeRow } from './RecipeRow'
-import type { StubFeature } from '../../api/stubs'
-import type { Recipe, UserCategory } from '../../api/protocol'
+import type { Recipe, Tag, UserCategory } from '../../api/protocol'
+import { ref } from '../../test/images'
 
-// Only the images stub is toggled, so the real showsRecipeImages/recipeImageSrc decide what renders.
-const imageStub = vi.hoisted(() => ({ stubbed: true }))
-vi.mock('../../api/stubs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../api/stubs')>()
-  return { ...actual, isStubbed: (f: StubFeature) => (f === 'images' ? imageStub.stubbed : actual.isStubbed(f)) }
-})
-
-vi.mock('../../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1, useTags: () => ({ byId: {} }) }))
+const tags = vi.hoisted(() => ({ byId: {} as Record<string, Tag> }))
+vi.mock('../../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1, useTags: () => tags }))
 
 const base: Recipe = {
   id: 1,
@@ -75,32 +69,29 @@ it('collaborative recipe shows the average with a decimal comma', () => {
 
 describe('detailed thumbnail', () => {
   it('without showImages there is no image cell at all', () => {
-    imageStub.stubbed = false
-    const { container } = renderRow({ ...base, mainImage: 3 })
+    const { container } = renderRow({ ...base, mainImage: ref(3) })
     expect(screen.queryByTestId('recipe-thumb')).toBeNull()
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('.lucide-utensils-crossed')).toBeNull()
   })
 
-  it('mock: a recipe with a main image shows it in a 48 px cell', () => {
-    imageStub.stubbed = false
-    const { container } = renderRow({ ...base, mainImage: 3 }, { showImages: true })
+  it('REST: a recipe with a main image shows it from the backend in a 48 px cell', () => {
+    const { container } = renderRow({ ...base, mainImage: { id: 3, hash: 'ab12', name: null } }, { showImages: true })
     expect(screen.getByTestId('recipe-thumb').className).toMatch(/\bh-12 w-12\b/)
-    expect(container.querySelector('img')?.getAttribute('src')).toMatch(/\/recipes\/3\.svg$/)
+    expect(container.querySelector('img')?.getAttribute('src')).toBe('/api/v1/images/ab12')
     expect(container.querySelector('.lucide-utensils-crossed')).toBeNull()
   })
 
-  it('a recipe without a photo gets the grey placeholder', () => {
-    imageStub.stubbed = false
-    const { container } = renderRow(base, { showImages: true })
-    expect(screen.getByTestId('recipe-thumb').className).toContain('bg-muted')
+  it('a photo that fails to load looks like no photo', () => {
+    const { container } = renderRow({ ...base, mainImage: ref(3) }, { showImages: true })
+    fireEvent.error(container.querySelector('img')!)
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('.lucide-utensils-crossed')).toBeTruthy()
   })
 
-  it('REST: a main image still falls back to the placeholder', () => {
-    imageStub.stubbed = true
-    const { container } = renderRow({ ...base, mainImage: 3 }, { showImages: true })
+  it('a recipe without a photo gets the grey placeholder', () => {
+    const { container } = renderRow(base, { showImages: true })
+    expect(screen.getByTestId('recipe-thumb').className).toContain('bg-muted')
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('.lucide-utensils-crossed')).toBeTruthy()
   })
@@ -131,5 +122,24 @@ describe('category dots and tags', () => {
   it('no tags → no empty tag wrapper', () => {
     const { container } = renderRow(base, { compact: true })
     expect(container.querySelector('.phone\\:hidden')).toBeNull()
+  })
+})
+
+describe('RecipeRow · compact name tooltip', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    tags.byId = {}
+  })
+
+  it('shows tag names without braces when the name is truncated', async () => {
+    tags.byId = { Vegan: { id: 'Vegan', svg: null } }
+    // jsdom has no layout: fake an overflowing name so the tooltip attaches.
+    vi.spyOn(Element.prototype, 'scrollWidth', 'get').mockReturnValue(300)
+    vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(100)
+    renderRow({ ...base, name: 'Spaghetti {Vegan} Bolognese' }, { compact: true })
+
+    fireEvent.focus(screen.getByText('Spaghetti Vegan Bolognese'))
+    const tooltip = await screen.findByRole('tooltip')
+    expect(tooltip.textContent).toBe('Spaghetti Vegan Bolognese')
   })
 })

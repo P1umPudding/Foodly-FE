@@ -1,7 +1,6 @@
 // Per-row derived data for the recipe list: which category dots a row shows and
 // whether the detailed view needs an image column at all.
 
-import { showsRecipeImages } from '../api/assets'
 import type { Recipe, UserCategory, UserCategoryId } from '../api/protocol'
 
 // `exceptId` drops the category whose group the row sits in — the group line already says it.
@@ -16,7 +15,7 @@ export function recipeCategories(
 }
 
 // The page passes every loaded recipe, not just the visible ones, so the column doesn't
-// flicker while filtering. In REST (B1) no photo is displayable yet.
+// flicker while filtering.
 export function hasDisplayableImages(recipes: Recipe[]): boolean {
-  return showsRecipeImages() && recipes.some((r) => r.mainImage !== null)
+  return recipes.some((r) => r.mainImage !== null)
 }
