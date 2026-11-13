@@ -69,6 +69,7 @@ export function SectionBlock({
         )}
 
         {section.steps.length > 0 && (
+          // Stays in the steps column without ingredients, so steps line up across sections.
           <div className="lg:col-start-2">
             <ColumnTitle level={columnLevel}>Zubereitung</ColumnTitle>
             {/* role: Safari drops list semantics from a list-style: none list. */}

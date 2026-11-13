@@ -62,7 +62,7 @@ describe('IngredientLine — extra text', () => {
     expect(cell.className).not.toContain('text-muted-foreground')
   })
 
-  it.each([null, ''])('shows only the name for a linked ingredient without extra text (%j)', (text) => {
+  it.each([null, '', '  '])('shows only the name for a linked ingredient without extra text (%j)', (text) => {
     renderWith({ ingredient: { id: 5, name: 'Salz' }, text })
     expect(screen.getByText('Salz').querySelector('.text-muted-foreground')).toBeNull()
   })

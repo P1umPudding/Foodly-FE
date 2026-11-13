@@ -73,7 +73,7 @@ describe('SectionBlock', () => {
     const [first, second] = screen.getAllByRole('listitem')
     expect(within(first).getByText('3')).toBeTruthy()
     expect(within(second).getByText('4')).toBeTruthy()
-    expect(screen.queryByText('1')).toBeNull()
+    expect(first.textContent).toBe('3Mehl sieben')
 
     fireEvent.click(screen.getByRole('button', { name: 'Timer starten: 10 Minuten' }))
     expect(screen.getByTestId('timers').textContent).toBe('Gulasch · Schritt 4')
