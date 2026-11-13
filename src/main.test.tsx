@@ -19,7 +19,8 @@ it('logs a failed bootstrap and still renders the app', async () => {
   root.id = 'root'
   document.body.append(root)
 
-  // Render follows bootstrap a few microtasks after the import; a macrotask drains them inside act.
+  // Render runs in a promise continuation after bootstrap rejects, so after the import resolves;
+  // a macrotask drains it inside act.
   await act(async () => {
     await import('./main')
     await new Promise((resolve) => setTimeout(resolve, 0))
