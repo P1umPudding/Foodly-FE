@@ -73,7 +73,8 @@ export function TimerRow({ timer }: { timer: Timer }) {
             timer.status === 'expired'
               ? 'text-destructive'
               : paused
-                ? 'text-subtle-foreground'
+                ? // Mockup has --fg-subtle here; subtle-foreground misses AA for 20 px/600 (docs/design.md §2).
+                  'text-muted-foreground'
                 : named
                   ? 'text-foreground'
                   : 'text-foreground/70',

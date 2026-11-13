@@ -65,7 +65,7 @@ describe('TimerRow — mockup row', () => {
 
   it('renders a paused timer subtly', () => {
     renderRow({ ...timer, status: 'paused' })
-    expect(screen.getByText('00:30').classList.contains('text-subtle-foreground')).toBe(true)
+    expect(screen.getByText('00:30').classList.contains('text-muted-foreground')).toBe(true)
     expect(screen.getByRole('progressbar').className).toContain('[&::-webkit-progress-value]:bg-subtle-foreground')
   })
 

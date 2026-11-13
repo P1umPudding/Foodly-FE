@@ -38,7 +38,7 @@ export function TimerForm() {
 
   return (
     <form onSubmit={start} aria-labelledby={headingId} noValidate>
-      <div id={headingId} className="mb-2 text-xs font-semibold text-subtle-foreground">
+      <div id={headingId} className="mb-2 text-xs font-semibold text-muted-foreground">
         Neuer Timer
       </div>
       <Input
@@ -46,6 +46,7 @@ export function TimerForm() {
         onChange={(e) => setLabel(e.target.value)}
         placeholder="Name (optional)"
         aria-label="Timer-Name"
+        autoComplete="off"
         className="mb-2 phone:h-10 touch:h-10"
       />
 

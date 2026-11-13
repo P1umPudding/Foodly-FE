@@ -70,7 +70,7 @@ export function TimerPanel() {
       <div className="mt-[18px]">
         <TimerForm />
       </div>
-      <p className="mt-2.5 text-xs text-subtle-foreground">
+      <p className="mt-2.5 text-xs text-muted-foreground">
         Timer laufen weiter, wenn du die Seite wechselst. Zeitangaben in Rezeptschritten starten direkt einen Timer.
       </p>
     </>
