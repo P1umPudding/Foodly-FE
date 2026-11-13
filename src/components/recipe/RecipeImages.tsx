@@ -81,10 +81,11 @@ export function RecipeImages({ images, onOpen }: { images: ImageRef[]; onOpen: (
                 fallbackClassName="h-full w-full"
               />
               {isMore && (
-                // Same dark scrim in light and dark mode, like the lightbox, so raw black/white rather than tokens.
+                // Same dark scrim in light and dark mode, like the lightbox, so raw black/white rather than tokens. 20 px is a
+                // mockup exception to the type scale (docs/design.md §5).
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 grid place-items-center bg-black/50 text-lg font-semibold tabular-nums text-white"
+                  className="absolute inset-0 grid place-items-center bg-black/50 text-[20px] font-semibold tabular-nums text-white"
                 >
                   +{more}
                 </span>

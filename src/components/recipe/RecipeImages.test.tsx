@@ -33,7 +33,9 @@ describe('RecipeImages gallery', () => {
     expect(screen.getAllByRole('button')).toHaveLength(4)
 
     const more = screen.getByRole('button', { name: 'Alle 6 Fotos ansehen' })
-    expect(within(more).getByText('+3').getAttribute('aria-hidden')).toBe('true')
+    const overlay = within(more).getByText('+3')
+    expect(overlay.getAttribute('aria-hidden')).toBe('true')
+    expect(classesOf(overlay)).toContain('text-[20px]')
     fireEvent.click(more)
     expect(onOpen).toHaveBeenLastCalledWith(3)
 
