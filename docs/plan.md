@@ -75,6 +75,10 @@ die Kategorie-Seite aus Redesign Schritt 4. Danach Phase 5 (Dashboard).
 sofort, D2 nach #183, D4 nach D1; U1, U2, D3 nach dem Merge von Backend #22 (U1 direkt danach). „Kürzlich mit dir
 geteilt“ kommt mit Teilen (#12).
 
+**Stand 2026-11-13:** Backend-PR #22 gemergt, #192/#193/#196 entsperrt (#192 zuerst, #196 nach #192). D1, D2, D4
+gemergt. Neue Reihenfolge (Daniel): **Redesign Schritt 6** (Detail + Koch-Modus, R1–R5, kein Backend-Block) →
+**Phase 6 Mobile** → **Teilen erst mit Backend #12** (kein Demo-Stub vorab). Gruppen warten auf Backend #13.
+
 Details je Phase in `phases/`.
 
 ---
@@ -148,7 +152,7 @@ Die Detailansicht fürs tatsächliche Kochen schärfen — alles in-place auf
   Reload.
 
 **Bewusst draußen:** Schritt-für-Schritt-Durchlauf (flaches `string[]`, kein
-Mehrwert) und rezept-voreingestellte Timer (Schema-Frage — siehe „Daten-/
+Mehrwert; **überholt:** kommt mit Redesign Schritt 6 als Vollbild-Koch-Modus, Daniel 2026-11-13) und rezept-voreingestellte Timer (Schema-Frage — siehe „Daten-/
 Protokoll-Fragen").
 
 → Volle Spezifikation: `phases/phase-3-koch-modus.md`
@@ -181,7 +185,9 @@ Freigegeben von Kolja am 2026-10-29. Reihenfolge:
    `docs/superpowers/specs/2026-11-05-recipe-list-redesign-design.md`, 7 Issues #103–#109
    (Label `redesign`), läuft. Kategorie-Seite gehört zu „Kategorien verwalten“ (K6, 2026-11-12).
 5. Start/Dashboard = Phase 5 (ohne B4–B6-Blöcke), Breakdown offen.
-6. Detail, dann Koch-Modus.
+6. Detail, dann Koch-Modus: geschnitten (Daniel, 2026-11-13), Spec
+   `docs/superpowers/specs/2026-11-13-detail-cook-redesign-design.md`, Issues R1–R5 in
+   `docs/superpowers/plans/2026-11-13-detail-cook-redesign.md`.
 
 Parallel nach Token und Shell: ✅ Timer-Knopf + Zeit-Chips **#29** (PR #48),
 ✅ Editor-Zusatz-Spalte **#28** (PR #44). Trefferzahlen im Filter erst mit Backend #17 (B16).
