@@ -54,6 +54,13 @@ export default tseslint.config(
           selector: "TSAsExpression[typeAnnotation.typeName.name='Error']",
           message: '`as Error` hides non-Error throws; read the message through a shared helper instead.',
         },
+        {
+          // Whatever an expression-bodied effect callback evaluates to goes to React as its cleanup (#211).
+          selector:
+            "CallExpression[callee.name=/^use(Layout|Insertion)?Effect$/] > ArrowFunctionExpression[body.type!='BlockStatement']",
+          message:
+            'An expression-bodied effect callback hands its value to React as the cleanup; use a block body (and an explicit `return` for a real cleanup).',
+        },
       ],
     },
   },
