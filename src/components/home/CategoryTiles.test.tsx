@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CategoryTiles } from './CategoryTiles'
@@ -47,12 +47,14 @@ describe('CategoryTiles', () => {
       category(5, 'Schnelle Küche', 1, []),
     ]
     renderTiles()
-    const links = screen.getAllByRole('link').filter((l) => l.textContent !== 'Verwalten')
+    const links = within(screen.getByRole('list')).getAllByRole('link')
     expect(links.map((l) => l.getAttribute('href'))).toEqual(['/categories/3', '/categories/5', '/categories/7'])
     screen.getByRole('link', { name: 'Favoriten, 1 Rezept' })
     screen.getByRole('link', { name: 'Schnelle Küche, 0 Rezepte' })
     const backen = screen.getByRole('link', { name: 'Backen, 3 Rezepte' })
+    // Tinted only through categoryColorVars.
     expect(backen.hasAttribute('data-cat')).toBe(true)
+    expect(backen.getAttribute('style')).toContain('--cat-soft-l')
     expect(screen.queryByText(nothingToShow)).toBeNull()
   })
 

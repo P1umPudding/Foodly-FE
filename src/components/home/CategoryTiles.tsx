@@ -14,7 +14,7 @@ const recipeCount = (n: number) => `${n} ${n === 1 ? 'Rezept' : 'Rezepte'}`
 
 export function CategoryTiles() {
   const categories = useCategories()
-  const ordered = [...categories.list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  const ordered = [...categories.list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.id - b.id)
   const state: SectionState =
     categories.status === 'ready' ? (ordered.length > 0 ? 'ready' : 'empty') : categories.status
 
@@ -28,7 +28,7 @@ export function CategoryTiles() {
       skeleton={
         <div className={GRID}>
           {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} data-testid="category-tile-skeleton" className="h-14 rounded-lg" />
+            <Skeleton key={i} data-testid="category-tile-skeleton" className="h-13 rounded-lg phone:h-11" />
           ))}
         </div>
       }
@@ -39,11 +39,12 @@ export function CategoryTiles() {
             <Link
               to={categoryPageHref(c.id)}
               {...categoryColorVars(c)}
-              className="flex min-w-0 items-center gap-3 rounded-lg border border-cat-line bg-cat-soft p-3 text-cat-ink transition-colors outline-none hover:border-cat-dot focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              className="flex h-13 min-w-0 items-center gap-2.5 rounded-lg border border-cat-line bg-cat-soft px-3 font-semibold text-cat-ink phone:h-11 transition-colors outline-none hover:border-cat-dot focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
-              <CategoryMark category={c} size="md" />
-              <span className="min-w-0 flex-1 truncate font-medium">{c.name}</span>
-              <span aria-hidden className="shrink-0 text-sm tabular-nums">
+              {/* On the tinted tile the mark's own soft fill would vanish: it sits on the page surface instead. */}
+              <CategoryMark category={c} size="md" className="bg-background" />
+              <span className="min-w-0 flex-1 truncate">{c.name}</span>
+              <span aria-hidden className="shrink-0 text-sm font-medium tabular-nums">
                 {c.recipes.length}
               </span>
               <span className="sr-only">, {recipeCount(c.recipes.length)}</span>
