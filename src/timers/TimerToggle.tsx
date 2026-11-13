@@ -6,7 +6,7 @@ import { TriggerButton } from '../components/TriggerButton'
 import { useTimers } from './TimerProvider'
 import { formatRemaining } from './format'
 
-// Shell-header trigger: opens the timer panel, shows the next-to-expire countdown when a
+// Shell-header trigger: opens the timer panel, shows the next-to-expire countdown in a pill while a
 // timer runs, and turns alarm-coloured while any timer is alarming.
 export const TimerToggle = forwardRef<HTMLButtonElement, ComponentPropsWithoutRef<'button'>>(function TimerToggle(
   { className, ...props },
@@ -30,12 +30,21 @@ export const TimerToggle = forwardRef<HTMLButtonElement, ComponentPropsWithoutRe
             'gap-1.5 rounded-md',
             // 40 px tap target on phones, same height with and without the countdown so the header doesn't jump.
             running ? 'phone:h-10' : 'phone:size-10',
-            alarming ? 'text-destructive hover:text-destructive' : 'text-muted-foreground hover:text-foreground',
+            running && 'text-sm font-semibold',
+            alarming
+              ? 'text-destructive hover:text-destructive'
+              : running
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
             className,
           )}
         >
           <Icon className="size-4" />
-          {running && <span className="tabular-nums">{formatRemaining(nextRemainingMs)}</span>}
+          {running && (
+            <span className="rounded-sm bg-muted px-1.5 py-px tabular-nums phone:px-[5px]">
+              {formatRemaining(nextRemainingMs)}
+            </span>
+          )}
         </TriggerButton>
       </TooltipTrigger>
       <TooltipContent>Timer</TooltipContent>

@@ -37,6 +37,22 @@ describe('TimerToggle — tap target', () => {
   })
 })
 
+describe('TimerToggle — countdown pill', () => {
+  it('shows the shortest remaining time in a pill while a timer runs', () => {
+    const button = renderToggle(1_122_000)
+    const pill = button.querySelector('span')
+    expect(pill?.textContent).toBe('18:42')
+    expect(pill?.classList.contains('bg-muted')).toBe(true)
+    expect(pill?.classList.contains('rounded-sm')).toBe(true)
+  })
+
+  it('shows no pill while no timer runs', () => {
+    const button = renderToggle(null)
+    expect(button.querySelector('span')).toBeNull()
+    expect(button.textContent).toBe('')
+  })
+})
+
 describe('TimerToggle — focus ring (#64)', () => {
   // jsdom applies no CSS: assert the postxl Button's ring survives the className merge. It is gated by
   // `focus-visible:` only, so a mouse click shows no ring.
