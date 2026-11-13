@@ -40,3 +40,35 @@ describe('IngredientLine — "nicht skaliert" hint', () => {
     expect(screen.queryByText('nicht skaliert')).toBeNull()
   })
 })
+
+describe('IngredientLine — extra text', () => {
+  function renderWith(over: Partial<RecipeIngredient>) {
+    const line = { id: 1, ingredient: null, text: null, amount: null, amountPrefix: null, unit: null, ...over }
+    render(
+      <table>
+        <tbody>
+          <IngredientLine line={line as RecipeIngredient} />
+        </tbody>
+      </table>,
+    )
+  }
+
+  it('mutes the extra text after a linked ingredient, not the name', () => {
+    renderWith({ ingredient: { id: 5, name: 'Salz' }, text: 'nach Geschmack' })
+    const extra = screen.getByText('nach Geschmack')
+    expect(extra.className).toContain('text-muted-foreground')
+    const cell = extra.closest('td')!
+    expect(cell.textContent).toBe('Salz nach Geschmack')
+    expect(cell.className).not.toContain('text-muted-foreground')
+  })
+
+  it.each([null, ''])('shows only the name for a linked ingredient without extra text (%j)', (text) => {
+    renderWith({ ingredient: { id: 5, name: 'Salz' }, text })
+    expect(screen.getByText('Salz').querySelector('.text-muted-foreground')).toBeNull()
+  })
+
+  it('keeps free text in the normal colour', () => {
+    renderWith({ text: 'Saft einer halben Zitrone' })
+    expect(screen.getByText('Saft einer halben Zitrone').closest('.text-muted-foreground')).toBeNull()
+  })
+})
