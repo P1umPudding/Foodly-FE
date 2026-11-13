@@ -211,6 +211,7 @@ describe('useRecipeSearch', () => {
     expect(result.current.loadingMore).toBe(false)
     expect(result.current.hasMore).toBe(false)
   })
+
   it('starts one request when loadMore is called twice before re-rendering, then pages on', async () => {
     const spy = vi
       .spyOn(foodly, 'searchRecipes')

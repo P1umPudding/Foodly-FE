@@ -58,7 +58,9 @@ function page(n: number, cursor: number | null): PaginatedRecipes {
 
 // jsdom has no layout: the page height follows the rendered recipe rows (100 px each), so the restore measures
 // what is on screen after a page has rendered. jsdom's innerHeight is 768, so page 1 reaches 1000 − 768 = 232.
+// The skeleton below a loading page counts too, tall enough to make any position look reachable.
 const ROW_PX = 100
+const SKELETON_PX = 100_000
 function renderedRows() {
   const hrefs = Array.from(document.querySelectorAll('a[href^="/recipes/"]'), (a) => a.getAttribute('href'))
   return new Set(hrefs).size
@@ -95,7 +97,8 @@ const FAILED = 'Weitere Rezepte konnten nicht geladen werden.'
 beforeEach(() => {
   Object.defineProperty(document.documentElement, 'scrollHeight', {
     configurable: true,
-    get: () => renderedRows() * ROW_PX,
+    get: () =>
+      renderedRows() * ROW_PX + (document.querySelector('[data-testid="list-more-skeleton"]') ? SKELETON_PX : 0),
   })
   vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
 })
