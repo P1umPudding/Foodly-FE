@@ -42,18 +42,29 @@ const delay = (ms = 250) => new Promise((r) => setTimeout(r, ms))
 
 let nextId = 10_000
 
+// The backend's timestamp format. The mock sorts 'accessSince' by comparing strings, which only works when every
+// value has the same shape as the fixtures.
+function nowIso(): string {
+  return new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00')
+}
+
+type Stamps = Pick<Recipe, 'createdAt' | 'updatedAt' | 'myAccessSince'>
+
+function freshStamps(): Stamps {
+  const now = nowIso()
+  return { createdAt: now, updatedAt: now, myAccessSince: now }
+}
+
 // Mirrors the backend's expansion of a CreateRecipe into a Recipe: fresh ids
 // everywhere (the real PUT deletes and re-inserts nested rows, so ids are not
 // stable across an update) and IngredientRefs resolved from the catalog.
-function expand(input: CreateRecipe, id: RecipeId, owner: number): Recipe {
+function expand(input: CreateRecipe, id: RecipeId, owner: number, stamps: Stamps): Recipe {
   return {
     id,
     owner,
     editors: [],
     viewers: [],
-    createdAt: null,
-    updatedAt: null,
-    myAccessSince: null,
+    ...stamps,
     rating: [],
     name: input.name,
     tags: input.tags,
@@ -194,6 +205,7 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
         owner: CURRENT_USER_ID,
         editors: [],
         viewers: [],
+        ...freshStamps(),
       }
       mockData.recipes.push(copy)
       // Carry the clone into every category the original belonged to.
@@ -213,7 +225,7 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
     }
     case 'recipes.create': {
       const { input } = payload as { input: CreateRecipe }
-      const created = expand(input, nextId++, CURRENT_USER_ID)
+      const created = expand(input, nextId++, CURRENT_USER_ID, freshStamps())
       mockData.recipes.push(created)
       return created
     }
@@ -222,7 +234,11 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       const index = mockData.recipes.findIndex((r) => r.id === id)
       if (index === -1) throw new Error(`recipe ${id} not found`)
       const existing = mockData.recipes[index]
-      const updated = expand(input, existing.id, existing.owner)
+      const updated = expand(input, existing.id, existing.owner, {
+        createdAt: existing.createdAt,
+        updatedAt: nowIso(),
+        myAccessSince: existing.myAccessSince,
+      })
       updated.editors = existing.editors
       updated.viewers = existing.viewers
       updated.rating = existing.rating

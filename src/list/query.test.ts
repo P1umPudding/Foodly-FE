@@ -104,3 +104,29 @@ describe('applyQuery time sorts', () => {
     expect(out.map((r) => r.id)).toEqual([2, 1, 3])
   })
 })
+
+describe('applyQuery accessSince sort', () => {
+  // Ids not in time order, so sorting by id alone fails.
+  const shared = [
+    recipe({ id: 4, myAccessSince: '2026-03-01T10:00:00+00:00' }),
+    recipe({ id: 1, myAccessSince: '2026-05-01T10:00:00+00:00' }),
+    recipe({ id: 3 }),
+    recipe({ id: 5, myAccessSince: '2026-04-01T10:00:00+00:00' }),
+    recipe({ id: 2, myAccessSince: '2026-04-01T10:00:00+00:00' }),
+  ]
+
+  it('sorts descending, equal values by id ascending, unknown last', () => {
+    const out = applyQuery(shared, { sort: { field: 'accessSince', order: 'desc' } }, 1)
+    expect(out.map((r) => r.id)).toEqual([1, 2, 5, 4, 3])
+  })
+
+  it('sorts ascending, equal values by id ascending, unknown last', () => {
+    const out = applyQuery(shared, { sort: { field: 'accessSince', order: 'asc' } }, 1)
+    expect(out.map((r) => r.id)).toEqual([4, 2, 5, 1, 3])
+  })
+
+  it('orders recipes without a value by id ascending', () => {
+    const out = applyQuery([recipe({ id: 9 }), recipe({ id: 7 })], { sort: { field: 'accessSince', order: 'desc' } }, 1)
+    expect(out.map((r) => r.id)).toEqual([7, 9])
+  })
+})
