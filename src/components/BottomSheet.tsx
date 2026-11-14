@@ -19,9 +19,10 @@ export function BottomSheet({ title, description, scroll = true, className, chil
       side="bottom"
       {...props}
       // The lib's ✕ (16 px, "Close") can't be configured; it is always the first child, so hide it and
-      // render our own. It keeps its data-test-id ("<id>-close") in the DOM, hidden.
+      // render our own. It keeps its data-test-id ("<id>-close") in the DOM, hidden. pt-0: the grip sits 8 px
+      // below the edge as in the mockup, not below the lib's p-6.
       className={cn(
-        'flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pb-[env(safe-area-inset-bottom)] [&>button:first-child]:hidden',
+        'flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pt-0 pb-[env(safe-area-inset-bottom)] [&>button:first-child]:hidden',
         className,
       )}
     >

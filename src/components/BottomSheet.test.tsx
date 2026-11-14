@@ -55,6 +55,11 @@ describe('BottomSheet', () => {
     expect(title.className.split(' ')).toEqual(expect.arrayContaining(['min-w-0', 'break-words']))
   })
 
+  // The lib's p-6 would push the grip 24 px further down than the mockup's 8 px.
+  it('drops the lib top padding', () => {
+    expect(renderSheet().className.split(' ')).toContain('pt-0')
+  })
+
   it('closes from "Schließen"', () => {
     const onOpenChange = vi.fn()
     const sheet = renderSheet({ onOpenChange })
