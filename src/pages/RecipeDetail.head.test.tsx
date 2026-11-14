@@ -328,7 +328,7 @@ describe('RecipeDetail actions', () => {
     expect(classesOf(screen.getByRole('button', { name: 'Kopie erstellen' }))).toContain('phone:hidden')
     const pencil = screen.getByRole('link', { name: 'Bearbeiten' })
     expect(classesOf(pencil)).toContain('phone:size-10')
-    expect(screen.queryByRole('button', { name: 'Löschen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Weitere Aktionen' })).toBeNull()
   })
 
   it('never says „Duplizieren“', async () => {

@@ -62,8 +62,10 @@ async function renderDetail(r: Recipe) {
   await waitFor(() => screen.getByRole('heading', { name: r.name }))
 }
 
+// Löschen sits behind the ⋯ menu (#228). Radix opens the menu on keyDown, not on click.
 async function openDialog() {
-  fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Weitere Aktionen' }), { key: 'Enter' })
+  fireEvent.click(await screen.findByRole('menuitem', { name: 'Löschen' }))
   return within(await screen.findByRole('alertdialog'))
 }
 
@@ -74,9 +76,18 @@ afterEach(() => {
 })
 
 describe('RecipeDetail delete', () => {
-  it('shows the action to the owner only', async () => {
+  it('shows the action to the owner only, behind ⋯', async () => {
     await renderDetail(recipe({ owner: 1 }))
-    expect(screen.getByRole('button', { name: 'Löschen' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Löschen' })).toBeNull()
+    await openDialog()
+  })
+
+  it('returns focus to ⋯ when the dialog closes', async () => {
+    await renderDetail(recipe())
+    const dialog = await openDialog()
+    fireEvent.click(dialog.getByRole('button', { name: 'Abbrechen' }))
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Weitere Aktionen' })))
   })
 
   it.each([
@@ -84,7 +95,7 @@ describe('RecipeDetail delete', () => {
     ['a viewer', { owner: 2, viewers: [1] }],
   ])('hides the action from %s', async (_, over) => {
     await renderDetail(recipe(over))
-    expect(screen.queryByRole('button', { name: 'Löschen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Weitere Aktionen' })).toBeNull()
   })
 
   it('cancelling does not delete', async () => {

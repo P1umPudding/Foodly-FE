@@ -88,7 +88,7 @@ describe('routing under a sub-path basename', () => {
     await screen.findByRole('heading', { name: 'Pancakes' })
     const imgSrcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
     expect(imgSrcs).toContain('/api/v1/images/h3')
-    expect(screen.getByRole('link', { name: '← Zurück' }).getAttribute('href')).toBe('/foo/recipes')
+    expect(screen.getByRole('link', { name: 'Zurück' }).getAttribute('href')).toBe('/foo/recipes')
   })
 
   // group=0: categories=[] makes the recipe uncategorised, and that group

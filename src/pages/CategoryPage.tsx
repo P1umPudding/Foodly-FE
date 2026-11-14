@@ -12,7 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@postxl/ui-components'
-import { EllipsisVertical, FolderOpen, Pencil, SearchX } from 'lucide-react'
+import { FolderOpen, MoreHorizontal, Pencil, SearchX } from 'lucide-react'
 import { useCategories, useCurrentUserId } from '../catalog/CatalogProvider'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
 import { CategoryMark } from '../components/category/CategoryMark'
@@ -25,6 +25,7 @@ import { SortMenu } from '../components/list/SortMenu'
 import { ViewToggles } from '../components/list/ViewToggles'
 import { RetryAlert } from '../components/RetryAlert'
 import { Page } from '../components/shell/Page'
+import { HeaderActions } from '../components/shell/PageHeader'
 import { TriggerButton } from '../components/TriggerButton'
 import { isShellNavState, parseCategoryId } from '../components/shell/nav'
 import { categoryColorVars } from '../lib/categoryColor'
@@ -100,8 +101,13 @@ function CategoryHead({ category }: { category: UserCategory }) {
   // `key` is new per opening: the dialog starts from scratch every time, even when reopened mid-animation.
   const [dialog, setDialog] = useState<{ open: boolean; key: number } | null>(null)
   const openings = useRef(0)
-  const trigger = useRef<HTMLButtonElement>(null)
-  const openDialog = () => setDialog({ open: true, key: ++openings.current })
+  // Where focus goes once the dialog closes: the button or the header ⋯ that opened it.
+  const returnFocus = useRef<HTMLButtonElement | null>(null)
+  const moreTrigger = useRef<HTMLButtonElement>(null)
+  const openDialog = (opener: HTMLButtonElement | null) => {
+    returnFocus.current = opener
+    setDialog({ open: true, key: ++openings.current })
+  }
 
   return (
     <div
@@ -113,33 +119,40 @@ function CategoryHead({ category }: { category: UserCategory }) {
         <h1 className="font-display text-2xl break-words text-cat-ink">{category.name}</h1>
         <p className="text-sm text-cat-ink">{recipeCount(category.recipes.length)} · nur für dich sichtbar</p>
       </div>
-      {isDesktop ? (
-        <TriggerButton ref={trigger} variant="outline" onClick={openDialog} className="gap-1.5">
+      {isDesktop && (
+        <TriggerButton variant="outline" onClick={(e) => openDialog(e.currentTarget)} className="gap-1.5">
           <Pencil aria-hidden className="size-4" />
           Bearbeiten
         </TriggerButton>
-      ) : (
-        // Not modal: a modal menu opening a modal dialog can leave pointer-events: none on the body.
+      )}
+      <HeaderActions>
+        {/* Not modal: a modal menu opening a modal dialog can leave pointer-events: none on the body. */}
         <DropdownMenu modal={false}>
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
-                <TriggerButton ref={trigger} variant="ghost" size="icon" aria-label={`Aktionen für „${category.name}“`}>
-                  <EllipsisVertical aria-hidden className="size-4" />
+                <TriggerButton
+                  ref={moreTrigger}
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Weitere Aktionen"
+                  className="phone:size-10"
+                >
+                  <MoreHorizontal aria-hidden className="size-4" />
                 </TriggerButton>
               </DropdownMenuTrigger>
             </TooltipTrigger>
-            <TooltipContent>Aktionen</TooltipContent>
+            <TooltipContent>Weitere Aktionen</TooltipContent>
           </Tooltip>
           {/* The dialog decides where focus goes once it closes. */}
           <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-            <DropdownMenuItem className="gap-2" onSelect={openDialog}>
+            <DropdownMenuItem className="gap-2" onSelect={() => openDialog(moreTrigger.current)}>
               <Pencil aria-hidden className="size-4" />
               Bearbeiten
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )}
+      </HeaderActions>
       {dialog && (
         <CategoryEditDialog
           key={dialog.key}
@@ -148,7 +161,7 @@ function CategoryHead({ category }: { category: UserCategory }) {
           category={category}
           onCloseAutoFocus={(e) => {
             e.preventDefault()
-            trigger.current?.focus()
+            returnFocus.current?.focus()
           }}
         />
       )}
