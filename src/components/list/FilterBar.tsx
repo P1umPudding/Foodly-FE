@@ -1,3 +1,4 @@
+import { Clock, Folder, ListChecks, Tag as TagIcon, Users } from 'lucide-react'
 import { Skeleton } from '@postxl/ui-components'
 import type { ListState } from '../../list/state'
 import { filterLabels } from '../../list/filterLabels'
@@ -45,9 +46,9 @@ export function FilterBar({
     <div
       role="group"
       aria-label="Filter"
-      className="flex flex-wrap gap-2 phone:-mx-6 phone:-my-1 phone:flex-nowrap phone:overflow-x-auto phone:px-6 phone:py-1 phone:*:shrink-0 phone:[scrollbar-width:none] phone:[&::-webkit-scrollbar]:hidden"
+      className="flex flex-wrap gap-1.5 phone:-mx-6 phone:-my-1 phone:flex-nowrap phone:overflow-x-auto phone:px-6 phone:py-1 phone:*:shrink-0 phone:[scrollbar-width:none] phone:[&::-webkit-scrollbar]:hidden"
     >
-      <FilterButton label="Kategorie" value={categoryValue} onClear={() => set({ categories: [] })}>
+      <FilterButton label="Kategorie" icon={Folder} value={categoryValue} onClear={() => set({ categories: [] })}>
         {categoriesStatus === 'loading' ? (
           <div data-testid="category-skeleton" className="flex flex-col gap-2">
             {[0, 1, 2, 3].map((i) => (
@@ -61,24 +62,34 @@ export function FilterBar({
           <CategoryFilter categories={categories} selected={state.categories} set={set} />
         )}
       </FilterButton>
-      <FilterButton label="Tags" value={labels.tags} onClear={() => set({ tags: [] })}>
+      <FilterButton label="Tags" icon={TagIcon} value={labels.tags} onClear={() => set({ tags: [] })}>
         {tags.length === 0 ? (
           <NoMatches>Keine Tags</NoMatches>
         ) : (
           <TagFilter tags={tags} selected={state.tags} set={set} />
         )}
       </FilterButton>
-      <FilterButton label="Zutaten" value={labels.ingredients} onClear={() => set({ ingredients: [] })}>
+      <FilterButton
+        label="Zutaten"
+        icon={ListChecks}
+        value={labels.ingredients}
+        onClear={() => set({ ingredients: [] })}
+      >
         {ingredients.length === 0 ? (
           <NoMatches>Keine Zutaten</NoMatches>
         ) : (
           <IngredientFilter ingredients={ingredients} selected={state.ingredients} set={set} />
         )}
       </FilterButton>
-      <FilterButton label="Arbeitszeit" value={labels.duration} onClear={() => set({ durationMax: null })}>
+      <FilterButton label="Arbeitszeit" icon={Clock} value={labels.duration} onClear={() => set({ durationMax: null })}>
         <DurationFilter value={state.durationMax} set={set} />
       </FilterButton>
-      <FilterButton label="Zugriff" value={labels.access} onClear={() => set({ role: 'any', collab: 'any' })}>
+      <FilterButton
+        label="Zugriff"
+        icon={Users}
+        value={labels.access}
+        onClear={() => set({ role: 'any', collab: 'any' })}
+      >
         <AccessFilter role={state.role} collab={state.collab} set={set} />
       </FilterButton>
     </div>

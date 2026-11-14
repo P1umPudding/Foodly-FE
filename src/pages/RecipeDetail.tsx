@@ -247,7 +247,7 @@ export function RecipeDetail() {
 
               {recipe.tags.length > 0 && (
                 <div className="mt-3">
-                  <TagChips tags={recipe.tags} hoverName />
+                  <TagChips tags={recipe.tags} />
                 </div>
               )}
 
