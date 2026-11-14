@@ -120,13 +120,15 @@ export function RecipeEditor() {
     else navigate(`/recipes/${recipeId}`, { replace: true })
   }
 
+  const [uploading, setUploading] = useState(false)
+
   // "Fertig" waits for the save: the detail page re-fetches on mount, and a GET
   // that overtakes a still-running PUT would show the old recipe.
   const [finishing, setFinishing] = useState(false)
   const finishingRef = useRef(false)
   const finish = async () => {
     // aria-disabled (not disabled) keeps focus on the button, so clicks still arrive: drop repeats here.
-    if (finishingRef.current || sizeError !== null) return
+    if (finishingRef.current || sizeError !== null || uploading) return
     finishingRef.current = true
     setFinishing(true)
     try {
@@ -148,7 +150,7 @@ export function RecipeEditor() {
   // via the sidebar or Back: the recipe is created anyway, without pulling them back into the editor.
   const [creating, setCreating] = useState(false)
   const creatingRef = useRef(false)
-  const cannotCreate = draft === null || draft.name.trim() === '' || sizeError !== null
+  const cannotCreate = draft === null || draft.name.trim() === '' || sizeError !== null || uploading
 
   const create = async () => {
     // aria-disabled keeps the button focusable, so Enter/Space still arrive here: guard everything again.
@@ -273,6 +275,7 @@ export function RecipeEditor() {
               draft={draft}
               onChange={patch}
               onAddImage={(image) => setDraft((d) => (d === null ? d : addImage(d, image)))}
+              onUploadingChange={setUploading}
             />
           </div>
         </div>
@@ -310,7 +313,7 @@ export function RecipeEditor() {
             </span>
             <Button
               onClick={() => void finish()}
-              aria-disabled={finishing || sizeError !== null}
+              aria-disabled={finishing || sizeError !== null || uploading}
               aria-busy={finishing}
               className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50 touch:h-10"
             >

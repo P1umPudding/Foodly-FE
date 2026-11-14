@@ -102,6 +102,33 @@ describe('TagPicker', () => {
     expect(input().getAttribute('aria-expanded')).toBe('false')
   })
 
+  it('closes the suggestions when the field loses focus', () => {
+    render(<Stateful />)
+
+    fireEvent.focus(input())
+    expect(screen.getByRole('listbox')).toBeTruthy()
+    fireEvent.blur(input())
+
+    expect(screen.queryByRole('listbox')).toBeNull()
+  })
+
+  it('ArrowUp from the first suggestion wraps to the last', () => {
+    render(<Stateful />)
+
+    fireEvent.focus(input())
+    fireEvent.keyDown(input(), { key: 'ArrowUp' })
+
+    expect(screen.getByRole('option', { selected: true }).textContent).toBe('Scharf')
+  })
+
+  it('keeps focus in the field after removing a tag with its ✕', () => {
+    render(<Stateful initial={['Vegan']} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Vegan entfernen' }))
+
+    expect(document.activeElement).toBe(input())
+  })
+
   it('adds a tag by clicking its suggestion', () => {
     render(<Stateful />)
 

@@ -62,9 +62,10 @@ export function TagPicker({
 
   return (
     <div className="relative">
-      {/* Clicks on the field's free space focus the input, as in a native field. */}
+      {/* Hand-built field look (border, shadow, focus) because the chips sit inside it: the postxl Input only styles
+          itself. Clicks on the field's free space focus the input, as in a native field. */}
       <div
-        className="flex min-h-[38px] cursor-text flex-wrap items-center gap-1.5 rounded-md border border-input bg-transparent px-2 py-[5px] shadow-xs focus-within:border-ring dark:bg-input/30"
+        className="flex min-h-[38px] cursor-text flex-wrap items-center gap-1.5 rounded-md border border-input bg-transparent px-2 py-[5px] shadow-xs focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 dark:bg-input/30"
         onMouseDown={(e) => {
           if (e.target === e.currentTarget) {
             e.preventDefault()
@@ -85,7 +86,11 @@ export function TagPicker({
               aria-label={`${id} entfernen`}
               // The hit area grows past the 22 px chip on touch (design.md §7) without growing the chip.
               className="relative size-4 shrink-0 rounded-sm text-muted-foreground after:absolute after:-inset-1 touch:after:-inset-3"
-              onClick={() => onChange(value.filter((t) => t !== id))}
+              onClick={() => {
+                onChange(value.filter((t) => t !== id))
+                // The chip and its ✕ are gone: keep focus in the field.
+                inputRef.current?.focus()
+              }}
             >
               <X className="size-3" />
             </Button>
@@ -96,13 +101,13 @@ export function TagPicker({
           id={inputId}
           role="combobox"
           aria-expanded={expanded}
-          aria-controls={listId}
+          aria-controls={expanded ? listId : undefined}
           aria-autocomplete="list"
           aria-activedescendant={expanded && activeIndex >= 0 ? optionId(activeIndex) : undefined}
           autoComplete="off"
           placeholder="Tag hinzufügen"
           value={query}
-          className="h-7 min-w-[100px] flex-1 border-0 bg-transparent px-1 shadow-none focus-visible:border-0 dark:bg-transparent"
+          className="h-7 min-w-[100px] flex-1 border-0 bg-transparent px-1 shadow-none focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent"
           onChange={(e) => {
             setQuery(e.target.value)
             setActive(0)

@@ -1,5 +1,5 @@
+import { useRef } from 'react'
 import {
-  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -13,6 +13,8 @@ import type { DraftNote } from '../../editor/draft'
 
 // Notes in the editor's side column: a two-line field per note, moving and removing behind ⋮ (mockup `.ed-note`).
 export function NotesEditor({ notes, onChange }: { notes: DraftNote[]; onChange: (notes: DraftNote[]) => void }) {
+  // After "Entfernen" the menu's trigger is gone; focus goes to "+ Notiz" instead of the page.
+  const addButton = useRef<HTMLButtonElement>(null)
   return (
     <>
       {notes.map((note, i) => (
@@ -34,10 +36,12 @@ export function NotesEditor({ notes, onChange }: { notes: DraftNote[]; onChange:
             onUp={() => onChange(move(notes, note.key, -1))}
             onDown={() => onChange(move(notes, note.key, 1))}
             onRemove={() => onChange(notes.filter((n) => n.key !== note.key))}
+            onRemovedFocus={() => addButton.current?.focus()}
           />
         </div>
       ))}
-      <Button
+      <TriggerButton
+        ref={addButton}
         variant="ghost"
         size="sm"
         className="gap-1.5 self-start text-muted-foreground touch:h-10"
@@ -45,7 +49,7 @@ export function NotesEditor({ notes, onChange }: { notes: DraftNote[]; onChange:
       >
         <Plus className="size-4" />
         Notiz
-      </Button>
+      </TriggerButton>
     </>
   )
 }
@@ -57,6 +61,7 @@ function NoteMenu({
   onUp,
   onDown,
   onRemove,
+  onRemovedFocus,
 }: {
   label: string
   canMoveUp: boolean
@@ -64,7 +69,9 @@ function NoteMenu({
   onUp: () => void
   onDown: () => void
   onRemove: () => void
+  onRemovedFocus: () => void
 }) {
+  const removed = useRef(false)
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
@@ -72,7 +79,16 @@ function NoteMenu({
           <EllipsisVertical className="size-4" />
         </TriggerButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent
+        align="end"
+        onCloseAutoFocus={(e) => {
+          if (removed.current) {
+            e.preventDefault()
+            onRemovedFocus()
+          }
+          removed.current = false
+        }}
+      >
         <DropdownMenuItem className="gap-2" disabled={!canMoveUp} onSelect={onUp}>
           <ArrowUp className="size-4" />
           Nach oben
@@ -81,7 +97,14 @@ function NoteMenu({
           <ArrowDown className="size-4" />
           Nach unten
         </DropdownMenuItem>
-        <DropdownMenuItem variant="destructive" className="gap-2" onSelect={onRemove}>
+        <DropdownMenuItem
+          variant="destructive"
+          className="gap-2"
+          onSelect={() => {
+            removed.current = true
+            onRemove()
+          }}
+        >
           <Trash2 className="size-4" />
           Entfernen
         </DropdownMenuItem>

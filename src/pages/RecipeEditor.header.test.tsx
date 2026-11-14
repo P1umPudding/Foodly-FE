@@ -1,5 +1,5 @@
 // The editor inside the real shell (#231): status and "Fertig" / "Anlegen" sit in the header, the old footer is gone.
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -98,6 +98,47 @@ describe('RecipeEditor in the shell header', () => {
     expect(screen.queryByText('Verwerfen')).toBeNull()
     // Back is the way to discard.
     expect(header().getByRole('link', { name: 'Zurück' })).toBeTruthy()
+  })
+
+  it('a failed save shows "Nicht gespeichert" with its retry in the header', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe)
+    vi.spyOn(foodly, 'updateRecipe').mockRejectedValue(new Error('offline'))
+    renderAt('/recipes/5/edit')
+
+    await waitFor(() => expect(screen.getByLabelText('Titel')).toBeTruthy())
+    fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'X' } })
+
+    await waitFor(() => expect(header().getByText('Nicht gespeichert')).toBeTruthy(), { timeout: 3000 })
+    expect(header().getByRole('button', { name: 'Erneut versuchen' })).toBeTruthy()
+  })
+
+  it('an invalid portion count shows "Portionen prüfen" in the header and holds "Fertig"', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe)
+    renderAt('/recipes/5/edit')
+
+    await waitFor(() => expect(screen.getByLabelText('Anzahl')).toBeTruthy())
+    fireEvent.change(screen.getByLabelText('Anzahl'), { target: { value: '0' } })
+
+    expect(header().getByText('Nicht gespeichert – Portionen prüfen')).toBeTruthy()
+    expect(header().getByRole('button', { name: 'Fertig' }).getAttribute('aria-disabled')).toBe('true')
+  })
+
+  it('holds "Fertig" while photos are uploading, so none is dropped', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe)
+    let finish: (v: { id: number; hash: string; name: null }) => void = () => {}
+    vi.spyOn(foodly, 'uploadImage').mockImplementation(() => new Promise((r) => (finish = r)))
+    renderAt('/recipes/5/edit')
+
+    await waitFor(() => expect(screen.getByLabelText('Titel')).toBeTruthy())
+    const file = new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })
+    fireEvent.change(screen.getByLabelText('Bild hochladen'), { target: { files: [file] } })
+
+    await waitFor(() =>
+      expect(header().getByRole('button', { name: 'Fertig' }).getAttribute('aria-disabled')).toBe('true'),
+    )
+    expect(screen.getByText('Lädt hoch …')).toBeTruthy()
+    await act(async () => finish({ id: 9, hash: 'h9', name: null }))
+    expect(header().getByRole('button', { name: 'Fertig' }).getAttribute('aria-disabled')).toBe('false')
   })
 
   it('nothing in the header while the recipe loads', () => {

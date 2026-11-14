@@ -15,16 +15,24 @@ export function EditorSidebar({
   draft,
   onChange,
   onAddImage,
+  onUploadingChange,
 }: {
   draft: Draft
   onChange: (patch: Partial<Draft>) => void
   onAddImage: (image: ImageRef) => void
+  onUploadingChange: (uploading: boolean) => void
 }) {
   return (
     <>
       <Block className="phone:order-first">
         <h2 className={`${COL_HEAD} phone:sr-only`}>Bilder</h2>
-        <ImageManager mainImage={draft.mainImage} images={draft.images} onChange={onChange} onAdd={onAddImage} />
+        <ImageManager
+          mainImage={draft.mainImage}
+          images={draft.images}
+          onChange={onChange}
+          onAdd={onAddImage}
+          onUploadingChange={onUploadingChange}
+        />
       </Block>
       <Block className="phone:order-last">
         <h2 className={COL_HEAD}>Notizen</h2>

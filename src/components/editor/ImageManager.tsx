@@ -1,10 +1,11 @@
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   Label,
+  Spinner,
   cn,
   toast,
 } from '@postxl/ui-components'
@@ -17,7 +18,7 @@ import type { ImageRef } from '../../api/protocol'
 
 // Dims an upload tile while the (hidden) file input is disabled: uploading, or the editor locked during Anlegen.
 const TILE =
-  'cursor-pointer border border-dashed border-input text-muted-foreground hover:bg-hover group-has-[input:disabled]/images:pointer-events-none group-has-[input:disabled]/images:opacity-50'
+  'cursor-pointer border border-dashed border-input text-muted-foreground hover:bg-hover group-has-[input:disabled]/images:pointer-events-none group-has-[input:disabled]/images:opacity-50 group-has-[input:focus-visible]/images:border-ring group-has-[input:focus-visible]/images:ring-[3px] group-has-[input:focus-visible]/images:ring-ring/50'
 
 // Uploads land in the image store immediately (POST /images); the draft holds the
 // returned ref and only its id goes out on save. An image whose recipe is never saved is simply orphaned —
@@ -27,14 +28,27 @@ export function ImageManager({
   images,
   onChange,
   onAdd,
+  onUploadingChange,
 }: {
   mainImage: ImageRef | null
   images: ImageRef[]
   onChange: (patch: { mainImage?: ImageRef | null; images?: ImageRef[] }) => void
   // Applied to the current draft (not these props), so several uploads in a row don't overwrite each other.
   onAdd: (image: ImageRef) => void
+  // The editor holds "Fertig"/"Anlegen" while uploads run: leaving earlier would drop the photos still on their way.
+  onUploadingChange?: (uploading: boolean) => void
 }) {
-  const [uploading, setUploading] = useState(false)
+  const [uploading, setUploadingState] = useState(false)
+  const setUploading = (next: boolean) => {
+    setUploadingState(next)
+    onUploadingChange?.(next)
+  }
+  const inputRef = useRef<HTMLInputElement>(null)
+  // After "Entfernen" the menu's trigger is gone; focus goes to the file input instead of the page.
+  const focusUpload = (e: Event) => {
+    e.preventDefault()
+    inputRef.current?.focus()
+  }
 
   // One after another, in the order picked: the first becomes the main image, and a failure keeps the rest.
   const upload = async (files: File[]) => {
@@ -55,13 +69,15 @@ export function ImageManager({
     <div className="group/images flex flex-col">
       {/* eslint-disable-next-line react/forbid-elements -- native file picker, @postxl/ui-components has no file input */}
       <input
+        ref={inputRef}
         id="image-upload"
         type="file"
         multiple
         accept="image/png,image/jpeg,image/webp"
         aria-label="Bild hochladen"
         disabled={uploading}
-        className="hidden"
+        // sr-only, not hidden: the input stays reachable by Tab; the tiles below show its focus.
+        className="sr-only"
         onChange={(e) => {
           // Copied before the reset below: the FileList is live and would be empty afterwards.
           const files = Array.from(e.target.files ?? [])
@@ -74,6 +90,7 @@ export function ImageManager({
         <ImageMenu
           label="Hauptbild"
           onRemove={() => onChange({ mainImage: null })}
+          onRemovedFocus={focusUpload}
           className="relative aspect-[4/3] w-full overflow-hidden rounded-lg phone:aspect-video"
         >
           <RecipeImage image={mainImage} alt="" className="size-full object-cover" fallbackClassName="size-full" />
@@ -96,6 +113,16 @@ export function ImageManager({
         </Label>
       )}
 
+      {/* Always mounted, so screen readers announce the upload when it starts. */}
+      <span role="status" className="flex items-center gap-1.5 text-xs text-muted-foreground empty:hidden">
+        {uploading && (
+          <>
+            <Spinner className="mt-1.5 size-3.5" />
+            <span className="mt-1.5">Lädt hoch …</span>
+          </>
+        )}
+      </span>
+
       {hasImages && (
         <>
           <div className="mt-1.5 grid grid-cols-4 gap-1.5 phone:grid-cols-5">
@@ -110,6 +137,7 @@ export function ImageManager({
                   })
                 }
                 onRemove={() => onChange({ images: images.filter((im) => im.id !== image.id) })}
+                onRemovedFocus={focusUpload}
                 className="aspect-square overflow-hidden rounded-md"
               >
                 <RecipeImage image={image} alt="" className="size-full object-cover" fallbackClassName="size-full" />
@@ -137,15 +165,18 @@ function ImageMenu({
   label,
   onMakeMain,
   onRemove,
+  onRemovedFocus,
   className,
   children,
 }: {
   label: string
   onMakeMain?: () => void
   onRemove: () => void
+  onRemovedFocus: (e: Event) => void
   className: string
   children: ReactNode
 }) {
+  const removed = useRef(false)
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
@@ -153,14 +184,27 @@ function ImageMenu({
           {children}
         </TriggerButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
+      <DropdownMenuContent
+        align="start"
+        onCloseAutoFocus={(e) => {
+          if (removed.current) onRemovedFocus(e)
+          removed.current = false
+        }}
+      >
         {onMakeMain && (
           <DropdownMenuItem className="gap-2" onSelect={onMakeMain}>
             <Star className="size-4" />
             Als Hauptbild
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem variant="destructive" className="gap-2" onSelect={onRemove}>
+        <DropdownMenuItem
+          variant="destructive"
+          className="gap-2"
+          onSelect={() => {
+            removed.current = true
+            onRemove()
+          }}
+        >
           <Trash2 className="size-4" />
           Entfernen
         </DropdownMenuItem>
