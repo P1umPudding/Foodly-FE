@@ -78,7 +78,10 @@ describe('Home', () => {
       },
     ]
     renderHome()
-    screen.getByRole('heading', { level: 2, name: 'Kategorien' })
+    expect(screen.getByRole('heading', { level: 1, name: /Kolja/ }).getAttribute('data-slot')).toBe('page-title')
+    const header = screen.getByRole('heading', { level: 2, name: 'Kategorien' }).closest('[data-slot="section-header"]')
+    expect(header).not.toBeNull()
+    within(header as HTMLElement).getByRole('link', { name: 'Verwalten' })
     expect(screen.getByRole('link', { name: 'Favoriten, 2 Rezepte' }).getAttribute('href')).toBe('/categories/4')
     expect(screen.queryByRole('link', { name: 'Alle Rezepte' })).toBeNull()
   })

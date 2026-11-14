@@ -24,6 +24,7 @@ import { SearchInput } from '../components/list/SearchInput'
 import { SortMenu } from '../components/list/SortMenu'
 import { ViewToggles } from '../components/list/ViewToggles'
 import { RetryAlert } from '../components/RetryAlert'
+import { PageTitle } from '../components/PageTitle'
 import { Page } from '../components/shell/Page'
 import { HeaderActions } from '../components/shell/PageHeader'
 import { TriggerButton } from '../components/TriggerButton'
@@ -120,11 +121,7 @@ function CategoryHead({ category }: { category: UserCategory }) {
         className="size-14 rounded-lg bg-card text-[24px]/none font-bold phone:size-12"
       />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        {/* The display family without .font-display: that class is emitted after the utilities, so its letter-spacing
-            would beat the tracking here. */}
-        <h1 className="font-(family-name:--font-display) text-2xl/[1.15] font-[650] tracking-[-0.025em] break-words text-cat-ink">
-          {category.name}
-        </h1>
+        <PageTitle className="text-cat-ink">{category.name}</PageTitle>
         {/* Faded only in dark mode: in light, opacity .75 drops this small text below AA (design.md). */}
         <p className="text-sm text-cat-ink tabular-nums dark:opacity-75">
           {recipeCount(category.recipes.length)} · nur für dich sichtbar
