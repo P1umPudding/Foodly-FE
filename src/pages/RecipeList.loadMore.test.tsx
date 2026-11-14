@@ -98,7 +98,7 @@ function renderList(url = '/recipes?group=0') {
   )
 }
 
-const FAILED = 'Weitere Rezepte konnten nicht geladen werden.'
+const FAILED = 'Weitere Rezepte konnten nicht geladen werden'
 const LOADING = 'Weitere Rezepte werden geladen …'
 
 afterEach(() => {

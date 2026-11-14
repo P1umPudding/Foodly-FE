@@ -23,7 +23,7 @@ import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
 import { SortMenu } from '../components/list/SortMenu'
 import { ViewToggles } from '../components/list/ViewToggles'
-import { RetryAlert } from '../components/RetryAlert'
+import { ErrorState } from '../components/StateCard'
 import { PageTitle } from '../components/PageTitle'
 import { Page } from '../components/shell/Page'
 import { HeaderActions } from '../components/shell/PageHeader'
@@ -74,7 +74,11 @@ export function CategoryPage() {
       )}
 
       {catalog.status === 'error' && (
-        <RetryAlert title="Konnte Kategorien nicht laden" message={catalog.error?.message} onRetry={catalog.retry} />
+        <ErrorState
+          title="Kategorien konnten nicht geladen werden"
+          description={catalog.error?.message}
+          onRetry={catalog.retry}
+        />
       )}
 
       {/* Also when the catalog drops the category while the page is open (deleted through it). */}
@@ -258,7 +262,11 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
         {search.status === 'loading' && <ListSkeleton detail={state.detail} count={4} />}
 
         {search.status === 'error' && (
-          <RetryAlert title="Konnte Rezepte nicht laden" message={search.error?.message} onRetry={search.reload} />
+          <ErrorState
+            title="Rezepte konnten nicht geladen werden"
+            description={search.error?.message}
+            onRetry={search.reload}
+          />
         )}
 
         {pending && visible.length === 0 && !loadMoreFailed && (
@@ -307,9 +315,10 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
         )}
         {loadMoreFailed && !search.loadingMore && (
           <div className="pt-3">
-            <RetryAlert
-              title="Weitere Rezepte konnten nicht geladen werden."
-              message={search.loadMoreError?.message}
+            <ErrorState
+              compact
+              title="Weitere Rezepte konnten nicht geladen werden"
+              description={search.loadMoreError?.message}
               onRetry={search.retryLoadMore}
             />
           </div>

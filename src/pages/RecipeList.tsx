@@ -25,7 +25,7 @@ import { useIsDesktop } from '../hooks/useIsDesktop'
 import { fromSearchParams, toSearchParams } from '../list/url'
 import { isShellNavState } from '../components/shell/nav'
 import { Page } from '../components/shell/Page'
-import { RetryAlert } from '../components/RetryAlert'
+import { ErrorState } from '../components/StateCard'
 
 const SCROLL_KEY = 'recipeList:scroll'
 
@@ -286,9 +286,9 @@ export function RecipeList() {
       <div className="pt-1">
         {categoriesFailed && (
           <div className="pb-4">
-            <RetryAlert
-              title="Konnte Kategorien nicht laden"
-              message={categoriesCatalog.error?.message}
+            <ErrorState
+              title="Kategorien konnten nicht geladen werden"
+              description={categoriesCatalog.error?.message}
               onRetry={categoriesCatalog.retry}
             />
           </div>
@@ -304,7 +304,11 @@ export function RecipeList() {
         )}
 
         {search.status === 'error' && (
-          <RetryAlert title="Konnte Rezepte nicht laden" message={search.error?.message} onRetry={search.reload} />
+          <ErrorState
+            title="Rezepte konnten nicht geladen werden"
+            description={search.error?.message}
+            onRetry={search.reload}
+          />
         )}
 
         {/* Pages still to come may hold matches: hold the empty texts back until the list is exhausted.
@@ -364,9 +368,10 @@ export function RecipeList() {
             status line below announces the loading instead. */}
         {loadMoreFailed && !search.loadingMore && (
           <div className="pt-3">
-            <RetryAlert
-              title="Weitere Rezepte konnten nicht geladen werden."
-              message={search.loadMoreError?.message}
+            <ErrorState
+              compact
+              title="Weitere Rezepte konnten nicht geladen werden"
+              description={search.loadMoreError?.message}
               onRetry={search.retryLoadMore}
             />
           </div>

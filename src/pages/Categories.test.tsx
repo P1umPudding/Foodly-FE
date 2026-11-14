@@ -52,7 +52,7 @@ describe('Categories page states', () => {
     catalog.categories.status = 'error'
     catalog.categories.error = new Error('Server weg')
     renderPage()
-    expect(screen.getByText('Konnte Kategorien nicht laden')).toBeTruthy()
+    expect(screen.getByText('Kategorien konnten nicht geladen werden')).toBeTruthy()
     expect(screen.getByText('Server weg')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
     expect(catalog.categories.retry).toHaveBeenCalled()

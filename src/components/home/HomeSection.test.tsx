@@ -33,7 +33,7 @@ describe('HomeSection', () => {
   it('shows a retry alert on error', () => {
     const onRetry = vi.fn()
     renderSection('error', onRetry)
-    screen.getByText('Konnte „Kategorien“ nicht laden')
+    screen.getByText('„Kategorien“ konnte nicht geladen werden')
     screen.getByText('Server weg')
     expect(screen.queryByText('section content')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))

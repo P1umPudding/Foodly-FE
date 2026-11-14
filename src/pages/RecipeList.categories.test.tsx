@@ -157,7 +157,7 @@ describe('RecipeList when the categories fail', () => {
     catalog.categories = { list: [], status: 'error', error: new Error('Serverfehler'), retry }
     list('/recipes?cat=3&group=1')
 
-    await screen.findByText('Konnte Kategorien nicht laden')
+    await screen.findByText('Kategorien konnten nicht geladen werden')
     screen.getByText('Serverfehler')
     await screen.findByText('Pancakes')
     screen.getByText('Suppe')

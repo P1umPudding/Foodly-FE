@@ -22,7 +22,7 @@ import { useCategoryActions } from '../catalog/useCategoryActions'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
 import { CategoryMark } from '../components/category/CategoryMark'
 import { DeleteCategoryDialog } from '../components/category/DeleteCategoryDialog'
-import { RetryAlert } from '../components/RetryAlert'
+import { ErrorState } from '../components/StateCard'
 import { TriggerButton } from '../components/TriggerButton'
 import { FOCUS_RING } from '../components/focusRing'
 import { categoryPageHref } from '../components/shell/nav'
@@ -144,9 +144,9 @@ export function Categories() {
         )}
 
         {categories.status === 'error' && (
-          <RetryAlert
-            title="Konnte Kategorien nicht laden"
-            message={categories.error?.message}
+          <ErrorState
+            title="Kategorien konnten nicht geladen werden"
+            description={categories.error?.message}
             onRetry={categories.retry}
           />
         )}
