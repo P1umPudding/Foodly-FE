@@ -1,4 +1,4 @@
-// The page title of the mockup (`.page-title`, 26/650): start greeting, category head, sign-in pages, NotFound.
+// The page title of the mockup (`.page-title`, 26/650).
 import type { ReactNode } from 'react'
 import { cn } from '@postxl/ui-components'
 

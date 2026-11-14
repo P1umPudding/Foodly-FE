@@ -78,7 +78,7 @@ describe('Home', () => {
       },
     ]
     renderHome()
-    expect(screen.getByRole('heading', { level: 1 }).getAttribute('data-slot')).toBe('page-title')
+    expect(screen.getByRole('heading', { level: 1, name: /Kolja/ }).getAttribute('data-slot')).toBe('page-title')
     const header = screen.getByRole('heading', { level: 2, name: 'Kategorien' }).closest('[data-slot="section-header"]')
     expect(header).not.toBeNull()
     within(header as HTMLElement).getByRole('link', { name: 'Verwalten' })
