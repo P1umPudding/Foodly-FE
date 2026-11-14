@@ -3,7 +3,15 @@ import { Link } from 'react-router-dom'
 import { cn } from '@postxl/ui-components'
 import { FOCUS_RING } from './focusRing'
 
-export function SectionHeader({ id, title, link }: { id?: string; title: string; link?: { label: string; to: string } }) {
+export function SectionHeader({
+  id,
+  title,
+  link,
+}: {
+  id?: string
+  title: string
+  link?: { label: string; to: string }
+}) {
   return (
     <div data-slot="section-header" className="flex items-baseline justify-between gap-3">
       <h2 id={id} className="text-lg font-semibold tracking-[-0.01em]">
