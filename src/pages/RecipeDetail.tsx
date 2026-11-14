@@ -31,6 +31,7 @@ import { RecipeHero, RecipeImages } from '../components/recipe/RecipeImages'
 import { DeleteRecipeButton } from '../components/recipe/DeleteRecipeButton'
 import { Lightbox } from '../components/recipe/Lightbox'
 import { TriggerButton } from '../components/TriggerButton'
+import { Page } from '../components/shell/Page'
 import { RecipeCategoryChips } from '../components/category/RecipeCategoryChips'
 import type { Recipe, UserId } from '../api/protocol'
 import { cookHref, parseSize, withSize } from '../cook/size'
@@ -128,7 +129,7 @@ export function RecipeDetail() {
   const hasSteps = recipe ? recipe.sections.some((s) => s.steps.length > 0) : false
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <Page className="pb-10">
       <div className="mb-4 flex items-center justify-between gap-3">
         <Button asChild variant="ghost" size="sm">
           <Link to="/recipes" onClick={onBack}>
@@ -336,7 +337,7 @@ export function RecipeDetail() {
           )}
         </article>
       )}
-    </div>
+    </Page>
   )
 }
 

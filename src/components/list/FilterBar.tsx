@@ -46,7 +46,7 @@ export function FilterBar({
     <div
       role="group"
       aria-label="Filter"
-      className="flex flex-wrap gap-1.5 phone:-mx-6 phone:-my-1 phone:flex-nowrap phone:overflow-x-auto phone:px-6 phone:py-1 phone:*:shrink-0 phone:[scrollbar-width:none] phone:[&::-webkit-scrollbar]:hidden"
+      className="flex flex-wrap gap-1.5 phone:-mx-4 phone:-my-1 phone:flex-nowrap phone:overflow-x-auto phone:px-4 phone:py-1 phone:*:shrink-0 phone:[scrollbar-width:none] phone:[&::-webkit-scrollbar]:hidden"
     >
       <FilterButton label="Kategorie" icon={Folder} value={categoryValue} onClear={() => set({ categories: [] })}>
         {categoriesStatus === 'loading' ? (

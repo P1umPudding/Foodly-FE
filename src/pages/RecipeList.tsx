@@ -24,6 +24,7 @@ import { ViewToggles } from '../components/list/ViewToggles'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { fromSearchParams, toSearchParams } from '../list/url'
 import { isShellNavState } from '../components/shell/nav'
+import { Page } from '../components/shell/Page'
 import { RetryAlert } from '../components/RetryAlert'
 
 const SCROLL_KEY = 'recipeList:scroll'
@@ -225,13 +226,14 @@ export function RecipeList() {
   return (
     // On phones the shell's bottom padding only clears the tab bar; the extra room lets the last card scroll past
     // the fixed "+" button above it (safe-area inset ready for viewport-fit=cover).
-    <div
+    <Page
+      wide
       data-testid="recipe-list-page"
-      className="mx-auto max-w-6xl px-6 pb-10 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]"
+      className="pt-0 pb-10 phone:pt-0 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]"
     >
       {/* Sticky page header over the scrolling list (solid — no blur). Its measured
           height feeds --list-sticky-top so the category headers tuck right beneath it. */}
-      <div ref={headerRef} className="sticky top-(--site-nav-h) z-30 bg-background pb-3 pt-6">
+      <div ref={headerRef} className="sticky top-(--site-nav-h) z-30 bg-background pb-3 pt-6 phone:pt-3">
         <h1 className="sr-only">Rezepte</h1>
 
         {/* Search with the sort menu and view toggles to its right; on phones they sit behind one button. */}
@@ -385,6 +387,6 @@ export function RecipeList() {
           {loadingAnnounced ? 'Weitere Rezepte werden geladen …' : ''}
         </p>
       </div>
-    </div>
+    </Page>
   )
 }

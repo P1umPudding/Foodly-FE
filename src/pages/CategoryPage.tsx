@@ -24,6 +24,7 @@ import { SearchInput } from '../components/list/SearchInput'
 import { SortMenu } from '../components/list/SortMenu'
 import { ViewToggles } from '../components/list/ViewToggles'
 import { RetryAlert } from '../components/RetryAlert'
+import { Page } from '../components/shell/Page'
 import { TriggerButton } from '../components/TriggerButton'
 import { isShellNavState, parseCategoryId } from '../components/shell/nav'
 import { categoryColorVars } from '../lib/categoryColor'
@@ -58,7 +59,7 @@ export function CategoryPage() {
 
   return (
     // On phones the extra bottom room lets the last card scroll past the fixed "+" button (as on /recipes, #74).
-    <div className="mx-auto max-w-6xl px-6 pt-6 pb-10 phone:px-4 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <Page className="pb-10 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]">
       {/* Every state has the page's one h1; until the category is known it can only be generic. */}
       {catalog.status !== 'ready' && <h1 className="sr-only">Kategorie</h1>}
       {catalog.status === 'loading' && (
@@ -90,7 +91,7 @@ export function CategoryPage() {
           <CategoryRecipes category={category} allCategories={catalog.list} />
         </>
       )}
-    </div>
+    </Page>
   )
 }
 
