@@ -15,19 +15,37 @@ function renderSheet(props: { scroll?: boolean; onOpenChange?: (open: boolean) =
 }
 
 describe('BottomSheet', () => {
-  it('labels the close button "Schließen" and gives it the 40 px size class', () => {
+  it('puts the title left-aligned and the ✕ in one header row', () => {
     const sheet = renderSheet()
+    const title = within(sheet).getByRole('heading', { name: 'Titel' })
     const close = within(sheet).getByRole('button', { name: 'Schließen' })
-    expect(close.className).toContain('size-10')
-    expect(close.className).not.toContain('size-9')
+    expect(title.closest('.text-center')).toBeNull()
+    expect(title.className).toContain('text-left')
+    expect(title.parentElement?.contains(close)).toBe(true)
+    expect(close.className).not.toContain('absolute')
+  })
+
+  // The lib's SheetTitle brings text-lg/font-semibold; ours must win the merge.
+  it('sets the title at 16/650', () => {
+    const title = within(renderSheet()).getByRole('heading', { name: 'Titel' })
+    expect(title.className).toContain('text-[16px]')
+    expect(title.className).toContain('font-[650]')
+    expect(title.className).not.toContain('text-lg')
+    expect(title.className).not.toContain('font-semibold')
+  })
+
+  it('sizes the ✕ 30 px, 40 px on touch', () => {
+    const close = within(renderSheet()).getByRole('button', { name: 'Schließen' })
+    expect(close.className.split(' ')).toEqual(expect.arrayContaining(['size-7.5', 'touch:size-10']))
   })
 
   // The lib's own ✕ is hidden by a first-child selector (no CSS in tests, so check the structure it relies on).
-  it('keeps the lib close button first, so the selector hides it and not ours', () => {
+  // Ours sits inside the header row, not among the direct children, so the selector can't reach it.
+  it('keeps the lib close button first, followed by the grip', () => {
     const sheet = renderSheet()
     expect(sheet.firstElementChild?.tagName).toBe('BUTTON')
     expect(sheet.firstElementChild?.textContent).toBe('Close')
-    expect(sheet.children[1].getAttribute('aria-label')).toBe('Schließen')
+    expect(sheet.children[1].getAttribute('aria-hidden')).toBe('true')
   })
 
   it('closes from "Schließen"', () => {
