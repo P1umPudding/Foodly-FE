@@ -280,7 +280,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
     async () => {
       await renderDetail(3)
       expect(screen.queryByRole('link', { name: 'Bearbeiten' })).toBeNull()
-      expect(screen.queryByRole('button', { name: /Löschen/ })).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Weitere Aktionen' })).toBeNull()
       await waitFor(() => expect(chipNames()).toEqual(['Schnelle Küche']), WAIT)
       const save = vi.spyOn(api.foodly, 'setCategoryRecipes')
       const panel = await openPanel()
