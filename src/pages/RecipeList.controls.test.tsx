@@ -35,7 +35,10 @@ beforeEach(() => {
   vi.spyOn(foodly, 'searchRecipes').mockImplementation(() => new Promise<never>(() => {}))
 })
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  sessionStorage.clear()
+})
 
 describe('RecipeList controls on desktop', () => {
   it('focuses the search when the page opens, without scrolling', () => {
@@ -44,6 +47,24 @@ describe('RecipeList controls on desktop', () => {
     // No jest-dom here, so no toHaveFocus(): compare the active element instead.
     expect(document.activeElement).toBe(searchField())
     expect(focus).toHaveBeenCalledWith({ preventScroll: true })
+  })
+
+  it('lets search, filters and count scroll away with the list (only the site and category headers stick)', () => {
+    renderList()
+    expect(screen.getByTestId('list-toolbar').className).not.toMatch(/\bsticky\b/)
+    expect(document.documentElement.style.getPropertyValue('--list-sticky-top')).toBe('')
+  })
+
+  it('leaves the search unfocused when returning to a scrolled list (it is scrolled out of view)', () => {
+    sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'group=0', y: 800 }))
+    renderList()
+    expect(document.activeElement).not.toBe(searchField())
+  })
+
+  it('still focuses the search when the saved position belongs to another list', () => {
+    sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'cat=3&group=0', y: 800 }))
+    renderList()
+    expect(document.activeElement).toBe(searchField())
   })
 
   it('asks for a recipe and shows a magnifier in the search', () => {
