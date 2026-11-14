@@ -47,7 +47,7 @@ export function ListSkeleton({
       </div>
     )
   }
-  // Same pitch as the flat rows (34 / 60 px), with a hairline gap so the bars don't merge into one block.
+  // Same pitch as the flat rows (34 / 60 px without photo): bar plus a small gap, so the bars don't merge into one block.
   const compact = detail === 'compact'
   return (
     <div data-testid={testId} className={compact ? 'space-y-0.5' : 'space-y-1'}>

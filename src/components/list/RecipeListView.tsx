@@ -145,7 +145,7 @@ function CategoryGroup({
             asChild
             variant="ghost"
             size="sm"
-            className="shrink-0 text-xs font-medium text-muted-foreground opacity-0 transition-opacity group-hover/head:opacity-100 group-focus-within/head:opacity-100 hover:text-foreground phone:opacity-100 touch:h-10 touch:opacity-100"
+            className="shrink-0 text-xs font-medium text-muted-foreground opacity-0 transition-opacity group-hover/head:opacity-100 group-has-[:focus-visible]/head:opacity-100 hover:text-foreground phone:opacity-100 touch:h-10 touch:opacity-100"
           >
             <Link to={categoryPageHref(categoryId)} aria-label={`Öffnen: „${name}“`}>
               Öffnen ›

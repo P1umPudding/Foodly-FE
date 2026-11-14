@@ -74,6 +74,9 @@ it('renders a collapsible, colour-coded heading per category', () => {
   expect(name.className).not.toContain('text-cat-ink')
   expect(heading.className).not.toContain('text-cat-ink')
   expect(within(heading).getByTestId('group-dot').className).toContain('bg-cat-dot')
+  // Collapsed (designer review 13.11.): name muted, weight 500.
+  expect(name.className).toContain('group-data-[state=closed]/cat:text-muted-foreground')
+  expect(name.className).toContain('group-data-[state=closed]/cat:font-medium')
   // The Collapse root carries the colour variables; the bridge CSS isn't loaded in
   // jsdom, so only the variables are checked, not computed colours.
   const group = heading.closest('[data-cat]') as HTMLElement
@@ -244,8 +247,8 @@ it('"Öffnen" hides until hover on desktop but always shows on phones and touch'
   renderView()
   const open = screen.getByRole('link', { name: 'Öffnen: „Fav“' })
   expect(open.className).toContain('opacity-0')
-  // Shown on head hover and on keyboard focus anywhere in the head (also the trigger), always on phones/touch.
-  for (const v of ['group-hover/head', 'group-focus-within/head', 'phone', 'touch']) {
+  // Shown on head hover and on keyboard focus anywhere in the head (also the trigger; not after a mouse click), always on phones/touch.
+  for (const v of ['group-hover/head', 'group-has-[:focus-visible]/head', 'phone', 'touch']) {
     expect(open.className).toContain(`${v}:opacity-100`)
   }
 })
