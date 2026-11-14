@@ -50,7 +50,9 @@ export function ImageManager({
   // Unmounted mid-upload (the editor itself stays): don't leave "Fertig"/"Anlegen" held for good.
   const uploadingChange = useRef(onUploadingChange)
   uploadingChange.current = onUploadingChange
-  useEffect(() => () => uploadingChange.current?.(false), [])
+  useEffect(() => {
+    return () => uploadingChange.current?.(false)
+  }, [])
 
   const inputRef = useRef<HTMLInputElement>(null)
   const mainTrigger = useRef<HTMLButtonElement>(null)
