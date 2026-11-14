@@ -507,7 +507,6 @@ describe('RecipeEditorRoute · Anlegen', () => {
 
   const titleInput = () => screen.getByLabelText('Titel') as HTMLInputElement
   const anlegen = () => screen.getByRole('button', { name: 'Anlegen' })
-  const verwerfen = () => screen.getByRole('link', { name: 'Verwerfen' })
 
   async function startCreate() {
     fireEvent.change(titleInput(), { target: { value: 'Neu' } })
@@ -525,8 +524,6 @@ describe('RecipeEditorRoute · Anlegen', () => {
     expect(screen.getByRole('button', { name: /abschnitt hinzufügen/i }).matches(':disabled')).toBe(true)
     expect(screen.getByLabelText('Bild hochladen').matches(':disabled')).toBe(true)
     expect(anlegen().getAttribute('aria-disabled')).toBe('true')
-    expect(verwerfen().getAttribute('aria-disabled')).toBe('true')
-    fireEvent.click(verwerfen())
     fireEvent.click(anlegen())
     expect(createRecipe).toHaveBeenCalledTimes(1)
     expect(screen.queryByText('List')).toBeNull()
@@ -537,14 +534,15 @@ describe('RecipeEditorRoute · Anlegen', () => {
     expect(screen.getByRole('button', { name: 'Fertig' })).toBeTruthy()
   })
 
-  it('unlocks the form and shows the error when creating fails', async () => {
+  it('unlocks the form and reports the error by toast when creating fails', async () => {
     const { pending } = deferredCreate()
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => 0)
     renderNew()
     await startCreate()
 
     await act(async () => pending[0].reject(new Error('Anlegen fehlgeschlagen')))
 
-    expect(await screen.findByText('Anlegen fehlgeschlagen')).toBeTruthy()
+    expect(error).toHaveBeenCalledWith('Rezept konnte nicht angelegt werden: Anlegen fehlgeschlagen')
     expect(titleInput().matches(':disabled')).toBe(false)
     expect(anlegen().getAttribute('aria-disabled')).toBe('false')
   })
@@ -579,7 +577,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
     await screen.findByText('Elsewhere')
     await act(async () => pending[0].reject(new Error('Anlegen fehlgeschlagen')))
 
-    expect(error).toHaveBeenCalledWith('Rezept konnte nicht angelegt werden.')
+    expect(error).toHaveBeenCalledWith('Rezept konnte nicht angelegt werden: Anlegen fehlgeschlagen')
     expect(screen.getByText('Elsewhere')).toBeTruthy()
   })
 })

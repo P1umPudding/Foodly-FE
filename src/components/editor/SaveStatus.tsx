@@ -1,37 +1,41 @@
 import { Button } from '@postxl/ui-components'
-import { AlertTriangle, Check, Loader2 } from 'lucide-react'
+import { AlertTriangle, CircleCheck, Loader2, RotateCw } from 'lucide-react'
 import type { SaveStatus } from '../../editor/useAutosave'
 
-const time = (at: number) => new Date(at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
-
+// Sits in the shell header next to "Fertig" (mockup `.saved`). On the phone only the icon shows; the text stays for
+// screen readers, and the retry stays reachable as an icon button.
 export function SaveStatusIndicator({ status, onRetry }: { status: SaveStatus; onRetry: () => void }) {
   if (status.state === 'error') {
     return (
       // role="alert": a failed save (e.g. after "Fertig") must reach screen readers too.
-      <span role="alert" className="flex items-center gap-2 text-destructive">
-        <AlertTriangle className="h-4 w-4" />
-        Nicht gespeichert
-        <Button variant="outline" size="sm" onClick={onRetry}>
-          Erneut versuchen
+      <span role="alert" className="flex items-center gap-2 text-sm text-destructive">
+        <AlertTriangle className="size-4 shrink-0" />
+        <span className="phone:sr-only">Nicht gespeichert</span>
+        <Button
+          variant="outline"
+          size="sm"
+          aria-label="Erneut versuchen"
+          onClick={onRetry}
+          className="touch:h-10 phone:size-10 phone:px-0"
+        >
+          <RotateCw className="hidden size-4 phone:inline" />
+          <span className="phone:hidden">Erneut versuchen</span>
         </Button>
       </span>
     )
   }
   if (status.state === 'saving') {
     return (
-      <span className="flex items-center gap-2 text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Speichert …
+      <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Loader2 className="size-4 shrink-0 animate-spin" />
+        <span className="phone:sr-only">Speichert …</span>
       </span>
     )
   }
-  if (status.state === 'saved' && status.at !== null) {
-    return (
-      <span className="flex items-center gap-2 text-muted-foreground">
-        <Check className="h-4 w-4 text-success" />
-        Automatisch gesichert {time(status.at)}
-      </span>
-    )
-  }
-  return <span className="text-muted-foreground">Änderungen werden automatisch gesichert</span>
+  return (
+    <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+      <CircleCheck className="size-4 shrink-0" />
+      <span className="phone:sr-only">Gespeichert</span>
+    </span>
+  )
 }

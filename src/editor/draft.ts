@@ -164,3 +164,9 @@ export function move<T extends { key: number }>(rows: T[], key: number, delta: -
   ;[next[from], next[to]] = [next[to], next[from]]
   return next
 }
+
+// Applied to the current draft per finished upload, so a batch of uploads (or an edit made meanwhile) never works
+// from a stale copy: the first image becomes the main one while there is none.
+export function addImage<T extends Pick<Draft, 'mainImage' | 'images'>>(draft: T, image: ImageRef): T {
+  return draft.mainImage === null ? { ...draft, mainImage: image } : { ...draft, images: [...draft.images, image] }
+}

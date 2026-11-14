@@ -119,7 +119,7 @@ describe('RecipeEditor · edit', () => {
     const file = new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })
     fireEvent.change(screen.getByLabelText('Bild hochladen'), { target: { files: [file] } })
 
-    await waitFor(() => expect(screen.getByAltText('Hauptbild')).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Hauptbild' })).toBeTruthy())
     await waitFor(() => expect(update).toHaveBeenCalledTimes(1), { timeout: 3000 })
     expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ mainImage: 77, images: [] }))
   })
