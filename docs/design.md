@@ -201,7 +201,7 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
   an der klickbaren Fläche, nicht am Symbol (Icon-Buttons `size="icon"`). Mit Maus bleibt die Dichte. Layout hängt an
   der Breite (`phone:`), Tippflächen und Eingabe-Schrift an `touch:` (Daniel, 2026-11-13, Phase 6).
 - Eingabefelder auf Touch mit 16 px (sonst zoomt iOS beim Fokus); Zoomen der Seite nie sperren.
-- Feste Leisten unten (Tab-Leiste, FAB, Editor-Leiste, Sheets) halten `env(safe-area-inset-bottom)` frei; Sheets in
+- Feste Leisten unten (Tab-Leiste, FAB, Sheets) halten `env(safe-area-inset-bottom)` frei; Sheets in
   `dvh`, ihre Aktionen bleiben über der Bildschirmtastatur.
 - Unterseiten mit eigener Abschluss-Aktion (Editor „Fertig“, Koch-Modus) zeigen auf dem Handy keine Tab-Leiste.
 - Popover mit Inhalt (Filter, Timer, Formulare) werden auf dem Handy zu Bottom-Sheets mit Griff, Titel linksbündig
