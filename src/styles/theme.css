@@ -46,6 +46,7 @@
   --success: hsl(161.4 93.5% 30.4%);
   --warning: hsl(32.1 94.6% 43.7%);
   --star: oklch(0.78 0.15 75); /* rating stars */
+  --skel: oklch(0.94 0 0); /* skeleton base; the shimmer runs over --muted (mockup dir-a.css) */
 
   /* lines / focus */
   --border: oklch(0.91 0 0);
@@ -125,6 +126,7 @@
   --success: hsl(160.1 84.1% 39.4%);
   --warning: hsl(37.7 92.1% 50.2%);
   --star: oklch(0.82 0.14 80);
+  --skel: oklch(0.24 0 0);
 
   --border: oklch(0.29 0 0);
   --border-strong: oklch(0.4 0 0);

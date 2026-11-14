@@ -10,7 +10,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Skeleton,
   Toggle,
   Tooltip,
   TooltipContent,
@@ -18,6 +17,7 @@ import {
   buttonVariants,
   cn,
 } from '@postxl/ui-components'
+import { Skeleton } from '../components/Skeleton'
 import { foodly } from '../api'
 import { errorMessage } from '../lib/errorMessage'
 import { useRequest } from '../hooks/useRequest'

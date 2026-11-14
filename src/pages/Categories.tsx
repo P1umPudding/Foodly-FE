@@ -10,12 +10,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Skeleton,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   cn,
 } from '@postxl/ui-components'
+import { Skeleton } from '../components/Skeleton'
 import { ArrowDown, ArrowUp, EllipsisVertical, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useCategories } from '../catalog/CatalogProvider'
 import { useCategoryActions } from '../catalog/useCategoryActions'

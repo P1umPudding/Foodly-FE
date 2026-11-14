@@ -7,11 +7,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Skeleton,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@postxl/ui-components'
+import { Skeleton } from '../components/Skeleton'
 import { FolderOpen, MoreHorizontal, Pencil, SearchX } from 'lucide-react'
 import { useCategories, useCurrentUserId } from '../catalog/CatalogProvider'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'

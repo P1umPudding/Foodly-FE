@@ -76,6 +76,7 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-star: var(--star);
+  --color-skel: var(--skel);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-input: var(--input);
@@ -146,6 +147,16 @@
   --text-xl--line-height: 26px;
   --text-2xl: 26px;
   --text-2xl--line-height: 32px;
+}
+
+/* Skeleton shimmer (mockup base.css .skel): the gradient is twice as wide as the box and slides across it. */
+@theme {
+  --animate-shimmer: shimmer 1.4s linear infinite;
+  @keyframes shimmer {
+    to {
+      background-position: -200% 0;
+    }
+  }
 }
 
 /* Themed document defaults. Preflight already reset margins. */

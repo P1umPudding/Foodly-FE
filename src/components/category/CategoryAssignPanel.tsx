@@ -2,7 +2,8 @@
 // Every toggle saves at once; the state lives in RecipeCategoryChips (see there).
 import { useEffect, useRef, type FormEvent } from 'react'
 import { Loader2 } from 'lucide-react'
-import { Button, Input, Skeleton, cn } from '@postxl/ui-components'
+import { Button, Input, cn } from '@postxl/ui-components'
+import { Skeleton } from '../Skeleton'
 import { RetryAlert } from '../RetryAlert'
 import { FilterCheckRow } from '../list/filters/FilterCheckRow'
 import { CategoryLabel } from '../list/filters/CategoryFilter'

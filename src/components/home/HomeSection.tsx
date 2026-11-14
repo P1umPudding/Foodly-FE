@@ -3,7 +3,7 @@
 // render on, with state="loading" while fetching: a section that mounts late lets the "nothing to show" card
 // show until it reports.
 import { useId, type ReactNode } from 'react'
-import { Skeleton } from '@postxl/ui-components'
+import { Skeleton } from '../Skeleton'
 import { RetryAlert } from '../RetryAlert'
 import { SectionHeader } from '../SectionHeader'
 import { useReportSection, type SectionState } from './HomeSections'

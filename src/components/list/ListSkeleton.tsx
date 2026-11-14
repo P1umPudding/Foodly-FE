@@ -1,5 +1,5 @@
 // Loading placeholders of the recipe list and the category page, in the shape of the chosen view.
-import { Skeleton } from '@postxl/ui-components'
+import { Skeleton } from '../Skeleton'
 import type { DetailView } from '../../list/state'
 import { TILE_META_TEXT, TILE_TITLE_TEXT } from '../recipe/RecipeTile'
 import { GroupIndent, TileGrid } from './RecipeListView'

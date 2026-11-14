@@ -1,5 +1,5 @@
 import { Clock, Folder, ListChecks, Tag as TagIcon, Users } from 'lucide-react'
-import { Skeleton } from '@postxl/ui-components'
+import { Skeleton } from '../Skeleton'
 import type { ListState } from '../../list/state'
 import { filterLabels } from '../../list/filterLabels'
 import { UNCATEGORIZED_ID } from '../../list/filter'
