@@ -71,8 +71,8 @@ function routes(): ReactNode {
   )
 }
 
-function renderMemory(entries: string[]) {
-  vi.spyOn(foodly, 'getRecipe').mockImplementation(async (id) => recipe(id))
+function renderMemory(entries: string[], name?: string) {
+  vi.spyOn(foodly, 'getRecipe').mockImplementation(async (id) => ({ ...recipe(id), ...(name && { name }) }))
   render(
     <ThemeProvider>
       <TooltipProvider>
@@ -107,6 +107,12 @@ afterEach(() => {
 })
 
 describe('RecipeDetail · Zurück', () => {
+  it('shows "Rezepte / <name>" in the header when opened directly (#228 AC1)', async () => {
+    renderMemory(['/recipes/1'], 'Spaghetti Bolognese')
+    await screen.findByRole('heading', { name: 'Spaghetti Bolognese' })
+    expect(screen.getByRole('navigation', { name: 'Pfad' }).textContent).toBe('Rezepte/Spaghetti Bolognese')
+  })
+
   it('has no back button in the content any more (#228)', async () => {
     renderMemory(['/recipes/5'])
     await screen.findByRole('heading', { name: 'Rezept 5' })

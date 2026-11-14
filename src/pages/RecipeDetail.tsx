@@ -185,8 +185,9 @@ export function RecipeDetail() {
                   </TooltipTrigger>
                   <TooltipContent>Weitere Aktionen</TooltipContent>
                 </Tooltip>
+                {/* The dialog opened from the menu takes focus itself; only a plain close (Escape) returns it to ⋯. */}
                 <DropdownMenuContent
-                  align="end" // The dialog opened from the menu takes focus itself; only a plain close (Escape) returns it to ⋯.
+                  align="end"
                   onCloseAutoFocus={(e) => {
                     if (openingDelete.current) e.preventDefault()
                     openingDelete.current = false

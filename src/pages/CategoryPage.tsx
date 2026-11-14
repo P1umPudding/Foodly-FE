@@ -104,6 +104,7 @@ function CategoryHead({ category }: { category: UserCategory }) {
   // Where focus goes once the dialog closes: the button or the header ⋯ that opened it.
   const returnFocus = useRef<HTMLButtonElement | null>(null)
   const moreTrigger = useRef<HTMLButtonElement>(null)
+  const openingDialog = useRef(false)
   const openDialog = (opener: HTMLButtonElement | null) => {
     returnFocus.current = opener
     setDialog({ open: true, key: ++openings.current })
@@ -144,9 +145,22 @@ function CategoryHead({ category }: { category: UserCategory }) {
             </TooltipTrigger>
             <TooltipContent>Weitere Aktionen</TooltipContent>
           </Tooltip>
-          {/* The dialog decides where focus goes once it closes. */}
-          <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-            <DropdownMenuItem className="gap-2" onSelect={() => openDialog(moreTrigger.current)}>
+          {/* Opened via "Bearbeiten", the dialog decides where focus goes once it closes; a plain close (Escape,
+              click outside) returns it to ⋯. */}
+          <DropdownMenuContent
+            align="end"
+            onCloseAutoFocus={(e) => {
+              if (openingDialog.current) e.preventDefault()
+              openingDialog.current = false
+            }}
+          >
+            <DropdownMenuItem
+              className="gap-2"
+              onSelect={() => {
+                openingDialog.current = true
+                openDialog(moreTrigger.current)
+              }}
+            >
               <Pencil aria-hidden className="size-4" />
               Bearbeiten
             </DropdownMenuItem>

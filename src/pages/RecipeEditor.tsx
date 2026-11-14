@@ -108,8 +108,8 @@ export function RecipeEditor() {
     }
   }, [])
 
-  // "Zurück" on the detail page walks back through history, so Fertig must not leave the editor behind the detail:
-  // otherwise Zurück -> editor -> Fertig -> detail -> Zurück would loop and never reach the list. `fromDetail` is
+  // The header's back arrow on the detail page walks back through history, so Fertig must not leave the editor behind
+  // the detail: otherwise Zurück -> editor -> Fertig -> detail -> Zurück would loop and never reach the list. `fromDetail` is
   // set only by RecipeDetail's Bearbeiten link, so the entry right behind this one is that detail page.
   const openedFromDetail = (location.state as { fromDetail?: unknown } | null)?.fromDetail === true
   const hasAppHistory = useHasAppHistory()

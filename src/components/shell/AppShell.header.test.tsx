@@ -1,6 +1,6 @@
 // The header on subpages (#228): back arrow, "<origin> / <name>" and the page's actions.
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes, useParams } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppShell } from './AppShell'
@@ -42,11 +42,24 @@ function DetailProbe() {
       <p>detail {id}</p>
       <Link to="/categories/2">open category</Link>
       <Link to="/recipes/3">open other</Link>
+      <ReplaceButton />
     </>
   )
 }
 
-function renderAt(entries: string[]) {
+// Like the size stepper: a replace on the same page.
+function ReplaceButton() {
+  const navigate = useNavigate()
+  return (
+    <button type="button" onClick={() => navigate('?factor=2', { replace: true })}>
+      replace entry
+    </button>
+  )
+}
+
+type Entry = string | { pathname: string; key: string }
+
+function renderAt(entries: Entry[]) {
   return render(
     <ThemeProvider>
       <TooltipProvider>
@@ -111,6 +124,20 @@ describe('AppShell header on subpages', () => {
     fireEvent.click(screen.getByRole('link', { name: 'open category' }))
     fireEvent.click(header().getByRole('link', { name: 'Zurück' }))
     expect(crumbText()).toBe('Start/Spaghetti Bolognese')
+  })
+
+  it('keeps the origin when the entry is replaced (size change)', () => {
+    renderAt(['/'])
+    fireEvent.click(screen.getByRole('link', { name: 'open recipe' }))
+    fireEvent.click(screen.getByRole('button', { name: 'replace entry' }))
+    expect(crumbText()).toBe('Start/Spaghetti Bolognese')
+  })
+
+  it('remembers the origin across a reload (same history key)', () => {
+    sessionStorage.setItem('foodly.origin', JSON.stringify({ k1: { label: 'Favoriten', href: '/categories/2' } }))
+    renderAt([{ pathname: '/recipes/1', key: 'k1' }])
+    expect(crumbText()).toBe('Favoriten/Spaghetti Bolognese')
+    expect(header().getByRole('link', { name: 'Favoriten' }).getAttribute('href')).toBe('/categories/2')
   })
 
   it('puts the page actions into the header', () => {
