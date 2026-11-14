@@ -339,7 +339,11 @@ describe('RecipeDetail actions', () => {
     const primary = [...document.querySelectorAll('a, button')].filter((el) => classesOf(el).includes('bg-primary'))
     expect(primary.map((el) => el.textContent?.trim())).toEqual(['Kochen'])
     const edit = screen.getByRole('link', { name: 'Bearbeiten' })
-    expect(edit.className).toContain(buttonVariants({ variant: 'outline', size: 'sm' }))
+    // The outline variant's own tokens (gap-2 is merged away by the link's gap-1.5).
+    const outline = buttonVariants({ variant: 'outline' })
+      .split(' ')
+      .filter((c) => !c.startsWith('gap-') && !/^(h|px|py)-/.test(c) && !c.startsWith('has-'))
+    expect(classesOf(edit)).toEqual(expect.arrayContaining(outline))
     expect(screen.getByRole('button', { name: 'Weitere Aktionen' })).toBeTruthy()
   })
 
