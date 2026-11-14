@@ -1,6 +1,7 @@
 // The start page: greeting plus the sections (D2–D4). While no section has content it shows the
 // "nothing to show" card instead.
 import { useMe } from '../catalog/CatalogProvider'
+import { PageTitle } from '../components/PageTitle'
 import { Page } from '../components/shell/Page'
 import { CategoryTiles } from '../components/home/CategoryTiles'
 import { HomeSectionsProvider, NothingToShow } from '../components/home/HomeSections'
@@ -14,9 +15,11 @@ export function Home() {
     <HomeSectionsProvider>
       {/* Phone bottom padding clears the shell's "+" button (#74), as on the list. */}
       <Page className="flex flex-col gap-8 pb-10 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]">
-        <div className="flex flex-col gap-1">
-          <p className="text-muted-foreground">{formatHomeDate(new Date())}</p>
-          <h1 className="font-display text-4xl text-foreground">{greeting(me?.name)}</h1>
+        <div className="mt-2 flex flex-col phone:mt-0">
+          {/* Subtle although this is small text (design.md: subtle is below AA there): #242 names it explicitly, as
+              in the mockup. */}
+          <p className="text-sm/[1.5] font-medium text-subtle-foreground">{formatHomeDate(new Date())}</p>
+          <PageTitle>{greeting(me?.name)}</PageTitle>
         </div>
         {/* Sections, each a HomeSection. */}
         <CategoryTiles />
