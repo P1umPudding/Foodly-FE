@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
-import { TriggerButton } from '../components/TriggerButton'
+import { PANEL_TITLE, PanelCloseButton, PanelHead } from '../components/PanelHead'
 import { ResponsivePanel } from '../components/ResponsivePanel'
 import { useTimers } from './TimerProvider'
 import { useTimerPanel } from './TimerPanelContext'
@@ -96,21 +96,15 @@ export function TimerPanel() {
       {(variant) =>
         variant === 'popover' ? (
           <>
-            {/* Popover head until the shared sheet/popover head (#239) lands; the phone sheet brings its own. */}
-            <div className="flex items-center justify-between px-4 pt-3.5 pb-1.5">
-              {/* 16 px/650 from the mockup's sheet head: the compact text scale has no 16 px step. */}
-              <h2 className="text-[16px] font-[650]">Timer</h2>
-              {/* No tooltip, like the sheet's ✕: the popover focuses this button on open, which would pop one up. */}
-              <TriggerButton
-                variant="ghost"
-                size="iconSm"
-                aria-label="Schließen"
-                onClick={() => setOpen(false)}
-                className="touch:size-10"
-              >
-                <X className="size-4" />
-              </TriggerButton>
-            </div>
+            {/* The phone sheet brings this head itself (BottomSheet). */}
+            <PanelHead
+              title={<h2 className={PANEL_TITLE}>Timer</h2>}
+              close={
+                <PanelCloseButton onClick={() => setOpen(false)}>
+                  <X />
+                </PanelCloseButton>
+              }
+            />
             <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-1.5 pb-4">{body}</div>
           </>
         ) : (
