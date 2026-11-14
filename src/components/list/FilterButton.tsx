@@ -81,7 +81,7 @@ export function FilterButton({
             children
           ) : (
             <>
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">{children}</div>
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-1.5 pb-4">{children}</div>
               {/* Closes only: changes apply as they are made. */}
               <div className="border-t px-4 py-3">
                 <Button asChild className="w-full phone:h-10">

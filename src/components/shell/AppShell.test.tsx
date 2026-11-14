@@ -418,6 +418,7 @@ describe('Timer button in the header', () => {
 
   it('closes the desktop popover from its ✕ and returns focus to the header button', async () => {
     const panel = await openPopover()
+    expect(within(panel).getByRole('heading', { name: 'Timer' })).toBeTruthy()
     fireEvent.click(within(panel).getByRole('button', { name: 'Schließen' }))
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
     await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
