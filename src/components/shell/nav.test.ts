@@ -33,6 +33,16 @@ describe('listHref', () => {
       '/recipes?cat=3&sort=rating&view=compact&group=0',
     )
   })
+
+  it('filters by role and keeps the prefs', () => {
+    const params = new URLSearchParams(
+      listHref([], { ...defaults, sortKey: 'work', sortDir: 'desc' }, 'owner').split('?')[1],
+    )
+    expect(params.get('role')).toBe('owner')
+    expect(params.get('sort')).toBe('work')
+    expect(params.get('dir')).toBe('desc')
+    expect(params.get('group')).toBe('1')
+  })
 })
 
 describe('navPrefs', () => {
