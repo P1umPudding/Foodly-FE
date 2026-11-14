@@ -74,6 +74,14 @@ describe('CategoryPage', () => {
     expect(screen.getByRole('link', { name: 'Zu den Rezepten' })).toBeTruthy()
   })
 
+  it('asks for a recipe in its search, like the list', () => {
+    catalog.categories = { status: 'ready', list: [CATEGORY] }
+    render(page())
+    expect(screen.getByRole('textbox', { name: 'In „Favoriten“ suchen' }).getAttribute('placeholder')).toBe(
+      'Rezept suchen',
+    )
+  })
+
   it('has a generic h1 while the categories load', () => {
     catalog.categories = { status: 'loading', list: [] }
     render(page())

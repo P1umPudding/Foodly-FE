@@ -122,6 +122,13 @@ describe('category dots and tags', () => {
     expect(container.querySelector('.phone\\:hidden')).toBeTruthy()
   })
 
+  it.each([false, true])('compact=%s shows at most two tags as chips', (compact) => {
+    renderRow({ ...base, tags: ['Vegan', 'Scharf', 'Schnell'] }, { compact })
+    expect(screen.getByText('Vegan').parentElement!.className).toContain('bg-tag')
+    expect(screen.getByText('Scharf').parentElement!.className).toContain('bg-tag')
+    expect(screen.queryByText('Schnell')).toBeNull()
+  })
+
   it('no tags → no empty tag wrapper', () => {
     const { container } = renderRow(base, { compact: true })
     expect(container.querySelector('.phone\\:hidden')).toBeNull()

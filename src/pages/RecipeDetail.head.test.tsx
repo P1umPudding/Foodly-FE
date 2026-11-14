@@ -106,14 +106,31 @@ describe('RecipeDetail head layout', () => {
     expect(within(dialog).getByText(/1\s*\/\s*2/)).toBeTruthy()
   })
 
-  it('gallery tiles open the lightbox after the hero', async () => {
+  it('gallery tiles open the lightbox at their own image, the main image included', async () => {
     Element.prototype.scrollTo ??= vi.fn()
     renderDetail('/recipes/5', { 5: recipe({ mainImage: ref(3), images: [ref(4), ref(5)] }) })
     await heading()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Bild 5' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Foto 3 groß ansehen' }))
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText(/3\s*\/\s*3/)).toBeTruthy()
+  })
+
+  it('the gallery sits below the sections and above the source', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ mainImage: ref(3), images: [ref(4)], source: 'Oma' }) })
+    await heading()
+
+    const fotos = screen.getByRole('heading', { name: 'Fotos' })
+    const follows = (a: Node, b: Node) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(follows(screen.getByText('Zutaten'), fotos)).toBe(true)
+    expect(follows(fotos, screen.getByText(/Quelle:/))).toBe(true)
+  })
+
+  it('a single image is only the hero: no gallery', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ mainImage: ref(3) }) })
+    await heading()
+
+    expect(screen.queryByRole('heading', { name: 'Fotos' })).toBeNull()
   })
 
   it('without a photo: no image, no placeholder, no gallery, a narrower head and a larger title', async () => {
@@ -123,6 +140,7 @@ describe('RecipeDetail head layout', () => {
     expect(container.querySelector('img')).toBeNull()
     expect(screen.queryByTestId('image-fallback')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Foto groß ansehen' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Fotos' })).toBeNull()
     expect(classesOf(header())).toContain('max-w-[720px]')
     expect(classesOf(title)).toContain('text-[32px]')
   })
@@ -145,6 +163,13 @@ describe('RecipeDetail head layout', () => {
     expect(list.querySelector('svg')).toBeNull()
     // No time and no other people: neither part leaves an empty element behind.
     expect(screen.queryByText(/^(von|mit)/)).toBeNull()
+  })
+
+  it('shows all tags as chips in the head', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ tags: ['Vegan', 'Scharf', 'Schnell'] }) })
+    await screen.findByRole('heading', { level: 1, name: 'Pancakes' })
+    for (const tag of ['Vegan', 'Scharf', 'Schnell'])
+      expect(screen.getByText(tag).parentElement!.className).toContain('bg-tag')
   })
 
   it('has no inline styles in the head', async () => {

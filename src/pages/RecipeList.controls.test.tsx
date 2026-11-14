@@ -46,6 +46,12 @@ describe('RecipeList controls on desktop', () => {
     expect(focus).toHaveBeenCalledWith({ preventScroll: true })
   })
 
+  it('asks for a recipe and shows a magnifier in the search', () => {
+    renderList()
+    expect(searchField().getAttribute('placeholder')).toBe('Rezept suchen')
+    expect(searchRow().querySelector('svg.lucide-search')).toBeTruthy()
+  })
+
   it('has the sort menu and the view toggles, but no direction button or criterion picker', () => {
     renderList()
     screen.getByRole('button', { name: /^Sortieren:/ })

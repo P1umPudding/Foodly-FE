@@ -1,6 +1,6 @@
 // The two view toggles next to the sort menu on desktop — view (compact/detailed/tiles) and layout
 // (by-category/flat), each its own segmented group, a gap apart.
-import { ToggleGroup, Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
+import { cn, ToggleGroup, Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import type { ListState } from '../../list/state'
 import { FocusToggleGroupItem } from './FocusToggleGroupItem'
 import { DETAIL_OPTIONS, LAYOUT_OPTIONS, type ViewOption } from './listOptions'
@@ -20,15 +20,15 @@ function ViewToggle<T extends string>({
   options: ViewOption<T>[]
   ariaLabel: string
 }) {
-  // A visible outline turns each pair into a clear segmented unit (otherwise the
-  // buttons are invisible at rest and the two groups blur together).
+  // Segment track as in the mockup (base.css .seg): 2 px around and between the segments, radius 8 outside and 6
+  // inside; the active segment is a card-coloured surface with a light shadow (flat in dark).
   return (
     <ToggleGroup
       type="single"
       value={value}
       onValueChange={(v) => v && onChange(v as T)}
       aria-label={ariaLabel}
-      className="rounded-md border border-border"
+      className="gap-0.5 rounded-lg bg-seg p-0.5"
     >
       {options.map((o) => {
         const selected = value === o.value
@@ -38,7 +38,10 @@ function ViewToggle<T extends string>({
               <FocusToggleGroupItem
                 value={o.value}
                 aria-label={o.label}
-                className={`px-2.5 ${selected ? 'bg-foreground/10 text-foreground' : ''}`}
+                className={cn(
+                  'h-8 rounded-md px-3 text-muted-foreground hover:bg-transparent hover:text-foreground',
+                  selected && 'bg-card text-foreground shadow-seg hover:bg-card',
+                )}
               >
                 <o.Icon className="h-4 w-4" />
               </FocusToggleGroupItem>

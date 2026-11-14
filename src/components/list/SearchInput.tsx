@@ -1,8 +1,8 @@
 import { Button, Input } from '@postxl/ui-components'
 import type { Ref } from 'react'
-import { X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 
-// Text input with a built-in clear button — shared by the page search and the
+// Text input with a magnifier and a built-in clear button — shared by the page search and the
 // tag/ingredient field searches so the clear affordance and (default, visible)
 // focus ring live in one place.
 export function SearchInput({
@@ -25,6 +25,10 @@ export function SearchInput({
 }) {
   return (
     <div className={`relative ${className}`}>
+      <Search
+        aria-hidden
+        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+      />
       {/* 40 px on phones like every tap target there (docs/design.md §7). */}
       <Input
         ref={inputRef}
@@ -32,7 +36,7 @@ export function SearchInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pr-9 phone:h-10"
+        className="w-full pl-9 pr-9 phone:h-10"
       />
       {value !== '' && (
         <Button

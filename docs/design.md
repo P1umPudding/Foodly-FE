@@ -36,12 +36,16 @@ gilt: nichts Neues im alten Stil bauen.
 |---|---|
 | `bg-background` | Seite |
 | `bg-card` + `border` | Karten, Listen-Container, Eingabeflächen |
-| `bg-muted` / `bg-secondary` | ruhige Flächen: Segment-Schalter, Tags, Skeletons, Foto-Platzhalter |
+| `bg-muted` / `bg-secondary` | ruhige Flächen: Skeletons, Foto-Platzhalter |
+| `bg-tag` | Tag-Chips (`TagChip`) |
+| `bg-seg` + `shadow-seg` | Segment-Schalter: Spur `bg-seg`, aktives Segment `bg-card` mit `shadow-seg` (dunkel ohne Schatten) |
 | `bg-accent` | Hover-Fläche von Zeilen und Ghost-Buttons |
+| `bg-hover` | Hover-Fläche der Filterknöpfe und des Links „Alle Filter zurücksetzen“ (Mockup `--hover`) |
 | `text-foreground` | Text, Titel, Icons in Aktionen |
 | `text-muted-foreground` | Sekundärtext (Untertitel, Beschreibungen) und Meta: Zähler („14 Rezepte“), Zeiten, selbst gerenderte Platzhalter |
-| `text-subtle-foreground` | nur Nicht-Text (Fortschrittsbalken eines pausierten Timers); kein AA für kleinen Text – nur Nicht-Text und großer Text (≥ 3:1, Ausnahme siehe unten) |
-| `border-border` (Standard) / `border-border-strong` | Haarlinie / Hover- und Checkbox-Rand |
+| `text-subtle-foreground` | nur Nicht-Text und großer Text (kein AA für kleinen Text, ≥ 3:1, Ausnahme siehe unten): Fortschrittsbalken eines pausierten Timers, Icons und Chevron der Filterknöpfe, Rahmen des geöffneten Filterknopfs |
+| `border-border` (Standard) / `border-border-strong` | Haarlinie (auch das ✕ im Filterknopf) / Hover- und Checkbox-Rand, aktiver Filterknopf |
+| `border-divider` | leise Trennlinie zwischen Listenzeilen und Abschnitten (Mockup `--divider`, schwächer als `border`); genutzt ab V3 #229 |
 | `bg-sidebar`, `bg-sidebar-accent` | Seitenleiste, aktiver Navigationspunkt |
 | `bg-primary text-primary-foreground` | **eine** Hauptaktion pro Ansicht („Neues Rezept“, „Speichern“) |
 | `text-star` | Bewertungssterne |
@@ -88,7 +92,8 @@ dem Shell-/Detail-Issue (Override von `--text-base` unter 761 px), weil die heut
 
 Zahlen, die sich vergleichen lassen (Zeiten, Mengen, Zähler), mit `tabular-nums`. Keine weiteren Größen; Ausnahmen sind
 der Koch-Modus (großer Schritttext, siehe Redesign-README) und die Kacheln (`RecipeTile`): Titel 17 px / 700
-(Handy `text-lg`), Name der Typo-Kachel 22 px / 750 (Handy 17 px), beide nur dort. Außerdem: Eingabefelder auf
+(Handy `text-lg`), Name der Typo-Kachel 22 px / 750 (Handy 17 px), beide nur dort. Ebenso das „+N“ auf der letzten
+Galerie-Kachel im Rezept-Detail (`RecipeImages`): 20 px / 600, nur dort. Außerdem: Eingabefelder auf
 Touch 16 px (`pointer: coarse`, sonst zoomt iOS beim Fokus). Das regelt eine zentrale Regel in `styles.css`, keine
 Klassen pro Feld; sie gilt auch bei der geplanten Handy-Grundschrift 15 px. Felder mit `text-xl` und größer
 behalten ihre Größe.

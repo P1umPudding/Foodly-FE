@@ -51,6 +51,14 @@
   --border: oklch(0.91 0 0);
   --border-strong: oklch(0.8 0 0); /* hover border, checkbox outline */
   --input: oklch(0.91 0 0);
+  --divider: oklch(0.93 0 0); /* quieter than --border: between list rows and sections */
+
+  /* quiet fills of the redesign building blocks (dir-a.css) */
+  --hover: oklch(0.955 0 0); /* hover fill of filter and link buttons */
+  --tag-bg: oklch(0.95 0 0);
+  --seg-bg: oklch(0.94 0 0); /* segment track */
+  --seg-shadow: 0 1px 2px rgb(0 0 0 / 0.08); /* active segment */
+
   /* ≥ 3:1 at full alpha on every surface (WCAG 1.4.11); styles.css lifts postxl's ring-ring/50 to it (#77) */
   --ring: oklch(0.2 0 0 / 0.5);
 
@@ -122,6 +130,13 @@
   --border-strong: oklch(0.4 0 0);
   --input: oklch(0.29 0 0);
   --ring: oklch(0.95 0 0 / 0.4);
+  --divider: oklch(0.255 0 0);
+
+  --hover: oklch(0.235 0 0);
+  --tag-bg: oklch(0.25 0 0);
+  --seg-bg: oklch(0.25 0 0);
+  /* Flat, not `none`: `none` inside Tailwind's combined box-shadow list voids it, focus ring included. */
+  --seg-shadow: 0 0 #0000;
 
   --sidebar: oklch(0.155 0 0);
   --sidebar-foreground: oklch(0.95 0 0);
