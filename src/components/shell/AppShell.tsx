@@ -121,7 +121,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Moving or resizing this button? The phone bottom padding of RecipeList's and CategoryPage's wrappers
             and of Home must still clear its top edge (#74). */}
           {!isDesktop && (pathname === '/recipes' || pathname === '/' || isCategoryPage(pathname)) && (
-            <Button asChild size="icon" className="fixed right-4 bottom-20 z-40 size-13 rounded-full shadow-[0_6px_20px_rgb(0_0_0/0.22)]">
+            <Button
+              asChild
+              size="icon"
+              className="fixed right-4 bottom-20 z-40 size-13 rounded-full shadow-[0_6px_20px_rgb(0_0_0/0.22)]"
+            >
               <Link to="/recipes/new" aria-label="Neues Rezept">
                 <Plus className="size-6" />
               </Link>
