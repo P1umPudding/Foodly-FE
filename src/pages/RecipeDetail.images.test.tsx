@@ -70,7 +70,8 @@ describe('RecipeDetail images', () => {
     await screen.findByRole('heading', { name: 'Pancakes' })
     expect(screen.getByText('Warm servieren')).toBeTruthy()
     const srcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
-    expect(srcs).toEqual(['/api/v1/images/ab12', '/api/v1/images/h4', '/api/v1/images/h5'])
+    // The gallery's first tile repeats the main image (viewer order, as in the mockup).
+    expect(srcs).toEqual(['/api/v1/images/ab12', '/api/v1/images/ab12', '/api/v1/images/h4', '/api/v1/images/h5'])
     expect(screen.getByAltText('Pancakes').getAttribute('src')).toBe('/api/v1/images/ab12')
   })
 

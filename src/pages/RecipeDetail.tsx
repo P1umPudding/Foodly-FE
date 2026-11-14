@@ -297,8 +297,6 @@ export function RecipeDetail() {
             </div>
           </header>
 
-          <RecipeImages images={allImages.slice(1)} onOpen={(i) => setLightboxIndex(i + 1)} />
-
           {recipe.sections.map((section, k) => (
             <SectionBlock
               key={section.id}
@@ -312,6 +310,8 @@ export function RecipeDetail() {
               onToggle={toggleChecked}
             />
           ))}
+
+          <RecipeImages images={allImages} onOpen={setLightboxIndex} />
 
           {recipe.source && (
             <footer className="mt-16 text-[0.95rem] text-foreground/75">
