@@ -194,7 +194,8 @@ export function RecipeDetail() {
                   }}
                 >
                   <DropdownMenuItem
-                    className="gap-2 text-destructive"
+                    variant="destructive"
+                    className="gap-2"
                     onSelect={() => {
                       openingDelete.current = true
                       setDeleteOpen(true)
