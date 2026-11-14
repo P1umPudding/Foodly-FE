@@ -148,7 +148,7 @@ describe('AppShell header on subpages', () => {
     const keys = Object.keys(JSON.parse(sessionStorage.getItem('foodly.origin')!) as object)
     expect(keys).toHaveLength(50)
     expect(keys[0]).toBe('k1')
-    expect(keys.at(-1)).not.toMatch(/^k\d+$/)
+    expect(keys[keys.length - 1]).not.toMatch(/^k\d+$/)
   })
 
   it('puts the page actions into the header', () => {
