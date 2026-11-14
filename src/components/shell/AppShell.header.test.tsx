@@ -72,6 +72,7 @@ function renderAt(entries: Entry[]) {
                 <Route path="/recipes/new" element={<p>editor page</p>} />
                 <Route path="/recipes/:id" element={<DetailProbe />} />
                 <Route path="/recipes/:id/edit" element={<p>editor page</p>} />
+                <Route path="/categories" element={<p>categories page</p>} />
                 <Route path="/categories/:id" element={<p>category page</p>} />
               </Routes>
             </AppShell>
@@ -172,6 +173,20 @@ describe('AppShell header on subpages', () => {
   it('shows "Neues Rezept" for a new recipe', () => {
     renderAt(['/recipes/new'])
     header().getByText('Neues Rezept')
+  })
+
+  it('titles /categories as a subpage, back leads to Start without history (#243)', () => {
+    renderAt(['/categories'])
+    header().getByText('Kategorien')
+    expect(screen.queryByRole('navigation', { name: 'Pfad' })).toBeNull()
+    expect(header().getByRole('link', { name: 'Zurück' }).getAttribute('href')).toBe('/')
+  })
+
+  it('keeps the /categories title on the phone', () => {
+    setViewport(390)
+    renderAt(['/categories'])
+    header().getByRole('link', { name: 'Zurück' })
+    header().getByText('Kategorien')
   })
 
   it('has no back arrow on main pages', () => {

@@ -1,7 +1,7 @@
-// Load states and the back link, against a stand-in catalog. The full flows run in mock mode: Categories.mock.test.tsx.
+// Load states and the page's own controls, against a stand-in catalog. The full flows run in mock mode: Categories.mock.test.tsx.
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { TooltipProvider } from '@postxl/ui-components'
+import { TooltipProvider, buttonVariants } from '@postxl/ui-components'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Categories } from './Categories'
 import type { UserCategory } from '../api/protocol'
@@ -30,7 +30,6 @@ function renderPage() {
       <MemoryRouter initialEntries={['/categories']}>
         <Routes>
           <Route path="/categories" element={<Categories />} />
-          <Route path="/recipes" element={<p>Rezeptliste</p>} />
         </Routes>
       </MemoryRouter>
     </TooltipProvider>,
@@ -76,12 +75,26 @@ describe('Categories page states', () => {
     expect(screen.getByText('1 Rezept')).toBeTruthy()
   })
 
-  it('goes back to the recipe list without app history', () => {
+  // #243: the mockup's `btn sm` — outline, small. Every own token of that variant, so a wrong size fails too (gap-*
+  // is merged away by the button's gap-1.5).
+  it('makes „Neue Kategorie“ a small outline button', () => {
+    catalog.categories.list = [
+      { id: 3, user: 1, name: 'Suppen', recipes: [7], order: 0, color: '#16a34a', colorLight: null, colorDark: null },
+    ]
     renderPage()
-    const back = screen.getByRole('link', { name: '← Zurück' })
-    expect(back.getAttribute('href')).toBe('/recipes')
-    fireEvent.click(back)
-    expect(screen.getByText('Rezeptliste')).toBeTruthy()
+    const expected = buttonVariants({ variant: 'outline', size: 'sm' })
+      .split(' ')
+      .filter((c) => c && !c.startsWith('gap-'))
+    const defaultSize = buttonVariants({ variant: 'outline' }).split(' ')
+    expect(expected.some((c) => !defaultSize.includes(c))).toBe(true)
+    const button = screen.getByRole('button', { name: 'Neue Kategorie' })
+    expect(button.className.split(' ')).toEqual(expect.arrayContaining(expected))
+  })
+
+  it('has no back button of its own (the shell header has it)', () => {
+    renderPage()
+    expect(screen.queryByRole('link', { name: /Zurück/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Zurück/ })).toBeNull()
   })
 
   describe('move items', () => {

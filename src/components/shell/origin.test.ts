@@ -7,22 +7,23 @@ describe('subpageOf', () => {
     expect(subpageOf('/categories/2')).toBe('category')
     expect(subpageOf('/recipes/7/edit')).toBe('editor')
     expect(subpageOf('/recipes/new')).toBe('editor')
+    expect(subpageOf('/categories')).toBe('settings')
   })
 
   it('leaves main pages and unknown routes alone', () => {
     expect(subpageOf('/')).toBeNull()
     expect(subpageOf('/recipes')).toBeNull()
-    expect(subpageOf('/categories')).toBeNull()
     expect(subpageOf('/recipes/7/cook')).toBeNull()
   })
 })
 
 describe('parentHref', () => {
-  it('leads the editor back to its recipe, everything else to the list', () => {
+  it('leads the editor back to its recipe, the categories to Start, everything else to the list', () => {
     expect(parentHref('/recipes/7/edit')).toBe('/recipes/7')
     expect(parentHref('/recipes/new')).toBe('/recipes')
     expect(parentHref('/recipes/7')).toBe('/recipes')
     expect(parentHref('/categories/2')).toBe('/recipes')
+    expect(parentHref('/categories')).toBe('/')
   })
 })
 
