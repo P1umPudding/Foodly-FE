@@ -4,7 +4,7 @@ import { TagText } from '../TagText'
 import { RatingMeta } from './Stars'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import { CategoryLine } from './CategoryDots'
-import { visibleRating } from '../../api/views'
+import { formatMinutes, visibleRating } from '../../api/views'
 import { recipeImageSrc } from '../../api/assets'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
 import { useImageFailed } from './failedImages'
@@ -26,6 +26,7 @@ export function RecipeTile({ recipe, categories = [] }: { recipe: Recipe; catego
   const { failed, onError } = useImageFailed(src)
   const photo = failed ? null : src
   const ownerName = recipe.owner !== me ? owner?.name : undefined
+  const time = formatMinutes(recipe.overallMinutes)
 
   return (
     <Link
@@ -63,10 +64,10 @@ export function RecipeTile({ recipe, categories = [] }: { recipe: Recipe; catego
         <div
           className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 text-muted-foreground phone:gap-x-2 ${TILE_META_TEXT}`}
         >
-          {recipe.time && (
-            <span className="inline-flex min-w-0 items-center gap-1">
+          {time && (
+            <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap tabular-nums">
               <Clock className="h-3.5 w-3.5 shrink-0" />
-              <TagText value={recipe.time} />
+              {time}
             </span>
           )}
           {rating !== null && <RatingMeta value={rating} />}
