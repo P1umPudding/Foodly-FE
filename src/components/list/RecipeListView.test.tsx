@@ -106,6 +106,14 @@ it('flat list (grouped=false): no category headers, every recipe once', () => {
   expect(screen.getAllByText('Loner').length).toBe(1)
 })
 
+it('sticks each category header right under the site header', () => {
+  renderView()
+  const head = screen.getByRole('button', { name: /Fav/i }).parentElement as HTMLElement
+  expect(head.className).toContain('group/head')
+  expect(head.className).toMatch(/\bsticky\b/)
+  expect(head.className).toContain('top-(--site-nav-h)')
+})
+
 function renderView(props: Partial<ComponentProps<typeof RecipeListView>> = {}) {
   return render(
     <TooltipProvider>

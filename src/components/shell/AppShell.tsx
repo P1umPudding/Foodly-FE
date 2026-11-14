@@ -27,7 +27,8 @@ const SIDEBAR_WIDTH = {
   expanded: { width: 'w-60', shellVar: '[--shell-left:15rem]' },
   collapsed: { width: 'w-16', shellVar: '[--shell-left:4rem]' },
 }
-const PHONE_SHELL_VAR = '[--shell-bottom:4rem]'
+// --site-nav-h: header height, which the list's group headers stick under; the desktop 60 px is the :root default.
+const PHONE_SHELL_VAR = '[--shell-bottom:4rem] [--site-nav-h:3.5rem]'
 // sonner applies mobileOffset only up to 600 px, so the offset has to follow our breakpoint instead.
 const PHONE_TOAST_OFFSET = { bottom: '5rem' }
 
@@ -76,11 +77,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Sidebar collapsed={collapsed} onCollapsedChange={setSidebarCollapsed} widthClass={sidebar.width} />
           )}
           <div className={cn('flex min-w-0 flex-1 flex-col', !isDesktop && 'pb-16')}>
-            {/* `site-header`: RecipeList measures this element for its sticky offsets (--site-nav-h). */}
             <header
               className={cn(
-                'site-header sticky top-0 z-50 flex items-center gap-3 border-b border-border/60 bg-background/85 backdrop-blur-md',
-                isDesktop ? 'h-15 px-8' : 'h-14 px-4',
+                'site-header sticky top-0 z-50 flex h-(--site-nav-h) items-center gap-3 border-b border-border/60 bg-background/85 backdrop-blur-md',
+                isDesktop ? 'px-8' : 'px-4',
               )}
             >
               {/* Not a heading: each page owns its single h1. On the phone, Start greets in its h1, so the
@@ -121,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Moving or resizing this button? The phone bottom padding of RecipeList's and CategoryPage's wrappers
             and of Home must still clear its top edge (#74). */}
           {!isDesktop && (pathname === '/recipes' || pathname === '/' || isCategoryPage(pathname)) && (
-            <Button asChild size="icon" className="fixed right-4 bottom-20 z-40 size-14 rounded-full shadow-lg">
+            <Button asChild size="icon" className="fixed right-4 bottom-20 z-40 size-13 rounded-full shadow-[0_6px_20px_rgb(0_0_0/0.22)]">
               <Link to="/recipes/new" aria-label="Neues Rezept">
                 <Plus className="size-6" />
               </Link>
