@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { NotesEditor } from './NotesEditor'
 import type { DraftNote } from '../../editor/draft'
@@ -61,5 +61,14 @@ describe('NotesEditor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Notiz' }))
 
     expect(texts()).toEqual([''])
+  })
+
+  it('after "Entfernen" focus lands on "+ Notiz", not the page', async () => {
+    render(<Stateful initial={notes} />)
+
+    openMenu(1)
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Entfernen' }))
+
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Notiz' })))
   })
 })

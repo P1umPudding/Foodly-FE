@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,8 @@ import { RecipeImage } from '../recipe/RecipeImage'
 import { TriggerButton } from '../TriggerButton'
 import type { ImageRef } from '../../api/protocol'
 
-// Dims an upload tile while the (hidden) file input is disabled: uploading, or the editor locked during Anlegen.
+// Dims an upload tile while the (sr-only) file input is disabled: uploading, "Fertig" running, or the editor locked
+// during Anlegen.
 const TILE =
   'cursor-pointer border border-dashed border-input text-muted-foreground hover:bg-hover group-has-[input:disabled]/images:pointer-events-none group-has-[input:disabled]/images:opacity-50 group-has-[input:focus-visible]/images:border-ring group-has-[input:focus-visible]/images:ring-[3px] group-has-[input:focus-visible]/images:ring-ring/50'
 
@@ -29,6 +30,7 @@ export function ImageManager({
   onChange,
   onAdd,
   onUploadingChange,
+  disabled = false,
 }: {
   mainImage: ImageRef | null
   images: ImageRef[]
@@ -37,17 +39,27 @@ export function ImageManager({
   onAdd: (image: ImageRef) => void
   // The editor holds "Fertig"/"Anlegen" while uploads run: leaving earlier would drop the photos still on their way.
   onUploadingChange?: (uploading: boolean) => void
+  // While "Fertig" waits for the save: a photo picked now would land after the editor left.
+  disabled?: boolean
 }) {
   const [uploading, setUploadingState] = useState(false)
   const setUploading = (next: boolean) => {
     setUploadingState(next)
     onUploadingChange?.(next)
   }
+  // Unmounted mid-upload (the editor itself stays): don't leave "Fertig"/"Anlegen" held for good.
+  const uploadingChange = useRef(onUploadingChange)
+  uploadingChange.current = onUploadingChange
+  useEffect(() => () => uploadingChange.current?.(false), [])
+
   const inputRef = useRef<HTMLInputElement>(null)
-  // After "Entfernen" the menu's trigger is gone; focus goes to the file input instead of the page.
-  const focusUpload = (e: Event) => {
-    e.preventDefault()
-    inputRef.current?.focus()
+  const mainTrigger = useRef<HTMLButtonElement>(null)
+  // After "Entfernen" or "Als Hauptbild" the menu's trigger is gone (or moved). Focus goes to the main image after a
+  // promotion, otherwise to the file input, or to the main image while the input is disabled — never to the page.
+  const focusAfter = (action: 'remove' | 'makeMain') => {
+    const input = inputRef.current
+    if (action === 'remove' && input && !input.disabled) input.focus()
+    else mainTrigger.current?.focus()
   }
 
   // One after another, in the order picked: the first becomes the main image, and a failure keeps the rest.
@@ -74,8 +86,8 @@ export function ImageManager({
         type="file"
         multiple
         accept="image/png,image/jpeg,image/webp"
-        aria-label="Bild hochladen"
-        disabled={uploading}
+        aria-label="Fotos hinzufügen"
+        disabled={uploading || disabled}
         // sr-only, not hidden: the input stays reachable by Tab; the tiles below show its focus.
         className="sr-only"
         onChange={(e) => {
@@ -89,8 +101,9 @@ export function ImageManager({
       {mainImage !== null ? (
         <ImageMenu
           label="Hauptbild"
+          triggerRef={mainTrigger}
           onRemove={() => onChange({ mainImage: null })}
-          onRemovedFocus={focusUpload}
+          onGone={focusAfter}
           className="relative aspect-[4/3] w-full overflow-hidden rounded-lg phone:aspect-video"
         >
           <RecipeImage image={mainImage} alt="" className="size-full object-cover" fallbackClassName="size-full" />
@@ -114,7 +127,7 @@ export function ImageManager({
       )}
 
       {/* Always mounted, so screen readers announce the upload when it starts. */}
-      <span role="status" className="flex items-center gap-1.5 text-xs text-muted-foreground empty:hidden">
+      <span role="status" className="flex items-center gap-1.5 text-xs text-muted-foreground">
         {uploading && (
           <>
             <Spinner className="mt-1.5 size-3.5" />
@@ -137,18 +150,14 @@ export function ImageManager({
                   })
                 }
                 onRemove={() => onChange({ images: images.filter((im) => im.id !== image.id) })}
-                onRemovedFocus={focusUpload}
+                onGone={focusAfter}
                 className="aspect-square overflow-hidden rounded-md"
               >
                 <RecipeImage image={image} alt="" className="size-full object-cover" fallbackClassName="size-full" />
               </ImageMenu>
             ))}
             {mainImage !== null && (
-              <Label
-                htmlFor="image-upload"
-                aria-label="Weitere Fotos hinzufügen"
-                className={cn(TILE, 'grid aspect-square place-items-center rounded-md')}
-              >
+              <Label htmlFor="image-upload" className={cn(TILE, 'grid aspect-square place-items-center rounded-md')}>
                 <Plus className="size-4" />
               </Label>
             )}
@@ -165,34 +174,50 @@ function ImageMenu({
   label,
   onMakeMain,
   onRemove,
-  onRemovedFocus,
+  onGone,
+  triggerRef,
   className,
   children,
 }: {
   label: string
   onMakeMain?: () => void
   onRemove: () => void
-  onRemovedFocus: (e: Event) => void
+  onGone: (action: 'remove' | 'makeMain') => void
+  triggerRef?: Ref<HTMLButtonElement>
   className: string
   children: ReactNode
 }) {
-  const removed = useRef(false)
+  const done = useRef<'remove' | 'makeMain' | null>(null)
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <TriggerButton variant="bare" aria-label={label} className={cn('block cursor-pointer', className)}>
+        <TriggerButton
+          ref={triggerRef}
+          variant="bare"
+          aria-label={label}
+          className={cn('block cursor-pointer', className)}
+        >
           {children}
         </TriggerButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
         onCloseAutoFocus={(e) => {
-          if (removed.current) onRemovedFocus(e)
-          removed.current = false
+          if (done.current) {
+            e.preventDefault()
+            onGone(done.current)
+          }
+          done.current = null
         }}
       >
         {onMakeMain && (
-          <DropdownMenuItem className="gap-2" onSelect={onMakeMain}>
+          <DropdownMenuItem
+            className="gap-2"
+            onSelect={() => {
+              done.current = 'makeMain'
+              onMakeMain()
+            }}
+          >
             <Star className="size-4" />
             Als Hauptbild
           </DropdownMenuItem>
@@ -201,7 +226,7 @@ function ImageMenu({
           variant="destructive"
           className="gap-2"
           onSelect={() => {
-            removed.current = true
+            done.current = 'remove'
             onRemove()
           }}
         >

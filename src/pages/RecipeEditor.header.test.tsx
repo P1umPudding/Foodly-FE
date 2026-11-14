@@ -131,7 +131,7 @@ describe('RecipeEditor in the shell header', () => {
 
     await waitFor(() => expect(screen.getByLabelText('Titel')).toBeTruthy())
     const file = new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })
-    fireEvent.change(screen.getByLabelText('Bild hochladen'), { target: { files: [file] } })
+    fireEvent.change(screen.getByLabelText('Fotos hinzufügen'), { target: { files: [file] } })
 
     await waitFor(() =>
       expect(header().getByRole('button', { name: 'Fertig' }).getAttribute('aria-disabled')).toBe('true'),
@@ -139,6 +139,22 @@ describe('RecipeEditor in the shell header', () => {
     expect(screen.getByText('Lädt hoch …')).toBeTruthy()
     await act(async () => finish({ id: 9, hash: 'h9', name: null }))
     expect(header().getByRole('button', { name: 'Fertig' }).getAttribute('aria-disabled')).toBe('false')
+  })
+
+  it('holds "Anlegen" while photos are uploading', async () => {
+    let finish: (v: { id: number; hash: string; name: null }) => void = () => {}
+    vi.spyOn(foodly, 'uploadImage').mockImplementation(() => new Promise((r) => (finish = r)))
+    renderAt('/recipes/new')
+
+    fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Neu' } })
+    const file = new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })
+    fireEvent.change(screen.getByLabelText('Fotos hinzufügen'), { target: { files: [file] } })
+
+    await waitFor(() =>
+      expect(header().getByRole('button', { name: 'Anlegen' }).getAttribute('aria-disabled')).toBe('true'),
+    )
+    await act(async () => finish({ id: 9, hash: 'h9', name: null }))
+    expect(header().getByRole('button', { name: 'Anlegen' }).getAttribute('aria-disabled')).toBe('false')
   })
 
   it('nothing in the header while the recipe loads', () => {

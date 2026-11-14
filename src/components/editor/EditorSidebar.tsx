@@ -16,11 +16,13 @@ export function EditorSidebar({
   onChange,
   onAddImage,
   onUploadingChange,
+  uploadDisabled,
 }: {
   draft: Draft
   onChange: (patch: Partial<Draft>) => void
   onAddImage: (image: ImageRef) => void
   onUploadingChange: (uploading: boolean) => void
+  uploadDisabled: boolean
 }) {
   return (
     <>
@@ -32,6 +34,7 @@ export function EditorSidebar({
           onChange={onChange}
           onAdd={onAddImage}
           onUploadingChange={onUploadingChange}
+          disabled={uploadDisabled}
         />
       </Block>
       <Block className="phone:order-last">

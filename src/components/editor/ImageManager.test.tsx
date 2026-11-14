@@ -82,7 +82,7 @@ describe('ImageManager', () => {
       </TooltipProvider>,
     )
 
-    fireEvent.change(screen.getByLabelText('Bild hochladen'), { target: { files: [file()] } })
+    fireEvent.change(screen.getByLabelText('Fotos hinzufügen'), { target: { files: [file()] } })
 
     await waitFor(() => expect(container.querySelector('img[src="/api/v1/images/ef56"]')).toBeTruthy())
   })
@@ -101,7 +101,7 @@ describe('ImageManager', () => {
     )
 
     const files = [file('a.png'), file('b.png'), file('c.png')]
-    fireEvent.change(screen.getByLabelText('Bild hochladen'), { target: { files } })
+    fireEvent.change(screen.getByLabelText('Fotos hinzufügen'), { target: { files } })
 
     await waitFor(() => expect(onAdd).toHaveBeenCalledTimes(3))
     expect(upload.mock.calls.map(([f]) => (f as File).name)).toEqual(['a.png', 'b.png', 'c.png'])
@@ -120,7 +120,7 @@ describe('ImageManager', () => {
       </TooltipProvider>,
     )
 
-    fireEvent.change(screen.getByLabelText('Bild hochladen'), {
+    fireEvent.change(screen.getByLabelText('Fotos hinzufügen'), {
       target: { files: [file('a.png'), file('b.png'), file('c.png')] },
     })
 
@@ -156,5 +156,41 @@ describe('ImageManager', () => {
     fireEvent.click(await screen.findByRole('menuitem', { name: 'Entfernen' }))
 
     expect(onChange).toHaveBeenCalledWith({ images: [ref(3)] })
+  })
+
+  it('after "Als Hauptbild" focus lands on the new main image', async () => {
+    render(
+      <TooltipProvider>
+        <Draft initial={{ mainImage: ref(1), images: [ref(2)] }} />
+      </TooltipProvider>,
+    )
+
+    openMenu('Bild 1')
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Als Hauptbild' }))
+
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Hauptbild' })))
+  })
+
+  it('after "Entfernen" focus lands on the upload, not the page', async () => {
+    render(
+      <TooltipProvider>
+        <Draft initial={{ mainImage: ref(1), images: [ref(2)] }} />
+      </TooltipProvider>,
+    )
+
+    openMenu('Bild 1')
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Entfernen' }))
+
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('Fotos hinzufügen')))
+  })
+
+  it('a disabled manager takes no uploads', () => {
+    render(
+      <TooltipProvider>
+        <ImageManager mainImage={null} images={[]} onChange={vi.fn()} onAdd={vi.fn()} disabled />
+      </TooltipProvider>,
+    )
+
+    expect(screen.getByLabelText('Fotos hinzufügen').matches(':disabled')).toBe(true)
   })
 })

@@ -522,7 +522,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
     // Via the fieldset: the controls' own `disabled` stays false, only :disabled reflects the lock.
     expect(titleInput().matches(':disabled')).toBe(true)
     expect(screen.getByRole('button', { name: /abschnitt hinzufügen/i }).matches(':disabled')).toBe(true)
-    expect(screen.getByLabelText('Bild hochladen').matches(':disabled')).toBe(true)
+    expect(screen.getByLabelText('Fotos hinzufügen').matches(':disabled')).toBe(true)
     expect(anlegen().getAttribute('aria-disabled')).toBe('true')
     fireEvent.click(anlegen())
     expect(createRecipe).toHaveBeenCalledTimes(1)

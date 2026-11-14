@@ -70,6 +70,7 @@ describe('TagPicker', () => {
     fireEvent.focus(input())
     fireEvent.change(input(), { target: { value: 'Neu' } })
     expect(screen.getByText('Kein passender Tag.')).toBeTruthy()
+    expect(screen.queryByRole('listbox')).toBeNull()
     fireEvent.keyDown(input(), { key: 'Enter' })
 
     expect(onChange).not.toHaveBeenCalled()
@@ -127,6 +128,7 @@ describe('TagPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Vegan entfernen' }))
 
     expect(document.activeElement).toBe(input())
+    expect(screen.queryByRole('listbox')).toBeNull()
   })
 
   it('adds a tag by clicking its suggestion', () => {

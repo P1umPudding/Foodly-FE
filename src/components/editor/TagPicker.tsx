@@ -24,6 +24,8 @@ export function TagPicker({
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
+  // Focus handed back after removing a chip shouldn't pop the suggestions open.
+  const skipOpen = useRef(false)
 
   const q = query.trim().toLowerCase()
   const options = Object.keys(byId).filter((id) => !value.includes(id) && id.toLowerCase().includes(q))
@@ -58,7 +60,8 @@ export function TagPicker({
     }
   }
 
-  const expanded = open && (options.length > 0 || q !== '')
+  const expanded = open && options.length > 0
+  const noMatch = open && options.length === 0 && q !== ''
 
   return (
     <div className="relative">
@@ -89,7 +92,9 @@ export function TagPicker({
               onClick={() => {
                 onChange(value.filter((t) => t !== id))
                 // The chip and its ✕ are gone: keep focus in the field.
+                skipOpen.current = true
                 inputRef.current?.focus()
+                skipOpen.current = false
               }}
             >
               <X className="size-3" />
@@ -113,7 +118,9 @@ export function TagPicker({
             setActive(0)
             setOpen(true)
           }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            if (!skipOpen.current) setOpen(true)
+          }}
           onBlur={() => setOpen(false)}
           onKeyDown={onKeyDown}
         />
@@ -125,31 +132,35 @@ export function TagPicker({
           aria-label="Tag-Vorschläge"
           className="absolute inset-x-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
         >
-          {options.length === 0 ? (
-            <p className="px-2 py-1.5 text-muted-foreground">Kein passender Tag.</p>
-          ) : (
-            options.map((id, i) => (
-              <div
-                key={id}
-                id={optionId(i)}
-                role="option"
-                aria-selected={i === activeIndex}
-                // mousedown would blur the input (and close the list) before the click lands.
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => add(id)}
-                onMouseMove={() => setActive(i)}
-                className={cn(
-                  'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 touch:min-h-10',
-                  i === activeIndex && 'bg-accent text-accent-foreground',
-                )}
-              >
-                {byId[id]?.svg && <TagIcon tag={byId[id]} alt="" size="sm" />}
-                {id}
-              </div>
-            ))
-          )}
+          {options.map((id, i) => (
+            <div
+              key={id}
+              id={optionId(i)}
+              role="option"
+              aria-selected={i === activeIndex}
+              // mousedown would blur the input (and close the list) before the click lands.
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => add(id)}
+              onMouseMove={() => setActive(i)}
+              className={cn(
+                'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 touch:min-h-10',
+                i === activeIndex && 'bg-accent text-accent-foreground',
+              )}
+            >
+              {byId[id]?.svg && <TagIcon tag={byId[id]} alt="" size="sm" />}
+              {id}
+            </div>
+          ))}
         </div>
       )}
+      {/* Outside the listbox (only options belong in there); a live region, so typing into nothing is announced. */}
+      <p role="status" className="absolute inset-x-0 top-full z-20 empty:hidden">
+        {noMatch && (
+          <span className="mt-1 block rounded-md border bg-popover px-3 py-2 text-muted-foreground shadow-md">
+            Kein passender Tag.
+          </span>
+        )}
+      </p>
     </div>
   )
 }

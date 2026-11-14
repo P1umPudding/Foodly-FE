@@ -276,6 +276,7 @@ export function RecipeEditor() {
               onChange={patch}
               onAddImage={(image) => setDraft((d) => (d === null ? d : addImage(d, image)))}
               onUploadingChange={setUploading}
+              uploadDisabled={finishing}
             />
           </div>
         </div>
