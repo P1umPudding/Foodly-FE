@@ -58,6 +58,15 @@ describe('CategoryTiles', () => {
     expect(screen.queryByText(nothingToShow)).toBeNull()
   })
 
+  it('draws tiles and their marks without a border, the mark showing the initial', () => {
+    catalog.categories.list = [category(1, 'Favoriten', 0, [4])]
+    renderTiles()
+    const tile = screen.getByRole('link', { name: 'Favoriten, 1 Rezept' })
+    const mark = tile.querySelector('span[data-cat]')
+    expect(mark?.textContent).toBe('F')
+    for (const el of [tile, mark]) expect(el?.className).not.toMatch(/(^|\s|:)border(-|\s|$)/)
+  })
+
   it('links "Verwalten" to the categories page', () => {
     catalog.categories.list = [category(1, 'Favoriten', 0, [])]
     renderTiles()
