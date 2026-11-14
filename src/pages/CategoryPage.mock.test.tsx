@@ -235,17 +235,21 @@ describe('Category page (mock mode)', () => {
   )
 
   it(
-    'offers "Bearbeiten" in the ⋮ menu on phones',
+    'offers "Bearbeiten" in the header ⋯ menu on phones (#228)',
     async () => {
       setViewport(400)
       await renderAt('/categories/2')
       await heading()
       expect(within(main()).queryByRole('button', { name: 'Bearbeiten' })).toBeNull()
-      fireEvent.keyDown(within(main()).getByRole('button', { name: 'Aktionen für „Schnelle Küche“' }), {
-        key: 'Enter',
+      expect(within(main()).queryByRole('button', { name: /Aktionen/ })).toBeNull()
+      const more = within(document.querySelector<HTMLElement>('.site-header')!).getByRole('button', {
+        name: 'Weitere Aktionen',
       })
+      fireEvent.keyDown(more, { key: 'Enter' })
       fireEvent.click(await screen.findByRole('menuitem', { name: 'Bearbeiten' }))
-      expect(await screen.findByRole('dialog')).toBeTruthy()
+      const dialog = await screen.findByRole('dialog')
+      fireEvent.keyDown(dialog, { key: 'Escape' })
+      await waitFor(() => expect(document.activeElement).toBe(more))
     },
     SLOW,
   )

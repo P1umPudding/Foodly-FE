@@ -1,5 +1,6 @@
+// The "Rezept löschen?" confirmation. Opened from the detail header's ⋯ menu; `onCloseAutoFocus` lets the opener put
+// focus back on its trigger (the menu item that opened it is gone by then).
 import { useRef, useState } from 'react'
-import { Trash2 } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -8,28 +9,28 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
   Button,
   Spinner,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
 } from '@postxl/ui-components'
-import { TriggerButton } from '../TriggerButton'
 import { foodly } from '../../api'
 import { errorMessage } from '../../lib/errorMessage'
 import type { RecipeId } from '../../api/protocol'
 
-export function DeleteRecipeButton({
+export function DeleteRecipeDialog({
+  open,
+  onOpenChange: setOpen,
   recipeId,
   name,
   onDeleted,
+  onCloseAutoFocus,
 }: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   recipeId: RecipeId
   name: string
   onDeleted: () => void
+  onCloseAutoFocus?: (e: Event) => void
 }) {
-  const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // State lags a fast double click; the ref doesn't.
@@ -38,7 +39,8 @@ export function DeleteRecipeButton({
   const onOpenChange = (next: boolean) => {
     // Closing mid-request would leave the delete running behind a closed dialog.
     if (pending) return
-    if (next) setError(null)
+    // The dialog is opened from outside (no trigger here), so a stale error is cleared on the way out.
+    if (!next) setError(null)
     setOpen(next)
   }
 
@@ -59,18 +61,7 @@ export function DeleteRecipeButton({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <AlertDialogTrigger asChild>
-            <TriggerButton variant="outline" size="sm" aria-label="Löschen" className="gap-1.5 phone:size-10">
-              <Trash2 className="h-4 w-4" />
-              <span className="phone:hidden">Löschen</span>
-            </TriggerButton>
-          </AlertDialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Rezept löschen</TooltipContent>
-      </Tooltip>
-      <AlertDialogContent>
+      <AlertDialogContent onCloseAutoFocus={onCloseAutoFocus}>
         <AlertDialogHeader>
           <AlertDialogTitle>Rezept löschen?</AlertDialogTitle>
           <AlertDialogDescription>„{name}“ wird endgültig gelöscht.</AlertDialogDescription>

@@ -13,6 +13,7 @@ import { ProfileMenu } from './ProfileMenu'
 import { TriggerButton } from '../TriggerButton'
 import { FOCUS_RING } from '../focusRing'
 import { useNavState } from './useNavState'
+import { BrandMark } from './BrandMark'
 
 const COLLAPSED_KEY = 'foodly:sidebar-collapsed'
 
@@ -80,8 +81,12 @@ export function Sidebar({
         {!collapsed && (
           <Link
             to="/"
-            className={cn('-ml-1 rounded-md px-1 font-display text-xl focus-visible:ring-sidebar-ring', FOCUS_RING)}
+            className={cn(
+              '-ml-1 flex items-center gap-2 rounded-md px-1 font-display text-xl focus-visible:ring-sidebar-ring',
+              FOCUS_RING,
+            )}
           >
+            <BrandMark />
             Foodly
           </Link>
         )}

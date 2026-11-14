@@ -23,9 +23,9 @@ const base: Recipe = {
   tags: [],
   source: null,
   rating: [],
-  time: '45 min',
+  time: '20 min + Kochzeit 25 min',
   workMinutes: null,
-  overallMinutes: null,
+  overallMinutes: 45,
   sizeNumber: null,
   sizeText: null,
   notes: [],
@@ -96,7 +96,8 @@ it('has no category line without categories', () => {
 
 it('shows time and rating with a decimal comma', () => {
   renderTile({ ...base, rating: [{ user: 1, rating: 4 }] })
-  expect(screen.getByText('45 min')).toBeTruthy()
+  expect(screen.getByText('45 min')).toBeTruthy() // total time, not the free text
+  expect(screen.queryByText(/Kochzeit/)).toBeNull()
   expect(screen.getByText('4,0')).toBeTruthy()
 })
 
@@ -115,4 +116,9 @@ describe('"von <Name>"', () => {
     renderTile(base)
     expect(screen.queryByText(/^von /)).toBeNull()
   })
+})
+
+it('formats long total times like the list ("1 h 30 min")', () => {
+  renderTile({ ...base, overallMinutes: 90 })
+  expect(screen.getByText('1 h 30 min')).toBeTruthy()
 })

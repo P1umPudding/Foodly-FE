@@ -12,7 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@postxl/ui-components'
-import { EllipsisVertical, FolderOpen, Pencil, SearchX } from 'lucide-react'
+import { FolderOpen, MoreHorizontal, Pencil, SearchX } from 'lucide-react'
 import { useCategories, useCurrentUserId } from '../catalog/CatalogProvider'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
 import { CategoryMark } from '../components/category/CategoryMark'
@@ -24,6 +24,8 @@ import { SearchInput } from '../components/list/SearchInput'
 import { SortMenu } from '../components/list/SortMenu'
 import { ViewToggles } from '../components/list/ViewToggles'
 import { RetryAlert } from '../components/RetryAlert'
+import { Page } from '../components/shell/Page'
+import { HeaderActions } from '../components/shell/PageHeader'
 import { TriggerButton } from '../components/TriggerButton'
 import { isShellNavState, parseCategoryId } from '../components/shell/nav'
 import { categoryColorVars } from '../lib/categoryColor'
@@ -58,7 +60,7 @@ export function CategoryPage() {
 
   return (
     // On phones the extra bottom room lets the last card scroll past the fixed "+" button (as on /recipes, #74).
-    <div className="mx-auto max-w-6xl px-6 pt-6 pb-10 phone:px-4 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <Page className="pb-10 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]">
       {/* Every state has the page's one h1; until the category is known it can only be generic. */}
       {catalog.status !== 'ready' && <h1 className="sr-only">Kategorie</h1>}
       {catalog.status === 'loading' && (
@@ -90,7 +92,7 @@ export function CategoryPage() {
           <CategoryRecipes category={category} allCategories={catalog.list} />
         </>
       )}
-    </div>
+    </Page>
   )
 }
 
@@ -99,8 +101,14 @@ function CategoryHead({ category }: { category: UserCategory }) {
   // `key` is new per opening: the dialog starts from scratch every time, even when reopened mid-animation.
   const [dialog, setDialog] = useState<{ open: boolean; key: number } | null>(null)
   const openings = useRef(0)
-  const trigger = useRef<HTMLButtonElement>(null)
-  const openDialog = () => setDialog({ open: true, key: ++openings.current })
+  // Where focus goes once the dialog closes: the button or the header ⋯ that opened it.
+  const returnFocus = useRef<HTMLButtonElement | null>(null)
+  const moreTrigger = useRef<HTMLButtonElement>(null)
+  const openingDialog = useRef(false)
+  const openDialog = (opener: HTMLButtonElement | null) => {
+    returnFocus.current = opener
+    setDialog({ open: true, key: ++openings.current })
+  }
 
   return (
     <div {...categoryColorVars(category)} className="flex items-center gap-4 rounded-lg bg-cat-soft p-5 phone:p-4">
@@ -122,33 +130,58 @@ function CategoryHead({ category }: { category: UserCategory }) {
           {recipeCount(category.recipes.length)} · nur für dich sichtbar
         </p>
       </div>
-      {isDesktop ? (
-        <TriggerButton ref={trigger} variant="outline" size="sm" onClick={openDialog} className="gap-1.5 touch:h-10">
+      {isDesktop && (
+        <TriggerButton
+          variant="outline"
+          size="sm"
+          onClick={(e) => openDialog(e.currentTarget)}
+          className="gap-1.5 touch:h-10"
+        >
           <Pencil aria-hidden className="size-4" />
           Bearbeiten
         </TriggerButton>
-      ) : (
-        // Not modal: a modal menu opening a modal dialog can leave pointer-events: none on the body.
+      )}
+      <HeaderActions>
+        {/* Not modal: a modal menu opening a modal dialog can leave pointer-events: none on the body. */}
         <DropdownMenu modal={false}>
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
-                <TriggerButton ref={trigger} variant="ghost" size="icon" aria-label={`Aktionen für „${category.name}“`}>
-                  <EllipsisVertical aria-hidden className="size-4" />
+                <TriggerButton
+                  ref={moreTrigger}
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Weitere Aktionen"
+                  className="phone:size-10"
+                >
+                  <MoreHorizontal aria-hidden className="size-4" />
                 </TriggerButton>
               </DropdownMenuTrigger>
             </TooltipTrigger>
-            <TooltipContent>Aktionen</TooltipContent>
+            <TooltipContent>Weitere Aktionen</TooltipContent>
           </Tooltip>
-          {/* The dialog decides where focus goes once it closes. */}
-          <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-            <DropdownMenuItem className="gap-2" onSelect={openDialog}>
+          {/* Opened via "Bearbeiten", the dialog decides where focus goes once it closes; a plain close (Escape,
+              click outside) returns it to ⋯. */}
+          <DropdownMenuContent
+            align="end"
+            onCloseAutoFocus={(e) => {
+              if (openingDialog.current) e.preventDefault()
+              openingDialog.current = false
+            }}
+          >
+            <DropdownMenuItem
+              className="gap-2"
+              onSelect={() => {
+                openingDialog.current = true
+                openDialog(moreTrigger.current)
+              }}
+            >
               <Pencil aria-hidden className="size-4" />
               Bearbeiten
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )}
+      </HeaderActions>
       {dialog && (
         <CategoryEditDialog
           key={dialog.key}
@@ -157,7 +190,7 @@ function CategoryHead({ category }: { category: UserCategory }) {
           category={category}
           onCloseAutoFocus={(e) => {
             e.preventDefault()
-            trigger.current?.focus()
+            returnFocus.current?.focus()
           }}
         />
       )}

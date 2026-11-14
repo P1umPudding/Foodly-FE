@@ -21,6 +21,7 @@ vi.mock('./catalog/CatalogProvider', () => ({
   useRefreshCategories: () => () => {},
   useCurrentUserId: () => 1,
   useUsers: () => [],
+  useUser: () => undefined,
   useTags: () => ({ byId: {}, status: 'ready' }),
   useIngredients: () => ({ byId: {}, status: 'ready' }),
   // Goes through the real foodly.listCategories, so each test's spy decides the categories.
@@ -88,7 +89,8 @@ describe('routing under a sub-path basename', () => {
     await screen.findByRole('heading', { name: 'Pancakes' })
     const imgSrcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))
     expect(imgSrcs).toContain('/api/v1/images/h3')
-    expect(screen.getByRole('link', { name: '← Zurück' }).getAttribute('href')).toBe('/foo/recipes')
+    // The back arrow sits in the shell (not rendered here) since #228; the page's own links carry the prefix too.
+    expect(screen.getByRole('link', { name: 'Bearbeiten' }).getAttribute('href')).toBe('/foo/recipes/1/edit')
   })
 
   // group=0: categories=[] makes the recipe uncategorised, and that group

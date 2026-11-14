@@ -39,13 +39,13 @@ gilt: nichts Neues im alten Stil bauen.
 | `bg-muted` / `bg-secondary` | ruhige Flächen: Skeletons, Foto-Platzhalter |
 | `bg-tag` | Tag-Chips (`TagChip`) |
 | `bg-seg` + `shadow-seg` | Segment-Schalter: Spur `bg-seg`, aktives Segment `bg-card` mit `shadow-seg` (dunkel ohne Schatten) |
-| `bg-accent` | Hover-Fläche von Zeilen und Ghost-Buttons |
-| `bg-hover` | Hover-Fläche der Filterknöpfe und des Links „Alle Filter zurücksetzen“ (Mockup `--hover`) |
+| `bg-accent` | Hover-Fläche von Ghost-Buttons |
+| `bg-hover` | Hover-Fläche der Rezeptzeilen (Liste, Kompakt), der Filterknöpfe und des Links „Alle Filter zurücksetzen“ (Mockup `--hover`) |
 | `text-foreground` | Text, Titel, Icons in Aktionen |
 | `text-muted-foreground` | Sekundärtext (Untertitel, Beschreibungen) und Meta: Zähler („14 Rezepte“), Zeiten, selbst gerenderte Platzhalter |
-| `text-subtle-foreground` | nur Nicht-Text und großer Text (kein AA für kleinen Text, ≥ 3:1, Ausnahme siehe unten): Fortschrittsbalken eines pausierten Timers, Icons und Chevron der Filterknöpfe, Rahmen des geöffneten Filterknopfs |
+| `text-subtle-foreground` | nur Nicht-Text und großer Text (kein AA für kleinen Text, ≥ 3:1, Ausnahme siehe unten): Fortschrittsbalken eines pausierten Timers, Icons und Chevron der Filterknöpfe, Chevron der Gruppenköpfe, Rahmen des geöffneten Filterknopfs |
 | `border-border` (Standard) / `border-border-strong` | Haarlinie (auch das ✕ im Filterknopf) / Hover- und Checkbox-Rand, aktiver Filterknopf |
-| `border-divider` | leise Trennlinie zwischen Listenzeilen und Abschnitten (Mockup `--divider`, schwächer als `border`); genutzt ab V3 #229 |
+| `border-divider` | leise Trennlinie zwischen Listenzeilen und Abschnitten (Mockup `--divider`, schwächer als `border`); Rezeptzeilen haben seit V3 (#229) keine Trennlinie, sie sind flach mit Hover-Fläche |
 | `bg-sidebar`, `bg-sidebar-accent` | Seitenleiste, aktiver Navigationspunkt |
 | `bg-primary text-primary-foreground` | **eine** Hauptaktion pro Ansicht („Neues Rezept“, „Speichern“) |
 | `text-star` | Bewertungssterne |
@@ -120,7 +120,7 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 | `dot` | Punkte, Swatches | 0,62 / 0,17 | 0,70 / 0,15 |
 | `soft` | Chip-, Kachel-, Gruppenkopf-Fläche | 0,955 / 0,035 | 0,27 / 0,045 |
 | `ink` | Text/Symbol auf `soft`, Kategorie-Label | 0,46 / 0,13 | 0,86 / 0,10 |
-| `line` | 2-px-Linie an Gruppen, Rahmen | 0,84 / 0,08 | 0,42 / 0,09 |
+| `line` | Rahmen (die 2-px-Linie an Gruppen nutzt seit V3 #229 `dot`, wie im Mockup) | 0,84 / 0,08 | 0,42 / 0,09 |
 
 - Spezifikation des Utils (Entscheidung: `docs/decisions/0002-category-colors.md`): Eingabe beliebige Hex-Farbe,
   Ausgabe `{ light, dark }` je mit den vier Rollen als sRGB-Hex. Ungültige Eingabe sowie Schwarz/Weiß/Grau
@@ -157,7 +157,9 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 - **Liste (Rezepte, Kategorie):** volle Breite, keine Filter-Spalte. Zeile 1 Suche · Sortierung · Ansicht
   (Kompakt / Detailliert = Standard / Kacheln); Zeile 2 Filterleiste mit Facetten-Knöpfen (Wert im Knopf, eigenes ✕;
   Desktop Popover, Handy Sheet); Zeile 3 Trefferzahl · „Alle Filter zurücksetzen“. Gruppiert nach Kategorie mit
-  2-px-`cat-line` und Sticky-Kopf; „Ohne Kategorie“ zuerst und eingeklappt.
+  2-px-Linie in `cat-dot` („Ohne Kategorie“: `border`) und Sticky-Kopf (Chevron, Farbpunkt, neutraler Name 600,
+  Anzahl muted; „Öffnen ›“ am Desktop erst bei Hover/Fokus, auf Touch immer); „Ohne Kategorie“ zuerst und eingeklappt.
+  Rezeptzeilen flach ohne Rahmen, eine Meta-Zeile (Gesamtzeit „1 h 30 min“, ★, „von <Name>“).
   **Trefferzahl nennt nur, was bekannt ist** (`ResultCount`): „N Rezepte“ = sichtbare Rezepte („1 Rezept“), solange
   weitere Seiten ausstehen „N+ Rezepte“. Kein „x von y“, bis der Server eine Gesamtzahl liefert (B16). Beim Laden,
   bei Fehler und bei „0 + weitere Seiten“ bleibt der Platz leer (unsichtbar, `aria-hidden`), damit der Kopf nicht springt.
