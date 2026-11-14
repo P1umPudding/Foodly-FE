@@ -56,7 +56,8 @@ export function CategoryTiles() {
                 className="size-8 rounded-md bg-card text-base/none font-bold phone:size-7 dark:bg-[color-mix(in_oklch,var(--cat-soft)_60%,black)]"
               />
               <span className="min-w-0 flex-1 truncate">{c.name}</span>
-              <span aria-hidden className="shrink-0 text-sm font-medium tabular-nums opacity-70">
+              {/* Faded as in the mockup only in dark mode: in light it would drop below AA for small text (design.md). */}
+              <span aria-hidden className="shrink-0 text-sm font-medium tabular-nums dark:opacity-70">
                 {c.recipes.length}
               </span>
               <span className="sr-only">, {recipeCount(c.recipes.length)}</span>

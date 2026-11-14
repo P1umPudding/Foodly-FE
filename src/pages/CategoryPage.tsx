@@ -104,16 +104,18 @@ function CategoryHead({ category }: { category: UserCategory }) {
 
   return (
     <div {...categoryColorVars(category)} className="flex items-center gap-4 rounded-lg bg-cat-soft p-5 phone:p-4">
-      {/* The mark's own soft fill would vanish on the tinted head: it sits on the card surface, in both themes. */}
+      {/* The mark's own soft fill would vanish on the tinted head: it sits on the card surface, in both themes. The 24 px
+          initial (mockup) has no step in the text scale. */}
       <CategoryMark
         category={category}
         size="xl"
         className="size-14 rounded-lg bg-card text-[24px]/none font-bold phone:size-12"
       />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        {/* font-[650] rather than .font-display: its own letter-spacing would win over the tracking here. */}
+        {/* font-[650] rather than .font-display (same family today): its own letter-spacing would win over the tracking. */}
         <h1 className="text-2xl/[1.15] font-[650] tracking-[-0.025em] break-words text-cat-ink">{category.name}</h1>
-        <p className="text-sm text-cat-ink tabular-nums opacity-75">
+        {/* Faded only in dark mode: in light, opacity .75 drops this small text below AA (design.md). */}
+        <p className="text-sm text-cat-ink tabular-nums dark:opacity-75">
           {recipeCount(category.recipes.length)} · nur für dich sichtbar
         </p>
       </div>
