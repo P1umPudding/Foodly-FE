@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptyDraft, move, newIngredient, sizeNumberError, toCreateRecipe, toDraft } from './draft'
+import { addImage, emptyDraft, move, newIngredient, sizeNumberError, toCreateRecipe, toDraft } from './draft'
 import type { Recipe } from '../api/protocol'
 import { ref } from '../test/images'
 
@@ -184,5 +184,18 @@ describe('sizeNumberError', () => {
 
   it('ignores the number in text mode', () => {
     expect(sizeNumberError({ sizeMode: 'text', sizeNumber: 0 })).toBeNull()
+  })
+})
+
+describe('addImage', () => {
+  it('makes the image the main one while there is none', () => {
+    expect(addImage({ mainImage: null, images: [ref(2)] }, ref(5))).toEqual({ mainImage: ref(5), images: [ref(2)] })
+  })
+
+  it('appends to the gallery once there is a main image', () => {
+    expect(addImage({ mainImage: ref(1), images: [ref(2)] }, ref(5))).toEqual({
+      mainImage: ref(1),
+      images: [ref(2), ref(5)],
+    })
   })
 })

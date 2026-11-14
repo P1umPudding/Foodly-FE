@@ -21,8 +21,9 @@ import { ProfileMenu } from './ProfileMenu'
 import { Sidebar, loadSidebarCollapsed, saveSidebarCollapsed } from './Sidebar'
 import { TabBar } from './TabBar'
 
-// Sidebar width and the matching --shell-left, kept side by side. Fixed page bars (the editor's footer)
-// offset themselves by --shell-left / --shell-bottom so the sidebar or tab bar never covers them.
+// Sidebar width and the matching --shell-left, kept side by side. Fixed page bars offset themselves by
+// --shell-left / --shell-bottom so the sidebar or tab bar never covers them (none today since the editor's footer
+// moved into the header, #231).
 const SIDEBAR_WIDTH = {
   expanded: { width: 'w-60', shellVar: '[--shell-left:15rem]' },
   collapsed: { width: 'w-16', shellVar: '[--shell-left:4rem]' },
