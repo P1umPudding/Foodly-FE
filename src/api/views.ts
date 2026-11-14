@@ -183,8 +183,9 @@ export function hasPortions(sizeNumber: number | null): boolean {
 // `recipe.time` as written. No minutes → nothing, never the free-text `time` (it can be long, e.g.
 // "20 min + Kochzeit 25 min", and would break the one-line meta). {tag} substitution stays a render-time concern.
 export function formatMinutes(minutes: number | null): string | null {
-  if (minutes === null || !Number.isFinite(minutes) || minutes <= 0) return null
+  if (minutes === null || !Number.isFinite(minutes)) return null
   const m = Math.round(minutes)
+  if (m <= 0) return null
   if (m < 60) return `${m} min`
   const rest = m % 60
   return rest === 0 ? `${Math.floor(m / 60)} h` : `${Math.floor(m / 60)} h ${rest} min`

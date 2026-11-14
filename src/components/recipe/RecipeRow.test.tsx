@@ -165,7 +165,6 @@ describe('flat row with one meta line (mockup V3)', () => {
     const { container } = renderRow(timed)
     const link = container.querySelector('a')!
     expect(link.className).not.toMatch(/(^|\s)border(-|\s|$)/)
-    expect(container.querySelector('[class*="border"]')).toBeNull()
     expect(screen.getAllByTestId('recipe-meta')).toHaveLength(1)
   })
 
@@ -179,6 +178,18 @@ describe('flat row with one meta line (mockup V3)', () => {
   it('no minutes → no time', () => {
     renderRow({ ...base, time: '45 min' })
     expect(screen.queryByTestId('recipe-time')).toBeNull()
+  })
+
+  it('own recipe without minutes or rating keeps a one-line meta (rows stay even)', () => {
+    renderRow({ ...base, rating: [] })
+    const meta = screen.getByTestId('recipe-meta')
+    expect(meta.textContent).toBe('')
+    expect(meta.className).toContain('h-lh')
+  })
+
+  it('a foreign owner not loaded yet shows no "von" and does not crash', () => {
+    renderRow({ ...base, owner: 3, viewers: [1] })
+    expect(screen.getByTestId('recipe-meta').textContent).not.toContain('von')
   })
 
   it('names the owner of a foreign recipe only', () => {

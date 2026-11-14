@@ -284,5 +284,6 @@ describe('formatMinutes', () => {
     expect(formatMinutes(null)).toBeNull()
     expect(formatMinutes(0)).toBeNull()
     expect(formatMinutes(-5)).toBeNull()
+    expect(formatMinutes(0.4)).toBeNull()
   })
 })

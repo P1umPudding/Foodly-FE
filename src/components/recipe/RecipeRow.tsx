@@ -126,10 +126,11 @@ export function RecipeRow({
         <span className="block truncate font-medium">
           <TagText value={recipe.name} />
         </span>
-        {/* nowrap: phones keep it to one line too; the owner's name is what gets cut. */}
+        {/* nowrap: phones keep it to one line too; the owner's name is what gets cut. h-lh: one line tall even when
+            empty (own recipe without minutes or rating), so all rows keep the same height. */}
         <div
           data-testid="recipe-meta"
-          className="mt-0.5 flex min-w-0 items-center gap-x-3 whitespace-nowrap text-sm text-muted-foreground"
+          className="mt-0.5 flex h-lh min-w-0 items-center gap-x-3 whitespace-nowrap text-sm text-muted-foreground"
         >
           {time && (
             <span data-testid="recipe-time" className="inline-flex shrink-0 items-center gap-1 tabular-nums">

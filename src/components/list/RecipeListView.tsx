@@ -139,13 +139,13 @@ function CategoryGroup({
             <span className="tabular-nums font-normal text-muted-foreground">{recipes.length}</span>
           </CollapseTrigger>
         </Button>
-        {/* Desktop: appears on hover/focus only; touch devices and phones have no hover, so it always shows there. */}
+        {/* Desktop: appears on hover or keyboard focus in the head; touch devices and phones have no hover, so it always shows there. */}
         {categoryId !== null && (
           <Button
             asChild
             variant="ghost"
             size="sm"
-            className="shrink-0 text-xs font-medium text-muted-foreground opacity-0 transition-opacity group-hover/head:opacity-100 focus-visible:opacity-100 hover:text-foreground phone:opacity-100 touch:h-10 touch:opacity-100"
+            className="shrink-0 text-xs font-medium text-muted-foreground opacity-0 transition-opacity group-hover/head:opacity-100 group-focus-within/head:opacity-100 hover:text-foreground phone:opacity-100 touch:h-10 touch:opacity-100"
           >
             <Link to={categoryPageHref(categoryId)} aria-label={`Öffnen: „${name}“`}>
               Öffnen ›
@@ -169,8 +169,9 @@ function CategoryGroup({
 // state). `collapsed` holds the keys that are closed; empty = all open.
 // `categories` drive the grouping and may be narrowed by the category filter;
 // `allCategories` (unfiltered) feed the rows' dots so a filter never hides them.
-// `showImages` is decided by the page from all loaded recipes. `denseTiles`: the recipe list's narrower tile grid. `exceptCategoryId` drops that category's dot from the
-// flat rows (a category page: every row is in it); grouped rows already leave out their own group's dot.
+// `showImages` is decided by the page from all loaded recipes. `denseTiles`: the recipe list's narrower tile grid.
+// `exceptCategoryId` drops that category's dot from the flat rows (a category page: every row is in it); grouped rows
+// already leave out their own group's dot.
 export function RecipeListView({
   recipes,
   categories,

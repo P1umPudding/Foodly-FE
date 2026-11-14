@@ -244,7 +244,8 @@ it('"Öffnen" hides until hover on desktop but always shows on phones and touch'
   renderView()
   const open = screen.getByRole('link', { name: 'Öffnen: „Fav“' })
   expect(open.className).toContain('opacity-0')
-  expect(open.className).toContain('group-hover/head:opacity-100')
-  expect(open.className).toContain('phone:opacity-100')
-  expect(open.className).toContain('touch:opacity-100')
+  // Shown on head hover and on keyboard focus anywhere in the head (also the trigger), always on phones/touch.
+  for (const v of ['group-hover/head', 'group-focus-within/head', 'phone', 'touch']) {
+    expect(open.className).toContain(`${v}:opacity-100`)
+  }
 })
