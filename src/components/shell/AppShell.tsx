@@ -80,7 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <header
               className={cn(
                 'site-header sticky top-0 z-50 flex items-center gap-3 border-b border-border/60 bg-background/85 backdrop-blur-md',
-                isDesktop ? 'h-[60px] px-8' : 'h-14 px-4',
+                isDesktop ? 'h-15 px-8' : 'h-14 px-4',
               )}
             >
               {/* Not a heading: each page owns its single h1. On the phone, Start greets in its h1, so the
@@ -171,7 +171,10 @@ function Crumb({ origin, fromShell, name }: { origin: Origin; fromShell: boolean
       <Link
         to={origin.href}
         state={fromShell ? SHELL_NAV_STATE : undefined}
-        className={cn('shrink-0 rounded-sm text-muted-foreground hover:text-foreground', FOCUS_RING)}
+        className={cn(
+          'max-w-[45%] min-w-0 truncate rounded-sm text-muted-foreground hover:text-foreground',
+          FOCUS_RING,
+        )}
       >
         {origin.label}
       </Link>

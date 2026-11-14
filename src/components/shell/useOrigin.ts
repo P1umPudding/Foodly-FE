@@ -1,6 +1,7 @@
 // Which page the user came from, per history entry: a push records the page being left (with the label it
 // showed), a replace keeps the replaced entry's origin (size steps, new → edit), back/forward look it up again.
-// Kept in sessionStorage keyed by the history entry, so a reload still knows it.
+// Kept in sessionStorage keyed by the history entry, so a reload still knows it. The label is the one shown when the
+// user left, so a later rename shows up only on the next visit.
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
 import type { Origin } from './origin'
@@ -53,8 +54,7 @@ export function useOrigin(currentLabel: string | null): Origin | null {
     const next = trim({ ...origins, [location.key]: origin })
     setOrigins(next)
     save(next)
-    // Only a new entry records an origin; the label changing on the same entry must not.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only a new entry records an origin, a label change on the same entry must not
   }, [location.key])
 
   useLayoutEffect(() => {
