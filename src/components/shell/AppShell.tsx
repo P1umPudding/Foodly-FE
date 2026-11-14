@@ -78,6 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Sidebar collapsed={collapsed} onCollapsedChange={setSidebarCollapsed} widthClass={sidebar.width} />
           )}
           <div className={cn('flex min-w-0 flex-1 flex-col', !isDesktop && 'pb-16')}>
+            {/* `site-header`: hook for the theme view-transition rule in styles.css. */}
             <header
               className={cn(
                 'site-header sticky top-0 z-50 flex h-(--site-nav-h) items-center gap-3 border-b border-border/60 bg-background/85 backdrop-blur-md',
