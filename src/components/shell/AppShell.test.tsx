@@ -256,6 +256,15 @@ describe('AppShell on the phone', () => {
     expect(header.parentElement!.parentElement!.className).toContain('[--site-nav-h:3.5rem]')
   })
 
+  it('has a 52 px "+" with the mockup shadow', () => {
+    renderAt('/recipes')
+    const fab = screen.getByRole('link', { name: 'Neues Rezept' })
+    expect(fab.className).toContain('size-13')
+    expect(fab.className).toContain('shadow-[0_6px_20px_rgb(0_0_0/0.22)]')
+    expect(fab.className).not.toContain('size-14')
+    expect(fab.className).not.toContain('shadow-lg')
+  })
+
   it('leads to the categories page from the avatar menu', async () => {
     renderAt('/recipes')
     fireEvent.keyDown(screen.getByRole('button', { name: 'Profil & Einstellungen' }), { key: 'Enter' })
