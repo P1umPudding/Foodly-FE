@@ -20,11 +20,15 @@ function load(): OriginMap {
   }
 }
 
-function save(map: OriginMap) {
+// Insertion order is visit order, so the oldest entries go first.
+function trim(map: OriginMap): OriginMap {
   const keys = Object.keys(map)
-  const trimmed = keys.length > MAX_ENTRIES ? Object.fromEntries(keys.slice(-MAX_ENTRIES).map((k) => [k, map[k]])) : map
+  return keys.length > MAX_ENTRIES ? Object.fromEntries(keys.slice(-MAX_ENTRIES).map((k) => [k, map[k]])) : map
+}
+
+function save(map: OriginMap) {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(map))
   } catch {
     // Storage full or blocked: the origin just doesn't survive a reload.
   }
@@ -46,7 +50,7 @@ export function useOrigin(currentLabel: string | null): Origin | null {
     if (navigationType === 'PUSH') origin = prev.label !== null ? { label: prev.label, href: prev.href } : null
     else if (navigationType === 'REPLACE') origin = origins[prev.key]
     if (origin === undefined) return
-    const next = { ...origins, [location.key]: origin }
+    const next = trim({ ...origins, [location.key]: origin })
     setOrigins(next)
     save(next)
     // Only a new entry records an origin; the label changing on the same entry must not.
