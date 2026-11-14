@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeRow } from './RecipeRow'
@@ -6,7 +6,11 @@ import type { Recipe, Tag, UserCategory } from '../../api/protocol'
 import { ref } from '../../test/images'
 
 const tags = vi.hoisted(() => ({ byId: {} as Record<string, Tag> }))
-vi.mock('../../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1, useTags: () => tags }))
+vi.mock('../../catalog/CatalogProvider', () => ({
+  useCurrentUserId: () => 1,
+  useTags: () => tags,
+  useUser: (id: number) => ({ 1: { id: 1, name: 'Ich' }, 2: { id: 2, name: 'Mara' } })[id],
+}))
 
 const base: Recipe = {
   id: 1,
@@ -151,5 +155,52 @@ describe('RecipeRow · compact name tooltip', () => {
     fireEvent.focus(screen.getByText('Spaghetti Vegan Bolognese'))
     const tooltip = await screen.findByRole('tooltip')
     expect(tooltip.textContent).toBe('Spaghetti Vegan Bolognese')
+  })
+})
+
+describe('flat row with one meta line (mockup V3)', () => {
+  const timed = { ...base, time: '20 min + Kochzeit 70 min', overallMinutes: 90 }
+
+  it('has no card border and exactly one meta line', () => {
+    const { container } = renderRow(timed)
+    const link = container.querySelector('a')!
+    expect(link.className).not.toMatch(/(^|\s)border(-|\s|$)/)
+    expect(container.querySelector('[class*="border"]')).toBeNull()
+    expect(screen.getAllByTestId('recipe-meta')).toHaveLength(1)
+  })
+
+  it('shows the total time formatted, time before the rating, never the free text', () => {
+    renderRow(timed)
+    const meta = screen.getByTestId('recipe-meta')
+    expect(meta.textContent).toBe('1 h 30 min5,0')
+    expect(document.body.textContent).not.toContain('Kochzeit')
+  })
+
+  it('no minutes → no time', () => {
+    renderRow({ ...base, time: '45 min' })
+    expect(screen.queryByTestId('recipe-time')).toBeNull()
+  })
+
+  it('names the owner of a foreign recipe only', () => {
+    renderRow({ ...base, owner: 2, viewers: [1] })
+    expect(screen.getByTestId('recipe-meta').textContent).toContain('von Mara')
+    cleanup()
+    renderRow(base)
+    expect(screen.getByTestId('recipe-meta').textContent).not.toContain('von')
+  })
+
+  it('compact: time without clock icon, right side reads tags → access → dots', () => {
+    const cats: UserCategory[] = [
+      { id: 1, user: 1, name: 'Pasta', recipes: [1], order: 0, color: '#cc3333', colorLight: null, colorDark: null },
+    ]
+    const { container } = renderRow({ ...timed, tags: ['Vegan'] }, { compact: true, categories: cats })
+    expect(screen.getByTestId('recipe-time').textContent).toBe('1 h 30 min')
+    expect(container.querySelector('.lucide-clock')).toBeNull()
+    const tag = screen.getByText('Vegan')
+    const access = screen.getByRole('img', { name: 'geteilt (nur lesen)' })
+    const dot = screen.getByTestId('category-dot')
+    const follows = (a: Node, b: Node) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(follows(tag, access)).toBe(true)
+    expect(follows(access, dot)).toBe(true)
   })
 })
