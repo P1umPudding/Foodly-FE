@@ -6,7 +6,7 @@ import { Button, cn, type ButtonProps } from '@postxl/ui-components'
 // A class string rather than a component: it has to merge into the lib's SheetTitle (which brings
 // text-lg/font-semibold) via className; SheetTitle asChild would concatenate instead of merge.
 // 16 px/650 is off the compact text scale on purpose (docs/design.md, Schrift).
-export const PANEL_TITLE = 'min-w-0 text-left text-[16px] font-[650]'
+export const PANEL_TITLE = 'min-w-0 text-left text-[16px] font-[650] break-words'
 
 export function PanelHead({ title, close }: { title: ReactNode; close: ReactNode }) {
   return (
@@ -21,6 +21,7 @@ export function PanelHead({ title, close }: { title: ReactNode; close: ReactNode
 export function PanelCloseButton({ className, ...props }: ButtonProps) {
   return (
     <Button
+      type="button"
       variant="ghost"
       size="iconSm"
       aria-label="Schließen"

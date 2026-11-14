@@ -46,6 +46,13 @@ describe('BottomSheet', () => {
     expect(sheet.firstElementChild?.tagName).toBe('BUTTON')
     expect(sheet.firstElementChild?.textContent).toBe('Close')
     expect(sheet.children[1].getAttribute('aria-hidden')).toBe('true')
+    expect(within(sheet).getByRole('button', { name: 'Schließen' }).parentElement).not.toBe(sheet)
+  })
+
+  // A long word (a category name) must wrap, not push the ✕ out of the row.
+  it('lets a long title wrap beside the ✕', () => {
+    const title = within(renderSheet()).getByRole('heading', { name: 'Titel' })
+    expect(title.className.split(' ')).toEqual(expect.arrayContaining(['min-w-0', 'break-words']))
   })
 
   it('closes from "Schließen"', () => {
