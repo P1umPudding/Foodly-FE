@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { BrowserRouter, Link, MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Button, TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -110,7 +110,10 @@ describe('RecipeDetail · Zurück', () => {
   it('shows "Rezepte / <name>" in the header when opened directly (#228 AC1)', async () => {
     renderMemory(['/recipes/1'], 'Spaghetti Bolognese')
     await screen.findByRole('heading', { name: 'Spaghetti Bolognese' })
-    expect(screen.getByRole('navigation', { name: 'Pfad' }).textContent).toBe('Rezepte/Spaghetti Bolognese')
+    // The name reaches the shell in an effect after the page rendered.
+    await waitFor(() =>
+      expect(screen.getByRole('navigation', { name: 'Pfad' }).textContent).toBe('Rezepte/Spaghetti Bolognese'),
+    )
   })
 
   it('has no back button in the content any more (#228)', async () => {

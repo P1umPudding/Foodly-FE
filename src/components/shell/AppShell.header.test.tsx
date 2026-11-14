@@ -134,21 +134,21 @@ describe('AppShell header on subpages', () => {
   })
 
   it('remembers the origin across a reload (same history key)', () => {
-    sessionStorage.setItem('foodly.origin', JSON.stringify({ k1: { label: 'Favoriten', href: '/categories/2' } }))
+    sessionStorage.setItem('foodly.origin', JSON.stringify({ 'k:k1': { label: 'Favoriten', href: '/categories/2' } }))
     renderAt([{ pathname: '/recipes/1', key: 'k1' }])
     expect(crumbText()).toBe('Favoriten/Spaghetti Bolognese')
     expect(header().getByRole('link', { name: 'Favoriten' }).getAttribute('href')).toBe('/categories/2')
   })
 
   it('keeps at most 50 stored origins, dropping the oldest', () => {
-    const stored = Object.fromEntries(Array.from({ length: 50 }, (_, i) => [`k${i}`, null]))
+    const stored = Object.fromEntries(Array.from({ length: 50 }, (_, i) => [`k:${i}`, null]))
     sessionStorage.setItem('foodly.origin', JSON.stringify(stored))
     renderAt(['/'])
     fireEvent.click(screen.getByRole('link', { name: 'open recipe' }))
     const keys = Object.keys(JSON.parse(sessionStorage.getItem('foodly.origin')!) as object)
     expect(keys).toHaveLength(50)
-    expect(keys[0]).toBe('k1')
-    expect(keys[keys.length - 1]).not.toMatch(/^k\d+$/)
+    expect(keys[0]).toBe('k:1')
+    expect(keys[keys.length - 1]).not.toMatch(/^k:\d+$/)
   })
 
   it('puts the page actions into the header', () => {

@@ -21,7 +21,8 @@ function load(): OriginMap {
   }
 }
 
-// Insertion order is visit order, so the oldest entries go first.
+// Insertion order is visit order, so the oldest entries go first. Keys are prefixed: an all-digit history key would
+// otherwise be listed first by JS and dropped too early.
 function trim(map: OriginMap): OriginMap {
   const keys = Object.keys(map)
   return keys.length > MAX_ENTRIES ? Object.fromEntries(keys.slice(-MAX_ENTRIES).map((k) => [k, map[k]])) : map
@@ -49,9 +50,9 @@ export function useOrigin(currentLabel: string | null): Origin | null {
     if (!prev || prev.key === location.key) return
     let origin: Origin | null | undefined
     if (navigationType === 'PUSH') origin = prev.label !== null ? { label: prev.label, href: prev.href } : null
-    else if (navigationType === 'REPLACE') origin = origins[prev.key]
+    else if (navigationType === 'REPLACE') origin = origins[`k:${prev.key}`]
     if (origin === undefined) return
-    const next = trim({ ...origins, [location.key]: origin })
+    const next = trim({ ...origins, [`k:${location.key}`]: origin })
     setOrigins(next)
     save(next)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only a new entry records an origin, a label change on the same entry must not
@@ -61,5 +62,5 @@ export function useOrigin(currentLabel: string | null): Origin | null {
     left.current = { key: location.key, href: location.pathname + location.search, label: currentLabel }
   })
 
-  return origins[location.key] ?? null
+  return origins[`k:${location.key}`] ?? null
 }
