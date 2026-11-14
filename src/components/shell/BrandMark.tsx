@@ -8,7 +8,7 @@ export function BrandMark({ small = false }: { small?: boolean }) {
       aria-hidden
       className={cn(
         'inline-grid shrink-0 place-items-center rounded-md bg-foreground text-background',
-        small ? 'size-6' : 'size-[26px]',
+        small ? 'size-6' : 'size-6.5',
       )}
     >
       <ChefHat className={small ? 'size-3.5' : 'size-4'} />

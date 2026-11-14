@@ -140,6 +140,17 @@ describe('AppShell header on subpages', () => {
     expect(header().getByRole('link', { name: 'Favoriten' }).getAttribute('href')).toBe('/categories/2')
   })
 
+  it('keeps at most 50 stored origins, dropping the oldest', () => {
+    const stored = Object.fromEntries(Array.from({ length: 50 }, (_, i) => [`k${i}`, null]))
+    sessionStorage.setItem('foodly.origin', JSON.stringify(stored))
+    renderAt(['/'])
+    fireEvent.click(screen.getByRole('link', { name: 'open recipe' }))
+    const keys = Object.keys(JSON.parse(sessionStorage.getItem('foodly.origin')!) as object)
+    expect(keys).toHaveLength(50)
+    expect(keys[0]).toBe('k1')
+    expect(keys[keys.length - 1]).not.toMatch(/^k\d+$/)
+  })
+
   it('puts the page actions into the header', () => {
     renderAt(['/recipes/1'])
     header().getByRole('button', { name: 'probe action' })
