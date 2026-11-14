@@ -76,7 +76,13 @@ export function LoadMoreSkeleton({
   }
   // One row, as many tiles as the grid has columns (the max-w-6xl column fits at most 4, the dense grid 5).
   const tiles = (
-    <ListSkeleton detail="tiles" count={denseTiles ? 5 : 4} denseTiles={denseTiles} testId="list-more-skeleton" oneRow />
+    <ListSkeleton
+      detail="tiles"
+      count={denseTiles ? 5 : 4}
+      denseTiles={denseTiles}
+      testId="list-more-skeleton"
+      oneRow
+    />
   )
   // Grouped: indented like a group's grid, so the skeleton columns match the tiles above.
   return (

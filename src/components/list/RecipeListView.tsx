@@ -30,7 +30,9 @@ export function TileGrid({
   const cols = dense
     ? 'grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-x-4'
     : 'grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-x-5'
-  const rows = oneRow ? 'auto-rows-[0] grid-rows-[auto] overflow-hidden' : `${dense ? 'gap-y-6' : 'gap-y-7'} phone:gap-y-5`
+  const rows = oneRow
+    ? 'auto-rows-[0] grid-rows-[auto] overflow-hidden'
+    : `${dense ? 'gap-y-6' : 'gap-y-7'} phone:gap-y-5`
   return (
     <div data-testid="tile-grid" className={`grid ${cols} phone:grid-cols-2 phone:gap-x-3 ${rows}`}>
       {children}

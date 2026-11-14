@@ -19,7 +19,9 @@ export function TagChips({
   const { byId } = useTags()
   if (tags.length === 0) return null
   return (
-    <div className={`flex items-center gap-1 ${nowrap ? 'flex-nowrap' : 'flex-wrap'} ${align === 'end' ? 'justify-end' : ''}`}>
+    <div
+      className={`flex items-center gap-1 ${nowrap ? 'flex-nowrap' : 'flex-wrap'} ${align === 'end' ? 'justify-end' : ''}`}
+    >
       {tags.slice(0, max).map((t) => (
         <TagChip key={t} name={t} tag={byId[t]} capped={max !== undefined} />
       ))}

@@ -81,7 +81,7 @@ export function RecipeRow({
   // first (it keeps a tooltip only when actually clipped); the time never truncates. 34 px tall, 40 on touch.
   if (compact) {
     return (
-      <Link to={`/recipes/${recipe.id}`} className={`${ROW} gap-3 px-3 py-[7px] touch:min-h-10`}>
+      <Link to={`/recipes/${recipe.id}`} className={`${ROW} gap-3 px-3 py-1.5 touch:min-h-10`}>
         <CompactName name={recipe.name} />
         {rating !== null && (
           <span className="text-sm text-muted-foreground">
@@ -89,7 +89,10 @@ export function RecipeRow({
           </span>
         )}
         {time && (
-          <span data-testid="recipe-time" className="shrink-0 whitespace-nowrap text-sm tabular-nums text-muted-foreground">
+          <span
+            data-testid="recipe-time"
+            className="shrink-0 whitespace-nowrap text-sm tabular-nums text-muted-foreground"
+          >
             {time}
           </span>
         )}
