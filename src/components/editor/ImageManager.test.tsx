@@ -24,8 +24,10 @@ function setup(onChange = vi.fn(), mainImage: ImageRef | null = ref(1), images: 
 // Holds the images like the editor draft does: uploads go through addImage on the current state.
 function Draft({
   initial = { mainImage: null, images: [] },
+  disabled = false,
 }: {
   initial?: { mainImage: ImageRef | null; images: ImageRef[] }
+  disabled?: boolean
 }) {
   const [draft, setDraft] = useState(initial)
   return (
@@ -33,6 +35,7 @@ function Draft({
       {...draft}
       onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))}
       onAdd={(image) => setDraft((d) => addImage(d, image))}
+      disabled={disabled}
     />
   )
 }
@@ -192,5 +195,19 @@ describe('ImageManager', () => {
     )
 
     expect(screen.getByLabelText('Fotos hinzufügen').matches(':disabled')).toBe(true)
+  })
+
+  it('removing the main image while the upload is disabled keeps focus in the image block', async () => {
+    const { container } = render(
+      <TooltipProvider>
+        <Draft initial={{ mainImage: ref(1), images: [] }} disabled />
+      </TooltipProvider>,
+    )
+    const block = container.querySelector('.group\\/images')
+
+    openMenu('Hauptbild')
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Entfernen' }))
+
+    await waitFor(() => expect(document.activeElement).toBe(block))
   })
 })

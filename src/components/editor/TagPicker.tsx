@@ -154,7 +154,7 @@ export function TagPicker({
         </div>
       )}
       {/* Outside the listbox (only options belong in there); a live region, so typing into nothing is announced. */}
-      <p role="status" className="absolute inset-x-0 top-full z-20 empty:hidden">
+      <p role="status" className="absolute inset-x-0 top-full z-20">
         {noMatch && (
           <span className="mt-1 block rounded-md border bg-popover px-3 py-2 text-muted-foreground shadow-md">
             Kein passender Tag.

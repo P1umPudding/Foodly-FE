@@ -56,12 +56,15 @@ export function ImageManager({
 
   const inputRef = useRef<HTMLInputElement>(null)
   const mainTrigger = useRef<HTMLButtonElement>(null)
+  // Last resort while the input is disabled and no main image is left: the image block itself (not tabbable).
+  const block = useRef<HTMLDivElement>(null)
   // After "Entfernen" or "Als Hauptbild" the menu's trigger is gone (or moved). Focus goes to the main image after a
   // promotion, otherwise to the file input, or to the main image while the input is disabled — never to the page.
   const focusAfter = (action: 'remove' | 'makeMain') => {
     const input = inputRef.current
     if (action === 'remove' && input && !input.disabled) input.focus()
-    else mainTrigger.current?.focus()
+    else if (mainTrigger.current) mainTrigger.current.focus()
+    else block.current?.focus()
   }
 
   // One after another, in the order picked: the first becomes the main image, and a failure keeps the rest.
@@ -80,7 +83,7 @@ export function ImageManager({
   const hasImages = mainImage !== null || images.length > 0
 
   return (
-    <div className="group/images flex flex-col">
+    <div ref={block} tabIndex={-1} className="group/images flex flex-col outline-none">
       {/* eslint-disable-next-line react/forbid-elements -- native file picker, @postxl/ui-components has no file input */}
       <input
         ref={inputRef}
