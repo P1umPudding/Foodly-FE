@@ -93,7 +93,7 @@ dem Shell-/Detail-Issue (Override von `--text-base` unter 761 px), weil die heut
 Zahlen, die sich vergleichen lassen (Zeiten, Mengen, Zähler), mit `tabular-nums`. Keine weiteren Größen; Ausnahmen sind
 der Koch-Modus (großer Schritttext, siehe Redesign-README) und die Kacheln (`RecipeTile`): Titel 17 px / 700
 (Handy `text-lg`), Name der Typo-Kachel 22 px / 750 (Handy 17 px), beide nur dort. Ebenso das „+N“ auf der letzten
-Galerie-Kachel im Rezept-Detail (`RecipeImages`): 20 px / 600, nur dort. Außerdem: Eingabefelder auf
+Galerie-Kachel im Rezept-Detail (`RecipeImages`): 20 px / 600, nur dort. Sheet- und Popover-Titel (`PanelHead`, Mockup `.sheet-h`): 16 px / 650, nur dort. Außerdem: Eingabefelder auf
 Touch 16 px (`pointer: coarse`, sonst zoomt iOS beim Fokus). Das regelt eine zentrale Regel in `styles.css`, keine
 Klassen pro Feld; sie gilt auch bei der geplanten Handy-Grundschrift 15 px. Felder mit `text-xl` und größer
 behalten ihre Größe.
@@ -202,7 +202,8 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 - Feste Leisten unten (Tab-Leiste, FAB, Editor-Leiste, Sheets) halten `env(safe-area-inset-bottom)` frei; Sheets in
   `dvh`, ihre Aktionen bleiben über der Bildschirmtastatur.
 - Unterseiten mit eigener Abschluss-Aktion (Editor „Fertig“, Koch-Modus) zeigen auf dem Handy keine Tab-Leiste.
-- Popover mit Inhalt (Filter, Timer, Formulare) werden auf dem Handy zu Bottom-Sheets mit Griff, Titel und ✕;
+- Popover mit Inhalt (Filter, Timer, Formulare) werden auf dem Handy zu Bottom-Sheets mit Griff, Titel linksbündig und ✕ rechts in einer Zeile (`PanelHead`;
+  Ghost-Button 30 px, auf Touch 40 px); Popover mit Kopf im Mockup (Timer) zeigen denselben Kopf;
   Filter-Sheets haben unten „Zurücksetzen“ und „Anzeigen“ wie im Mockup (Daniel, 2026-11-13). Kurze Aktionsmenüs (bis 5 Einträge, z. B. das Profil-Menü) bleiben auch
   auf dem Handy ein `DropdownMenu`.
 - Horizontal scrollen nur für die Filterleiste und Chip-Reihen, nie für Inhalt.
