@@ -1,6 +1,6 @@
 // The shell's navigation model: which destinations exist and how nav links address the recipe list.
 import { BookOpen, House, type LucideIcon } from 'lucide-react'
-import { DEFAULT_STATE, type ListState } from '../../list/state'
+import { DEFAULT_STATE, type ListState, type RoleFilter } from '../../list/state'
 import { fromSearchParams, toSearchParams } from '../../list/url'
 
 export type NavDestination = { label: string; path: string; icon: LucideIcon }
@@ -21,11 +21,11 @@ export function navPrefs(pathname: string, params: URLSearchParams, persisted: P
   return { sortKey, sortDir, detail, grouped }
 }
 
-// A nav link means "these categories" (or "all recipes"), so it drops the other filters but keeps the
-// view prefs. `group` is always written: a bare /recipes would make the list restore the last stored
-// filters instead of showing all recipes.
-export function listHref(categories: number[], prefs: ViewPrefs): string {
-  const params = toSearchParams({ ...DEFAULT_STATE, ...prefs, categories })
+// A nav link means "these categories" (or "all recipes", or "my recipes" with role), so it drops the other
+// filters but keeps the view prefs. `group` is always written: a bare /recipes would make the list restore the
+// last stored filters instead of showing all recipes.
+export function listHref(categories: number[], prefs: ViewPrefs, role: RoleFilter = DEFAULT_STATE.role): string {
+  const params = toSearchParams({ ...DEFAULT_STATE, ...prefs, categories, role })
   params.set('group', prefs.grouped ? '1' : '0')
   return `/recipes?${params.toString()}`
 }

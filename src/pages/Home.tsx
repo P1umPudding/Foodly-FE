@@ -4,6 +4,7 @@ import { useMe } from '../catalog/CatalogProvider'
 import { CategoryTiles } from '../components/home/CategoryTiles'
 import { HomeSectionsProvider, NothingToShow } from '../components/home/HomeSections'
 import { formatHomeDate, greeting } from '../components/home/greeting'
+import { RecentCreations } from '../components/home/RecentCreations'
 import { RecentlyViewed } from '../components/home/RecentlyViewed'
 
 export function Home() {
@@ -16,8 +17,9 @@ export function Home() {
           <p className="text-muted-foreground">{formatHomeDate(new Date())}</p>
           <h1 className="font-display text-4xl text-foreground">{greeting(me?.name)}</h1>
         </div>
-        {/* Sections, each a HomeSection (D3 follows). */}
+        {/* Sections, each a HomeSection. */}
         <CategoryTiles />
+        <RecentCreations />
         <RecentlyViewed />
         <NothingToShow />
       </div>
