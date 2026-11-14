@@ -41,6 +41,35 @@ describe('SizeField', () => {
     expect(onChange).toHaveBeenCalledWith({ sizeMode: 'text', sizeNumber: null })
   })
 
+  it('switching back to portions keeps the text', () => {
+    const onChange = vi.fn()
+    render(<SizeField mode="text" sizeNumber={null} sizeText="Blech" error={null} onChange={onChange} />)
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Portionen' }))
+
+    expect(onChange).toHaveBeenCalledWith({ sizeMode: 'portions' })
+  })
+
+  it('is a segment labelled "Größe" whose active option stays chosen when clicked again', () => {
+    const onChange = vi.fn()
+    render(<SizeField mode="portions" sizeNumber={4} sizeText="" error={null} onChange={onChange} />)
+
+    expect(screen.getByRole('group', { name: 'Größe' })).toBeTruthy()
+    const active = screen.getByRole('radio', { name: 'Portionen' })
+    expect(active.getAttribute('aria-checked')).toBe('true')
+    fireEvent.click(active)
+
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('explains both modes with the mockup hint and the 26 cm example', () => {
+    render(<SizeField mode="text" sizeNumber={null} sizeText="" error={null} onChange={vi.fn()} />)
+
+    expect(screen.getByText(/Portionen: Beim Kochen wählt man die Anzahl, Mengen rechnen sich um\./)).toBeTruthy()
+    expect(screen.getByText(/„26 cm \{Springform\}“/)).toBeTruthy()
+    expect((screen.getByLabelText('Bezeichnung') as HTMLInputElement).placeholder).toBe('26 cm {Springform}')
+  })
+
   it('hides the number input in text mode', () => {
     render(<SizeField mode="text" sizeNumber={null} sizeText="28 cm {Springform}" error={null} onChange={vi.fn()} />)
 

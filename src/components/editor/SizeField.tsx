@@ -1,10 +1,16 @@
 import { useId, useState } from 'react'
-import { Input, Label, RadioGroup, RadioGroupItem } from '@postxl/ui-components'
+import { Input, Label, ToggleGroup, cn } from '@postxl/ui-components'
+import { FocusToggleGroupItem } from '../list/FocusToggleGroupItem'
 import type { Draft, SizeMode } from '../../editor/draft'
 
 // sizeNumber and sizeText are mutually exclusive in the model (PortionScaler
 // branches on whether sizeNumber is set), so the mode is an explicit choice rather
 // than something inferred from which field the user touched last.
+const SIZE_MODES: [SizeMode, string][] = [
+  ['portions', 'Portionen'],
+  ['text', 'Freitext'],
+]
+
 export function SizeField({
   mode,
   sizeNumber,
@@ -19,6 +25,7 @@ export function SizeField({
   onChange: (patch: Partial<Draft>) => void
 }) {
   const errorId = useId()
+  const labelId = useId()
   // The error shows once the field is left (docs/design.md §6), except for a value
   // that was already invalid when the editor opened (old data): that one shows at
   // once, until it is fixed. Read on mount, which works because the editor only
@@ -29,32 +36,41 @@ export function SizeField({
   const shownError = error !== null && (touched || invalidOnOpen) ? error : null
 
   return (
-    <div className="flex flex-col gap-2">
-      <Label>Größe</Label>
-      <RadioGroup
+    <div className="flex flex-col gap-1.5">
+      <Label id={labelId}>Größe</Label>
+      {/* The V1 segment track (ViewToggles). Radix renders its items as radios; an empty value (re-clicking the
+          active one) is ignored, so one mode is always chosen. */}
+      <ToggleGroup
+        type="single"
         value={mode}
-        onValueChange={(next) =>
-          onChange(next === 'portions' ? { sizeMode: 'portions' } : { sizeMode: 'text', sizeNumber: null })
-        }
-        className="flex gap-4"
+        aria-labelledby={labelId}
+        onValueChange={(next) => {
+          if (next === 'portions') onChange({ sizeMode: 'portions' })
+          else if (next === 'text') onChange({ sizeMode: 'text', sizeNumber: null })
+        }}
+        className="gap-0.5 self-start rounded-lg bg-seg p-0.5"
       >
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="portions" id="size-portions" />
-          <Label htmlFor="size-portions">Portionen</Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="text" id="size-text" />
-          <Label htmlFor="size-text">Freitext</Label>
-        </div>
-      </RadioGroup>
+        {SIZE_MODES.map(([value, label]) => (
+          <FocusToggleGroupItem
+            key={value}
+            value={value}
+            className={cn(
+              'h-8 rounded-md px-3 text-muted-foreground hover:bg-transparent hover:text-foreground touch:h-10',
+              mode === value && 'bg-card text-foreground shadow-seg hover:bg-card',
+            )}
+          >
+            {label}
+          </FocusToggleGroupItem>
+        ))}
+      </ToggleGroup>
 
-      <div className="flex gap-2">
+      <div className="mt-1 flex gap-2">
         {mode === 'portions' && (
           <Input
             type="number"
             min={1}
             aria-label="Anzahl"
-            className="w-24"
+            className="w-[72px]"
             value={sizeNumber ?? ''}
             onChange={(e) => onChange({ sizeNumber: e.target.value === '' ? null : Number(e.target.value) })}
             onBlur={() => setTouched(true)}
@@ -65,7 +81,7 @@ export function SizeField({
         <Input
           aria-label="Bezeichnung"
           className="flex-1"
-          placeholder={mode === 'portions' ? '{Portionen}' : '28 cm {Springform}'}
+          placeholder={mode === 'portions' ? '{Portionen}' : '26 cm {Springform}'}
           value={sizeText}
           onChange={(e) => onChange({ sizeText: e.target.value })}
         />
@@ -75,6 +91,10 @@ export function SizeField({
           {shownError}
         </p>
       )}
+      <p className="text-xs text-muted-foreground">
+        Portionen: Beim Kochen wählt man die Anzahl, Mengen rechnen sich um. Freitext (z. B. „26 cm {'{Springform}'}“):
+        Man skaliert mit einem Faktor ×½, ×2 …
+      </p>
     </div>
   )
 }
