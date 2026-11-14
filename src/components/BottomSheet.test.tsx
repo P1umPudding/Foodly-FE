@@ -50,7 +50,7 @@ describe('BottomSheet', () => {
   })
 
   // A long word (a category name) must wrap, not push the ✕ out of the row.
-  it('lets a long title wrap beside the ✕', () => {
+  it('gives the title the wrap classes', () => {
     const title = within(renderSheet()).getByRole('heading', { name: 'Titel' })
     expect(title.className.split(' ')).toEqual(expect.arrayContaining(['min-w-0', 'break-words']))
   })
