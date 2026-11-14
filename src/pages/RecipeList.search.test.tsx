@@ -139,8 +139,8 @@ describe('RecipeList (server-side search)', () => {
       })
 
       const more = await waitFor(() => screen.getByTestId('list-more-skeleton'))
-      expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(4)
-      expect(within(more).getAllByTestId('tile-skeleton-line')).toHaveLength(8)
+      expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(5) // the list's dense grid fits 5
+      expect(within(more).getAllByTestId('tile-skeleton-line')).toHaveLength(10)
       expect(within(more).getByTestId('tile-grid').className).toContain('auto-rows-[0]')
     })
 
@@ -170,7 +170,7 @@ describe('RecipeList (server-side search)', () => {
       })
 
       const more = await waitFor(() => screen.getByTestId('list-more-skeleton'))
-      expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(4)
+      expect(within(more).getAllByTestId('tile-skeleton')).toHaveLength(5)
       expect(more.parentElement?.className).toContain('border-transparent')
     })
 

@@ -27,17 +27,19 @@ export function ListSkeleton({
   count,
   testId,
   oneRow = false,
+  denseTiles = false,
 }: {
   detail: DetailView
   count: number
   testId?: string
   oneRow?: boolean
+  denseTiles?: boolean
 }) {
   const items = Array.from({ length: count }, (_, i) => i)
   if (detail === 'tiles') {
     return (
       <div data-testid={testId}>
-        <TileGrid oneRow={oneRow}>
+        <TileGrid oneRow={oneRow} dense={denseTiles}>
           {items.map((i) => (
             <TileSkeleton key={i} />
           ))}
@@ -45,30 +47,52 @@ export function ListSkeleton({
       </div>
     )
   }
+  // Same pitch as the flat rows (34 / 60 px without photo; compact 40 on touch): bar plus a small gap, so the bars
+  // don't merge into one block.
   const compact = detail === 'compact'
   return (
-    <div data-testid={testId} className={compact ? 'space-y-0.5' : 'space-y-3'}>
+    <div data-testid={testId} className={compact ? 'space-y-0.5' : 'space-y-1'}>
       {items.map((i) => (
         <Skeleton
           key={i}
           data-testid="row-skeleton"
-          className={`w-full ${compact ? 'h-8 rounded-md' : 'h-18 rounded-lg'}`}
+          className={`w-full rounded-md ${compact ? 'h-8 touch:h-[38px]' : 'h-14'}`}
         />
       ))}
     </div>
   )
 }
 
-export function LoadMoreSkeleton({ detail, grouped }: { detail: DetailView; grouped: boolean }) {
+export function LoadMoreSkeleton({
+  detail,
+  grouped,
+  denseTiles = false,
+}: {
+  detail: DetailView
+  grouped: boolean
+  denseTiles?: boolean
+}) {
   if (detail !== 'tiles') {
     return (
-      <div className="pt-3">
+      <div className="pt-1">
         <ListSkeleton detail={detail} count={1} testId="list-more-skeleton" />
       </div>
     )
   }
-  // One row, as many tiles as the grid has columns (the max-w-6xl column fits at most 4).
-  const tiles = <ListSkeleton detail="tiles" count={4} testId="list-more-skeleton" oneRow />
+  // One row, as many tiles as the grid has columns (the max-w-6xl column fits at most 4, the dense grid 5).
+  const tiles = (
+    <ListSkeleton
+      detail="tiles"
+      count={denseTiles ? 5 : 4}
+      denseTiles={denseTiles}
+      testId="list-more-skeleton"
+      oneRow
+    />
+  )
   // Grouped: indented like a group's grid, so the skeleton columns match the tiles above.
-  return <div className="pt-7 phone:pt-5">{grouped ? <GroupIndent lineless>{tiles}</GroupIndent> : tiles}</div>
+  return (
+    <div className={`${denseTiles ? 'pt-6' : 'pt-7'} phone:pt-5`}>
+      {grouped ? <GroupIndent lineless>{tiles}</GroupIndent> : tiles}
+    </div>
+  )
 }
