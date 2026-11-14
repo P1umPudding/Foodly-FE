@@ -308,6 +308,7 @@ export function RecipeList() {
           <ListSkeleton
             detail={state.detail}
             count={4}
+            denseTiles
             testId={search.status === 'ready' ? 'list-categories-skeleton' : undefined}
           />
         )}
@@ -319,7 +320,7 @@ export function RecipeList() {
         {/* Pages still to come may hold matches: hold the empty texts back until the list is exhausted.
           The sentinel below stays in view, so loading carries on by itself. */}
         {pending && visible.length === 0 && !loadMoreFailed && (
-          <ListSkeleton detail={state.detail} count={1} testId="list-pending-skeleton" />
+          <ListSkeleton detail={state.detail} count={1} denseTiles testId="list-pending-skeleton" />
         )}
 
         {/* Server-side facets already narrow the loaded set, so only the filter state can tell an empty
@@ -356,6 +357,7 @@ export function RecipeList() {
             categories={groupingCats}
             allCategories={categories}
             showImages={showImages}
+            denseTiles
             detail={state.detail}
             grouped={grouped}
             collapsed={collapsed}
@@ -366,7 +368,7 @@ export function RecipeList() {
         {/* Infinite-scroll trigger + more-pages spinner. */}
         <div ref={sentinelRef} aria-hidden className="h-1" />
         {listReady && search.loadingMore && visible.length > 0 && (
-          <LoadMoreSkeleton detail={state.detail} grouped={grouped} />
+          <LoadMoreSkeleton detail={state.detail} grouped={grouped} denseTiles />
         )}
         {/* The retry unmounts the alert (focus falls back to the page, as with the first-page error); the
             status line below announces the loading instead. */}

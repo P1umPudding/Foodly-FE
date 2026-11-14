@@ -68,14 +68,25 @@ it('renders a collapsible, colour-coded heading per category', () => {
     </TooltipProvider>,
   )
   const heading = screen.getByRole('button', { name: /Fav/i }) // CollapseTrigger is a button
-  expect(heading.className).toContain('text-cat-ink')
+  // Neutral name next to a colour dot; the category colour is never the text colour.
+  const name = within(heading).getByTestId('group-name')
+  expect(name.className).toContain('text-foreground')
+  expect(name.className).not.toContain('text-cat-ink')
+  expect(heading.className).not.toContain('text-cat-ink')
+  expect(within(heading).getByTestId('group-dot').className).toContain('bg-cat-dot')
   // The Collapse root carries the colour variables; the bridge CSS isn't loaded in
   // jsdom, so only the variables are checked, not computed colours.
   const group = heading.closest('[data-cat]') as HTMLElement
   expect(group).not.toBeNull()
   expect(group.style.getPropertyValue('--cat-ink-l')).toBe(categoryColors(cats[0]).light.ink)
-  expect(group.querySelector('.border-cat-line')).not.toBeNull()
-  expect(screen.getByRole('button', { name: /Ohne Kategorie/i }).closest('[data-cat]')).toBeNull()
+  expect(group.querySelector('.border-cat-dot')).not.toBeNull()
+  const none = screen.getByRole('button', { name: /Ohne Kategorie/i })
+  expect(none.closest('[data-cat]')).toBeNull()
+  // "Ohne Kategorie": no dot, grey line.
+  expect(within(none).queryByTestId('group-dot')).toBeNull()
+  const noneGroup = none.closest('.group\\/cat') as HTMLElement
+  expect(noneGroup.querySelector('.border-border')).not.toBeNull()
+  expect(noneGroup.querySelector('.border-cat-dot')).toBeNull()
 })
 
 it('flat list (grouped=false): no category headers, every recipe once', () => {
@@ -217,4 +228,23 @@ describe('"Öffnen ›" in the group header', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Öffnen: „Fav“' }))
     expect(onCollapsedChange).not.toHaveBeenCalled()
   })
+})
+
+describe('tile grid width', () => {
+  it('the list grid is the dense one (190 px), elsewhere 230 px', () => {
+    const { unmount } = renderView({ detail: 'tiles', grouped: false, denseTiles: true })
+    expect(screen.getByTestId('tile-grid').className).toContain('minmax(190px,1fr)')
+    unmount()
+    renderView({ detail: 'tiles', grouped: false })
+    expect(screen.getByTestId('tile-grid').className).toContain('minmax(230px,1fr)')
+  })
+})
+
+it('"Öffnen" hides until hover on desktop but always shows on phones and touch', () => {
+  renderView()
+  const open = screen.getByRole('link', { name: 'Öffnen: „Fav“' })
+  expect(open.className).toContain('opacity-0')
+  expect(open.className).toContain('group-hover/head:opacity-100')
+  expect(open.className).toContain('phone:opacity-100')
+  expect(open.className).toContain('touch:opacity-100')
 })
