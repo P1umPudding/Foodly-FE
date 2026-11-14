@@ -111,7 +111,9 @@ describe('RecipeDetail · Zurück', () => {
     renderMemory(['/recipes/5'])
     await screen.findByRole('heading', { name: 'Rezept 5' })
     expect(within(screen.getByRole('main')).queryByRole('link', { name: /zurück/i })).toBeNull()
-    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Zurück' })).toBeTruthy()
+    expect(
+      within(document.querySelector<HTMLElement>('.site-header')!).getByRole('link', { name: 'Zurück' }),
+    ).toBeTruthy()
   })
 
   it('goes back in history when coming from the list, keeping the search', async () => {
