@@ -1,6 +1,6 @@
-// Subpages (recipe, category, editor, settings such as /categories) and where their header's back arrow and breadcrumb lead. The breadcrumb's
-// first part is the page the user came from (mockup: "Start / Spaghetti …"); this file holds the pure rules, the
-// tracking per history entry lives in useOrigin.
+// Subpages (recipe, category, editor, settings such as /categories) and where their header's back arrow and
+// breadcrumb lead. The breadcrumb's first part is the page the user came from (mockup: "Start / Spaghetti …"); this
+// file holds the pure rules, the tracking per history entry lives in useOrigin.
 import { isCategoryPage } from './nav'
 
 export type Origin = { label: string; href: string }

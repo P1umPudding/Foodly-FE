@@ -92,13 +92,7 @@ export function Categories() {
   }
 
   const newCategoryButton = (
-    <TriggerButton
-      ref={newButton}
-      variant="outline"
-      size="sm"
-      onClick={() => openDialog('edit', null)}
-      className="gap-1.5"
-    >
+    <TriggerButton ref={newButton} variant="outline" size="sm" onClick={() => openDialog('edit', null)}>
       <Plus aria-hidden className="size-4" />
       Neue Kategorie
     </TriggerButton>
