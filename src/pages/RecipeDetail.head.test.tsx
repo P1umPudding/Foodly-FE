@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Link, MemoryRouter, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
-import { TooltipProvider } from '@postxl/ui-components'
+import { TooltipProvider, buttonVariants } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
 import { foodly } from '../api'
@@ -328,7 +328,23 @@ describe('RecipeDetail actions', () => {
     expect(classesOf(screen.getByRole('button', { name: 'Kopie erstellen' }))).toContain('phone:hidden')
     const pencil = screen.getByRole('link', { name: 'Bearbeiten' })
     expect(classesOf(pencil)).toContain('phone:size-10')
-    expect(screen.queryByRole('button', { name: 'Löschen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Weitere Aktionen' })).toBeNull()
+  })
+
+  // #228: one primary action per screen. Owner + steps = every action present.
+  it('has exactly one primary button („Kochen“); „Bearbeiten“ is outline', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ owner: 1 }) })
+    await heading()
+
+    const primary = [...document.querySelectorAll('a, button')].filter((el) => classesOf(el).includes('bg-primary'))
+    expect(primary.map((el) => el.textContent?.trim())).toEqual(['Kochen'])
+    const edit = screen.getByRole('link', { name: 'Bearbeiten' })
+    // The outline variant's own tokens (gap-2 is merged away by the link's gap-1.5).
+    const outline = buttonVariants({ variant: 'outline' })
+      .split(' ')
+      .filter((c) => !c.startsWith('gap-') && !/^(h|px|py)-/.test(c) && !c.startsWith('has-'))
+    expect(classesOf(edit)).toEqual(expect.arrayContaining(outline))
+    expect(screen.getByRole('button', { name: 'Weitere Aktionen' })).toBeTruthy()
   })
 
   it('never says „Duplizieren“', async () => {
