@@ -185,7 +185,9 @@ export function RecipeList() {
   // Desktop: the search is ready to type into when the page opens. Not on phones, where focusing would pop the
   // keyboard over the list. Only the first render's viewport counts, so resizing never steals focus.
   // preventScroll: the scroll restore above owns the position on this mount. A restore skips the focus: the search
-  // scrolls away with the list, and keys typed into a field out of view would silently refilter it.
+  // scrolls away with the list, and keys typed into a field out of view would silently refilter it. Decided at mount
+  // from the saved position alone: a restore that ends up clamped near the top (the list got shorter) leaves the
+  // search unfocused, which is harmless.
   const searchInputRef = useRef<HTMLInputElement>(null)
   const focusSearchOnMount = useRef(isDesktop)
   useEffect(() => {
@@ -217,7 +219,8 @@ export function RecipeList() {
       data-testid="recipe-list-page"
       className="pt-0 pb-10 phone:pt-0 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]"
     >
-      {/* Not sticky (mockup): search, filters and count scroll away, only the site header and category headers stick. */}
+      {/* Not sticky (mockup): search, filters and count scroll away; only the site header and the category
+          headers stick. */}
       <div data-testid="list-toolbar" className="pb-3 pt-6 phone:pt-3">
         <h1 className="sr-only">Rezepte</h1>
 
@@ -254,8 +257,8 @@ export function RecipeList() {
           />
         </div>
 
-        {/* min-h fits the 26 px reset link (mockup .link-btn) and ResultCount always renders (invisible while unknown), so the row
-            keeps its height and the list doesn't jump whether or not the link shows. */}
+        {/* min-h fits the 26 px reset link (mockup .link-btn) and ResultCount always renders (invisible while
+            unknown), so the row keeps its height and the list doesn't jump whether or not the link shows. */}
         <div className="mt-3 flex min-h-[26px] items-center gap-2.5 text-sm text-muted-foreground">
           {/* Loading or failed: count 0 + more is the hidden placeholder — no number we don't know. */}
           <ResultCount count={listReady ? visible.length : 0} more={!listReady || search.hasMore} />

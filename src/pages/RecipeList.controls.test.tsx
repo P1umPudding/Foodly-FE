@@ -35,7 +35,10 @@ beforeEach(() => {
   vi.spyOn(foodly, 'searchRecipes').mockImplementation(() => new Promise<never>(() => {}))
 })
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  sessionStorage.clear()
+})
 
 describe('RecipeList controls on desktop', () => {
   it('focuses the search when the page opens, without scrolling', () => {
@@ -56,7 +59,12 @@ describe('RecipeList controls on desktop', () => {
     sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'group=0', y: 800 }))
     renderList()
     expect(document.activeElement).not.toBe(searchField())
-    sessionStorage.clear()
+  })
+
+  it('still focuses the search when the saved position belongs to another list', () => {
+    sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'cat=3&group=0', y: 800 }))
+    renderList()
+    expect(document.activeElement).toBe(searchField())
   })
 
   it('asks for a recipe and shows a magnifier in the search', () => {
