@@ -9,6 +9,7 @@ import {
   isScalableAmount,
   ingredientParts,
   hasPortions,
+  formatMinutes,
 } from './views'
 import type { Recipe } from './protocol'
 
@@ -269,5 +270,19 @@ describe('hasPortions', () => {
     expect(hasPortions(-2)).toBe(false)
     expect(hasPortions(0.5)).toBe(true)
     expect(hasPortions(4)).toBe(true)
+  })
+})
+
+describe('formatMinutes', () => {
+  it('formats total minutes like the mockup', () => {
+    expect(formatMinutes(45)).toBe('45 min')
+    expect(formatMinutes(60)).toBe('1 h')
+    expect(formatMinutes(90)).toBe('1 h 30 min')
+    expect(formatMinutes(125)).toBe('2 h 5 min')
+  })
+  it('shows nothing without a positive value', () => {
+    expect(formatMinutes(null)).toBeNull()
+    expect(formatMinutes(0)).toBeNull()
+    expect(formatMinutes(-5)).toBeNull()
   })
 })

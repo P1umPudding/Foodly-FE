@@ -179,9 +179,16 @@ export function hasPortions(sizeNumber: number | null): boolean {
   return sizeNumber !== null && sizeNumber > 0
 }
 
-// No time/portion formatters here on purpose: `recipe.time` is shown as-is,
-// minutes are filter-only, and {tag} substitution is a render-time concern
-// (the phase-1 tag renderer), not a string helper.
+// List views show the total time from minutes ("45 min", "1 h", "1 h 30 min"); the detail page keeps
+// `recipe.time` as written. No minutes → nothing, never the free-text `time` (it can be long, e.g.
+// "20 min + Kochzeit 25 min", and would break the one-line meta). {tag} substitution stays a render-time concern.
+export function formatMinutes(minutes: number | null): string | null {
+  if (minutes === null || !Number.isFinite(minutes) || minutes <= 0) return null
+  const m = Math.round(minutes)
+  if (m < 60) return `${m} min`
+  const rest = m % 60
+  return rest === 0 ? `${Math.floor(m / 60)} h` : `${Math.floor(m / 60)} h ${rest} min`
+}
 
 export type RatedRole = Role // back-compat alias for existing imports
 
