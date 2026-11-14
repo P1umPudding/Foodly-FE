@@ -121,9 +121,9 @@ describe('category dots and tags', () => {
     expect(screen.queryByTestId('category-dot')).toBeNull()
   })
 
-  it.each([false, true])('compact=%s hides tags on phones', (compact) => {
+  it.each([false, true])('compact=%s hides tags below 1024 px (phones included)', (compact) => {
     const { container } = renderRow({ ...base, tags: ['vegan'] }, { compact })
-    expect(container.querySelector('.phone\\:hidden')).toBeTruthy()
+    expect(container.querySelector('.max-lg\\:hidden')).toBeTruthy()
   })
 
   it.each([false, true])('compact=%s shows at most two tags as chips', (compact) => {
@@ -135,7 +135,7 @@ describe('category dots and tags', () => {
 
   it('no tags → no empty tag wrapper', () => {
     const { container } = renderRow(base, { compact: true })
-    expect(container.querySelector('.phone\\:hidden')).toBeNull()
+    expect(container.querySelector('.max-lg\\:hidden')).toBeNull()
   })
 })
 

@@ -70,9 +70,10 @@ export function RecipeRow({
   const dots = <CategoryDots categories={categories} />
   // A photo that fails to load looks like no photo at all.
   const noPhoto = <UtensilsCrossed className="h-5 w-5 text-muted-foreground/40" />
-  // Tags are hidden on phones; no wrapper at all without tags, so no empty flex gap.
+  // Tags only from 1024 px: two unshrinkable chips (up to ~330 px) would squeeze the name to a few letters on
+  // narrow tablets/windows, and phones hide them anyway (mockup). No wrapper without tags, so no empty flex gap.
   const tags = recipe.tags.length > 0 && (
-    <div className="shrink-0 phone:hidden">
+    <div className="shrink-0 max-lg:hidden">
       <TagChips tags={recipe.tags} max={2} align="end" nowrap />
     </div>
   )

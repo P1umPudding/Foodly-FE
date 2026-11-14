@@ -47,12 +47,17 @@ export function ListSkeleton({
       </div>
     )
   }
-  // Same pitch as the flat rows (34 / 60 px without photo): bar plus a small gap, so the bars don't merge into one block.
+  // Same pitch as the flat rows (34 / 60 px without photo; compact 40 on touch): bar plus a small gap, so the bars
+  // don't merge into one block.
   const compact = detail === 'compact'
   return (
     <div data-testid={testId} className={compact ? 'space-y-0.5' : 'space-y-1'}>
       {items.map((i) => (
-        <Skeleton key={i} data-testid="row-skeleton" className={`w-full rounded-md ${compact ? 'h-8' : 'h-14'}`} />
+        <Skeleton
+          key={i}
+          data-testid="row-skeleton"
+          className={`w-full rounded-md ${compact ? 'h-8 touch:h-[38px]' : 'h-14'}`}
+        />
       ))}
     </div>
   )
