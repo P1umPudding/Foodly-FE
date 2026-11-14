@@ -77,7 +77,7 @@ describe('AppShell on the desktop', () => {
     renderAt('/recipes')
     const header = screen.getByRole('banner')
     expect(header.className).toContain('h-(--site-nav-h)')
-    expect(header.parentElement!.parentElement!.className).not.toContain('--site-nav-h')
+    expect(header.closest('.min-h-screen')!.className).not.toContain('--site-nav-h')
   })
 
   it('shows the sidebar with the destinations, "Neues Rezept" and the categories', () => {
@@ -253,7 +253,7 @@ describe('AppShell on the phone', () => {
     renderAt('/recipes')
     const header = screen.getByRole('banner')
     expect(header.className).toContain('h-(--site-nav-h)')
-    expect(header.parentElement!.parentElement!.className).toContain('[--site-nav-h:3.5rem]')
+    expect(header.closest('.min-h-screen')!.className).toContain('[--site-nav-h:3.5rem]')
   })
 
   it('has a 52 px "+" with the mockup shadow', () => {
