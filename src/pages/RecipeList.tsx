@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigationType } from 'react-router-dom'
 import { Button } from '@postxl/ui-components'
 import { UtensilsCrossed, SearchX } from 'lucide-react'
@@ -105,29 +105,6 @@ export function RecipeList() {
     saveCollapsed(currentUserId, next)
   }
 
-  // Measure layout into CSS vars so the sticky pieces line up pixel-perfectly:
-  //  • --site-nav-h      — exact nav height (its border makes it non-round; a hardcoded
-  //                        rem would leave a ~1px drift on first scroll)
-  //  • --list-sticky-top — nav + page-header height (where category headers tuck under); the header
-  //                        grows when the filter bar wraps, so it is observed, not measured once
-  // useLayoutEffect → set before paint (no first-frame jump).
-  const headerRef = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    const el = headerRef.current
-    if (!el) return
-    const nav = document.querySelector('header.site-header')
-    const root = document.documentElement.style
-    const apply = () => {
-      if (nav) root.setProperty('--site-nav-h', `${nav.getBoundingClientRect().height}px`)
-      root.setProperty('--list-sticky-top', `calc(var(--site-nav-h) + ${el.getBoundingClientRect().height}px)`)
-    }
-    apply()
-    const ro = new ResizeObserver(apply)
-    ro.observe(el)
-    if (nav) ro.observe(nav)
-    return () => ro.disconnect()
-  }, [])
-
   // Restore scroll position when returning from a recipe (within the session): track
   // the live position, then re-apply it once the list has rendered. sessionStorage so
   // a fresh load starts at the top. Only for the same list: the shell's sidebar can open
@@ -231,9 +208,8 @@ export function RecipeList() {
       data-testid="recipe-list-page"
       className="pt-0 pb-10 phone:pt-0 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]"
     >
-      {/* Sticky page header over the scrolling list (solid — no blur). Its measured
-          height feeds --list-sticky-top so the category headers tuck right beneath it. */}
-      <div ref={headerRef} className="sticky top-(--site-nav-h) z-30 bg-background pb-3 pt-6 phone:pt-3">
+      {/* Not sticky (mockup): search, filters and count scroll away, only the site header and category headers stick. */}
+      <div data-testid="list-toolbar" className="pb-3 pt-6 phone:pt-3">
         <h1 className="sr-only">Rezepte</h1>
 
         {/* Search with the sort menu and view toggles to its right; on phones they sit behind one button. */}
@@ -269,8 +245,8 @@ export function RecipeList() {
           />
         </div>
 
-        {/* min-h fits the 26 px reset link (mockup .link-btn) and ResultCount always renders (invisible while unknown), so the row, and
-            with it --list-sticky-top, keeps its height whether or not the link shows. */}
+        {/* min-h fits the 26 px reset link (mockup .link-btn) and ResultCount always renders (invisible while unknown), so the row
+            keeps its height and the list doesn't jump whether or not the link shows. */}
         <div className="mt-3 flex min-h-[26px] items-center gap-2.5 text-sm text-muted-foreground">
           {/* Loading or failed: count 0 + more is the hidden placeholder — no number we don't know. */}
           <ResultCount count={listReady ? visible.length : 0} more={!listReady || search.hasMore} />

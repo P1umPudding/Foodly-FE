@@ -73,6 +73,13 @@ beforeEach(() => {
 afterEach(() => setViewport(1024))
 
 describe('AppShell on the desktop', () => {
+  it('keeps the 60 px default header height (no phone override on the shell root)', () => {
+    renderAt('/recipes')
+    const header = screen.getByRole('banner')
+    expect(header.className).toContain('h-(--site-nav-h)')
+    expect(header.parentElement!.parentElement!.className).not.toContain('--site-nav-h')
+  })
+
   it('shows the sidebar with the destinations, "Neues Rezept" and the categories', () => {
     renderAt('/recipes')
     const side = within(sidebar())
@@ -241,6 +248,13 @@ describe('AppShell on the desktop', () => {
 
 describe('AppShell on the phone', () => {
   beforeEach(() => setViewport(375))
+
+  it('has a 56 px header (the offset the category headers stick at)', () => {
+    renderAt('/recipes')
+    const header = screen.getByRole('banner')
+    expect(header.className).toContain('h-(--site-nav-h)')
+    expect(header.parentElement!.parentElement!.className).toContain('[--site-nav-h:3.5rem]')
+  })
 
   it('leads to the categories page from the avatar menu', async () => {
     renderAt('/recipes')
