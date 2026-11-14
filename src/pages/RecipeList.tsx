@@ -28,6 +28,17 @@ import { Page } from '../components/shell/Page'
 import { RetryAlert } from '../components/RetryAlert'
 
 const SCROLL_KEY = 'recipeList:scroll'
+
+// The saved position of this list, 0 when there is none to restore.
+function savedScrollY(list: string): number {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null') as { list: string; y: number } | null
+    return saved?.list === list && saved.y > 0 ? saved.y : 0
+  } catch {
+    // unreadable entry → start at the top
+    return 0
+  }
+}
 // Pages the scroll restore loads at most to reach a saved position. Pages that add no height (client-side category
 // or text filter) would otherwise load the whole list.
 const MAX_RESTORE_PAGES = 10
@@ -147,17 +158,12 @@ export function RecipeList() {
   useEffect(() => {
     if (scrollRestored.current || !listReady) return
     if (restoreTarget.current === null) {
-      let saved: { list: string; y: number } | null = null
-      try {
-        saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null') as { list: string; y: number } | null
-      } catch {
-        // unreadable entry → start at the top
-      }
-      if (saved === null || saved.list !== listRef.current || !(saved.y > 0) || openedFromShellNav.current) {
+      const y = savedScrollY(listRef.current)
+      if (y === 0 || openedFromShellNav.current) {
         scrollRestored.current = true
         return
       }
-      restoreTarget.current = saved
+      restoreTarget.current = { list: listRef.current, y }
     }
     const { list, y } = restoreTarget.current
     if (list !== listRef.current) {
@@ -178,11 +184,14 @@ export function RecipeList() {
 
   // Desktop: the search is ready to type into when the page opens. Not on phones, where focusing would pop the
   // keyboard over the list. Only the first render's viewport counts, so resizing never steals focus.
-  // preventScroll: the scroll restore above owns the position on this mount.
+  // preventScroll: the scroll restore above owns the position on this mount. A restore skips the focus: the search
+  // scrolls away with the list, and keys typed into a field out of view would silently refilter it.
   const searchInputRef = useRef<HTMLInputElement>(null)
   const focusSearchOnMount = useRef(isDesktop)
   useEffect(() => {
-    if (focusSearchOnMount.current) searchInputRef.current?.focus({ preventScroll: true })
+    if (!focusSearchOnMount.current) return
+    if (!openedFromShellNav.current && savedScrollY(listRef.current) > 0) return
+    searchInputRef.current?.focus({ preventScroll: true })
   }, [])
 
   // Load the next page when a sentinel near the list end scrolls into view. The effect re-subscribes

@@ -113,7 +113,7 @@ function CategoryGroup({
 }) {
   return (
     <Collapse open={open} onOpenChange={onOpenChange} className="group/cat" {...(colors && categoryColorVars(colors))}>
-      {/* Sticky so the category stays labelled while scrolling; top clears the site header. Solid (not frosted): a second
+      {/* Sticky so the category stays labelled while scrolling; top clears the site header (--site-nav-h, set per layout by AppShell). Solid (not frosted): a second
           backdrop-blur would seam against the site header's. "Öffnen ›" sits beside the trigger, not in it, so
           it opens the category page without folding the group (and no link nests in a button). Neutral name: the
           colour lives in the dot and the line only. */}

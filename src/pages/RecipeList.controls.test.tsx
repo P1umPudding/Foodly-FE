@@ -52,6 +52,13 @@ describe('RecipeList controls on desktop', () => {
     expect(document.documentElement.style.getPropertyValue('--list-sticky-top')).toBe('')
   })
 
+  it('leaves the search unfocused when returning to a scrolled list (it is scrolled out of view)', () => {
+    sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'group=0', y: 800 }))
+    renderList()
+    expect(document.activeElement).not.toBe(searchField())
+    sessionStorage.clear()
+  })
+
   it('asks for a recipe and shows a magnifier in the search', () => {
     renderList()
     expect(searchField().getAttribute('placeholder')).toBe('Rezept suchen')
