@@ -22,7 +22,7 @@ function Stateful({ initial = null, set }: { initial?: number | null; set: (patc
 const slider = () => screen.getByRole('slider')
 const sliderRoot = () => screen.getByLabelText('Maximale Arbeitszeit')
 const field = () => screen.getByLabelText<HTMLInputElement>('Maximale Arbeitszeit in Minuten')
-const preset = (m: number) => screen.getByRole('radio', { name: `≤ ${m} Minuten` })
+const preset = (m: number) => screen.getByRole('button', { name: `≤ ${m} Minuten` })
 
 beforeEach(stubSliderPointer)
 afterEach(() => {
@@ -38,9 +38,10 @@ describe('DurationFilter', () => {
     expect(set).toHaveBeenCalledWith({ durationMax: 30 })
     expect(slider().getAttribute('aria-valuenow')).toBe('30')
     expect(field().value).toBe('30')
-    expect(preset(30).getAttribute('aria-checked')).toBe('true')
-    expect(preset(30).className).toContain('ring-foreground/30')
-    expect(preset(15).getAttribute('aria-checked')).toBe('false')
+    expect(preset(30).getAttribute('aria-pressed')).toBe('true')
+    expect(preset(30).textContent).toBe('30 min')
+    expect(preset(30).className).toContain('bg-sidebar-accent')
+    expect(preset(15).getAttribute('aria-pressed')).toBe('false')
   })
 
   it('typing moves the slider and lights no preset at once, but commits only on blur', () => {
@@ -50,7 +51,7 @@ describe('DurationFilter', () => {
     fireEvent.change(field(), { target: { value: '45' } })
     expect(set).not.toHaveBeenCalled()
     expect(slider().getAttribute('aria-valuenow')).toBe('45')
-    for (const m of [15, 30, 60]) expect(preset(m).getAttribute('aria-checked')).toBe('false')
+    for (const m of [15, 30, 60]) expect(preset(m).getAttribute('aria-pressed')).toBe('false')
     fireEvent.blur(field())
     expect(set).toHaveBeenCalledTimes(1)
     expect(set).toHaveBeenCalledWith({ durationMax: 45 })
@@ -88,32 +89,16 @@ describe('DurationFilter', () => {
     expect(set).not.toHaveBeenCalled()
   })
 
-  it('Zurücksetzen clears the limit', () => {
-    const set = vi.fn()
-    render(<Stateful initial={45} set={set} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Zurücksetzen' }))
-    expect(set).toHaveBeenLastCalledWith({ durationMax: null })
-    expect(field().value).toBe('')
-    expect(slider().getAttribute('aria-valuetext')).toBe('Keine Grenze')
-    expect(screen.queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
-    expect(document.activeElement).toBe(field())
-  })
-
-  it('a pointer click on Zurücksetzen leaves focus alone (no phone keyboard)', () => {
-    render(<Stateful initial={45} set={() => {}} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Zurücksetzen' }), { detail: 1 })
-    expect(document.activeElement).not.toBe(field())
-  })
-
   it('no limit parks the knob at the far right and reads "Keine Grenze"', () => {
     render(<Stateful set={() => {}} />)
     expect(slider().getAttribute('aria-valuenow')).toBe('180')
     expect(slider().getAttribute('aria-valuetext')).toBe('Keine Grenze')
     expect(field().value).toBe('')
-    expect(field().placeholder).toBe('Keine Grenze')
+    expect(field().placeholder).toBe('–')
+    // „≤ – min“: prefix and suffix stay without a limit (mockup).
     const box = within(field().parentElement!)
-    expect(box.queryByText('≤')).toBeNull()
-    expect(box.queryByText('min')).toBeNull()
+    expect(box.getByText('≤')).toBeTruthy()
+    expect(box.getByText('min')).toBeTruthy()
     fireEvent.click(preset(15))
     expect(slider().hasAttribute('aria-valuetext')).toBe(false)
   })
@@ -134,7 +119,6 @@ describe('DurationFilter', () => {
     })
     expect(set).toHaveBeenCalledTimes(1)
     expect(set).toHaveBeenCalledWith({ durationMax: null })
-    expect(screen.queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
   })
 
   it('a slider value below the maximum sets exactly that value', () => {
@@ -203,7 +187,7 @@ describe('DurationFilter', () => {
     fireEvent.pointerUp(sliderRoot(), { pointerId: 1, clientX: 60 })
     expect(set).toHaveBeenCalledTimes(1)
     expect(set).toHaveBeenCalledWith({ durationMax: 60 })
-    expect(preset(60).getAttribute('aria-checked')).toBe('true')
+    expect(preset(60).getAttribute('aria-pressed')).toBe('true')
   })
 
   it('a drag that ends where it started commits nothing', () => {
@@ -238,22 +222,6 @@ describe('DurationFilter', () => {
     fireEvent.click(preset(30))
     expect(set).toHaveBeenCalledTimes(1)
     expect(set).toHaveBeenCalledWith({ durationMax: 30 })
-  })
-
-  it('without a focused field, a preset press keeps its default (Radix roving focus)', () => {
-    render(<Stateful initial={60} set={() => {}} />)
-    expect(fireEvent.mouseDown(preset(30))).toBe(true)
-  })
-
-  it('typing, then clicking Zurücksetzen is one edit', () => {
-    const set = vi.fn()
-    render(<Stateful initial={60} set={set} />)
-    act(() => field().focus())
-    fireEvent.change(field(), { target: { value: '45' } })
-    expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'Zurücksetzen' }))).toBe(false)
-    fireEvent.click(screen.getByRole('button', { name: 'Zurücksetzen' }))
-    expect(set).toHaveBeenCalledTimes(1)
-    expect(set).toHaveBeenCalledWith({ durationMax: null })
   })
 
   it('typing, then dragging the knob is one edit, committed on release', () => {
@@ -361,19 +329,6 @@ describe('DurationFilter', () => {
     expect(set).not.toHaveBeenCalled()
   })
 
-  it('typing into the empty field keeps focus and brings back ≤ / min', () => {
-    render(<Stateful set={() => {}} />)
-    act(() => field().focus())
-    fireEvent.change(field(), { target: { value: '4' } })
-    expect(document.activeElement).toBe(field())
-    const box = within(field().parentElement!)
-    expect(box.getByText('≤')).toBeTruthy()
-    expect(box.getByText('min')).toBeTruthy()
-    fireEvent.change(field(), { target: { value: '' } })
-    expect(document.activeElement).toBe(field())
-    expect(box.queryByText('≤')).toBeNull()
-  })
-
   it('typing 180 sets a real 180; clearing the field removes the limit', () => {
     const set = vi.fn()
     render(<Stateful initial={30} set={set} />)
@@ -383,11 +338,24 @@ describe('DurationFilter', () => {
     expect(field().value).toBe('180')
     expect(slider().getAttribute('aria-valuenow')).toBe('180')
     expect(slider().hasAttribute('aria-valuetext')).toBe(false)
-    expect(screen.getByRole('button', { name: 'Zurücksetzen' })).toBeTruthy()
     fireEvent.change(field(), { target: { value: '' } })
     fireEvent.blur(field())
     expect(set).toHaveBeenLastCalledWith({ durationMax: null })
     expect(field().value).toBe('')
+  })
+
+  it('pressing the lit preset again clears the limit', () => {
+    const set = vi.fn()
+    render(<Stateful initial={30} set={set} />)
+    fireEvent.click(preset(30))
+    expect(set).toHaveBeenCalledWith({ durationMax: null })
+    expect(preset(30).getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('has no reset of its own (the panel footer has it) and shows the mockup hint', () => {
+    render(<Stateful initial={45} set={() => {}} />)
+    expect(screen.queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
+    expect(screen.getByText('Zählt die Arbeitszeit. Rezepte ohne Angabe fallen raus.')).toBeTruthy()
   })
 
   it('gives the presets the 3-px focus ring (#95)', () => {
