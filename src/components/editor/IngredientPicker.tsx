@@ -1,94 +1,79 @@
 import { useState } from 'react'
-import {
-  cn,
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@postxl/ui-components'
-import { ChevronsUpDown } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useIngredients } from '../../catalog/CatalogProvider'
 import type { IngredientId } from '../../api/protocol'
-import { TriggerButton } from '../TriggerButton'
+import { SuggestInput } from './SuggestInput'
 
-// The catalog is read-only (no create-ingredient endpoint), so anything not in it
-// has to survive as free text — which is exactly what RecipeIngredient.text is for.
+const FREE_TEXT = '__freetext'
+
+// The catalog is read-only (no create-ingredient endpoint), so anything not in it has to survive as free text, which
+// is exactly what RecipeIngredient.text is for. What is typed stays local until it is committed (a hit is picked, the
+// free-text entry chosen, or the field left with changed text): a stray keystroke on a catalog row must not drop the
+// catalog link and its Zusatz, and autosave would store that right away. Escape reverts, and so does leaving the field
+// empty: an empty name would make the save drop the whole row (Menge included); removing a row is "Entfernen".
 export function IngredientPicker({
   value,
   text,
   onPick,
   onText,
+  className,
 }: {
   value: IngredientId | null
   text: string
   onPick: (id: IngredientId) => void
   onText: (text: string) => void
+  className?: string
 }) {
   const { byId } = useIngredients()
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
+  const [typed, setTyped] = useState<string | null>(null)
 
-  const all = Object.values(byId)
-  const matches = all.filter((i) => i.name.toLowerCase().includes(query.trim().toLowerCase()))
-  const label = value !== null ? (byId[value]?.name ?? '') : text
-  const typed = query.trim()
+  const stored = value !== null ? (byId[value]?.name ?? '') : text
+  const q = (typed ?? '').trim()
+  const lower = q.toLowerCase()
+  // No list for an empty field: Enter would otherwise silently link the first catalog entry.
+  // Exact name first, then names starting with the text: Enter takes the first entry, and it must link the same entry
+  // that leaving the field would ("Tomaten" before "Tomaten (gehackt)").
+  const rank = (name: string) => (name.toLowerCase() === lower ? 0 : name.toLowerCase().startsWith(lower) ? 1 : 2)
+  const matches =
+    q === ''
+      ? []
+      : Object.values(byId)
+          .filter((i) => i.name.toLowerCase().includes(lower))
+          .sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name, 'de'))
+  const exact = matches.find((i) => i.name.toLowerCase() === lower)
+
+  const commitText = () => {
+    setTyped(null)
+    if (typed === null || q === '') return
+    // A catalog name typed in full links that entry (the list offers no free-text entry for it either), and a case-only
+    // change on a catalog row keeps its link and Zusatz. Free text takes any change, capitalisation included.
+    if (exact) {
+      if (exact.id !== value) onPick(exact.id)
+    } else if (value !== null ? lower !== stored.toLowerCase() : q !== stored) {
+      onText(q)
+    }
+  }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      {/* min-w-40 + truncate: a long name is cut off instead of pushing the row actions onto a new line. */}
-      <PopoverTrigger asChild>
-        <TriggerButton
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="min-w-40 flex-1 justify-between font-normal"
-        >
-          <span className={cn('truncate', label === '' && 'text-muted-foreground')}>
-            {label === '' ? 'Zutat …' : label}
-          </span>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-        </TriggerButton>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-0" align="start">
-        <Command shouldFilter={false}>
-          <CommandInput placeholder="Zutat suchen …" value={query} onValueChange={setQuery} />
-          <CommandList>
-            {matches.length === 0 && typed === '' && <CommandEmpty>Keine Zutaten im Katalog.</CommandEmpty>}
-            <CommandGroup>
-              {matches.map((ingredient) => (
-                <CommandItem
-                  key={ingredient.id}
-                  value={ingredient.name}
-                  onSelect={() => {
-                    onPick(ingredient.id)
-                    setQuery('')
-                    setOpen(false)
-                  }}
-                >
-                  {ingredient.name}
-                </CommandItem>
-              ))}
-              {typed !== '' && (
-                <CommandItem
-                  value={`__freetext_${typed}`}
-                  onSelect={() => {
-                    onText(typed)
-                    setQuery('')
-                    setOpen(false)
-                  }}
-                >
-                  „{typed}" als Freitext übernehmen
-                </CommandItem>
-              )}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <SuggestInput
+      label="Zutat"
+      placeholder="Zutat"
+      className={className}
+      icon={<Search className="size-4" />}
+      value={typed ?? stored}
+      onValueChange={setTyped}
+      suggestions={[
+        ...matches.map((i) => ({ id: String(i.id), label: i.name })),
+        ...(q !== '' && !exact ? [{ id: FREE_TEXT, label: `„${q}“ als Freitext übernehmen` }] : []),
+      ]}
+      onSelect={(id) => {
+        if (id === FREE_TEXT) return commitText()
+        onPick(Number(id))
+        setTyped(null)
+      }}
+      onEscape={() => setTyped(null)}
+      onEnter={commitText}
+      onBlur={commitText}
+    />
   )
 }

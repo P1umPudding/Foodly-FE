@@ -1,53 +1,69 @@
 import { useId } from 'react'
 import { Input } from '@postxl/ui-components'
+import { ChevronDown } from 'lucide-react'
 import { IngredientPicker } from './IngredientPicker'
-import { RowActions } from './RowActions'
+import { RowMenu } from './RowMenu'
+import { SuggestInput } from './SuggestInput'
 import type { DraftIngredient } from '../../editor/draft'
+
+// Columns of mockup `.ed-ing`/`.ed-ing-head`: Menge · Einheit · Zutat · Zusatz · ⋮. No grip column: drag & drop isn't
+// implemented. Shared with the header so both stay aligned, also with the wider touch menu (design.md §7). On the phone
+// a row takes two lines, Menge · Einheit · ⋮ over Zutat · Zusatz (the reading rows and edit sheet for phones are #217).
+export const INGREDIENT_COLUMNS =
+  'grid grid-cols-[96px_90px_minmax(0,1fr)_minmax(0,0.7fr)_30px] items-center gap-1.5 touch:grid-cols-[96px_90px_minmax(0,1fr)_minmax(0,0.7fr)_40px]'
+
+// Suggestions only: unit is free text on the wire, and recipes already use units like "Dose" or "Bund".
+const UNITS = ['g', 'kg', 'ml', 'l', 'EL', 'TL', 'Prise', 'Stück', 'Dose', 'Bund']
 
 export function IngredientRow({
   line,
+  index,
   onChange,
   onUp,
   onDown,
   onRemove,
+  onRemovedFocus,
   canMoveUp,
   canMoveDown,
 }: {
   line: DraftIngredient
+  index: number
   onChange: (patch: Partial<DraftIngredient>) => void
   onUp: () => void
   onDown: () => void
   onRemove: () => void
+  onRemovedFocus?: () => void
   canMoveUp: boolean
   canMoveDown: boolean
 }) {
   const isCatalog = line.ingredient !== null
   const zusatzHintId = useId()
+  const unit = line.unit.trim().toLowerCase()
 
   return (
-    // Wraps on narrow screens: with the Zusatz column the fixed-width fields alone exceed a phone's width.
-    <div className="flex flex-wrap items-center gap-2">
-      <Input
-        aria-label="Präfix"
-        className="w-16"
-        placeholder="ca."
-        value={line.amountPrefix}
-        onChange={(e) => onChange({ amountPrefix: e.target.value })}
-      />
-      {/* amount is a string on the wire — "1-2" and "½" are valid */}
+    <div
+      className={`${INGREDIENT_COLUMNS} phone:mb-2 phone:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px] phone:touch:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px]`}
+    >
+      {/* amount is a string on the wire: "1-2" and "½" are valid, and the prefix ("ca.") is typed in here too */}
       <Input
         aria-label="Menge"
-        className="w-20"
-        placeholder="400"
+        className="tabular-nums"
+        placeholder="Menge"
         value={line.amount}
         onChange={(e) => onChange({ amount: e.target.value })}
       />
-      <Input
-        aria-label="Einheit"
-        className="w-20"
-        placeholder="g"
+      <SuggestInput
+        label="Einheit"
+        placeholder="Einheit"
+        icon={<ChevronDown className="size-4" />}
+        openOnClick
         value={line.unit}
-        onChange={(e) => onChange({ unit: e.target.value })}
+        onValueChange={(value) => onChange({ unit: value })}
+        suggestions={UNITS.filter((u) => u.toLowerCase().startsWith(unit) && u.toLowerCase() !== unit).map((u) => ({
+          id: u,
+          label: u,
+        }))}
+        onSelect={(value) => onChange({ unit: value })}
       />
       <IngredientPicker
         value={line.ingredient}
@@ -59,8 +75,7 @@ export function IngredientRow({
       {/* Free text keeps its whole name in `text` (nothing is split), so there is no Zusatz to edit. */}
       <Input
         aria-label="Zusatz"
-        className="w-32"
-        placeholder={isCatalog ? 'z. B. gehackt' : undefined}
+        className="phone:col-span-2"
         disabled={!isCatalog}
         aria-describedby={isCatalog ? undefined : zusatzHintId}
         value={isCatalog ? line.text : ''}
@@ -71,13 +86,15 @@ export function IngredientRow({
           Zusatz nur bei Zutaten aus dem Katalog
         </span>
       )}
-      <RowActions
+      <RowMenu
+        className="phone:col-start-3 phone:row-start-1"
+        label={`Zutat ${index + 1}: Aktionen`}
+        canMoveUp={canMoveUp}
+        canMoveDown={canMoveDown}
         onUp={onUp}
         onDown={onDown}
         onRemove={onRemove}
-        canMoveUp={canMoveUp}
-        canMoveDown={canMoveDown}
-        removeLabel="Zutat entfernen"
+        onRemovedFocus={onRemovedFocus}
       />
     </div>
   )
