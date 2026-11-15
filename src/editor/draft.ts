@@ -167,6 +167,16 @@ export function move<T extends { key: number }>(rows: T[], key: number, delta: -
   return next
 }
 
+const isBlank = (line: DraftIngredient) =>
+  line.ingredient === null && [line.text, line.amount, line.unit].every((v) => v.trim() === '')
+
+// "Mehrere einfügen": the empty placeholder row a new section starts with is replaced, not left above the pasted rows.
+export function appendIngredients(rows: DraftIngredient[], added: Omit<DraftIngredient, 'key'>[]): DraftIngredient[] {
+  let end = rows.length
+  while (end > 0 && isBlank(rows[end - 1])) end--
+  return [...rows.slice(0, end), ...added.map((line) => ({ ...newIngredient(), ...line }))]
+}
+
 // Applied to the current draft per finished upload, so a batch of uploads (or an edit made meanwhile) never works
 // from a stale copy: the first image becomes the main one while there is none.
 export function addImage<T extends Pick<Draft, 'mainImage' | 'images'>>(draft: T, image: ImageRef): T {

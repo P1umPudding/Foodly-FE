@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addImage, emptyDraft, move, newIngredient, sizeNumberError, toCreateRecipe, toDraft } from './draft'
+import { addImage, appendIngredients, emptyDraft, move, newIngredient, sizeNumberError, toCreateRecipe, toDraft } from './draft'
 import type { Recipe } from '../api/protocol'
 import { ref } from '../test/images'
 
@@ -215,5 +215,30 @@ describe('addImage', () => {
       mainImage: ref(1),
       images: [ref(2), ref(5)],
     })
+  })
+})
+
+describe('appendIngredients', () => {
+  const pasted = [
+    { ingredient: 4, text: 'nach Geschmack', amount: '', unit: '' },
+    { ingredient: null, text: 'Hackfleisch', amount: '500', unit: 'g' },
+  ]
+
+  it('replaces trailing empty rows and appends with fresh keys', () => {
+    const filled = { ...newIngredient(), text: 'Zwiebel' }
+    const rows = appendIngredients([filled, newIngredient(), { ...newIngredient(), text: ' ' }], pasted)
+    expect(rows.map(({ key: _key, ...rest }) => rest)).toEqual([
+      { ingredient: null, text: 'Zwiebel', amount: '', unit: '' },
+      ...pasted,
+    ])
+    expect(rows[0]).toBe(filled)
+    expect(new Set(rows.map((r) => r.key)).size).toBe(3)
+  })
+
+  it('keeps an empty row between filled ones', () => {
+    const gap = newIngredient()
+    const rows = appendIngredients([{ ...newIngredient(), amount: '1' }, gap, { ...newIngredient(), unit: 'g' }], pasted)
+    expect(rows).toHaveLength(5)
+    expect(rows[1]).toBe(gap)
   })
 })
