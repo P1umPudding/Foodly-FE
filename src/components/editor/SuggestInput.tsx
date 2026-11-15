@@ -90,7 +90,9 @@ export function SuggestInput({
         onKeyDown={onKeyDown}
       />
       {icon && (
-        <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-subtle-foreground">{icon}</span>
+        <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-subtle-foreground">
+          {icon}
+        </span>
       )}
       {expanded && (
         <div

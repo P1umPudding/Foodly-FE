@@ -1,6 +1,7 @@
 import { Textarea } from '@postxl/ui-components'
-import { RowActions } from './RowActions'
+import { RowMenu } from './RowMenu'
 
+// Mockup `.ed-step`: grey number, a two-line field without resize grip (audit E10, E11), ⋮ menu.
 export function StepRow({
   index,
   text,
@@ -8,6 +9,7 @@ export function StepRow({
   onUp,
   onDown,
   onRemove,
+  onRemovedFocus,
   canMoveUp,
   canMoveDown,
 }: {
@@ -17,27 +19,30 @@ export function StepRow({
   onUp: () => void
   onDown: () => void
   onRemove: () => void
+  onRemovedFocus?: () => void
   canMoveUp: boolean
   canMoveDown: boolean
 }) {
   return (
-    <div className="flex items-start gap-2">
-      <span className="mt-2 grid size-5 shrink-0 place-items-center rounded-full bg-primary font-semibold text-primary-foreground">
+    <div className="grid grid-cols-[28px_minmax(0,1fr)_30px] items-start gap-2 touch:grid-cols-[28px_minmax(0,1fr)_40px]">
+      <span className="mt-2 grid size-6 place-items-center rounded-full bg-muted text-xs font-semibold text-muted-foreground tabular-nums">
         {index + 1}
       </span>
       <Textarea
         aria-label={`Schritt ${index + 1}`}
-        className="min-h-14 flex-1"
+        rows={2}
+        className="min-h-0 resize-none"
         value={text}
         onChange={(e) => onChange(e.target.value)}
       />
-      <RowActions
+      <RowMenu
+        label={`Schritt ${index + 1}: Aktionen`}
+        canMoveUp={canMoveUp}
+        canMoveDown={canMoveDown}
         onUp={onUp}
         onDown={onDown}
         onRemove={onRemove}
-        canMoveUp={canMoveUp}
-        canMoveDown={canMoveDown}
-        removeLabel={`Schritt ${index + 1} entfernen`}
+        onRemovedFocus={onRemovedFocus}
       />
     </div>
   )

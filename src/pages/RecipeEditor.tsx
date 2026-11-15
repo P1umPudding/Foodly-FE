@@ -19,6 +19,7 @@ import { SectionEditor } from '../components/editor/SectionEditor'
 import { SaveStatusIndicator } from '../components/editor/SaveStatus'
 import { HeaderActions } from '../components/shell/PageHeader'
 import { Page } from '../components/shell/Page'
+import { TriggerButton } from '../components/TriggerButton'
 import type { RecipeId } from '../api/protocol'
 
 export function RecipeEditor() {
@@ -41,6 +42,8 @@ export function RecipeEditor() {
 
   const [draft, setDraft] = useState<Draft | null>(isNew ? emptyDraft() : null)
   const loadedDraft = useRef<Draft | null>(null)
+  // Focus target after a section's "Entfernen": its menu trigger is gone.
+  const addSection = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (!loaded) return
     const next = toDraft(loaded)
@@ -256,18 +259,26 @@ export function RecipeEditor() {
                 onUp={() => patch({ sections: move(draft.sections, section.key, -1) })}
                 onDown={() => patch({ sections: move(draft.sections, section.key, 1) })}
                 onRemove={() => patch({ sections: draft.sections.filter((s) => s.key !== section.key) })}
+                onRemovedFocus={() => addSection.current?.focus()}
+                showTimerHint={i === 0}
               />
             ))}
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="self-start gap-1.5"
-              onClick={() => patch({ sections: [...draft.sections, newSection()] })}
-            >
-              <Plus className="h-4 w-4" />
-              Abschnitt hinzufügen
-            </Button>
+            <div className="flex flex-col gap-1.5">
+              <TriggerButton
+                ref={addSection}
+                variant="outline"
+                className="w-full gap-1.5 border-dashed text-muted-foreground"
+                onClick={() => patch({ sections: [...draft.sections, newSection()] })}
+              >
+                <Plus className="size-4" />
+                Abschnitt hinzufügen
+              </TriggerButton>
+              <p className="text-xs text-muted-foreground">
+                Abschnitte nur, wenn das Rezept Teile hat (z. B. Soße und Pasta). Ein Abschnitt ohne Namen ist der
+                Normalfall.
+              </p>
+            </div>
           </div>
 
           {/* top: header (60 px) + the page's top padding. */}

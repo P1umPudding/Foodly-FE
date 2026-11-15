@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
 import { describe, expect, it, vi } from 'vitest'
 import { SectionEditor } from './SectionEditor'
@@ -92,22 +92,64 @@ describe('SectionEditor', () => {
     expect(onChange.mock.calls[0][0].steps).toHaveLength(3)
   })
 
-  it('moves a step down', () => {
+  it('moves a step down via its ⋮ menu', async () => {
     const onChange = setup()
 
-    // The first step's "Nach unten": DOM order is section, then steps (the ingredient row moved into a menu).
-    const downs = screen.getAllByRole('button', { name: 'Nach unten' })
-    fireEvent.click(downs[1])
+    fireEvent.click(within(await openMenu('Schritt 1: Aktionen')).getByRole('menuitem', { name: 'Nach unten' }))
 
     expect(onChange.mock.calls[0][0].steps.map((s: { text: string }) => s.text)).toEqual(['Braten.', 'Hacken.'])
   })
 
-  it('removes a step', () => {
+  it('removes a step via its ⋮ menu', async () => {
     const onChange = setup()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Schritt 2 entfernen' }))
+    fireEvent.click(within(await openMenu('Schritt 2: Aktionen')).getByRole('menuitem', { name: 'Entfernen' }))
 
     expect(onChange.mock.calls[0][0].steps.map((s: { text: string }) => s.text)).toEqual(['Hacken.'])
+  })
+
+  it('moves and removes the section via its ⋯ menu', async () => {
+    const onUp = vi.fn()
+    const onRemove = vi.fn()
+    render(
+      <TooltipProvider>
+        <SectionEditor
+          section={section}
+          index={1}
+          total={2}
+          onChange={vi.fn()}
+          onUp={onUp}
+          onDown={vi.fn()}
+          onRemove={onRemove}
+        />
+      </TooltipProvider>,
+    )
+
+    let menu = await openMenu('Abschnitt 2: Aktionen')
+    expect(within(menu).getByRole('menuitem', { name: 'Nach unten' }).getAttribute('aria-disabled')).toBe('true')
+    fireEvent.click(within(menu).getByRole('menuitem', { name: 'Nach oben' }))
+    expect(onUp).toHaveBeenCalled()
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+
+    menu = await openMenu('Abschnitt 2: Aktionen')
+    fireEvent.click(within(menu).getByRole('menuitem', { name: 'Entfernen' }))
+    expect(onRemove).toHaveBeenCalled()
+  })
+
+  it('has no separate arrow or bin buttons in its rows', () => {
+    setup()
+
+    expect(screen.queryByRole('button', { name: /nach oben|nach unten|entfernen/i })).toBeNull()
+  })
+
+  it('shows the timer hint only where asked (the first section)', () => {
+    setup()
+    expect(screen.queryByText(/werden im Rezept zu Timern/)).toBeNull()
+  })
+
+  it('names an unnamed section "Abschnitt ohne Namen"', () => {
+    setup(vi.fn(), { ...section, name: '' })
+    expect(screen.getByPlaceholderText('Abschnitt ohne Namen')).toBeTruthy()
   })
 
   it('edits the section name', () => {

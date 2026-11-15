@@ -56,7 +56,7 @@ const catalogLine = (over: Partial<DraftIngredient> = {}): DraftIngredient => ({
   ingredient: 1,
   text: '',
   amount: '',
- 
+
   unit: '',
   ...over,
 })
