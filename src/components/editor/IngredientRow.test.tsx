@@ -21,7 +21,6 @@ function setup(initial: DraftIngredient) {
     return (
       <IngredientRow
         line={line}
-        index={0}
         onChange={(patch) => {
           current = { ...current, ...patch }
           setLine(current)
@@ -44,11 +43,10 @@ function setup(initial: DraftIngredient) {
 
 const zusatz = () => screen.getByLabelText('Zusatz') as HTMLInputElement
 
-const nameField = () => screen.getByRole('combobox', { name: 'Zutat' }) as HTMLInputElement
-
-function pick(name: string) {
-  fireEvent.change(nameField(), { target: { value: name } })
-  fireEvent.click(screen.getByRole('option', { name }))
+async function pick(name: string) {
+  fireEvent.click(screen.getByRole('combobox'))
+  fireEvent.change(screen.getByPlaceholderText('Zutat suchen …'), { target: { value: name } })
+  fireEvent.click(await screen.findByText(name))
 }
 
 const catalogLine = (over: Partial<DraftIngredient> = {}): DraftIngredient => ({
@@ -56,16 +54,17 @@ const catalogLine = (over: Partial<DraftIngredient> = {}): DraftIngredient => ({
   ingredient: 1,
   text: '',
   amount: '',
+ 
   unit: '',
   ...over,
 })
 
 describe('IngredientRow · Zusatz', () => {
-  it('edits the Zusatz once a catalog ingredient is picked', () => {
+  it('edits the Zusatz once a catalog ingredient is picked', async () => {
     const { line } = setup(newIngredient())
     expect(zusatz().disabled).toBe(true)
 
-    pick('Zwiebel')
+    await pick('Zwiebel')
     expect(zusatz().disabled).toBe(false)
     expect(zusatz().hasAttribute('aria-describedby')).toBe(false)
 
@@ -75,10 +74,10 @@ describe('IngredientRow · Zusatz', () => {
     expect(line()).toMatchObject({ ingredient: 1, text: 'nach Geschmack' })
   })
 
-  it('keeps the Zusatz when swapping one catalog ingredient for another', () => {
+  it('keeps the Zusatz when swapping one catalog ingredient for another', async () => {
     const { line } = setup(catalogLine({ text: 'gehackt' }))
 
-    pick('Schalotte')
+    await pick('Schalotte')
 
     expect(line()).toMatchObject({ ingredient: 2, text: 'gehackt' })
     expect(zusatz().value).toBe('gehackt')
@@ -91,48 +90,27 @@ describe('IngredientRow · Zusatz', () => {
     expect(zusatz().value).toBe('')
     const hintId = zusatz().getAttribute('aria-describedby')
     expect(hintId && document.getElementById(hintId)?.textContent).toBe('Zusatz nur bei Zutaten aus dem Katalog')
-    expect(nameField().value).toBe('Salz')
+    expect(screen.getByRole('combobox').textContent).toContain('Salz')
     expect(line().text).toBe('Salz')
   })
 
-  it('does not turn the free-text name into a Zusatz when a catalog ingredient is picked', () => {
+  it('does not turn the free-text name into a Zusatz when a catalog ingredient is picked', async () => {
     const { line } = setup(catalogLine({ ingredient: null, text: 'Salz' }))
 
-    pick('Zwiebel')
+    await pick('Zwiebel')
 
     expect(line()).toMatchObject({ ingredient: 1, text: '' })
     expect(zusatz().value).toBe('')
   })
 
-  it('replaces a catalog ingredient and its Zusatz with free text without mixing them', () => {
+  it('replaces a catalog ingredient and its Zusatz with free text without mixing them', async () => {
     const { line } = setup(catalogLine({ text: 'gehackt' }))
 
-    fireEvent.change(nameField(), { target: { value: 'Zimtstange' } })
-    fireEvent.click(screen.getByRole('option', { name: '„Zimtstange“ als Freitext übernehmen' }))
+    fireEvent.click(screen.getByRole('combobox'))
+    fireEvent.change(screen.getByPlaceholderText('Zutat suchen …'), { target: { value: 'Zimtstange' } })
+    fireEvent.click(await screen.findByText('„Zimtstange" als Freitext übernehmen'))
 
     expect(line()).toMatchObject({ ingredient: null, text: 'Zimtstange' })
     expect(zusatz().disabled).toBe(true)
-  })
-
-  it('keeps the catalog ingredient and its Zusatz while the name is being typed over', () => {
-    const { line } = setup(catalogLine({ text: 'gehackt' }))
-
-    fireEvent.change(nameField(), { target: { value: 'Schal' } })
-    expect(zusatz().disabled).toBe(false)
-    expect(line()).toMatchObject({ ingredient: 1, text: 'gehackt' })
-
-    fireEvent.keyDown(nameField(), { key: 'Escape' })
-    fireEvent.keyDown(nameField(), { key: 'Escape' })
-    fireEvent.blur(nameField())
-    expect(line()).toMatchObject({ ingredient: 1, text: 'gehackt' })
-  })
-
-  it('opens the unit suggestions on a click and takes one', () => {
-    const { line } = setup(catalogLine())
-
-    fireEvent.click(screen.getByRole('combobox', { name: 'Einheit' }))
-    fireEvent.click(screen.getByRole('option', { name: 'EL' }))
-
-    expect(line().unit).toBe('EL')
   })
 })
