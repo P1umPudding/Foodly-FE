@@ -14,13 +14,12 @@ import { canViewRecipe } from '../api/views'
 import { isFacetActive, isFilterActive } from '../list/state'
 import { loadCollapsed, saveCollapsed } from '../list/persistence'
 import { FilterBar } from '../components/list/FilterBar'
+import { DesktopListOptions } from '../components/list/DesktopListOptions'
 import { MobileListOptions } from '../components/list/MobileListOptions'
 import { RecipeListView } from '../components/list/RecipeListView'
 import { ListSkeleton, LoadMoreSkeleton } from '../components/list/ListSkeleton'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
-import { SortMenu } from '../components/list/SortMenu'
-import { ViewToggles } from '../components/list/ViewToggles'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { fromSearchParams, toSearchParams } from '../list/url'
 import { isShellNavState } from '../components/shell/nav'
@@ -225,7 +224,7 @@ export function RecipeList() {
         <h1 className="sr-only">Rezepte</h1>
 
         {/* Search with the sort menu and view toggles to its right; on phones they sit behind one button. */}
-        <div data-testid="search-row" className="flex items-center gap-4 phone:gap-3">
+        <div data-testid="search-row" className="flex items-center gap-2 phone:gap-3">
           <SearchInput
             value={state.search}
             onChange={setSearch}
@@ -233,16 +232,10 @@ export function RecipeList() {
             label="Rezepte suchen"
             clearLabel="Suche leeren"
             className="min-w-0 flex-1"
+            inputClassName="h-[38px]"
             inputRef={searchInputRef}
           />
-          {isDesktop ? (
-            <div className="flex items-center gap-4">
-              <SortMenu state={state} set={set} />
-              <ViewToggles state={state} set={set} />
-            </div>
-          ) : (
-            <MobileListOptions state={state} set={set} />
-          )}
+          {isDesktop ? <DesktopListOptions state={state} set={set} /> : <MobileListOptions state={state} set={set} />}
         </div>
 
         <div className="mt-3">
