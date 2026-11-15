@@ -36,7 +36,7 @@ export function usedIngredients(recipes: Recipe[], ingredientsById: Record<numbe
   return [...used]
     .map((id) => ingredientsById[id])
     .filter((ing): ing is Ingredient => Boolean(ing))
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => a.name.localeCompare(b.name, 'de'))
 }
 
 export const recipeTagIds = (r: Recipe): string[] => r.tags

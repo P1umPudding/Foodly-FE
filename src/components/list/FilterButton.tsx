@@ -40,6 +40,12 @@ export function FilterButton({
     const hadFocus = document.activeElement === e.currentTarget
     onClear()
     if (hadFocus) panel?.focus()
+    // The reset can also unmount the row that had focus (a selected ingredient past the cap): catch it after the
+    // re-render instead of losing focus to <body>.
+    else
+      requestAnimationFrame(() => {
+        if (panel?.isConnected && !panel.contains(document.activeElement)) panel.focus()
+      })
   }
   const panelReset = active && (
     <ResetLinkButton onMouseDown={(e) => e.preventDefault()} onClick={resetInPanel} className="phone:h-10">

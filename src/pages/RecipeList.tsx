@@ -82,7 +82,7 @@ export function RecipeList() {
   const ingredientFallback =
     usedIngredientList.length > 0
       ? usedIngredientList
-      : [...ingredientCatalog].sort((a, b) => a.name.localeCompare(b.name))
+      : [...ingredientCatalog].sort((a, b) => a.name.localeCompare(b.name, 'de'))
   // Most used on the loaded recipes first (mockup). REST previews carry no sections, so there the ingredients keep
   // the alphabetical fallback; tags come with every preview.
   const ingredientOptions = byFrequency(ingredientFallback, accessibleRecipes, recipeIngredientIds, (i) => i.id)

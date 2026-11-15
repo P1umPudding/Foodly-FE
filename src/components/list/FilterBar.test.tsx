@@ -187,7 +187,7 @@ describe('FilterBar panels (mockup #236)', () => {
     ['Zutaten', { ingredients: [1] }, { ingredients: [] }],
     ['Arbeitszeit', { durationMax: 30 }, { durationMax: null }],
     ['Zugriff', { role: 'owner' }, { role: 'any', collab: 'any' }],
-  ])('%s has a „Zurücksetzen“ footer only while active', (label, active, cleared) => {
+  ])('%s resets via the „Zurücksetzen“ footer while active', (label, active, cleared) => {
     const { set } = renderBar({ ...DEFAULT_STATE, ...active }, allProps)
     fireEvent.click(within(open(label)).getByRole('button', { name: 'Zurücksetzen' }))
     expect(set).toHaveBeenCalledWith(cleared)
@@ -250,13 +250,15 @@ describe('FilterBar panels (mockup #236)', () => {
 })
 
 describe('FilterBar panel reset focus', () => {
-  it('a click on a reset that had keyboard focus hands focus to the panel', () => {
+  it('a mouse reset leaves focus on the search, still in the panel', () => {
     renderBar({ ...DEFAULT_STATE, tags: ['vegan'] }, { tags })
     fireEvent.click(within(bar()).getByRole('button', { name: /^Tags:/ }))
     const dialog = screen.getByRole('dialog', { name: 'Tags' })
+    const search = within(dialog).getByPlaceholderText('Tag suchen')
+    search.focus()
     const reset = within(dialog).getByRole('button', { name: 'Zurücksetzen' })
-    reset.focus()
+    expect(fireEvent.mouseDown(reset)).toBe(false)
     fireEvent.click(reset, { detail: 1 })
-    expect(document.activeElement).toBe(dialog)
+    expect(document.activeElement).toBe(search)
   })
 })
