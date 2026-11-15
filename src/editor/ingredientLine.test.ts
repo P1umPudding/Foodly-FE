@@ -33,6 +33,10 @@ describe('parseIngredientLine', () => {
     ['• 2 EL Zucker', '2', 'EL'],
     ['1. 2 EL Zucker', '2', 'EL'],
     ['3) 2 EL Zucker', '2', 'EL'],
+    ['* 1. 2 EL Zucker', '2', 'EL'],
+    ['1 1/2 TL Zucker', '1 1/2', 'TL'],
+    ['1 Bis 2 EL Zucker', '1 Bis 2', 'EL'],
+    ['2 EL. Zucker', '2', 'EL'],
     ['0,5 kg Zucker', '0,5', 'kg'],
     ['500g Zucker', '500', 'g'],
     ['2 el Zucker', '2', 'EL'],
@@ -63,6 +67,10 @@ describe('parseIngredientLine', () => {
     expect(parse('olivenöl')).toMatchObject({ ingredient: 5, text: '' })
     expect(parse('* Salz')).toMatchObject({ ingredient: 4, text: '' })
     expect(parse('2 g, Salz')).toEqual({ amount: '2', unit: 'g', ingredient: 4, text: '' })
+  })
+
+  it('keeps the number of a numbered line without a unit as its amount', () => {
+    expect(parse('2. Eier')).toEqual({ amount: '2', unit: '', ingredient: null, text: 'Eier' })
   })
 
   it('keeps a line without a name as a nameless row', () => {

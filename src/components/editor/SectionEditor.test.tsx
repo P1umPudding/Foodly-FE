@@ -267,6 +267,31 @@ describe('SectionEditor: Mehrere einfügen', () => {
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Mehrere einfügen' }))
   })
 
+  it('stays open on an outside click once text was entered', async () => {
+    setup()
+
+    const field = openPaste()
+    await waitFor(() => expect(document.activeElement).toBe(field))
+    fireEvent.change(field, { target: { value: lines } })
+    await new Promise((r) => setTimeout(r, 10))
+    fireEvent.pointerDown(document.body)
+    await new Promise((r) => setTimeout(r, 50))
+
+    expect(screen.getByRole('dialog')).toBeTruthy()
+  })
+
+  it('closes on an outside click while empty', async () => {
+    setup()
+
+    const field = openPaste()
+    await waitFor(() => expect(document.activeElement).toBe(field))
+    // Radix registers its outside-pointer listener a tick after mounting.
+    await new Promise((r) => setTimeout(r, 10))
+    fireEvent.pointerDown(document.body)
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
   it('closes on Escape without changes', async () => {
     const onChange = setup()
 

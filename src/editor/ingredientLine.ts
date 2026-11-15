@@ -9,14 +9,17 @@ type CatalogEntry = Pick<Ingredient, 'id' | 'name'>
 export type ParsedIngredient = Omit<DraftIngredient, 'key'>
 
 const NUMBER = String.raw`[\p{Nd}\p{No}]+(?:[.,/][\p{Nd}\p{No}]+)*`
-// Optional prefix, then a number with an optional mixed fraction ("1 ½") and an optional range ("1-2", "1 – 2", "1 bis 2").
+// Optional prefix, then a number with an optional mixed fraction ("1 ½", "1 1/2") and an optional range ("1-2",
+// "1 – 2", "1 bis 2"; `i` for "Bis").
 const HEAD = new RegExp(
-  String.raw`^(?:([^\s\p{Nd}\p{No}]+)\s*)?(${NUMBER}(?:\s+\p{No})?(?:(?:\s*[-–]\s*|\s+bis\s+)${NUMBER})?)`,
-  'u',
+  String.raw`^(?:([^\s\p{Nd}\p{No}]+)\s*)?(${NUMBER}(?:\s+(?:\p{No}|\d+/\d+))?(?:(?:\s*[-–]\s*|\s+bis\s+)${NUMBER})?)`,
+  'iu',
 )
 // Copied lists often keep their bullets or numbering ("- 500 g Mehl", "1. 2 EL Salz"); they'd otherwise end up as prefix.
-const LIST_MARKER = /^(?:[-*•·–]|\d+[.)])\s+/u
-const UNIT = /^\s*([^\s,]+)(?=[\s,]|$)/
+// Numbering only before another number: in "2. Eier" the 2 is the amount.
+const LIST_MARKER = /^(?:(?:[-*•·–]|\d+[.)](?=\s+[\p{Nd}\p{No}]))\s+)+/u
+// A trailing dot is allowed ("2 EL. Zucker").
+const UNIT = /^\s*([^\s,.]+)\.?(?=[\s,]|$)/
 // Capitalised words before a number are usually the ingredient ("Knoblauch 2 Zehen"), except these. A lower-case noun
 // ("eier 3") still passes as prefix: rare enough not to guess further.
 const PREFIX_WORDS = ['etwa', 'knapp', 'gut', 'je', 'ca', 'circa', 'max', 'min']
@@ -46,7 +49,7 @@ export function parseIngredientLine(line: string, catalog: readonly CatalogEntry
     }
   }
 
-  return { amount, unit, ...matchCatalog(collapse(rest).replace(/^[\s,]+/, ''), catalog) }
+  return { amount, unit, ...matchCatalog(collapse(rest).replace(/^[\s,.]+/, ''), catalog) }
 }
 
 // A catalog row's `text` is its Zusatz; a free-text row's `text` is its name. An empty rest ("500 g") stays a nameless

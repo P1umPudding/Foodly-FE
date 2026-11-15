@@ -59,6 +59,11 @@ export function PasteIngredientsDialog({
     ;(e.currentTarget as HTMLElement).querySelector('textarea')?.focus()
   }
 
+  // A stray click next to the dialog shouldn't throw away a pasted list; Abbrechen and Escape still do.
+  const onInteractOutside = (e: Event) => {
+    if (!empty) e.preventDefault()
+  }
+
   const field = (
     <Textarea
       aria-label="Zutaten, eine pro Zeile"
@@ -85,7 +90,12 @@ export function PasteIngredientsDialog({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         {/* No built-in ✕: it carries a native title tooltip; „Abbrechen“ and Escape close the dialog. */}
-        <DialogContent showCloseButton={false} onOpenAutoFocus={onOpenAutoFocus} onCloseAutoFocus={onCloseAutoFocus}>
+        <DialogContent
+          showCloseButton={false}
+          onOpenAutoFocus={onOpenAutoFocus}
+          onCloseAutoFocus={onCloseAutoFocus}
+          onInteractOutside={onInteractOutside}
+        >
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
             <DialogHeader>
               <DialogTitle>{TITLE}</DialogTitle>
@@ -109,6 +119,7 @@ export function PasteIngredientsDialog({
         description={HINT}
         onOpenAutoFocus={onOpenAutoFocus}
         onCloseAutoFocus={onCloseAutoFocus}
+        onInteractOutside={onInteractOutside}
       >
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           {/* Visible copy of the sheet's sr-only description, hidden from screen readers so it isn't read twice. */}
