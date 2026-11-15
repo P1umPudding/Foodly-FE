@@ -41,6 +41,9 @@ describe('DurationFilter', () => {
     expect(preset(30).getAttribute('aria-pressed')).toBe('true')
     expect(preset(30).textContent).toBe('30 min')
     expect(preset(30).className).toContain('bg-sidebar-accent')
+    // The fill alone is no 3:1 cue: the pressed preset also gets a stronger border and weight.
+    expect(preset(30).className.split(/\s+/)).toEqual(expect.arrayContaining(['border-foreground/40', 'font-semibold']))
+    expect(preset(15).className.split(/\s+/)).not.toContain('font-semibold')
     expect(preset(15).getAttribute('aria-pressed')).toBe('false')
   })
 

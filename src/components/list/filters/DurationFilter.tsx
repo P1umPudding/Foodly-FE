@@ -191,11 +191,11 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
             aria-label={`≤ ${m} Minuten`}
             onClick={() => commit(shown === m ? null : m)}
             // bg-sidebar-accent: the mockup's --active (pressed) fill. The fill alone is no 3:1 state cue, so the pressed
-            // one also gets a stronger border and weight.
+            // one also gets a stronger border and weight (postxl buttons are already 500).
             className={cn(
               'phone:h-10',
               shown === m &&
-                'bg-sidebar-accent hover:bg-sidebar-accent dark:bg-sidebar-accent dark:hover:bg-sidebar-accent',
+                'border-foreground/40 bg-sidebar-accent font-semibold hover:bg-sidebar-accent dark:border-foreground/40 dark:bg-sidebar-accent dark:hover:bg-sidebar-accent',
             )}
           >
             {m} min

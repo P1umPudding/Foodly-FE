@@ -198,6 +198,7 @@ describe('FilterBar panels (mockup #236)', () => {
     for (const label of ['Kategorie', 'Tags', 'Zutaten', 'Arbeitszeit', 'Zugriff']) {
       expect(within(open(label)).queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
       fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+      expect(screen.queryByRole('dialog')).toBeNull()
     }
   })
 
@@ -260,5 +261,27 @@ describe('FilterBar panel reset focus', () => {
     expect(fireEvent.mouseDown(reset)).toBe(false)
     fireEvent.click(reset, { detail: 1 })
     expect(document.activeElement).toBe(search)
+  })
+
+  it('a mouse reset that unmounts the focused row moves focus to the panel after the re-render', async () => {
+    const many: Ingredient[] = Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `Zutat ${i + 1}` }))
+    render(
+      <StatefulBar
+        initial={{ ...DEFAULT_STATE, ingredients: many.map((i) => i.id) }}
+        ingredients={many}
+        labelIngredients={many}
+      />,
+    )
+    fireEvent.click(within(bar()).getByRole('button', { name: /^Zutaten:/ }))
+    const dialog = screen.getByRole('dialog', { name: 'Zutaten' })
+    // Past the 9-row cap once the selection is gone.
+    const row = within(dialog).getByRole('checkbox', { name: 'Zutat 12' })
+    row.focus()
+    const reset = within(dialog).getByRole('button', { name: 'Zurücksetzen' })
+    expect(fireEvent.mouseDown(reset)).toBe(false)
+    fireEvent.click(reset, { detail: 1 })
+    expect(row.isConnected).toBe(false)
+    await new Promise(requestAnimationFrame)
+    expect(document.activeElement).toBe(dialog)
   })
 })
