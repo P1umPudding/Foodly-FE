@@ -2,9 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ChefHat, Clock, Copy, ListChecks, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-react'
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   Button,
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +15,7 @@ import {
   cn,
 } from '@postxl/ui-components'
 import { Skeleton } from '../components/Skeleton'
+import { ErrorState, STATE_ACTION_CLASS } from '../components/StateCard'
 import { foodly } from '../api'
 import { errorMessage } from '../lib/errorMessage'
 import { useRequest } from '../hooks/useRequest'
@@ -53,7 +51,7 @@ function isUrl(s: string): boolean {
 export function RecipeDetail() {
   const { id } = useParams()
   const recipeId = Number(id)
-  const { status, data: recipe, error } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
+  const { status, data: recipe, reload } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
   const currentUserId = useCurrentUserId()
   const { byId: tags } = useTags()
 
@@ -248,16 +246,19 @@ export function RecipeDetail() {
         </div>
       )}
 
+      {/* REST errors carry no status, so "not found" and "server unreachable" look the same here: one neutral card,
+          no raw backend message. */}
       {status === 'error' && (
-        <Alert variant="destructive">
-          <AlertTitle>Rezept nicht gefunden</AlertTitle>
-          <AlertDescription className="flex flex-col gap-2">
-            <span>{error?.message}</span>
-            <Button asChild variant="outline" size="sm">
+        <ErrorState
+          title="Rezept konnte nicht geladen werden"
+          description="Prüf die Verbindung oder versuch es später noch einmal."
+          onRetry={reload}
+          extraAction={
+            <Button asChild variant="outline" size="sm" className={STATE_ACTION_CLASS}>
               <Link to="/recipes">Zur Liste</Link>
             </Button>
-          </AlertDescription>
-        </Alert>
+          }
+        />
       )}
 
       {status === 'ready' && recipe && (

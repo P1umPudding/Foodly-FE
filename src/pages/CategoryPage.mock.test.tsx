@@ -6,6 +6,7 @@ import { DEFAULT_STATE } from '../list/state'
 import { loadPersisted, savePersisted } from '../list/persistence'
 import { setViewport } from '../test/viewport'
 import { SHELL_NAV_STATE } from '../components/shell/nav'
+import { redTokens } from '../test/redTokens'
 
 // Mock mode is decided when src/api loads, so the app is imported fresh with VITE_MOCK=1 — which also gives every test
 // fresh mock data (creates, renames and deletes mutate it).
@@ -89,13 +90,10 @@ describe('Category page (mock mode)', () => {
       await api.foodly.createCategory({ name: 'Suppen', color: '#0ea5e9', colorLight: null, colorDark: null })
       const created = (await api.foodly.listCategories()).find((c) => c.name === 'Suppen')!
       await renderAt(`/categories/${created.id}`)
-      expect(
-        await within(main()).findByText(
-          'Noch nichts in „Suppen“. Öffne ein Rezept und füg es über „+“ hinzu.',
-          {},
-          WAIT,
-        ),
-      ).toBeTruthy()
+      expect(await within(main()).findByText('Noch nichts in „Suppen“', {}, WAIT)).toBeTruthy()
+      expect(within(main()).getByText('Öffne ein Rezept und füg es über „+ Kategorie“ hinzu.')).toBeTruthy()
+      // Mockup K-8: the empty category card has no button.
+      expect(within(main()).queryByRole('link', { name: 'Zu den Rezepten' })).toBeNull()
       expect(within(main()).getByText('0 Rezepte · nur für dich sichtbar')).toBeTruthy()
     },
     SLOW,
@@ -139,7 +137,7 @@ describe('Category page (mock mode)', () => {
       fireEvent.change(within(main()).getByRole('textbox', { name: 'In „Schnelle Küche“ suchen' }), {
         target: { value: 'zzz' },
       })
-      expect(await within(main()).findByText('Keine Treffer.')).toBeTruthy()
+      expect(await within(main()).findByText('Nichts gefunden für „zzz“')).toBeTruthy()
       expect(location).toBe('/categories/2?q=zzz&sort=rating&view=compact')
       expect(within(main()).queryByText(/Noch nichts in/)).toBeNull()
     },
@@ -191,6 +189,7 @@ describe('Category page (mock mode)', () => {
       await heading()
       const alert = await within(main()).findByRole('alert', {}, WAIT)
       expect(alert.textContent).toContain('Rezepte konnten nicht geladen werden')
+      expect(redTokens(alert)).toEqual([])
       fireEvent.click(within(main()).getByRole('button', { name: 'Erneut versuchen' }))
       expect(within(main()).getAllByTestId('row-skeleton').length).toBeGreaterThan(0)
       expect(await rowLink('Guacamole')).toBeTruthy()

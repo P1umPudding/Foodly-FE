@@ -7,6 +7,7 @@ import { foodly } from '../api'
 import { TimerProvider } from '../timers/TimerProvider'
 import type { Recipe, User } from '../api/protocol'
 import { ref } from '../test/images'
+import { redTokens } from '../test/redTokens'
 
 // The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
 vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
@@ -364,9 +365,16 @@ describe('RecipeDetail states', () => {
     expect(screen.queryByTestId('detail-skeleton')).toBeNull()
   })
 
-  it('shows the error', async () => {
+  it('shows a neutral error card with retry and "Zur Liste", without the raw message', async () => {
     renderDetail('/recipes/9', {})
-    expect(await screen.findByText('Rezept nicht gefunden')).toBeTruthy()
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('Rezept konnte nicht geladen werden')
+    expect(alert.textContent).not.toContain('not found')
+    expect(redTokens(alert)).toEqual([])
+    expect(within(alert).getByRole('link', { name: 'Zur Liste' }).getAttribute('href')).toBe('/recipes')
+    const calls = vi.mocked(foodly.getRecipe).mock.calls.length
+    fireEvent.click(within(alert).getByRole('button', { name: 'Erneut versuchen' }))
+    await waitFor(() => expect(vi.mocked(foodly.getRecipe).mock.calls.length).toBe(calls + 1))
   })
 })
 

@@ -2,7 +2,9 @@
 // knowing which sections exist (D2–D4 add sections without touching this logic).
 import { createContext, useCallback, useContext, useId, useLayoutEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { Button, Card, CardContent } from '@postxl/ui-components'
+import { UtensilsCrossed } from 'lucide-react'
+import { Button } from '@postxl/ui-components'
+import { EmptyState, STATE_ACTION_CLASS } from '../StateCard'
 
 export type SectionState = 'loading' | 'error' | 'empty' | 'ready'
 
@@ -49,20 +51,15 @@ function useNothingToShow(): boolean {
 export function NothingToShow() {
   if (!useNothingToShow()) return null
   return (
-    <Card>
-      <CardContent className="flex flex-col items-start gap-4 py-6">
-        <p className="text-muted-foreground">
-          Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link to="/recipes">Alle Rezepte</Link>
-          </Button>
-          <Button asChild>
-            <Link to="/recipes/new">Neues Rezept</Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <EmptyState
+      icon={UtensilsCrossed}
+      title="Noch nichts zu sehen"
+      description="Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast."
+      action={
+        <Button asChild size="sm" className={STATE_ACTION_CLASS}>
+          <Link to="/recipes/new">Neues Rezept</Link>
+        </Button>
+      }
+    />
   )
 }

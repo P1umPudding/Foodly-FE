@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { HomeSection } from './HomeSection'
 import type { SectionState } from './HomeSections'
+import { redTokens } from '../../test/redTokens'
 
 function renderSection(state: SectionState, onRetry = vi.fn()) {
   return render(
@@ -35,6 +36,7 @@ describe('HomeSection', () => {
     renderSection('error', onRetry)
     screen.getByText('„Kategorien“ konnte nicht geladen werden')
     screen.getByText('Server weg')
+    expect(redTokens(screen.getByRole('alert'))).toEqual([])
     expect(screen.queryByText('section content')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
     expect(onRetry).toHaveBeenCalledOnce()

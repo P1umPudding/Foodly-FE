@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from '@postxl/ui-components'
 import { Skeleton } from '../components/Skeleton'
-import { FolderOpen, MoreHorizontal, Pencil, SearchX } from 'lucide-react'
+import { EyeOff, FolderOpen, MoreHorizontal, Pencil, Search } from 'lucide-react'
 import { useCategories, useCurrentUserId } from '../catalog/CatalogProvider'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
 import { CategoryMark } from '../components/category/CategoryMark'
@@ -23,7 +23,7 @@ import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
 import { SortMenu } from '../components/list/SortMenu'
 import { ViewToggles } from '../components/list/ViewToggles'
-import { ErrorState } from '../components/StateCard'
+import { EmptyState, ErrorState, STATE_ACTION_CLASS } from '../components/StateCard'
 import { PageTitle } from '../components/PageTitle'
 import { Page } from '../components/shell/Page'
 import { HeaderActions } from '../components/shell/PageHeader'
@@ -275,27 +275,28 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
 
         {/* The head counts every recipe in the category; one the user may no longer view is not "nothing in it". */}
         {allLoaded && visible.length === 0 && !searching && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <FolderOpen className="size-5 text-muted-foreground/40" />
-            <p className="max-w-sm text-muted-foreground">
-              {category.recipes.length === 0
-                ? `Noch nichts in „${category.name}“. Öffne ein Rezept und füg es über „+“ hinzu.`
-                : 'Keine Rezepte, die du sehen kannst.'}
-            </p>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/recipes">Zu den Rezepten</Link>
-            </Button>
-          </div>
+          <EmptyState
+            {...(category.recipes.length === 0
+              ? {
+                  icon: FolderOpen,
+                  title: `Noch nichts in „${category.name}“`,
+                  description: 'Öffne ein Rezept und füg es über „+ Kategorie“ hinzu.',
+                }
+              : { icon: EyeOff, title: 'Keine Rezepte, die du sehen kannst' })}
+          />
         )}
 
         {allLoaded && visible.length === 0 && searching && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <SearchX className="size-5 text-muted-foreground/40" />
-            <p className="text-muted-foreground">Keine Treffer.</p>
-            <Button variant="outline" size="sm" onClick={() => setSearch('')}>
-              Suche leeren
-            </Button>
-          </div>
+          <EmptyState
+            icon={Search}
+            title={`Nichts gefunden für „${state.search.trim()}“`}
+            description="Prüf die Schreibweise oder such nach etwas anderem."
+            action={
+              <Button variant="outline" size="sm" className={STATE_ACTION_CLASS} onClick={() => setSearch('')}>
+                Suche leeren
+              </Button>
+            }
+          />
         )}
 
         {ready && visible.length > 0 && (

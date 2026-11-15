@@ -5,6 +5,7 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Categories } from './Categories'
 import type { UserCategory } from '../api/protocol'
+import { redTokens } from '../test/redTokens'
 
 const catalog = vi.hoisted(() => ({
   categories: { list: [] as UserCategory[], status: 'ready', error: null as Error | null, retry: vi.fn() },
@@ -54,13 +55,15 @@ describe('Categories page states', () => {
     renderPage()
     expect(screen.getByText('Kategorien konnten nicht geladen werden')).toBeTruthy()
     expect(screen.getByText('Server weg')).toBeTruthy()
+    expect(redTokens(screen.getByRole('alert'))).toEqual([])
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
     expect(catalog.categories.retry).toHaveBeenCalled()
   })
 
   it('invites to create the first category when there is none', () => {
     renderPage()
-    expect(screen.getByText('Noch keine Kategorien. Leg eine an und sammle darin Rezepte.')).toBeTruthy()
+    expect(screen.getByText('Noch keine Kategorien')).toBeTruthy()
+    expect(screen.getByText('Leg eine an und sammle darin Rezepte.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Neue Kategorie' }))
     expect(screen.getByRole('heading', { name: 'Neue Kategorie' })).toBeTruthy()
   })
