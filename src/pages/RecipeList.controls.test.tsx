@@ -88,6 +88,17 @@ describe('RecipeList controls on desktop', () => {
     expect(screen.queryByRole('combobox', { name: 'Sortierkriterium' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Sortieren & Ansicht' })).toBeNull()
   })
+
+  it('lines the search, sort button and segments up at 38 px, with a divider before the view', () => {
+    renderList()
+    // jsdom applies no CSS: check the tokens (segments: 34 px inside the 2 px track).
+    expect(searchField().className.split(/\s+/)).toContain('h-[38px]')
+    expect(screen.getByRole('button', { name: /^Sortieren:/ }).className.split(/\s+/)).toContain('h-[38px]')
+    expect(screen.getByRole('radio', { name: 'Kompakt' }).className.split(/\s+/)).toContain('h-[34px]')
+    const divider = within(searchRow()).getByTestId('sort-view-divider')
+    expect(divider.previousElementSibling).toBe(screen.getByRole('button', { name: /^Sortieren:/ }))
+    expect(divider.nextElementSibling?.contains(screen.getByRole('group', { name: 'Ansicht' }))).toBe(true)
+  })
 })
 
 describe('RecipeList controls on the phone', () => {

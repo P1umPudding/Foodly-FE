@@ -1,4 +1,4 @@
-import { Button, Input } from '@postxl/ui-components'
+import { Button, cn, Input } from '@postxl/ui-components'
 import type { Ref } from 'react'
 import { Search, X } from 'lucide-react'
 
@@ -12,6 +12,7 @@ export function SearchInput({
   label,
   clearLabel = 'Leeren',
   className = '',
+  inputClassName,
   inputRef,
 }: {
   value: string
@@ -21,6 +22,8 @@ export function SearchInput({
   label?: string
   clearLabel?: string
   className?: string
+  // The page search matches the 38 px toolbar beside it; the filter popovers keep the default height.
+  inputClassName?: string
   inputRef?: Ref<HTMLInputElement>
 }) {
   return (
@@ -36,7 +39,7 @@ export function SearchInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-9 pr-9 phone:h-10"
+        className={cn('w-full pl-9 pr-9 phone:h-10', inputClassName)}
       />
       {value !== '' && (
         <Button
@@ -45,7 +48,7 @@ export function SearchInput({
           size="icon"
           aria-label={clearLabel}
           onClick={() => onChange('')}
-          // Visibly 28 px so it fits inside the input (36 px, 40 px on phones); on phones the ::after widens the hit area to 40 px.
+          // Visibly 28 px so it fits inside the input (36 px, 38 px in the list toolbar, 40 px on phones); on phones the ::after widens the hit area to 40 px.
           className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 phone:after:absolute phone:after:-inset-1.5"
         >
           <X className="h-4 w-4" />
