@@ -4,10 +4,11 @@ import { categoryColorVars, type CategoryColorInput } from '../../lib/categoryCo
 import type { UserCategory } from '../../api/protocol'
 
 // `/none` sets the line height with the size: a separate leading-none would be dropped by tailwind-merge.
+// md is the mockup's `.cat-mark` (32 px, radius 6); a 6 px radius on the 20 px sm mark would look round, so it keeps 4.
 const SIZE = {
-  sm: 'size-5 text-xs/none',
-  md: 'size-7 text-sm/none',
-  xl: 'size-10 text-lg/none',
+  sm: 'size-5 rounded-sm text-xs/none',
+  md: 'size-8 rounded-md text-base/none',
+  xl: 'size-10 rounded-sm text-lg/none',
 } as const
 
 let segmenter: Intl.Segmenter | undefined
@@ -40,7 +41,7 @@ export function CategoryMark({
       aria-hidden
       {...categoryColorVars(category)}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-sm bg-cat-soft font-medium text-cat-ink',
+        'inline-flex shrink-0 items-center justify-center bg-cat-soft font-bold text-cat-ink',
         SIZE[size],
         className,
       )}
