@@ -34,7 +34,7 @@ export function Segment<T extends string>({
       type="single"
       value={value}
       onValueChange={(v) => v && onChange(v as T)}
-      className={cn(SEG_TRACK, full && 'flex w-full')}
+      className={cn(SEG_TRACK, full && 'w-full')}
       {...labelling}
     >
       {options.map((o) => {

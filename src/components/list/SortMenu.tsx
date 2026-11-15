@@ -30,12 +30,12 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        {/* sm already has the mockup button's 6 px gap and 10 px padding; only the toolbar height (38 px) and the
-            14 px text differ. */}
+        {/* sm already has the mockup button's 6 px gap, 10 px padding and 14 px text; only the toolbar height (38 px)
+            differs. */}
         <TriggerButton
           variant="outline"
           size="sm"
-          className="h-[38px] text-base"
+          className="h-[38px]"
           aria-label={`Sortieren: ${criterion.label}, ${dirLabel(state.sortKey, state.sortDir)}`}
         >
           <DirIcon aria-hidden />
@@ -44,7 +44,8 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
         </TriggerButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60 rounded-lg p-1.5">
-        {/* Radix calls onValueChange on every pick, the current criterion included, so re-picking it resets the
+        {/* Rows are 14 px like the mockup's .mi (postxl's radio item sets text-sm = 13 px).
+            Radix calls onValueChange on every pick, the current criterion included, so re-picking it resets the
             direction too (as in the mockup). */}
         <DropdownMenuRadioGroup
           aria-label="Sortieren nach"
@@ -73,7 +74,8 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator className="mx-0 my-1.5 bg-divider" />
         {/* The direction as a segment, but built from menu items: Radix menus trap Tab, so only items are reachable
-            by keyboard (↑/↓ walk on from the criteria). */}
+            by keyboard (↑/↓ walk on from the criteria; ←/→ do nothing in a root menu). A ring marks focus, since a
+            background change hardly shows on the segment track. */}
         <DropdownMenuRadioGroup
           aria-label="Richtung"
           value={state.sortDir}
@@ -90,8 +92,8 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
                 className={cn(
                   NO_DOT,
                   SEG_ITEM,
-                  'h-8 flex-1 justify-center px-1.5 py-0 focus:bg-hover focus:text-foreground',
-                  selected && cn(SEG_ITEM_ON, 'focus:bg-card'),
+                  'h-8 flex-1 justify-center px-1.5 py-0 focus:text-foreground focus:ring-[3px] focus:ring-ring/50',
+                  selected ? cn(SEG_ITEM_ON, 'focus:bg-card') : 'focus:bg-transparent',
                 )}
               >
                 {dirLabel(state.sortKey, dir)}

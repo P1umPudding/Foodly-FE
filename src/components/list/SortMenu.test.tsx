@@ -37,8 +37,9 @@ it('is as wide as its content and 38 px high like the toolbar', () => {
   const classes = trigger().className.split(/\s+/)
   // jsdom applies no CSS: check the tokens. sm's gap-1.5 / px-2.5 are the mockup button's 6 px and 10 px.
   expect(classes).toEqual(expect.arrayContaining(['h-[38px]', 'gap-1.5', 'text-base']))
-  // No invisible sizers reserving the widest criterion any more.
+  // No invisible sizers reserving the widest criterion any more: the label is the only text.
   expect(trigger().querySelector('.invisible')).toBeNull()
+  expect(trigger().textContent).toBe('Name')
 })
 
 it('lists the criteria without group headings, the current one with a check', async () => {
@@ -100,6 +101,10 @@ it('draws the direction as a segment, the current one raised', async () => {
   const on = within(group).getByRole('menuitemradio', { name: 'Z → A' })
   expect(on.getAttribute('aria-checked')).toBe('true')
   expect(on.className.split(/\s+/)).toEqual(expect.arrayContaining(['bg-card', 'shadow-seg']))
+  // Keyboard focus shows as a ring on both segments (a fill would vanish on the track or the raised segment).
+  for (const item of within(group).getAllByRole('menuitemradio')) {
+    expect(item.className.split(/\s+/)).toContain('focus:ring-[3px]')
+  }
 })
 
 it('reaches the direction by keyboard from the criteria', async () => {
