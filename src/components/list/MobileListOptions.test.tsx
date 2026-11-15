@@ -133,13 +133,13 @@ it('words the direction for the chosen criterion', () => {
 it('gives every option a 40 px tap target', () => {
   render(<Harness />)
   const sheet = openSheet()
-  // jsdom applies no CSS: criteria rows are h-10, segments h-9 inside the 2 px track.
+  // jsdom applies no CSS: criteria rows and segments are both h-10 (the segment track adds 2 px around them).
   for (const radio of within(within(sheet).getByRole('group', { name: 'Sortieren nach' })).getAllByRole('radio')) {
     expect(classes(radio)).toContain('h-10')
   }
   for (const name of ['Richtung', 'Ansicht', 'Gliederung']) {
     for (const radio of within(within(sheet).getByRole('group', { name })).getAllByRole('radio')) {
-      expect(classes(radio)).toContain('h-9')
+      expect(classes(radio)).toContain('h-10')
     }
   }
 })

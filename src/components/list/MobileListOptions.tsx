@@ -14,8 +14,9 @@ import { Segment } from './Segment'
 
 const TITLE = 'Sortieren & Ansicht'
 
-// 36 px segments make a 40 px track: the phone's tap-target height (docs/design.md §7) instead of the mockup's 32.
-const SHEET_SEG_ITEM = 'h-9'
+// 40 px segments (in a 44 px track): the phone's tap-target height (docs/design.md §7, measured on the clickable
+// item, not the track) instead of the mockup's 32.
+const SHEET_SEG_ITEM = 'h-10'
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
