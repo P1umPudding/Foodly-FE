@@ -69,7 +69,8 @@ describe('parseIngredientLine', () => {
     expect(parse('2 g, Salz')).toEqual({ amount: '2', unit: 'g', ingredient: 4, text: '' })
   })
 
-  it('keeps the number of a numbered line without a unit as its amount', () => {
+  it('reads numbering before a line without amount', () => {
+    expect(parse('1) Salz nach Geschmack')).toEqual({ amount: '', unit: '', ingredient: 4, text: 'nach Geschmack' })
     expect(parse('2. Eier')).toEqual({ amount: '2', unit: '', ingredient: null, text: 'Eier' })
   })
 

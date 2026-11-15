@@ -16,8 +16,8 @@ const HEAD = new RegExp(
   'iu',
 )
 // Copied lists often keep their bullets or numbering ("- 500 g Mehl", "1. 2 EL Salz"); they'd otherwise end up as prefix.
-// Numbering only before another number: in "2. Eier" the 2 is the amount.
-const LIST_MARKER = /^(?:(?:[-*•·–]|\d+[.)](?=\s+[\p{Nd}\p{No}]))\s+)+/u
+// "1)" is always numbering; "1." only before another number: in "2. Eier" the 2 is the amount.
+const LIST_MARKER = /^(?:(?:[-*•·–]|\d+\)|\d+\.(?=\s+[\p{Nd}\p{No}]))\s+)+/u
 // A trailing dot is allowed ("2 EL. Zucker").
 const UNIT = /^\s*([^\s,.]+)\.?(?=[\s,]|$)/
 // Capitalised words before a number are usually the ingredient ("Knoblauch 2 Zehen"), except these. A lower-case noun
