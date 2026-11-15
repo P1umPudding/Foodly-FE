@@ -116,6 +116,23 @@ describe('Category page (mock mode)', () => {
   )
 
   it(
+    'lines the desktop toolbar up at 38 px, with a divider before the view and no layout toggle',
+    async () => {
+      await renderAt('/categories/2')
+      await heading()
+      // jsdom applies no CSS: check the tokens.
+      const searchField = within(main()).getByRole('textbox', { name: 'In „Schnelle Küche“ suchen' })
+      expect(searchField.className.split(/\s+/)).toContain('h-[38px]')
+      const sortButton = within(main()).getByRole('button', { name: /^Sortieren:/ })
+      const divider = within(main()).getByTestId('sort-view-divider')
+      expect(divider.previousElementSibling).toBe(sortButton)
+      expect(divider.nextElementSibling?.contains(within(main()).getByRole('group', { name: 'Ansicht' }))).toBe(true)
+      expect(within(main()).queryByRole('group', { name: 'Gliederung' })).toBeNull()
+    },
+    SLOW,
+  )
+
+  it(
     'keeps sort and view in its own URL, not in the stored list state',
     async () => {
       const stored = { ...DEFAULT_STATE, sortKey: 'work' as const, detail: 'tiles' as const }
@@ -125,10 +142,14 @@ describe('Category page (mock mode)', () => {
       await rowLink('Guacamole')
 
       fireEvent.keyDown(within(main()).getByRole('button', { name: /^Sortieren:/ }), { key: 'Enter' })
-      fireEvent.click(await screen.findByRole('menuitemradio', { name: /Bewertung/ }))
-      await waitFor(() => expect(location).toBe('/categories/2?sort=rating'))
+      const menu = await screen.findByRole('menu')
+      fireEvent.click(within(menu).getByRole('menuitemradio', { name: /Bewertung/ }))
+      // "Bewertung" starts best first; the menu stays open until Esc.
+      await waitFor(() => expect(location).toBe('/categories/2?sort=rating&dir=desc'))
+      fireEvent.keyDown(menu, { key: 'Escape' })
+      await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
       fireEvent.click(within(main()).getByRole('radio', { name: 'Kompakt' }))
-      await waitFor(() => expect(location).toBe('/categories/2?sort=rating&view=compact'))
+      await waitFor(() => expect(location).toBe('/categories/2?sort=rating&dir=desc&view=compact'))
 
       expect(loadPersisted(1)).toEqual(before)
       expect(within(main()).queryByRole('group', { name: 'Gliederung' })).toBeNull()
@@ -138,7 +159,7 @@ describe('Category page (mock mode)', () => {
         target: { value: 'zzz' },
       })
       expect(await within(main()).findByText('Nichts gefunden für „zzz“')).toBeTruthy()
-      expect(location).toBe('/categories/2?q=zzz&sort=rating&view=compact')
+      expect(location).toBe('/categories/2?q=zzz&sort=rating&dir=desc&view=compact')
       expect(within(main()).queryByText(/Noch nichts in/)).toBeNull()
     },
     SLOW,

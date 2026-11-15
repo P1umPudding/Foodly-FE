@@ -199,6 +199,32 @@ describe('RecipeEditor · edit', () => {
     fireEvent.click(screen.getByRole('button', { name: /abschnitt hinzufügen/i }))
 
     expect(screen.getAllByLabelText('Abschnittsname')).toHaveLength(2)
+    expect(screen.getByText(/Ein Abschnitt ohne Namen ist der Normalfall/)).toBeTruthy()
+    // The timer hint sits in the first section only.
+    expect(screen.getAllByText(/werden im Rezept zu Timern/)).toHaveLength(1)
+  })
+
+  it('moves a section down via its ⋯ menu and puts focus on "Abschnitt hinzufügen" after removing one', async () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
+    vi.spyOn(foodly, 'updateRecipe').mockResolvedValue(recipe())
+    view()
+
+    await waitFor(() => expect((screen.getByLabelText('Titel') as HTMLInputElement).value).toBe('Pasta'))
+    fireEvent.click(screen.getByRole('button', { name: /abschnitt hinzufügen/i }))
+    fireEvent.change(screen.getAllByLabelText('Abschnittsname')[1], { target: { value: 'Teig' } })
+
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Abschnitt 1: Aktionen' }), { key: 'Enter' })
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Nach unten' }))
+    expect((screen.getAllByLabelText('Abschnittsname')[0] as HTMLInputElement).value).toBe('Teig')
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Abschnitt 2: Aktionen' }), { key: 'Enter' })
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Entfernen' }))
+    expect(screen.getAllByLabelText('Abschnittsname')).toHaveLength(1)
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: /abschnitt hinzufügen/i })),
+    )
   })
 })
 

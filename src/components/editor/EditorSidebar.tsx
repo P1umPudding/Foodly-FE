@@ -6,7 +6,7 @@ import type { Draft } from '../../editor/draft'
 import type { ImageRef } from '../../api/protocol'
 
 // Mockup `.col-h`: the small grey heading of each side-column block.
-const COL_HEAD = 'mb-1.5 text-xs font-semibold text-muted-foreground'
+export const COL_HEAD = 'mb-1.5 text-xs font-semibold text-muted-foreground'
 
 // The editor's side column (mockup `.ed-side`): Bilder, Notizen, Quelle and a hint. Its blocks are direct children of
 // the column on purpose: on the phone the column dissolves (`contents`) and the blocks join the main column's flow,
