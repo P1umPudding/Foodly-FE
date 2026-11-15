@@ -51,7 +51,7 @@ export function SectionEditor({
             variant="discreet"
             aria-label="Abschnittsname"
             placeholder="Abschnitt ohne Namen"
-            className="flex-1 px-1 text-lg font-semibold"
+            className="flex-1 px-1 text-lg font-semibold dark:bg-transparent"
             value={section.name}
             onChange={(e) => onChange({ ...section, name: e.target.value })}
           />

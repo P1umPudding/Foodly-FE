@@ -31,7 +31,7 @@ export function StepRow({
       <Textarea
         aria-label={`Schritt ${index + 1}`}
         rows={2}
-        className="min-h-0 resize-none"
+        className="field-sizing-fixed min-h-0 resize-none"
         value={text}
         onChange={(e) => onChange(e.target.value)}
       />

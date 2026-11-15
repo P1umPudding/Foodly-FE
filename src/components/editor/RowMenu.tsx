@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@postxl/ui-components'
+import { cn, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@postxl/ui-components'
 import { ArrowDown, ArrowUp, Ellipsis, EllipsisVertical, Trash2 } from 'lucide-react'
 import { TriggerButton } from '../TriggerButton'
 
@@ -14,6 +14,7 @@ export function RowMenu({
   onDown,
   onRemove,
   onRemovedFocus,
+  className,
 }: {
   label: string
   icon?: 'vertical' | 'horizontal'
@@ -24,13 +25,19 @@ export function RowMenu({
   onRemove: () => void
   // After "Entfernen" the trigger is gone; without a target Radix would drop focus on the page.
   onRemovedFocus?: () => void
+  className?: string
 }) {
   const removed = useRef(false)
   const Icon = icon === 'vertical' ? EllipsisVertical : Ellipsis
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <TriggerButton variant="ghost" size="icon" aria-label={label} className="size-[30px] touch:size-10">
+        <TriggerButton
+          variant="ghost"
+          size="icon"
+          aria-label={label}
+          className={cn('size-[30px] touch:size-10', className)}
+        >
           <Icon className="size-4" />
         </TriggerButton>
       </DropdownMenuTrigger>
