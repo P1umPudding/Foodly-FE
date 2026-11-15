@@ -1,6 +1,8 @@
+import { useRef } from 'react'
 import { Button, Card, CardContent, Input, Label } from '@postxl/ui-components'
 import { Plus } from 'lucide-react'
-import { IngredientRow } from './IngredientRow'
+import { TriggerButton } from '../TriggerButton'
+import { INGREDIENT_COLUMNS, IngredientRow } from './IngredientRow'
 import { RowActions } from './RowActions'
 import { StepRow } from './StepRow'
 import { move, newIngredient, newStep } from '../../editor/draft'
@@ -23,6 +25,7 @@ export function SectionEditor({
   onDown: () => void
   onRemove: () => void
 }) {
+  const addIngredient = useRef<HTMLButtonElement>(null)
   const patchIngredient = (key: number, patch: Partial<DraftIngredient>) =>
     onChange({
       ...section,
@@ -54,11 +57,20 @@ export function SectionEditor({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label>Zutaten</Label>
+          {section.ingredients.length > 0 && (
+            <div className={`${INGREDIENT_COLUMNS} text-xs font-medium text-subtle-foreground phone:hidden`}>
+              <span>Menge</span>
+              <span>Einheit</span>
+              <span>Zutat</span>
+              <span>Zusatz</span>
+            </div>
+          )}
           {section.ingredients.map((line, i) => (
             <IngredientRow
               key={line.key}
               line={line}
+              index={i}
+              onRemovedFocus={() => addIngredient.current?.focus()}
               onChange={(patch) => patchIngredient(line.key, patch)}
               onUp={() => onChange({ ...section, ingredients: move(section.ingredients, line.key, -1) })}
               onDown={() => onChange({ ...section, ingredients: move(section.ingredients, line.key, 1) })}
@@ -69,7 +81,8 @@ export function SectionEditor({
               canMoveDown={i < section.ingredients.length - 1}
             />
           ))}
-          <Button
+          <TriggerButton
+            ref={addIngredient}
             variant="ghost"
             size="sm"
             className="self-start gap-1.5 text-primary"
@@ -77,7 +90,7 @@ export function SectionEditor({
           >
             <Plus className="h-4 w-4" />
             Zutat hinzufügen
-          </Button>
+          </TriggerButton>
         </div>
 
         <div className="flex flex-col gap-2">

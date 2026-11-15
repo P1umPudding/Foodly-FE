@@ -21,6 +21,7 @@ function setup(initial: DraftIngredient) {
     return (
       <IngredientRow
         line={line}
+        index={0}
         onChange={(patch) => {
           current = { ...current, ...patch }
           setLine(current)
