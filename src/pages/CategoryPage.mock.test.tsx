@@ -125,10 +125,14 @@ describe('Category page (mock mode)', () => {
       await rowLink('Guacamole')
 
       fireEvent.keyDown(within(main()).getByRole('button', { name: /^Sortieren:/ }), { key: 'Enter' })
-      fireEvent.click(await screen.findByRole('menuitemradio', { name: /Bewertung/ }))
-      await waitFor(() => expect(location).toBe('/categories/2?sort=rating'))
+      const menu = await screen.findByRole('menu')
+      fireEvent.click(within(menu).getByRole('menuitemradio', { name: /Bewertung/ }))
+      // "Bewertung" starts best first; the menu stays open until Esc.
+      await waitFor(() => expect(location).toBe('/categories/2?sort=rating&dir=desc'))
+      fireEvent.keyDown(menu, { key: 'Escape' })
+      await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
       fireEvent.click(within(main()).getByRole('radio', { name: 'Kompakt' }))
-      await waitFor(() => expect(location).toBe('/categories/2?sort=rating&view=compact'))
+      await waitFor(() => expect(location).toBe('/categories/2?sort=rating&dir=desc&view=compact'))
 
       expect(loadPersisted(1)).toEqual(before)
       expect(within(main()).queryByRole('group', { name: 'Gliederung' })).toBeNull()
@@ -138,7 +142,7 @@ describe('Category page (mock mode)', () => {
         target: { value: 'zzz' },
       })
       expect(await within(main()).findByText('Nichts gefunden für „zzz“')).toBeTruthy()
-      expect(location).toBe('/categories/2?q=zzz&sort=rating&view=compact')
+      expect(location).toBe('/categories/2?q=zzz&sort=rating&dir=desc&view=compact')
       expect(within(main()).queryByText(/Noch nichts in/)).toBeNull()
     },
     SLOW,
