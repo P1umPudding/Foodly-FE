@@ -53,7 +53,10 @@ export function CategoryLabel({ name, count, hollow = false }: { name: string; c
     <span className="flex w-full min-w-0 items-center gap-2">
       <span
         aria-hidden
-        className={cn('size-2 shrink-0 rounded-full bg-cat-dot', hollow && 'border-[1.5px] border-border-strong bg-transparent')}
+        className={cn(
+          'size-2 shrink-0 rounded-full bg-cat-dot',
+          hollow && 'border-[1.5px] border-border-strong bg-transparent',
+        )}
       />
       <span className="truncate">{name}</span>
       {count !== undefined && (

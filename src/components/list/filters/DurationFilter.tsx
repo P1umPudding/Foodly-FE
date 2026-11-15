@@ -191,7 +191,10 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
             aria-label={`≤ ${m} Minuten`}
             onClick={() => commit(shown === m ? null : m)}
             // bg-sidebar-accent: the mockup's --active (pressed) fill, a step darker than the hover fill.
-            className={cn('phone:h-10', shown === m && 'bg-sidebar-accent hover:bg-sidebar-accent dark:bg-sidebar-accent')}
+            className={cn(
+              'phone:h-10',
+              shown === m && 'bg-sidebar-accent hover:bg-sidebar-accent dark:bg-sidebar-accent',
+            )}
           >
             {m} min
           </Button>

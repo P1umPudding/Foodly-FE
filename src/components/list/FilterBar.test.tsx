@@ -164,8 +164,9 @@ describe('FilterBar', () => {
 })
 
 describe('FilterBar panels (mockup #236)', () => {
+  // An active button reads "<Filter>: <Wert>"; its ✕ is "<Filter> entfernen".
   const open = (label: string) => {
-    fireEvent.click(within(bar()).getByRole('button', { name: label }))
+    fireEvent.click(within(bar()).getByRole('button', { name: new RegExp(`^${label}(:|$)`) }))
     return screen.getByRole('dialog', { name: label })
   }
   const allProps = { tags, ingredients: [mehl], labelIngredients: [mehl] }
