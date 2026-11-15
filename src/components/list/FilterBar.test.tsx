@@ -124,7 +124,7 @@ describe('FilterBar', () => {
     ['Kategorie', 'checkbox', /Ohne Kategorie/],
     ['Tags', 'checkbox', 'vegan'],
     ['Zutaten', 'checkbox', 'Mehl'],
-    ['Arbeitszeit', 'radio', '≤ 30 Minuten'],
+    ['Arbeitszeit', 'button', '≤ 30 Minuten'],
     ['Zugriff', 'radiogroup', 'Meine Rolle'],
   ])('opens %s with its filter content', (label, role, name) => {
     renderBar(DEFAULT_STATE, { tags, ingredients: [mehl], labelIngredients: [mehl] })
