@@ -162,3 +162,86 @@ describe('FilterBar', () => {
     expect(set).toHaveBeenCalledWith(cleared)
   })
 })
+
+describe('FilterBar panels (mockup #236)', () => {
+  const open = (label: string) => {
+    fireEvent.click(within(bar()).getByRole('button', { name: label }))
+    return screen.getByRole('dialog', { name: label })
+  }
+  const allProps = { tags, ingredients: [mehl], labelIngredients: [mehl] }
+
+  it.each([
+    ['Kategorie', 'Mehrere = Rezepte aus einer davon.'],
+    ['Tags', 'Mehrere = Rezept hat alle.'],
+    ['Zutaten', 'Alle weiteren über die Suche. Mehrere = Rezept enthält alle.'],
+    ['Arbeitszeit', 'Zählt die Arbeitszeit. Rezepte ohne Angabe fallen raus.'],
+  ])('%s shows its mockup hint', (label, hint) => {
+    renderBar(DEFAULT_STATE, allProps)
+    expect(within(open(label)).getByText(hint)).toBeTruthy()
+  })
+
+  it.each<[string, Partial<ListState>, Partial<ListState>]>([
+    ['Kategorie', { categories: [1] }, { categories: [] }],
+    ['Tags', { tags: ['vegan'] }, { tags: [] }],
+    ['Zutaten', { ingredients: [1] }, { ingredients: [] }],
+    ['Arbeitszeit', { durationMax: 30 }, { durationMax: null }],
+    ['Zugriff', { role: 'owner' }, { role: 'any', collab: 'any' }],
+  ])('%s has a „Zurücksetzen“ footer only while active', (label, active, cleared) => {
+    const { set } = renderBar({ ...DEFAULT_STATE, ...active }, allProps)
+    fireEvent.click(within(open(label)).getByRole('button', { name: 'Zurücksetzen' }))
+    expect(set).toHaveBeenCalledWith(cleared)
+  })
+
+  it('has no footer while the filter is inactive', () => {
+    renderBar(DEFAULT_STATE, allProps)
+    for (const label of ['Kategorie', 'Tags', 'Zutaten', 'Arbeitszeit', 'Zugriff']) {
+      expect(within(open(label)).queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
+      fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+    }
+  })
+
+  it('typing a work time, then clicking the footer reset is one edit (the field keeps focus)', () => {
+    const { set } = renderBar({ ...DEFAULT_STATE, durationMax: 30 })
+    const dialog = open('Arbeitszeit')
+    const field = within(dialog).getByLabelText<HTMLInputElement>('Maximale Arbeitszeit in Minuten')
+    field.focus()
+    fireEvent.change(field, { target: { value: '45' } })
+    const reset = within(dialog).getByRole('button', { name: 'Zurücksetzen' })
+    expect(fireEvent.mouseDown(reset)).toBe(false)
+    fireEvent.click(reset, { detail: 1 })
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set).toHaveBeenCalledWith({ durationMax: null })
+    expect(document.activeElement).toBe(field)
+  })
+
+  it('a keyboard reset hands focus to the panel', () => {
+    renderBar({ ...DEFAULT_STATE, tags: ['vegan'] }, allProps)
+    const dialog = open('Tags')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Zurücksetzen' }), { detail: 0 })
+    expect(document.activeElement).toBe(dialog)
+  })
+
+  it('does not focus the search when a filter opens', () => {
+    renderBar(DEFAULT_STATE, allProps)
+    const dialog = open('Tags')
+    expect(document.activeElement).toBe(dialog)
+  })
+
+  it('the phone sheet has „Zurücksetzen“ (while active) and „Anzeigen“', () => {
+    desktop.value = false
+    const { set } = renderBar({ ...DEFAULT_STATE, tags: ['vegan'] }, allProps)
+    const sheet = open('Tags')
+    expect(document.activeElement).not.toBe(within(sheet).getByPlaceholderText('Tag suchen'))
+    expect(within(sheet).getByRole('button', { name: 'Anzeigen' })).toBeTruthy()
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Zurücksetzen' }))
+    expect(set).toHaveBeenCalledWith({ tags: [] })
+  })
+
+  it('the phone sheet has only „Anzeigen“ while inactive', () => {
+    desktop.value = false
+    renderBar(DEFAULT_STATE, allProps)
+    const sheet = open('Tags')
+    expect(within(sheet).getByRole('button', { name: 'Anzeigen' })).toBeTruthy()
+    expect(within(sheet).queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
+  })
+})
