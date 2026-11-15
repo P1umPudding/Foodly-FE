@@ -53,7 +53,9 @@ function matchCatalog(rest: string, catalog: readonly CatalogEntry[]): Pick<Draf
   if (exact) return { ingredient: exact.id, text: '' }
   // Longest first: "Tomaten (gehackt) …" must not link "Tomaten".
   const prefix = entries
-    .filter((entry) => entry.name !== '' && lower.startsWith(entry.name) && /^[\s,]/.test(lower.slice(entry.name.length)))
+    .filter(
+      (entry) => entry.name !== '' && lower.startsWith(entry.name) && /^[\s,]/.test(lower.slice(entry.name.length)),
+    )
     .sort((a, b) => b.name.length - a.name.length)[0]
   if (prefix) return { ingredient: prefix.id, text: rest.slice(prefix.name.length).replace(/^[\s,]+/, '') }
   return { ingredient: null, text: rest }

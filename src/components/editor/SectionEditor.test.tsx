@@ -229,7 +229,10 @@ describe('SectionEditor: Mehrere einfügen', () => {
   })
 
   it('replaces the empty placeholder row of a new section', () => {
-    const onChange = setup(vi.fn(), { ...section, ingredients: [{ key: 30, ingredient: null, text: '', amount: '', unit: '' }] })
+    const onChange = setup(vi.fn(), {
+      ...section,
+      ingredients: [{ key: 30, ingredient: null, text: '', amount: '', unit: '' }],
+    })
 
     fireEvent.change(openPaste(), { target: { value: lines } })
     fireEvent.click(screen.getByRole('button', { name: 'Einfügen' }))

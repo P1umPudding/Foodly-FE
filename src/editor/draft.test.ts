@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { addImage, appendIngredients, emptyDraft, move, newIngredient, sizeNumberError, toCreateRecipe, toDraft } from './draft'
+import {
+  addImage,
+  appendIngredients,
+  emptyDraft,
+  move,
+  newIngredient,
+  sizeNumberError,
+  toCreateRecipe,
+  toDraft,
+} from './draft'
 import type { Recipe } from '../api/protocol'
 import { ref } from '../test/images'
 
@@ -237,7 +246,10 @@ describe('appendIngredients', () => {
 
   it('keeps an empty row between filled ones', () => {
     const gap = newIngredient()
-    const rows = appendIngredients([{ ...newIngredient(), amount: '1' }, gap, { ...newIngredient(), unit: 'g' }], pasted)
+    const rows = appendIngredients(
+      [{ ...newIngredient(), amount: '1' }, gap, { ...newIngredient(), unit: 'g' }],
+      pasted,
+    )
     expect(rows).toHaveLength(5)
     expect(rows[1]).toBe(gap)
   })
