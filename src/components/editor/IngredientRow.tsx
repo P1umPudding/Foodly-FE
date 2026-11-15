@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react'
 import { IngredientPicker } from './IngredientPicker'
 import { RowMenu } from './RowMenu'
 import { SuggestInput } from './SuggestInput'
+import { UNITS } from '../../editor/units'
 import type { DraftIngredient } from '../../editor/draft'
 
 // Columns of mockup `.ed-ing`/`.ed-ing-head`: Menge · Einheit · Zutat · Zusatz · ⋮. No grip column: drag & drop isn't
@@ -11,9 +12,6 @@ import type { DraftIngredient } from '../../editor/draft'
 // a row takes two lines, Menge · Einheit · ⋮ over Zutat · Zusatz (the reading rows and edit sheet for phones are #217).
 export const INGREDIENT_COLUMNS =
   'grid grid-cols-[96px_90px_minmax(0,1fr)_minmax(0,0.7fr)_30px] items-center gap-1.5 touch:grid-cols-[96px_90px_minmax(0,1fr)_minmax(0,0.7fr)_40px]'
-
-// Suggestions only: unit is free text on the wire, and recipes already use units like "Dose" or "Bund".
-const UNITS = ['g', 'kg', 'ml', 'l', 'EL', 'TL', 'Prise', 'Stück', 'Dose', 'Bund']
 
 export function IngredientRow({
   line,
