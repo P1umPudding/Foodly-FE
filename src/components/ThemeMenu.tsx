@@ -6,7 +6,9 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from '@postxl/ui-components'
+import { Moon, Sun } from 'lucide-react'
 import { useTheme } from '../theme/ThemeProvider'
+import { Segment } from './list/Segment'
 import type { ColorMode } from '../theme/ThemeProvider'
 
 const ICON = 'h-4 w-4'
@@ -151,5 +153,29 @@ export function ThemeSubmenu() {
         </DropdownMenuRadioGroup>
       </DropdownMenuSubContent>
     </DropdownMenuSub>
+  )
+}
+
+// Mockup: only Hell and Dunkel carry an icon.
+const SEGMENT_OPTIONS = [
+  { value: 'light' as const, label: 'Hell', Icon: Sun },
+  { value: 'dark' as const, label: 'Dunkel', Icon: Moon },
+  { value: 'system' as const, label: 'System' },
+]
+
+// Theme choice on the profile page (mockup „Design“ segment).
+export function ThemeSegment({ labelledBy }: { labelledBy: string }) {
+  const { colorMode, select } = useThemeSwitch()
+  return (
+    <Segment<ColorMode>
+      value={colorMode}
+      // The switch happens in onItemClick: the reveal starts at the click point, which onChange doesn't carry.
+      onChange={() => {}}
+      onItemClick={(mode, e) => void select(e, mode)}
+      options={SEGMENT_OPTIONS}
+      withLabels
+      itemClassName="h-8 gap-1.5"
+      aria-labelledby={labelledBy}
+    />
   )
 }

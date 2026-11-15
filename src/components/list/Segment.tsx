@@ -4,6 +4,7 @@
 import { cn, ToggleGroup, Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { FocusToggleGroupItem } from './FocusToggleGroupItem'
 import type { LucideIcon } from 'lucide-react'
+import type { MouseEvent } from 'react'
 
 export const SEG_TRACK = 'gap-0.5 rounded-lg bg-seg p-0.5'
 export const SEG_ITEM = 'rounded-md px-3 text-sm font-medium text-muted-foreground'
@@ -16,6 +17,7 @@ export function Segment<T extends string>({
   withLabels = false,
   full = false,
   itemClassName,
+  onItemClick,
   ...labelling
 }: {
   value: T
@@ -28,6 +30,8 @@ export function Segment<T extends string>({
   full?: boolean
   // Segment height differs per place (34 px in the desktop toolbar, 40 px in the phone sheet).
   itemClassName?: string
+  // Runs before the selection change; the theme switch needs the click point for its reveal.
+  onItemClick?: (v: T, e: MouseEvent<HTMLElement>) => void
 } & ({ 'aria-label': string } | { 'aria-labelledby': string })) {
   return (
     <ToggleGroup
@@ -46,6 +50,7 @@ export function Segment<T extends string>({
             key={o.value}
             value={o.value}
             aria-label={withLabels ? undefined : o.label}
+            onClick={onItemClick && ((e) => onItemClick(o.value, e))}
             className={cn(
               SEG_ITEM,
               'hover:bg-transparent hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground',
