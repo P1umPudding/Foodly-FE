@@ -16,6 +16,7 @@ type ResponsivePanelProps = {
   modal?: boolean
   onInteractOutside?: (e: Event) => void
   onCloseAutoFocus?: (e: Event) => void
+  onOpenAutoFocus?: (e: Event) => void
   popover: Pick<ComponentProps<typeof PopoverContent>, 'align' | 'className' | 'aria-label'>
   sheet: Pick<BottomSheetProps, 'title' | 'description' | 'scroll' | 'className' | '__e2e_test_id__'>
 }
@@ -31,13 +32,14 @@ export function ResponsivePanel({
   modal,
   onInteractOutside,
   onCloseAutoFocus,
+  onOpenAutoFocus,
   popover,
   sheet,
 }: ResponsivePanelProps) {
   const isDesktop = useIsDesktop()
   const variant: PanelVariant = isDesktop ? 'popover' : 'sheet'
   const content = typeof children === 'function' ? children(variant) : children
-  const handlers = { onInteractOutside, onCloseAutoFocus }
+  const handlers = { onInteractOutside, onCloseAutoFocus, onOpenAutoFocus }
 
   if (isDesktop) {
     return (
