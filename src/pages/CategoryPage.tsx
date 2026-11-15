@@ -23,7 +23,7 @@ import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
 import { SortMenu } from '../components/list/SortMenu'
 import { ViewToggles } from '../components/list/ViewToggles'
-import { EmptyState, ErrorState, STATE_ACTION_CLASS } from '../components/StateCard'
+import { EmptyState, ErrorState } from '../components/StateCard'
 import { PageTitle } from '../components/PageTitle'
 import { Page } from '../components/shell/Page'
 import { HeaderActions } from '../components/shell/PageHeader'
@@ -287,9 +287,9 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
             <EmptyState
               icon={EyeOff}
               title="Keine Rezepte, die du sehen kannst"
-              description="Die Rezepte in dieser Kategorie sind für dich nicht mehr freigegeben."
+              description="Die Rezepte darin sind für dich nicht sichtbar."
               action={
-                <Button asChild variant="outline" size="sm" className={STATE_ACTION_CLASS}>
+                <Button asChild variant="outline" size="sm">
                   <Link to="/recipes">Zu den Rezepten</Link>
                 </Button>
               }
@@ -302,7 +302,7 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
             title={`Nichts gefunden für „${state.search.trim()}“`}
             description="Prüf die Schreibweise oder such nach etwas anderem."
             action={
-              <Button variant="outline" size="sm" className={STATE_ACTION_CLASS} onClick={() => setSearch('')}>
+              <Button variant="outline" size="sm" onClick={() => setSearch('')}>
                 Suche leeren
               </Button>
             }

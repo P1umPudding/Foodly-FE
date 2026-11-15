@@ -4,6 +4,7 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './RecipeList'
 import { foodly } from '../api'
+import { redTokens } from '../test/redTokens'
 import { useRequest } from '../hooks/useRequest'
 import { SHELL_NAV_STATE } from '../components/shell/nav'
 import type { Recipe, UserCategory } from '../api/protocol'
@@ -566,6 +567,24 @@ describe('RecipeList (result count and empty states)', () => {
     expect(screen.queryByText('Noch keine Rezepte')).toBeNull()
   })
 
+  it('shows a neutral error card when the first page fails, and the retry loads the list', async () => {
+    const searchSpy = vi
+      .spyOn(foodly, 'searchRecipes')
+      .mockRejectedValueOnce(new Error('Server weg'))
+      .mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('Rezepte konnten nicht geladen werden')
+    expect(redTokens(alert)).toEqual([])
+    fireEvent.click(within(alert).getByRole('button', { name: 'Erneut versuchen' }))
+    await waitFor(() => screen.getByText('Pancakes'))
+    expect(searchSpy).toHaveBeenCalledTimes(2)
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
   it('names the trimmed query for a plain search and keeps the ingredient hint', async () => {
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
@@ -601,7 +620,7 @@ describe('RecipeList (result count and empty states)', () => {
     renderSearch(q)
 
     const title = await screen.findByText(`Nichts gefunden für „${q}“`)
-    expect(title.className).toContain('[overflow-wrap:anywhere]')
+    expect(title.className).toContain('wrap-anywhere')
   })
 
   it('shows neither empty text while a filtered result still has pages to come', async () => {

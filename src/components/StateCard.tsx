@@ -5,9 +5,6 @@ import type { LucideIcon } from 'lucide-react'
 import { Info, RotateCcw } from 'lucide-react'
 import { Button, Card, cn } from '@postxl/ui-components'
 
-// design.md §7: actions stay 40 px tall on touch.
-export const STATE_ACTION_CLASS = 'touch:h-10'
-
 export function EmptyState({
   icon: Icon,
   title,
@@ -39,9 +36,10 @@ export function EmptyState({
           <Icon aria-hidden className="size-5" />
         </div>
       )}
-      <p className="max-w-full font-semibold [overflow-wrap:anywhere]">{title}</p>
-      {description && <div className="mt-0.5 max-w-sm text-sm text-muted-foreground">{description}</div>}
-      {action && <div className="mt-3 flex flex-wrap justify-center gap-2">{action}</div>}
+      <p className="max-w-full font-semibold wrap-anywhere">{title}</p>
+      {description && <div className="mt-0.5 max-w-sm text-sm wrap-anywhere text-muted-foreground">{description}</div>}
+      {/* design.md §7: actions stay 40 px tall on touch, whichever button the caller passes. */}
+      {action && <div className="mt-3 flex flex-wrap justify-center gap-2 touch:*:h-10">{action}</div>}
     </Card>
   )
 }
@@ -73,7 +71,7 @@ export function ErrorState({
       className={className}
       action={
         <>
-          <Button variant="outline" size="sm" className={STATE_ACTION_CLASS} onClick={onRetry}>
+          <Button variant="outline" size="sm" onClick={onRetry}>
             <RotateCcw aria-hidden />
             Erneut versuchen
           </Button>

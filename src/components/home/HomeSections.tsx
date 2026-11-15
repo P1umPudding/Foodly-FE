@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useId, useLayoutEffect, useStat
 import { Link } from 'react-router-dom'
 import { UtensilsCrossed } from 'lucide-react'
 import { Button } from '@postxl/ui-components'
-import { EmptyState, STATE_ACTION_CLASS } from '../StateCard'
+import { EmptyState } from '../StateCard'
 
 export type SectionState = 'loading' | 'error' | 'empty' | 'ready'
 
@@ -56,7 +56,7 @@ export function NothingToShow() {
       title="Noch nichts zu sehen"
       description="Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast."
       action={
-        <Button asChild variant="outline" size="sm" className={STATE_ACTION_CLASS}>
+        <Button asChild variant="outline" size="sm">
           <Link to="/recipes/new">Neues Rezept</Link>
         </Button>
       }

@@ -25,7 +25,7 @@ import { useIsDesktop } from '../hooks/useIsDesktop'
 import { fromSearchParams, toSearchParams } from '../list/url'
 import { isShellNavState } from '../components/shell/nav'
 import { Page } from '../components/shell/Page'
-import { EmptyState, ErrorState, STATE_ACTION_CLASS } from '../components/StateCard'
+import { EmptyState, ErrorState } from '../components/StateCard'
 
 const SCROLL_KEY = 'recipeList:scroll'
 
@@ -325,7 +325,7 @@ export function RecipeList() {
             title="Noch keine Rezepte"
             description="Leg dein erstes Rezept an."
             action={
-              <Button asChild variant="outline" size="sm" className={STATE_ACTION_CLASS}>
+              <Button asChild variant="outline" size="sm">
                 <Link to="/recipes/new">Neues Rezept</Link>
               </Button>
             }
@@ -352,7 +352,7 @@ export function RecipeList() {
               </>
             }
             action={
-              <Button variant="outline" size="sm" className={STATE_ACTION_CLASS} onClick={clear}>
+              <Button variant="outline" size="sm" onClick={clear}>
                 Filter zurücksetzen
               </Button>
             }

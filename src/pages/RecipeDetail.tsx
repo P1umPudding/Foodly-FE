@@ -15,7 +15,7 @@ import {
   cn,
 } from '@postxl/ui-components'
 import { Skeleton } from '../components/Skeleton'
-import { ErrorState, STATE_ACTION_CLASS } from '../components/StateCard'
+import { ErrorState } from '../components/StateCard'
 import { foodly } from '../api'
 import { errorMessage } from '../lib/errorMessage'
 import { useRequest } from '../hooks/useRequest'
@@ -257,7 +257,7 @@ export function RecipeDetail() {
             description="Prüf die Verbindung oder versuch es später noch einmal."
             onRetry={reload}
             extraAction={
-              <Button asChild variant="outline" size="sm" className={STATE_ACTION_CLASS}>
+              <Button asChild variant="outline" size="sm">
                 <Link to="/recipes">Zur Liste</Link>
               </Button>
             }
