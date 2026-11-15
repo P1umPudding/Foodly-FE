@@ -21,11 +21,12 @@ const LABEL = 'Profil & Einstellungen'
 export function ProfileLink({ variant }: { variant: 'avatar' | 'row' | 'icon' }) {
   const me = useMe()
   const { pathname } = useLocation()
-  const { name, initial } = profileName(me)
+  const { name, initial, known } = profileName(me)
   // The categories are a setting reached from the profile (mockup), so the profile entry stays lit there; a single
   // category's page belongs to "Rezepte".
   const current = pathname === '/profile' ? 'page' : pathname === '/categories' ? 'location' : undefined
 
+  // Sidebar: mockup `.avatar.xs` (22 px, 11 px initial), off the text scale.
   const avatar = (
     <Avatar aria-hidden className={variant === 'avatar' ? 'size-8' : 'size-[22px]'}>
       <AvatarFallback className={cn('font-semibold', variant === 'avatar' ? 'text-xs' : 'text-[11px]')}>
@@ -50,7 +51,7 @@ export function ProfileLink({ variant }: { variant: 'avatar' | 'row' | 'icon' })
     return (
       <Link
         to="/profile"
-        aria-label={`${name} – ${LABEL}`}
+        aria-label={known ? `${name} – ${LABEL}` : LABEL}
         aria-current={current}
         className={navItemClass(current !== undefined, false)}
       >

@@ -64,11 +64,31 @@ describe('ThemeSegment', () => {
     expect(screen.getByRole('radio', { name: 'Dunkel' }).getAttribute('aria-checked')).toBe('true')
   })
 
-  it('switches by keyboard (a click without coordinates) and offers System', async () => {
+  it('anchors the reveal at the viewport centre for a keyboard pick (a click without coordinates)', async () => {
     localStorage.setItem('foodly-theme', 'dark')
+    Object.defineProperty(document, 'startViewTransition', {
+      value: (update: () => void) => {
+        update()
+        return { ready: Promise.resolve(), finished: Promise.resolve() } as unknown as ViewTransition
+      },
+      configurable: true,
+    })
+    const animate = vi.fn()
+    Object.defineProperty(document.documentElement, 'animate', { value: animate, configurable: true })
+    try {
+      renderSegment()
+      fireEvent.click(screen.getByRole('radio', { name: 'Hell' }), { detail: 0, clientX: 0, clientY: 0 })
+      await waitFor(() => expect(animate).toHaveBeenCalledOnce())
+      const [keyframes] = animate.mock.calls[0] as [{ clipPath: string[] }]
+      expect(keyframes.clipPath[0]).toContain(`at ${window.innerWidth / 2}px ${window.innerHeight / 2}px`)
+      expect(document.documentElement.classList.contains('dark')).toBe(false)
+    } finally {
+      Reflect.deleteProperty(document.documentElement, 'animate')
+    }
+  })
+
+  it('offers System', () => {
     renderSegment()
-    fireEvent.click(screen.getByRole('radio', { name: 'Hell' }), { detail: 0, clientX: 0, clientY: 0 })
-    await waitFor(() => expect(document.documentElement.classList.contains('dark')).toBe(false))
     fireEvent.click(screen.getByRole('radio', { name: 'System' }))
     expect(localStorage.getItem('foodly-theme')).toBe('system')
   })

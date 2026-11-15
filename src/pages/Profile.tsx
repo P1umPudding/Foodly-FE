@@ -13,7 +13,7 @@ import { profileName } from '../components/shell/profileName'
 
 // Mockup `.card.set-card` and `.row.set`.
 const CARD = 'mb-5 gap-0 px-1 py-0.5'
-const ROW = cn('flex items-center gap-3.5 rounded-sm p-3', ROW_DIVIDER)
+const ROW = cn('flex items-center gap-3.5 rounded-md p-3', ROW_DIVIDER)
 const SECTION_HEADING = 'mb-2 text-xs font-semibold text-subtle-foreground'
 
 export function Profile() {
@@ -34,8 +34,9 @@ export function Profile() {
 
         <h2 className={SECTION_HEADING}>Darstellung</h2>
         <Card className={CARD}>
-          <div className={ROW}>
-            <span id="profile-design" className="flex-1 font-medium">
+          {/* Wraps on very narrow phones (320 px) instead of pushing the segment out of the card. */}
+          <div className={cn(ROW, 'flex-wrap gap-y-2')}>
+            <span id="profile-design" className="min-w-0 flex-1 font-medium">
               Design
             </span>
             <ThemeSegment labelledBy="profile-design" />
