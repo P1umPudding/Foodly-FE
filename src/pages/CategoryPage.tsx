@@ -17,12 +17,11 @@ import { useCategories, useCurrentUserId } from '../catalog/CatalogProvider'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
 import { CategoryMark } from '../components/category/CategoryMark'
 import { ListSkeleton, LoadMoreSkeleton } from '../components/list/ListSkeleton'
+import { DesktopListOptions } from '../components/list/DesktopListOptions'
 import { MobileListOptions } from '../components/list/MobileListOptions'
 import { RecipeListView } from '../components/list/RecipeListView'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
-import { SortMenu } from '../components/list/SortMenu'
-import { ViewToggles } from '../components/list/ViewToggles'
 import { EmptyState, ErrorState } from '../components/StateCard'
 import { PageTitle } from '../components/PageTitle'
 import { Page } from '../components/shell/Page'
@@ -235,7 +234,7 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
   return (
     <>
       <div className="pt-6 pb-3">
-        <div className="flex items-center gap-4 phone:gap-3">
+        <div className="flex items-center gap-2 phone:gap-3">
           <SearchInput
             value={state.search}
             onChange={setSearch}
@@ -243,12 +242,10 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
             label={`In „${category.name}“ suchen`}
             clearLabel="Suche leeren"
             className="min-w-0 flex-1"
+            inputClassName="h-[38px]"
           />
           {isDesktop ? (
-            <div className="flex items-center gap-4">
-              <SortMenu state={state} set={set} />
-              <ViewToggles state={state} set={set} showLayout={false} />
-            </div>
+            <DesktopListOptions state={state} set={set} showLayout={false} />
           ) : (
             <MobileListOptions state={state} set={set} showLayout={false} />
           )}

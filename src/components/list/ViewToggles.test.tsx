@@ -70,3 +70,8 @@ it('renders each group as a segment track with the active segment as a raised su
   expect(inactive.className.split(/\s+/)).toContain('text-muted-foreground')
   expect(inactive.className.split(/\s+/)).not.toContain('bg-card')
 })
+
+it('sizes the segments to the 38 px toolbar track (34 px + 2 × 2 px)', () => {
+  renderToggles(base)
+  expect(screen.getByRole('radio', { name: 'Kompakt' }).className.split(/\s+/)).toContain('h-[34px]')
+})
