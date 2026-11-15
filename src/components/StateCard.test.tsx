@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { FolderOpen } from 'lucide-react'
 import { describe, expect, it, vi } from 'vitest'
 import { redTokens } from '../test/redTokens'
@@ -12,7 +12,8 @@ describe('EmptyState', () => {
     expect(screen.getByTestId('state-icon').classList.contains('rounded-full')).toBe(true)
     expect(screen.getByText('Noch nichts hier')).toBeTruthy()
     expect(screen.getByText('Ein Satz.')).toBeTruthy()
-    expect(screen.getByText('Aktion')).toBeTruthy()
+    // design.md §7: every action is 40 px tall on touch.
+    expect(screen.getByText('Aktion').parentElement!.className).toContain('touch:*:h-10')
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
@@ -39,6 +40,14 @@ describe('ErrorState', () => {
     expect(screen.getByText('Zur Liste')).toBeTruthy()
     expect(redTokens(container)).toEqual([])
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
+    expect(onRetry).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the retry but leaves out the icon when compact (load-more, side panels)', () => {
+    const onRetry = vi.fn()
+    render(<ErrorState compact title="Weitere Rezepte konnten nicht geladen werden" onRetry={onRetry} />)
+    expect(screen.queryByTestId('state-icon')).toBeNull()
+    fireEvent.click(within(screen.getByRole('alert')).getByRole('button', { name: 'Erneut versuchen' }))
     expect(onRetry).toHaveBeenCalledTimes(1)
   })
 })

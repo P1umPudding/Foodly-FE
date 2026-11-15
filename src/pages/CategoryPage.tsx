@@ -281,13 +281,12 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
             <EmptyState
               icon={FolderOpen}
               title={`Noch nichts in „${category.name}“`}
-              description="Öffne ein Rezept und füg es über „+ Kategorie“ hinzu."
+              description="Öffne ein Rezept und füg es über „+“ hinzu."
             />
           ) : (
             <EmptyState
               icon={EyeOff}
               title="Keine Rezepte, die du sehen kannst"
-              description="Die Rezepte darin sind für dich nicht sichtbar."
               action={
                 <Button asChild variant="outline" size="sm">
                   <Link to="/recipes">Zu den Rezepten</Link>

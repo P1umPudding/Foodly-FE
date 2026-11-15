@@ -254,7 +254,7 @@ export function RecipeDetail() {
           <h1 className="sr-only">Rezept</h1>
           <ErrorState
             title="Rezept konnte nicht geladen werden"
-            description="Prüf die Verbindung oder versuch es später noch einmal."
+            description="Vielleicht wurde es gelöscht, oder der Server ist gerade nicht erreichbar."
             onRetry={reload}
             extraAction={
               <Button asChild variant="outline" size="sm">

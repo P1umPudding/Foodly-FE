@@ -91,7 +91,7 @@ describe('Category page (mock mode)', () => {
       const created = (await api.foodly.listCategories()).find((c) => c.name === 'Suppen')!
       await renderAt(`/categories/${created.id}`)
       expect(await within(main()).findByText('Noch nichts in „Suppen“', {}, WAIT)).toBeTruthy()
-      expect(within(main()).getByText('Öffne ein Rezept und füg es über „+ Kategorie“ hinzu.')).toBeTruthy()
+      expect(within(main()).getByText('Öffne ein Rezept und füg es über „+“ hinzu.')).toBeTruthy()
       // Mockup K-8: the empty category card has no button.
       expect(within(main()).queryByRole('link', { name: 'Zu den Rezepten' })).toBeNull()
       expect(within(main()).getByText('0 Rezepte · nur für dich sichtbar')).toBeTruthy()
