@@ -241,6 +241,14 @@ describe('AppShell on the desktop', () => {
     expect(profileRow().getAttribute('aria-current')).toBeNull()
   })
 
+  it('marks the profile avatar current in the collapsed sidebar', () => {
+    renderAt('/profile')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    const avatar = within(sidebar()).getByRole('link', { name: 'Profil & Einstellungen' })
+    expect(avatar.getAttribute('aria-current')).toBe('page')
+    expect(avatar.className).toContain('bg-sidebar-accent')
+  })
+
   it('leads to the categories page from the gear next to "Kategorien"', () => {
     renderAt('/recipes')
     const gear = within(sidebar()).getByRole('link', { name: 'Kategorien verwalten' })

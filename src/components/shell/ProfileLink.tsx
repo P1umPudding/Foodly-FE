@@ -10,6 +10,7 @@ import {
 import { Link, useLocation } from 'react-router-dom'
 import { useMe } from '../../catalog/CatalogProvider'
 import { navItemClass } from './navItem'
+import { profileName } from './profileName'
 
 const LABEL = 'Profil & Einstellungen'
 
@@ -20,8 +21,7 @@ const LABEL = 'Profil & Einstellungen'
 export function ProfileLink({ variant }: { variant: 'avatar' | 'row' | 'icon' }) {
   const me = useMe()
   const { pathname } = useLocation()
-  const name = me?.name ?? 'Profil'
-  const initial = (me?.name.trim()[0] ?? '?').toUpperCase()
+  const { name, initial } = profileName(me)
   // The categories are a setting reached from the profile (mockup), so the profile entry stays lit there; a single
   // category's page belongs to "Rezepte".
   const current = pathname === '/profile' ? 'page' : pathname === '/categories' ? 'location' : undefined

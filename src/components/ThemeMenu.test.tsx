@@ -55,11 +55,22 @@ describe('ThemeSegment', () => {
     expect(screen.getByRole('radio', { name: 'Dunkel' }).getAttribute('aria-checked')).toBe('true')
   })
 
-  it('keeps the active mode checked when it is clicked again', () => {
+  it('keeps the active mode checked and skips the reveal when it is clicked again', () => {
     localStorage.setItem('foodly-theme', 'dark')
+    const startViewTransition = stubFailingReveal()
     renderSegment()
     fireEvent.click(screen.getByRole('radio', { name: 'Dunkel' }))
+    expect(startViewTransition).not.toHaveBeenCalled()
     expect(screen.getByRole('radio', { name: 'Dunkel' }).getAttribute('aria-checked')).toBe('true')
+  })
+
+  it('switches by keyboard (a click without coordinates) and offers System', async () => {
+    localStorage.setItem('foodly-theme', 'dark')
+    renderSegment()
+    fireEvent.click(screen.getByRole('radio', { name: 'Hell' }), { detail: 0, clientX: 0, clientY: 0 })
+    await waitFor(() => expect(document.documentElement.classList.contains('dark')).toBe(false))
+    fireEvent.click(screen.getByRole('radio', { name: 'System' }))
+    expect(localStorage.getItem('foodly-theme')).toBe('system')
   })
 
   it('applies the mode and cleans up when the reveal transition fails', async () => {

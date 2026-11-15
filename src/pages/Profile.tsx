@@ -9,26 +9,27 @@ import { ThemeSegment } from '../components/ThemeMenu'
 import { FOCUS_RING } from '../components/focusRing'
 import { ROW_DIVIDER } from '../components/rowDivider'
 import { Page } from '../components/shell/Page'
+import { profileName } from '../components/shell/profileName'
 
 // Mockup `.card.set-card` and `.row.set`.
 const CARD = 'mb-5 gap-0 px-1 py-0.5'
-const ROW = cn('flex items-center gap-3 rounded-sm p-3', ROW_DIVIDER)
-const SECTION_HEADING = 'mb-2 text-xs font-semibold text-muted-foreground'
+const ROW = cn('flex items-center gap-3.5 rounded-sm p-3', ROW_DIVIDER)
+const SECTION_HEADING = 'mb-2 text-xs font-semibold text-subtle-foreground'
 
 export function Profile() {
   const me = useMe()
-  const name = me?.name ?? 'Profil'
-  const initial = (me?.name.trim()[0] ?? '?').toUpperCase()
+  const { name, initial } = profileName(me)
 
   return (
     <Page className="pb-10">
       <h1 className="sr-only">Profil & Einstellungen</h1>
       <div className="max-w-[640px]">
+        {/* 22 px: mockup `.avatar.lg` and the profile's `.page-title` size, off the text scale. */}
         <div className="mb-6 flex items-center gap-4">
           <Avatar aria-hidden className="size-14">
             <AvatarFallback className="text-[22px] font-semibold">{initial}</AvatarFallback>
           </Avatar>
-          <h2 className="min-w-0 truncate text-[22px] font-semibold tracking-[-0.01em]">{name}</h2>
+          <h2 className="min-w-0 truncate text-[22px] leading-[1.15] font-[650] tracking-[-0.025em]">{name}</h2>
         </div>
 
         <h2 className={SECTION_HEADING}>Darstellung</h2>
@@ -53,7 +54,7 @@ export function Profile() {
               variant="ghost"
               className={cn(
                 ROW,
-                'h-auto w-full justify-start text-base font-medium text-destructive hover:bg-transparent hover:text-destructive',
+                'h-auto w-full justify-start text-base font-medium text-destructive hover:bg-transparent hover:text-destructive dark:hover:bg-transparent',
               )}
               onClick={() => void foodly.auth.signOut()}
             >

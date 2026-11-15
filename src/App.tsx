@@ -31,7 +31,7 @@ export default function App() {
   return (
     <TooltipProvider>
       {/* The timers, the catalog and the shell live inside RequireAuth: timers belong to the signed-in user,
-          and the sidebar and profile menu need the categories and `me`, which need a session. */}
+          and the sidebar and profile page need the categories and `me`, which need a session. */}
       <Routes>
         <Route element={<RedirectIfSignedIn />}>
           <Route path="/login" element={<Login />} />
