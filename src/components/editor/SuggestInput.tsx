@@ -62,13 +62,15 @@ export function SuggestInput({
         select(suggestions[activeIndex].id)
       }
     } else if (e.key === 'Escape') {
-      // Closing the list must not also close a surrounding sheet or dialog.
-      if (open) {
+      // Usual combobox steps: the first Escape closes the list, the next one reverts. Closing the list must not also
+      // close a surrounding sheet or dialog.
+      if (expanded) {
         e.preventDefault()
         e.stopPropagation()
+        setOpen(false)
+      } else {
+        onEscape?.()
       }
-      setOpen(false)
-      onEscape?.()
     }
   }
 
@@ -107,6 +109,9 @@ export function SuggestInput({
           id={listId}
           role="listbox"
           aria-label={`${label}: Vorschläge`}
+          // mousedown would blur the input (closing the list and committing) before a click on an option or the
+          // scrollbar lands.
+          onMouseDown={(e) => e.preventDefault()}
           className="absolute top-full left-0 z-20 mt-1 max-h-60 w-max max-w-72 min-w-full overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
         >
           {suggestions.map((s, i) => (
@@ -115,8 +120,6 @@ export function SuggestInput({
               id={optionId(i)}
               role="option"
               aria-selected={i === activeIndex}
-              // mousedown would blur the input (and close the list) before the click lands.
-              onMouseDown={(e) => e.preventDefault()}
               onClick={() => select(s.id)}
               onMouseMove={() => setActive(i)}
               className={cn(

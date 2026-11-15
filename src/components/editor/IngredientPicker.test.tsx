@@ -20,7 +20,7 @@ function setup(value: number | null = null, text = '') {
 }
 
 describe('IngredientPicker', () => {
-  it('shows the picked catalog ingredient by name, free text as typed', () => {
+  it('shows the picked catalog ingredient by name', () => {
     setup(1)
     expect(field().value).toBe('Zwiebel')
   })
@@ -77,10 +77,13 @@ describe('IngredientPicker', () => {
     expect(screen.queryByRole('listbox')).toBeNull()
   })
 
-  it('reverts with Escape and commits nothing', () => {
+  it('closes the list with the first Escape and reverts with the second', () => {
     const { onText } = setup(1)
 
     type('Zw')
+    fireEvent.keyDown(field(), { key: 'Escape' })
+    expect(screen.queryByRole('listbox')).toBeNull()
+    expect(field().value).toBe('Zw')
     fireEvent.keyDown(field(), { key: 'Escape' })
     fireEvent.blur(field())
 
@@ -131,5 +134,32 @@ describe('IngredientPicker', () => {
     type('Zuc')
     fireEvent.keyDown(field(), { key: 'Enter' })
     expect(onPick).toHaveBeenCalledWith(2)
+  })
+
+  it('takes a capitalisation fix on a free-text row', () => {
+    const { onText } = setup(null, 'salz')
+
+    type('Salz')
+    fireEvent.blur(field())
+
+    expect(onText).toHaveBeenCalledWith('Salz')
+  })
+
+  it('links the catalog entry whose full name was typed when the field is left', () => {
+    const { onPick, onText } = setup(1)
+
+    type('zucchini')
+    fireEvent.blur(field())
+
+    expect(onPick).toHaveBeenCalledWith(2)
+    expect(onText).not.toHaveBeenCalled()
+  })
+
+  it('keeps the list open while its scrollbar is used', () => {
+    setup()
+
+    type('Z')
+    const list = screen.getByRole('listbox')
+    expect(fireEvent.mouseDown(list)).toBe(false)
   })
 })

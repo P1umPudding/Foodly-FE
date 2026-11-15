@@ -143,6 +143,23 @@ describe('SectionEditor', () => {
   })
 
   it('shows the timer hint only where asked (the first section)', () => {
+    const { unmount } = render(
+      <TooltipProvider>
+        <SectionEditor
+          section={section}
+          index={0}
+          total={1}
+          showTimerHint
+          onChange={vi.fn()}
+          onUp={vi.fn()}
+          onDown={vi.fn()}
+          onRemove={vi.fn()}
+        />
+      </TooltipProvider>,
+    )
+    expect(screen.getByText(/werden im Rezept zu Timern/)).toBeTruthy()
+    unmount()
+
     setup()
     expect(screen.queryByText(/werden im Rezept zu Timern/)).toBeNull()
   })

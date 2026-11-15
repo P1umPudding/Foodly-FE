@@ -32,12 +32,18 @@ export function IngredientPicker({
   const lower = q.toLowerCase()
   // No list for an empty field: Enter would otherwise silently link the first catalog entry.
   const matches = q === '' ? [] : Object.values(byId).filter((i) => i.name.toLowerCase().includes(lower))
-  const exact = matches.some((i) => i.name.toLowerCase() === lower)
+  const exact = matches.find((i) => i.name.toLowerCase() === lower)
 
   const commitText = () => {
-    // Only a different name counts; "zwiebel" on the row "Zwiebel" keeps its catalog link and Zusatz.
-    if (typed !== null && q !== '' && lower !== stored.toLowerCase()) onText(q)
     setTyped(null)
+    if (typed === null || q === '') return
+    // A catalog name typed in full links that entry (the list offers no free-text entry for it either), and a case-only
+    // change on a catalog row keeps its link and Zusatz. Free text takes any change, capitalisation included.
+    if (exact) {
+      if (exact.id !== value) onPick(exact.id)
+    } else if (value !== null ? lower !== stored.toLowerCase() : q !== stored) {
+      onText(q)
+    }
   }
 
   return (

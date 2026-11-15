@@ -14,6 +14,7 @@ describe('splitAmount', () => {
     ['2-3 ca.', '', '2-3 ca.'],
     ['etwas', '', 'etwas'],
     ['gut ⅕', 'gut', '⅕'],
+    ['ca. ８００', 'ca.', '８００'],
     ['', '', ''],
   ])('splits %j into prefix %j and amount %j', (input, amountPrefix, amount) => {
     expect(splitAmount(input)).toEqual({ amountPrefix, amount })

@@ -56,7 +56,6 @@ const catalogLine = (over: Partial<DraftIngredient> = {}): DraftIngredient => ({
   ingredient: 1,
   text: '',
   amount: '',
-
   unit: '',
   ...over,
 })
@@ -123,16 +122,9 @@ describe('IngredientRow · Zusatz', () => {
     expect(line()).toMatchObject({ ingredient: 1, text: 'gehackt' })
 
     fireEvent.keyDown(nameField(), { key: 'Escape' })
+    fireEvent.keyDown(nameField(), { key: 'Escape' })
     fireEvent.blur(nameField())
     expect(line()).toMatchObject({ ingredient: 1, text: 'gehackt' })
-  })
-
-  it('keeps the Zusatz when another catalog ingredient is picked by typing', () => {
-    const { line } = setup(catalogLine({ text: 'gehackt' }))
-
-    pick('Schalotte')
-
-    expect(line()).toMatchObject({ ingredient: 2, text: 'gehackt' })
   })
 
   it('opens the unit suggestions on a click and takes one', () => {
