@@ -66,7 +66,7 @@ export function FilterCheckRow({
 }
 
 export function NoMatches({ children = 'Keine Treffer' }: { children?: ReactNode }) {
-  return <p className="px-1 py-1 text-sm text-muted-foreground">{children}</p>
+  return <p className="px-2 py-1 text-sm text-muted-foreground">{children}</p>
 }
 
 // The mockup's .fp-hint under a filter's options. Muted, not the mockup's subtle: subtle is no AA for small text

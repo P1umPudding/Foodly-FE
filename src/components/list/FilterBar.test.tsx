@@ -218,7 +218,9 @@ describe('FilterBar panels (mockup #236)', () => {
   it('a keyboard reset hands focus to the panel', () => {
     renderBar({ ...DEFAULT_STATE, tags: ['vegan'] }, allProps)
     const dialog = open('Tags')
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Zurücksetzen' }), { detail: 0 })
+    const reset = within(dialog).getByRole('button', { name: 'Zurücksetzen' })
+    reset.focus()
+    fireEvent.click(reset, { detail: 0 })
     expect(document.activeElement).toBe(dialog)
   })
 
@@ -244,5 +246,17 @@ describe('FilterBar panels (mockup #236)', () => {
     const sheet = open('Tags')
     expect(within(sheet).getByRole('button', { name: 'Anzeigen' })).toBeTruthy()
     expect(within(sheet).queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
+  })
+})
+
+describe('FilterBar panel reset focus', () => {
+  it('a click on a reset that had keyboard focus hands focus to the panel', () => {
+    renderBar({ ...DEFAULT_STATE, tags: ['vegan'] }, { tags })
+    fireEvent.click(within(bar()).getByRole('button', { name: /^Tags:/ }))
+    const dialog = screen.getByRole('dialog', { name: 'Tags' })
+    const reset = within(dialog).getByRole('button', { name: 'Zurücksetzen' })
+    reset.focus()
+    fireEvent.click(reset, { detail: 1 })
+    expect(document.activeElement).toBe(dialog)
   })
 })

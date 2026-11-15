@@ -88,9 +88,9 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
     if (shown === null) thumb?.setAttribute('aria-valuetext', NO_LIMIT)
     else thumb?.removeAttribute('aria-valuetext')
   }, [shown])
-  // The field commits on blur, except into the knob: typing, then dragging is one edit. Presets
-  // keep focus in the field on press (preventDefault) — some browsers (Safari) never focus a clicked button, so
-  // the blur would otherwise commit the half-finished value right before the click commits its own.
+  // The field commits on blur, except into the knob: typing, then dragging is one edit. Presets keep focus in the
+  // field on press (preventDefault) — some browsers (Safari) never focus a clicked button, so the blur would
+  // otherwise commit the half-finished value right before the click commits its own.
   const onFieldBlur = (e: FocusEvent<HTMLInputElement>) => {
     if (!(e.relatedTarget instanceof Node && sliderBoxRef.current?.contains(e.relatedTarget))) flush()
   }
@@ -193,7 +193,8 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
             // bg-sidebar-accent: the mockup's --active (pressed) fill, a step darker than the hover fill.
             className={cn(
               'phone:h-10',
-              shown === m && 'bg-sidebar-accent hover:bg-sidebar-accent dark:bg-sidebar-accent',
+              shown === m &&
+                'bg-sidebar-accent hover:bg-sidebar-accent dark:bg-sidebar-accent dark:hover:bg-sidebar-accent',
             )}
           >
             {m} min

@@ -32,13 +32,14 @@ export function FilterButton({
     triggerRef.current?.focus()
   }
 
-  // The panel's own „Zurücksetzen“ unmounts with the value too. A pointer click leaves focus where it was (the
-  // mousedown keeps it there): moving it would blur the Arbeitszeit field, whose blur commits its typed draft
-  // right after the reset. A keyboard press already has focus on the button, so it hands focus to the panel.
+  // The panel's own „Zurücksetzen“ unmounts with the value too. Its mousedown keeps focus where it was, so the
+  // button only holds focus when it got there by keyboard; then focus moves to the panel. Otherwise it stays put:
+  // moving it would blur the Arbeitszeit field, whose blur commits its typed draft right after the reset.
   const resetInPanel = (e: MouseEvent<HTMLButtonElement>) => {
     const panel = e.currentTarget.closest<HTMLElement>('[role=dialog]')
+    const hadFocus = document.activeElement === e.currentTarget
     onClear()
-    if (e.detail === 0) panel?.focus()
+    if (hadFocus) panel?.focus()
   }
   const panelReset = active && (
     <ResetLinkButton onMouseDown={(e) => e.preventDefault()} onClick={resetInPanel} className="phone:h-10">
@@ -95,8 +96,17 @@ export function FilterButton({
           e.preventDefault()
           if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus()
         }}
-        popover={{ 'aria-label': label, align: 'start', className: 'w-[280px] p-2 outline-none' }}
-        sheet={{ title: label, description: `Filter ${label} einstellen`, scroll: false, className: 'outline-none' }}
+        popover={{
+          'aria-label': label,
+          align: 'start',
+          className: 'w-[280px] p-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+        }}
+        sheet={{
+          title: label,
+          description: `Filter ${label} einstellen`,
+          scroll: false,
+          className: 'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+        }}
       >
         {(variant) =>
           variant === 'popover' ? (
