@@ -255,7 +255,6 @@ describe('AppShell on the desktop', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
     expect(within(sidebar()).queryByRole('link', { name: 'Kategorien verwalten' })).toBeNull()
   })
-
 })
 
 describe('AppShell on the phone', () => {

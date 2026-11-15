@@ -1,4 +1,12 @@
-import { Avatar, AvatarFallback, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
+import {
+  Avatar,
+  AvatarFallback,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  buttonVariants,
+  cn,
+} from '@postxl/ui-components'
 import { Link, useLocation } from 'react-router-dom'
 import { useMe } from '../../catalog/CatalogProvider'
 import { navItemClass } from './navItem'
