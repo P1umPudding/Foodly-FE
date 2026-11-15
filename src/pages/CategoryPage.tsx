@@ -274,17 +274,27 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
         )}
 
         {/* The head counts every recipe in the category; one the user may no longer view is not "nothing in it". */}
-        {allLoaded && visible.length === 0 && !searching && (
-          <EmptyState
-            {...(category.recipes.length === 0
-              ? {
-                  icon: FolderOpen,
-                  title: `Noch nichts in „${category.name}“`,
-                  description: 'Öffne ein Rezept und füg es über „+ Kategorie“ hinzu.',
-                }
-              : { icon: EyeOff, title: 'Keine Rezepte, die du sehen kannst' })}
-          />
-        )}
+        {allLoaded &&
+          visible.length === 0 &&
+          !searching &&
+          (category.recipes.length === 0 ? (
+            <EmptyState
+              icon={FolderOpen}
+              title={`Noch nichts in „${category.name}“`}
+              description="Öffne ein Rezept und füg es über „+ Kategorie“ hinzu."
+            />
+          ) : (
+            <EmptyState
+              icon={EyeOff}
+              title="Keine Rezepte, die du sehen kannst"
+              description="Die Rezepte in dieser Kategorie sind für dich nicht mehr freigegeben."
+              action={
+                <Button asChild variant="outline" size="sm" className={STATE_ACTION_CLASS}>
+                  <Link to="/recipes">Zu den Rezepten</Link>
+                </Button>
+              }
+            />
+          ))}
 
         {allLoaded && visible.length === 0 && searching && (
           <EmptyState

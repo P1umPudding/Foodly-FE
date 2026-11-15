@@ -39,7 +39,7 @@ export function EmptyState({
           <Icon aria-hidden className="size-5" />
         </div>
       )}
-      <p className="font-semibold">{title}</p>
+      <p className="max-w-full font-semibold [overflow-wrap:anywhere]">{title}</p>
       {description && <div className="mt-0.5 max-w-sm text-sm text-muted-foreground">{description}</div>}
       {action && <div className="mt-3 flex flex-wrap justify-center gap-2">{action}</div>}
     </Card>

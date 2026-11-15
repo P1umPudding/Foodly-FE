@@ -103,6 +103,7 @@ describe('CategoryPage', () => {
     catalog.categories = { status: 'ready', list: [{ ...CATEGORY, recipes: [7] }] }
     render(page())
     expect(screen.getByText('Keine Rezepte, die du sehen kannst')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Zu den Rezepten' }).getAttribute('href')).toBe('/recipes')
     expect(screen.queryByText(/Noch nichts in/)).toBeNull()
   })
 

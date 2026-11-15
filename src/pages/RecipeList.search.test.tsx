@@ -566,6 +566,44 @@ describe('RecipeList (result count and empty states)', () => {
     expect(screen.queryByText('Noch keine Rezepte')).toBeNull()
   })
 
+  it('names the trimmed query for a plain search and keeps the ingredient hint', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderSearch('%20%20zzz%20')
+
+    await waitFor(() => screen.getByText('Nichts gefunden für „zzz“'))
+    screen.getByText('Prüf die Schreibweise oder setz die Filter zurück.')
+    screen.getByText(/nach Zutaten filterst du über den Zutaten-Filter/)
+    screen.getByRole('button', { name: 'Filter zurücksetzen' })
+  })
+
+  it('says "Keine Rezepte gefunden" for search plus filter, with the hint; a filter alone has no hint', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    const { unmount } = renderList('/recipes?group=0&tag=Vegan&q=zzz')
+    await waitFor(() => screen.getByText('Keine Rezepte gefunden'))
+    screen.getByText('Lockere die Filter oder such nach etwas anderem.')
+    screen.getByText(/nach Zutaten filterst du über den Zutaten-Filter/)
+    unmount()
+
+    renderList('/recipes?group=0&tag=Vegan')
+    await waitFor(() => screen.getByText('Keine Rezepte gefunden'))
+    expect(screen.queryByText(/nach Zutaten filterst du/)).toBeNull()
+  })
+
+  it('lets a long query wrap inside the card instead of overflowing it', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+    const q = 'a'.repeat(200)
+
+    renderSearch(q)
+
+    const title = await screen.findByText(`Nichts gefunden für „${q}“`)
+    expect(title.className).toContain('[overflow-wrap:anywhere]')
+  })
+
   it('shows neither empty text while a filtered result still has pages to come', async () => {
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: 2 })
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([])

@@ -371,6 +371,7 @@ describe('RecipeDetail states', () => {
     expect(alert.textContent).toContain('Rezept konnte nicht geladen werden')
     expect(alert.textContent).not.toContain('not found')
     expect(redTokens(alert)).toEqual([])
+    expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual(['Rezept'])
     expect(within(alert).getByRole('link', { name: 'Zur Liste' }).getAttribute('href')).toBe('/recipes')
     const calls = vi.mocked(foodly.getRecipe).mock.calls.length
     fireEvent.click(within(alert).getByRole('button', { name: 'Erneut versuchen' }))

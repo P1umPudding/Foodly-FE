@@ -56,7 +56,7 @@ export function NothingToShow() {
       title="Noch nichts zu sehen"
       description="Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast."
       action={
-        <Button asChild size="sm" className={STATE_ACTION_CLASS}>
+        <Button asChild variant="outline" size="sm" className={STATE_ACTION_CLASS}>
           <Link to="/recipes/new">Neues Rezept</Link>
         </Button>
       }

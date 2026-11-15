@@ -249,16 +249,20 @@ export function RecipeDetail() {
       {/* REST errors carry no status, so "not found" and "server unreachable" look the same here: one neutral card,
           no raw backend message. */}
       {status === 'error' && (
-        <ErrorState
-          title="Rezept konnte nicht geladen werden"
-          description="Prüf die Verbindung oder versuch es später noch einmal."
-          onRetry={reload}
-          extraAction={
-            <Button asChild variant="outline" size="sm" className={STATE_ACTION_CLASS}>
-              <Link to="/recipes">Zur Liste</Link>
-            </Button>
-          }
-        />
+        <>
+          {/* The page keeps one h1 (the recipe name once loaded). */}
+          <h1 className="sr-only">Rezept</h1>
+          <ErrorState
+            title="Rezept konnte nicht geladen werden"
+            description="Prüf die Verbindung oder versuch es später noch einmal."
+            onRetry={reload}
+            extraAction={
+              <Button asChild variant="outline" size="sm" className={STATE_ACTION_CLASS}>
+                <Link to="/recipes">Zur Liste</Link>
+              </Button>
+            }
+          />
+        </>
       )}
 
       {status === 'ready' && recipe && (
