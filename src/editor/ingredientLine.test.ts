@@ -28,6 +28,11 @@ describe('parseIngredientLine', () => {
     ['1/2 TL Zucker', '1/2', 'TL'],
     ['1-2 EL Zucker', '1-2', 'EL'],
     ['1 – 2 EL Zucker', '1 – 2', 'EL'],
+    ['1 bis 2 EL Zucker', '1 bis 2', 'EL'],
+    ['- 500 g Zucker', '500', 'g'],
+    ['• 2 EL Zucker', '2', 'EL'],
+    ['1. 2 EL Zucker', '2', 'EL'],
+    ['3) 2 EL Zucker', '2', 'EL'],
     ['0,5 kg Zucker', '0,5', 'kg'],
     ['500g Zucker', '500', 'g'],
     ['2 el Zucker', '2', 'EL'],
@@ -56,6 +61,8 @@ describe('parseIngredientLine', () => {
     expect(parse('Salzbutter')).toMatchObject({ ingredient: null, text: 'Salzbutter' })
     expect(parse('Tomaten  (gehackt)')).toMatchObject({ ingredient: 3, text: '' })
     expect(parse('olivenöl')).toMatchObject({ ingredient: 5, text: '' })
+    expect(parse('* Salz')).toMatchObject({ ingredient: 4, text: '' })
+    expect(parse('2 g, Salz')).toEqual({ amount: '2', unit: 'g', ingredient: 4, text: '' })
   })
 
   it('keeps a line without a name as a nameless row', () => {

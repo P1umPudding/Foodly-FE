@@ -113,7 +113,6 @@ export function SectionEditor({
             ref={pasteButton}
             variant="ghost"
             size="sm"
-            aria-label="Mehrere Zutaten einfügen"
             className={ADD_BUTTON}
             onClick={() => setPaste((p) => ({ key: (p?.key ?? 0) + 1, open: true }))}
           >

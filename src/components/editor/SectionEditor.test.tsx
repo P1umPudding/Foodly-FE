@@ -198,7 +198,7 @@ describe('SectionEditor: Mehrere einfügen', () => {
 
   const lines = '500 g Hackfleisch\n\n2 EL Olivenöl\nSalz nach Geschmack'
   const openPaste = () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Mehrere Zutaten einfügen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Mehrere einfügen' }))
     return screen.getByRole('textbox', { name: 'Zutaten, eine pro Zeile' })
   }
   const added = [
@@ -222,10 +222,10 @@ describe('SectionEditor: Mehrere einfügen', () => {
     fireEvent.click(insert)
 
     const rows = onChange.mock.calls[0][0].ingredients
-    expect(rows.slice(0, 2).map((r: { key: number }) => r.key)).toEqual([10, 11])
+    expect(rows.slice(0, 2)).toEqual(section.ingredients)
     expect(withoutKeys(rows.slice(2))).toEqual(added)
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Mehrere Zutaten einfügen' }))
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Mehrere einfügen' }))
   })
 
   it('replaces the empty placeholder row of a new section', () => {
@@ -263,5 +263,18 @@ describe('SectionEditor: Mehrere einfügen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Einfügen' }))
 
     expect(withoutKeys(onChange.mock.calls[0][0].ingredients.slice(2))).toEqual(added)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Mehrere einfügen' }))
+  })
+
+  it('closes on Escape without changes', async () => {
+    const onChange = setup()
+
+    const field = openPaste()
+    fireEvent.change(field, { target: { value: lines } })
+    fireEvent.keyDown(field, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+    expect(onChange).not.toHaveBeenCalled()
   })
 })

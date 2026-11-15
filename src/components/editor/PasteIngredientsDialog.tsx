@@ -53,6 +53,7 @@ export function PasteIngredientsDialog({
   }
 
   // The postxl Textarea doesn't forward its ref, and the sheet's first focusable is its ✕: find the field instead.
+  // Radix fires this event on the content element itself, hence currentTarget.
   const onOpenAutoFocus = (e: Event) => {
     e.preventDefault()
     ;(e.currentTarget as HTMLElement).querySelector('textarea')?.focus()
