@@ -31,7 +31,15 @@ export function IngredientPicker({
   const q = (typed ?? '').trim()
   const lower = q.toLowerCase()
   // No list for an empty field: Enter would otherwise silently link the first catalog entry.
-  const matches = q === '' ? [] : Object.values(byId).filter((i) => i.name.toLowerCase().includes(lower))
+  // Exact name first, then names starting with the text: Enter takes the first entry, and it must link the same entry
+  // that leaving the field would ("Tomaten" before "Tomaten (gehackt)").
+  const rank = (name: string) => (name.toLowerCase() === lower ? 0 : name.toLowerCase().startsWith(lower) ? 1 : 2)
+  const matches =
+    q === ''
+      ? []
+      : Object.values(byId)
+          .filter((i) => i.name.toLowerCase().includes(lower))
+          .sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name, 'de'))
   const exact = matches.find((i) => i.name.toLowerCase() === lower)
 
   const commitText = () => {
@@ -64,6 +72,7 @@ export function IngredientPicker({
         setTyped(null)
       }}
       onEscape={() => setTyped(null)}
+      onEnter={commitText}
       onBlur={commitText}
     />
   )

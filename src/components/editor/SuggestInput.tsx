@@ -13,6 +13,7 @@ export function SuggestInput({
   suggestions,
   onSelect,
   onEscape,
+  onEnter,
   onBlur,
   openOnClick = false,
   icon,
@@ -26,6 +27,8 @@ export function SuggestInput({
   suggestions: Suggestion[]
   onSelect: (id: string) => void
   onEscape?: () => void
+  // Enter while no list is open (e.g. after Escape closed it): confirm what was typed.
+  onEnter?: () => void
   onBlur?: (e: FocusEvent<HTMLInputElement>) => void
   openOnClick?: boolean
   icon?: ReactNode
@@ -60,10 +63,13 @@ export function SuggestInput({
       if (expanded) {
         e.preventDefault()
         select(suggestions[activeIndex].id)
+      } else {
+        onEnter?.()
       }
     } else if (e.key === 'Escape') {
-      // Usual combobox steps: the first Escape closes the list, the next one reverts. Closing the list must not also
-      // close a surrounding sheet or dialog.
+      // Usual combobox steps: the first Escape closes the list, the next one reverts. stopPropagation only shields
+      // React-level handlers; a Radix sheet listens on document in the capture phase and must check for an open
+      // combobox itself (relevant once #217 hosts this field in a sheet).
       if (expanded) {
         e.preventDefault()
         e.stopPropagation()
@@ -123,7 +129,7 @@ export function SuggestInput({
               onClick={() => select(s.id)}
               onMouseMove={() => setActive(i)}
               className={cn(
-                'cursor-pointer rounded-sm px-2 py-1.5 touch:min-h-10',
+                'flex cursor-pointer items-center rounded-sm px-2 py-1.5 touch:min-h-10',
                 i === activeIndex && 'bg-accent text-accent-foreground',
               )}
             >

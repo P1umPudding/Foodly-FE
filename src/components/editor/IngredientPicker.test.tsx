@@ -4,7 +4,12 @@ import { IngredientPicker } from './IngredientPicker'
 
 vi.mock('../../catalog/CatalogProvider', () => ({
   useIngredients: () => ({
-    byId: { 1: { id: 1, name: 'Zwiebel' }, 2: { id: 2, name: 'Zucchini' } },
+    byId: {
+      1: { id: 1, name: 'Zwiebel' },
+      2: { id: 2, name: 'Zucchini' },
+      3: { id: 3, name: 'Tomaten (gehackt)' },
+      20: { id: 20, name: 'Tomaten' },
+    },
     status: 'ready',
   }),
 }))
@@ -161,5 +166,25 @@ describe('IngredientPicker', () => {
     type('Z')
     const list = screen.getByRole('listbox')
     expect(fireEvent.mouseDown(list)).toBe(false)
+  })
+
+  it('lists the exact name first, so Enter links the same entry as leaving the field', () => {
+    const { onPick } = setup()
+
+    type('tomaten')
+    expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Tomaten', 'Tomaten (gehackt)'])
+    fireEvent.keyDown(field(), { key: 'Enter' })
+
+    expect(onPick).toHaveBeenCalledWith(20)
+  })
+
+  it('confirms the typed text with Enter after Escape closed the list', () => {
+    const { onText } = setup()
+
+    type('Zimtstange')
+    fireEvent.keyDown(field(), { key: 'Escape' })
+    fireEvent.keyDown(field(), { key: 'Enter' })
+
+    expect(onText).toHaveBeenCalledWith('Zimtstange')
   })
 })
