@@ -10,19 +10,19 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Skeleton,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   cn,
 } from '@postxl/ui-components'
-import { ArrowDown, ArrowUp, EllipsisVertical, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { Skeleton } from '../components/Skeleton'
+import { ArrowDown, ArrowUp, EllipsisVertical, Folder, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useCategories } from '../catalog/CatalogProvider'
 import { useCategoryActions } from '../catalog/useCategoryActions'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
 import { CategoryMark } from '../components/category/CategoryMark'
 import { DeleteCategoryDialog } from '../components/category/DeleteCategoryDialog'
-import { RetryAlert } from '../components/RetryAlert'
+import { EmptyState, ErrorState } from '../components/StateCard'
 import { TriggerButton } from '../components/TriggerButton'
 import { FOCUS_RING } from '../components/focusRing'
 import { categoryPageHref } from '../components/shell/nav'
@@ -144,20 +144,20 @@ export function Categories() {
         )}
 
         {categories.status === 'error' && (
-          <RetryAlert
-            title="Konnte Kategorien nicht laden"
-            message={categories.error?.message}
+          <ErrorState
+            title="Kategorien konnten nicht geladen werden"
+            description={categories.error?.message}
             onRetry={categories.retry}
           />
         )}
 
         {ready && ordered.length === 0 && (
-          <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed px-6 py-10 text-center">
-            <p className="text-sm text-muted-foreground">
-              Noch keine Kategorien. Leg eine an und sammle darin Rezepte.
-            </p>
-            {newCategoryButton}
-          </div>
+          <EmptyState
+            icon={Folder}
+            title="Noch keine Kategorien"
+            description="Leg eine an und sammle darin Rezepte."
+            action={newCategoryButton}
+          />
         )}
 
         {ready && moveFailed && (

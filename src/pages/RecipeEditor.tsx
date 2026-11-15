@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Alert, AlertDescription, AlertTitle, Button, Skeleton, Spinner, toast } from '@postxl/ui-components'
+import { Alert, AlertDescription, AlertTitle, Button, Spinner, toast } from '@postxl/ui-components'
+import { Skeleton } from '../components/Skeleton'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { foodly } from '../api'
 import { errorMessage } from '../lib/errorMessage'

@@ -334,7 +334,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       vi.spyOn(api.foodly, 'listCategories').mockRejectedValue(new Error('offline'))
       await renderDetail(8)
       const panel = await openPanel()
-      expect(within(panel).getByText('Kategorien nicht geladen')).toBeTruthy()
+      expect(within(panel).getByText('Kategorien konnten nicht geladen werden')).toBeTruthy()
       expect(within(panel).getByRole('button', { name: 'Erneut versuchen' })).toBeTruthy()
       expect(within(panel).queryByRole('textbox')).toBeNull()
     },
