@@ -86,7 +86,7 @@ describe('RecipeList controls on desktop', () => {
     ).toEqual(['Sortieren: Name, A → Z'])
     expect(screen.queryByRole('button', { name: /Sortierrichtung/ })).toBeNull()
     expect(screen.queryByRole('combobox', { name: 'Sortierkriterium' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Sortieren & Ansicht' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Sortieren und Ansicht' })).toBeNull()
   })
 
   it('lines the search, sort button and segments up at 38 px, with a divider before the view', () => {
@@ -113,7 +113,7 @@ describe('RecipeList controls on the phone', () => {
 
   it('puts sort and view behind one button next to the search', () => {
     renderList()
-    screen.getByRole('button', { name: 'Sortieren & Ansicht' })
+    screen.getByRole('button', { name: 'Sortieren und Ansicht' })
     expect(screen.queryByRole('button', { name: /^Sortieren:/ })).toBeNull()
     expect(screen.queryByRole('group', { name: 'Ansicht' })).toBeNull()
   })
@@ -122,7 +122,7 @@ describe('RecipeList controls on the phone', () => {
     renderList()
     await waitFor(() => expect(screen.getAllByTestId('row-skeleton')).toHaveLength(4))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Sortieren & Ansicht' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sortieren und Ansicht' }))
     const sheet = screen.getByRole('dialog', { name: 'Sortieren & Ansicht' })
     fireEvent.click(within(sheet).getByRole('radio', { name: 'Kacheln' }))
 

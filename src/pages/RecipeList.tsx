@@ -235,11 +235,7 @@ export function RecipeList() {
             inputClassName="h-[38px]"
             inputRef={searchInputRef}
           />
-          {isDesktop ? (
-            <DesktopListOptions state={state} set={set} />
-          ) : (
-            <MobileListOptions state={state} set={set} />
-          )}
+          {isDesktop ? <DesktopListOptions state={state} set={set} /> : <MobileListOptions state={state} set={set} />}
         </div>
 
         <div className="mt-3">

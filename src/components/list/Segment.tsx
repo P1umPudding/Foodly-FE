@@ -3,7 +3,7 @@
 // in dark). Used for the desktop view toggles and the phone sheet; the sort menu's direction reuses the classes.
 import { cn, ToggleGroup, Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { FocusToggleGroupItem } from './FocusToggleGroupItem'
-import type { ViewOption } from './listOptions'
+import type { LucideIcon } from 'lucide-react'
 
 export const SEG_TRACK = 'gap-0.5 rounded-lg bg-seg p-0.5'
 export const SEG_ITEM = 'rounded-md px-3 text-sm font-medium text-muted-foreground'
@@ -20,7 +20,8 @@ export function Segment<T extends string>({
 }: {
   value: T
   onChange: (v: T) => void
-  options: ViewOption<T>[]
+  // Without an icon the segment shows its text only (the sort direction).
+  options: { value: T; label: string; Icon?: LucideIcon }[]
   // Icon + text; without it the segments are icon-only with a tooltip.
   withLabels?: boolean
   // Spread over the full width, segments equally wide (mockup .seg.full).
@@ -53,7 +54,7 @@ export function Segment<T extends string>({
               itemClassName,
             )}
           >
-            <o.Icon aria-hidden className="size-4" />
+            {o.Icon && <o.Icon aria-hidden className="size-4" />}
             {withLabels && o.label}
           </FocusToggleGroupItem>
         )
