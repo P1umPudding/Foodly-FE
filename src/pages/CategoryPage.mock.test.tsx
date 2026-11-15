@@ -116,6 +116,23 @@ describe('Category page (mock mode)', () => {
   )
 
   it(
+    'lines the desktop toolbar up at 38 px, with a divider before the view and no layout toggle',
+    async () => {
+      await renderAt('/categories/2')
+      await heading()
+      // jsdom applies no CSS: check the tokens.
+      const searchField = within(main()).getByRole('textbox', { name: 'In „Schnelle Küche“ suchen' })
+      expect(searchField.className.split(/\s+/)).toContain('h-[38px]')
+      const sortButton = within(main()).getByRole('button', { name: /^Sortieren:/ })
+      const divider = within(main()).getByTestId('sort-view-divider')
+      expect(divider.previousElementSibling).toBe(sortButton)
+      expect(divider.nextElementSibling?.contains(within(main()).getByRole('group', { name: 'Ansicht' }))).toBe(true)
+      expect(within(main()).queryByRole('group', { name: 'Gliederung' })).toBeNull()
+    },
+    SLOW,
+  )
+
+  it(
     'keeps sort and view in its own URL, not in the stored list state',
     async () => {
       const stored = { ...DEFAULT_STATE, sortKey: 'work' as const, detail: 'tiles' as const }

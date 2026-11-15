@@ -38,7 +38,7 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
           className="h-[38px]"
           aria-label={`Sortieren: ${criterion.label}, ${dirLabel(state.sortKey, state.sortDir)}`}
         >
-          <DirIcon aria-hidden />
+          <DirIcon aria-hidden className="text-muted-foreground" />
           {criterion.label}
           <ChevronDown aria-hidden className="text-subtle-foreground" />
         </TriggerButton>

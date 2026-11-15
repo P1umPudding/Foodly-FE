@@ -26,7 +26,7 @@ export function Segment<T extends string>({
   withLabels?: boolean
   // Spread over the full width, segments equally wide (mockup .seg.full).
   full?: boolean
-  // Segment height differs per place (34 px in the desktop toolbar, 36 px in the phone sheet).
+  // Segment height differs per place (34 px in the desktop toolbar, 40 px in the phone sheet).
   itemClassName?: string
 } & ({ 'aria-label': string } | { 'aria-labelledby': string })) {
   return (
