@@ -4,6 +4,7 @@ import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './RecipeList'
 import { foodly } from '../api'
+import { redTokens } from '../test/redTokens'
 import { useRequest } from '../hooks/useRequest'
 import { SHELL_NAV_STATE } from '../components/shell/nav'
 import type { Recipe, UserCategory } from '../api/protocol'
@@ -491,8 +492,9 @@ describe('RecipeList (result count and empty states)', () => {
     localStorage.clear()
   })
 
+  // The mockup's state card: the icon sits in a circle above the title.
   function emptyStateIcon(text: string) {
-    return screen.getByText(text).parentElement?.querySelector('svg')
+    return screen.getByText(text).parentElement?.querySelector('[data-testid="state-icon"]')
   }
 
   it('says "Keine Treffer" when a server-side filter leaves no recipe, and resetting shows the list (#128)', async () => {
@@ -505,17 +507,16 @@ describe('RecipeList (result count and empty states)', () => {
 
     renderList('/recipes?group=0&tag=Vegan')
 
-    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
-    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
-    const icon = emptyStateIcon('Keine Treffer für die aktuellen Filter.')
-    expect(icon?.classList.contains('size-5')).toBe(true)
-    expect(icon?.classList.contains('h-10')).toBe(false)
+    await waitFor(() => screen.getByText('Keine Rezepte gefunden'))
+    expect(screen.queryByText('Noch keine Rezepte')).toBeNull()
+    const icon = emptyStateIcon('Keine Rezepte gefunden')
+    expect(icon?.classList.contains('rounded-full')).toBe(true)
 
     fireEvent.click(screen.getByRole('button', { name: 'Filter zurücksetzen' }))
 
     await waitFor(() => screen.getByText('Pancakes'))
     expect(searchSpy.mock.lastCall?.[0].filters).toBeUndefined()
-    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
+    expect(screen.queryByText('Keine Rezepte gefunden')).toBeNull()
   })
 
   it.each(['tag=Vegan', 'ing=1', 'dmax=30', 'role=owner', 'collab=shared'])(
@@ -526,9 +527,9 @@ describe('RecipeList (result count and empty states)', () => {
 
       renderList(`/recipes?group=0&${param}`)
 
-      await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+      await waitFor(() => screen.getByText('Keine Rezepte gefunden'))
       screen.getByRole('button', { name: 'Filter zurücksetzen' })
-      expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+      expect(screen.queryByText('Noch keine Rezepte')).toBeNull()
     },
   )
 
@@ -538,8 +539,8 @@ describe('RecipeList (result count and empty states)', () => {
 
     renderList('/recipes?group=0&cat=1')
 
-    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
-    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+    await waitFor(() => screen.getByText('Keine Rezepte gefunden'))
+    expect(screen.queryByText('Noch keine Rezepte')).toBeNull()
   })
 
   it('says "Noch keine Rezepte" with a "Neues Rezept" link when no filter or search is active', async () => {
@@ -548,13 +549,12 @@ describe('RecipeList (result count and empty states)', () => {
 
     renderList()
 
-    await waitFor(() => screen.getByText('Noch keine Rezepte.'))
+    await waitFor(() => screen.getByText('Noch keine Rezepte'))
     expect(screen.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toMatch(/\/recipes\/new$/)
-    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
+    expect(screen.queryByText('Keine Rezepte gefunden')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Filter zurücksetzen' })).toBeNull()
-    const icon = emptyStateIcon('Noch keine Rezepte.')
-    expect(icon?.classList.contains('size-5')).toBe(true)
-    expect(icon?.classList.contains('h-10')).toBe(false)
+    const icon = emptyStateIcon('Noch keine Rezepte')
+    expect(icon?.classList.contains('rounded-full')).toBe(true)
   })
 
   it('says "Keine Treffer" for a search over an empty collection', async () => {
@@ -563,8 +563,64 @@ describe('RecipeList (result count and empty states)', () => {
 
     renderSearch('zzz')
 
-    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
-    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+    await waitFor(() => screen.getByText('Nichts gefunden für „zzz“'))
+    expect(screen.queryByText('Noch keine Rezepte')).toBeNull()
+  })
+
+  it('shows a neutral error card when the first page fails, and the retry loads the list', async () => {
+    const searchSpy = vi
+      .spyOn(foodly, 'searchRecipes')
+      .mockRejectedValueOnce(new Error('Server weg'))
+      .mockResolvedValue({ items: [rec(1, 'Pancakes')], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderList()
+
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('Rezepte konnten nicht geladen werden')
+    expect(redTokens(alert)).toEqual([])
+    fireEvent.click(within(alert).getByRole('button', { name: 'Erneut versuchen' }))
+    await waitFor(() => screen.getByText('Pancakes'))
+    expect(searchSpy).toHaveBeenCalledTimes(2)
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('names the trimmed query for a plain search and keeps the ingredient hint', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    renderSearch('%20%20zzz%20')
+
+    await waitFor(() => screen.getByText('Nichts gefunden für „zzz“'))
+    screen.getByText('Prüf die Schreibweise oder setz die Filter zurück.')
+    screen.getByText(/nach Zutaten filterst du über den Zutaten-Filter/)
+    screen.getByRole('button', { name: 'Filter zurücksetzen' })
+  })
+
+  it('says "Keine Rezepte gefunden" for search plus filter, with the hint; a filter alone has no hint', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+
+    const { unmount } = renderList('/recipes?group=0&tag=Vegan&q=zzz')
+    await waitFor(() => screen.getByText('Keine Rezepte gefunden'))
+    screen.getByText('Lockere die Filter oder such nach etwas anderem.')
+    screen.getByText(/nach Zutaten filterst du über den Zutaten-Filter/)
+    unmount()
+
+    renderList('/recipes?group=0&tag=Vegan')
+    await waitFor(() => screen.getByText('Keine Rezepte gefunden'))
+    expect(screen.queryByText(/nach Zutaten filterst du/)).toBeNull()
+  })
+
+  it('lets a long query wrap inside the card instead of overflowing it', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
+    vi.spyOn(foodly, 'listCategories').mockResolvedValue([])
+    const q = 'a'.repeat(200)
+
+    renderSearch(q)
+
+    const title = await screen.findByText(`Nichts gefunden für „${q}“`)
+    expect(title.className).toContain('wrap-anywhere')
   })
 
   it('shows neither empty text while a filtered result still has pages to come', async () => {
@@ -574,8 +630,8 @@ describe('RecipeList (result count and empty states)', () => {
     renderList('/recipes?group=0&tag=Vegan')
 
     await waitFor(() => screen.getByTestId('list-pending-skeleton'))
-    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
-    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+    expect(screen.queryByText('Keine Rezepte gefunden')).toBeNull()
+    expect(screen.queryByText('Noch keine Rezepte')).toBeNull()
   })
 
   it('shows a skeleton instead of "Keine Treffer" while more pages may hold matches', async () => {
@@ -585,7 +641,7 @@ describe('RecipeList (result count and empty states)', () => {
     renderSearch('zzz')
 
     await waitFor(() => screen.getByTestId('list-pending-skeleton'))
-    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
+    expect(screen.queryByText('Nichts gefunden für „zzz“')).toBeNull()
     expect(screen.queryByText('Filter zurücksetzen')).toBeNull()
   })
 
@@ -637,7 +693,7 @@ describe('RecipeList (result count and empty states)', () => {
 
     renderSearch('zzz')
 
-    await waitFor(() => screen.getByText('Keine Treffer für die aktuellen Filter.'))
+    await waitFor(() => screen.getByText('Nichts gefunden für „zzz“'))
     screen.getByText('Filter zurücksetzen')
     expect(screen.queryByTestId('list-pending-skeleton')).toBeNull()
     const count = screen.getByText('0 Rezepte')

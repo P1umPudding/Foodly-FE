@@ -102,7 +102,8 @@ describe('CategoryPage', () => {
   it('does not call a category empty when only its recipes are out of sight', () => {
     catalog.categories = { status: 'ready', list: [{ ...CATEGORY, recipes: [7] }] }
     render(page())
-    expect(screen.getByText('Keine Rezepte, die du sehen kannst.')).toBeTruthy()
+    expect(screen.getByText('Keine Rezepte, die du sehen kannst')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Zu den Rezepten' }).getAttribute('href')).toBe('/recipes')
     expect(screen.queryByText(/Noch nichts in/)).toBeNull()
   })
 

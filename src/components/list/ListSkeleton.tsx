@@ -1,5 +1,5 @@
 // Loading placeholders of the recipe list and the category page, in the shape of the chosen view.
-import { Skeleton } from '@postxl/ui-components'
+import { Skeleton } from '../Skeleton'
 import type { DetailView } from '../../list/state'
 import { TILE_META_TEXT, TILE_TITLE_TEXT } from '../recipe/RecipeTile'
 import { GroupIndent, TileGrid } from './RecipeListView'
@@ -47,17 +47,21 @@ export function ListSkeleton({
       </div>
     )
   }
-  // Same pitch as the flat rows (34 / 60 px without photo; compact 40 on touch): bar plus a small gap, so the bars
-  // don't merge into one block.
+  // Same pitch as the flat rows (34 / 60 px without photo; compact 40 on touch), so nothing jumps; inside, text bars in
+  // the shape of a row (mockup #/states): name and meta line, compact only the name. No thumbnail, unlike the mockup:
+  // whether the list shows photos is only known once recipes have loaded.
   const compact = detail === 'compact'
   return (
     <div data-testid={testId} className={compact ? 'space-y-0.5' : 'space-y-1'}>
       {items.map((i) => (
-        <Skeleton
+        <div
           key={i}
           data-testid="row-skeleton"
-          className={`w-full rounded-md ${compact ? 'h-8 touch:h-[38px]' : 'h-14'}`}
-        />
+          className={`flex w-full flex-col justify-center gap-2 px-3 ${compact ? 'h-8 touch:h-[38px]' : 'h-14'}`}
+        >
+          <Skeleton className={`w-[55%] rounded-sm ${compact ? 'h-2.5' : 'h-3'}`} />
+          {!compact && <Skeleton className="h-2.5 w-[30%] rounded-sm" />}
+        </div>
       ))}
     </div>
   )

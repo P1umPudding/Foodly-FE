@@ -176,15 +176,20 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 
 Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 
-- **Laden:** postxl `Skeleton` in der Form des Inhalts (Zeilen, Kacheln), kein Vollbild-Spinner. `Loader` nur in
-  Buttons während einer Aktion.
+- **Laden:** `Skeleton` aus `src/components/Skeleton.tsx` (Shimmer wie im Mockup, Token `--skel`, steht bei
+  `prefers-reduced-motion` still) in der Form des Inhalts (Zeilen mit Textbalken, Kacheln), kein Vollbild-Spinner.
+  `Loader` nur in Buttons während einer Aktion.
+- **Bausteine:** `EmptyState` und `ErrorState` aus `src/components/StateCard.tsx`; keine eigenen Leer- oder
+  Fehlertexte daneben bauen.
 - **Leer:** Leerzustand-Karte wie im Mockup (`#/states`): Icon im Kreis, Titel, ein Satz, höchstens eine Aktion
   (Daniel, 2026-11-13: Mockup gilt; vorher „kein großes Icon“).
-- **Keine Treffer (Filter):** „Keine Treffer für die aktuellen Filter.“ + „Filter zurücksetzen“ – erst, wenn keine
-  Seiten mehr ausstehen. Filtert der Client über geladene Seiten und es kommen noch welche, eine Skelett-Zeile statt
-  Leer-Text (`RecipeList.tsx`).
-- **Fehler:** neutrale Karte wie im Mockup (`#/states`) mit Icon, Satz und „↺ Erneut versuchen“, kein roter Alert
-  (Daniel, 2026-11-13). Nachladen fehlgeschlagen: unter der Liste.
+- **Keine Treffer (Filter):** „Keine Rezepte gefunden“ / „Lockere die Filter oder such nach etwas anderem.“ +
+  „Filter zurücksetzen“; nur Suche: „Nichts gefunden für „…““ / „Prüf die Schreibweise oder setz die Filter zurück.“
+  (Mockup). Mit Suchtext bleibt der Hinweis auf den Zutaten-Filter als zweite Zeile (Ausnahme von „ein Satz“). Erst,
+  wenn keine Seiten mehr ausstehen. Filtert der Client über geladene Seiten und es kommen noch welche, eine
+  Skelett-Zeile statt Leer-Text (`RecipeList.tsx`).
+- **Fehler:** `ErrorState`, neutrale Karte wie im Mockup (`#/states`) mit Icon, Satz und „↺ Erneut versuchen“, kein
+  roter Alert (Daniel, 2026-11-13). Nachladen fehlgeschlagen: kompakte Karte unter der Liste.
   Aktion fehlgeschlagen: `toast`.
 - **Kein Zugriff / nicht gefunden:** eigene Seite mit Weg zurück (`NotFound.tsx`).
 

@@ -98,7 +98,7 @@ function renderList(url = '/recipes?group=0') {
   )
 }
 
-const FAILED = 'Weitere Rezepte konnten nicht geladen werden.'
+const FAILED = 'Weitere Rezepte konnten nicht geladen werden'
 const LOADING = 'Weitere Rezepte werden geladen …'
 
 afterEach(() => {
@@ -221,8 +221,8 @@ describe('RecipeList (loading more pages)', () => {
 
     await waitFor(() => screen.getByText(FAILED))
     expect(screen.queryByTestId('list-pending-skeleton')).toBeNull()
-    expect(screen.queryByText('Keine Treffer für die aktuellen Filter.')).toBeNull()
-    expect(screen.queryByText('Noch keine Rezepte.')).toBeNull()
+    expect(screen.queryByText('Nichts gefunden für „zzz“')).toBeNull()
+    expect(screen.queryByText('Noch keine Rezepte')).toBeNull()
     expect(screen.getByRole('status').textContent).toBe('')
     // Give a looping sentinel the chance to fire again.
     await act(async () => new Promise((r) => setTimeout(r, 20)))

@@ -95,7 +95,7 @@ function savePosition(y: number, list = 'group=0') {
   sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list, y }))
 }
 
-const FAILED = 'Weitere Rezepte konnten nicht geladen werden.'
+const FAILED = 'Weitere Rezepte konnten nicht geladen werden'
 
 beforeEach(() => {
   Object.defineProperty(document.documentElement, 'scrollHeight', {
