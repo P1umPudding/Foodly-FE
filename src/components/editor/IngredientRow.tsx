@@ -27,18 +27,11 @@ export function IngredientRow({
   return (
     // Wraps on narrow screens: with the Zusatz column the fixed-width fields alone exceed a phone's width.
     <div className="flex flex-wrap items-center gap-2">
-      <Input
-        aria-label="Präfix"
-        className="w-16"
-        placeholder="ca."
-        value={line.amountPrefix}
-        onChange={(e) => onChange({ amountPrefix: e.target.value })}
-      />
       {/* amount is a string on the wire — "1-2" and "½" are valid */}
       <Input
         aria-label="Menge"
         className="w-20"
-        placeholder="400"
+        placeholder="ca. 400"
         value={line.amount}
         onChange={(e) => onChange({ amount: e.target.value })}
       />

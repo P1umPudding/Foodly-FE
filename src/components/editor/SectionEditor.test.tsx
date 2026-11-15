@@ -11,7 +11,7 @@ vi.mock('../../catalog/CatalogProvider', () => ({
 const section: DraftSection = {
   key: 1,
   name: 'Sugo',
-  ingredients: [{ key: 10, ingredient: 1, text: '', amount: '1', amountPrefix: '', unit: '' }],
+  ingredients: [{ key: 10, ingredient: 1, text: '', amount: '1', unit: '' }],
   steps: [
     { key: 20, text: 'Hacken.' },
     { key: 21, text: 'Braten.' },
