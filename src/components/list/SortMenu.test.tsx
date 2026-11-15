@@ -101,9 +101,12 @@ it('draws the direction as a segment, the current one raised', async () => {
   const on = within(group).getByRole('menuitemradio', { name: 'Z → A' })
   expect(on.getAttribute('aria-checked')).toBe('true')
   expect(on.className.split(/\s+/)).toEqual(expect.arrayContaining(['bg-card', 'shadow-seg']))
-  // Keyboard focus shows as a ring on both segments (a fill would vanish on the track or the raised segment).
+  // Keyboard focus shows as a ring on both segments (a fill would vanish on the track or the raised segment). The
+  // focus-visible ring-ring/50 pair is what styles.css raises to the full --ring token (#77).
   for (const item of within(group).getAllByRole('menuitemradio')) {
-    expect(item.className.split(/\s+/)).toContain('focus:ring-[3px]')
+    expect(item.className.split(/\s+/)).toEqual(
+      expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-ring/50']),
+    )
   }
 })
 

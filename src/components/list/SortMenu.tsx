@@ -74,8 +74,9 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator className="mx-0 my-1.5 bg-divider" />
         {/* The direction as a segment, but built from menu items: Radix menus trap Tab, so only items are reachable
-            by keyboard (↑/↓ walk on from the criteria; ←/→ do nothing in a root menu). A ring marks focus, since a
-            background change hardly shows on the segment track. */}
+            by keyboard (↑/↓ walk on from the criteria). A ring marks keyboard focus, since a background change hardly
+            shows on the segment track; focus-visible, so pointer hover (Radix focuses on hover) shows none, and so
+            styles.css lifts postxl's half-strength ring to the full token. z-10 keeps the neighbour from covering it. */}
         <DropdownMenuRadioGroup
           aria-label="Richtung"
           value={state.sortDir}
@@ -92,7 +93,7 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
                 className={cn(
                   NO_DOT,
                   SEG_ITEM,
-                  'h-8 flex-1 justify-center px-1.5 py-0 focus:text-foreground focus:ring-[3px] focus:ring-ring/50',
+                  'h-8 flex-1 justify-center px-1.5 py-0 focus:text-foreground focus-visible:relative focus-visible:z-10 focus-visible:ring-[3px] focus-visible:ring-ring/50',
                   selected ? cn(SEG_ITEM_ON, 'focus:bg-card') : 'focus:bg-transparent',
                 )}
               >
