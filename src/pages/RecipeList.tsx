@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigationType } from 'react-router-dom'
 import { Button } from '@postxl/ui-components'
-import { UtensilsCrossed, SearchX } from 'lucide-react'
+import { Search, UtensilsCrossed } from 'lucide-react'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
 import { useCategories, useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
 import { useListState } from '../list/useListState'
@@ -25,7 +25,7 @@ import { useIsDesktop } from '../hooks/useIsDesktop'
 import { fromSearchParams, toSearchParams } from '../list/url'
 import { isShellNavState } from '../components/shell/nav'
 import { Page } from '../components/shell/Page'
-import { ErrorState } from '../components/StateCard'
+import { EmptyState, ErrorState, STATE_ACTION_CLASS } from '../components/StateCard'
 
 const SCROLL_KEY = 'recipeList:scroll'
 
@@ -320,29 +320,43 @@ export function RecipeList() {
         {/* Server-side facets already narrow the loaded set, so only the filter state can tell an empty
           collection from a filter without matches. */}
         {allLoaded && visible.length === 0 && !filterActive && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <UtensilsCrossed className="size-5 text-muted-foreground/40" />
-            <p className="text-muted-foreground">Noch keine Rezepte.</p>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/recipes/new">Neues Rezept</Link>
-            </Button>
-          </div>
+          <EmptyState
+            icon={UtensilsCrossed}
+            title="Noch keine Rezepte"
+            description="Leg dein erstes Rezept an."
+            action={
+              <Button asChild variant="outline" size="sm" className={STATE_ACTION_CLASS}>
+                <Link to="/recipes/new">Neues Rezept</Link>
+              </Button>
+            }
+          />
         )}
 
         {allLoaded && visible.length === 0 && filterActive && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <SearchX className="size-5 text-muted-foreground/40" />
-            <p className="text-muted-foreground">Keine Treffer für die aktuellen Filter.</p>
-            {/* Search ignores ingredients on purpose — point users at the Zutaten filter. */}
-            {state.search.trim() !== '' && (
-              <p className="max-w-xs text-sm text-muted-foreground/80">
-                Die Suche durchsucht Name, Tags &amp; Abschnitte – nach Zutaten filterst du über den Zutaten-Filter.
-              </p>
-            )}
-            <Button variant="outline" size="sm" onClick={clear}>
-              Filter zurücksetzen
-            </Button>
-          </div>
+          <EmptyState
+            icon={Search}
+            title={facetActive ? 'Keine Rezepte gefunden' : `Nichts gefunden für „${state.search.trim()}“`}
+            description={
+              <>
+                <p>
+                  {facetActive
+                    ? 'Lockere die Filter oder such nach etwas anderem.'
+                    : 'Prüf die Schreibweise oder setz die Filter zurück.'}
+                </p>
+                {/* Search ignores ingredients on purpose — point users at the Zutaten filter. */}
+                {state.search.trim() !== '' && (
+                  <p className="mt-1">
+                    Die Suche durchsucht Name, Tags &amp; Abschnitte – nach Zutaten filterst du über den Zutaten-Filter.
+                  </p>
+                )}
+              </>
+            }
+            action={
+              <Button variant="outline" size="sm" className={STATE_ACTION_CLASS} onClick={clear}>
+                Filter zurücksetzen
+              </Button>
+            }
+          />
         )}
 
         {listReady && visible.length > 0 && (
