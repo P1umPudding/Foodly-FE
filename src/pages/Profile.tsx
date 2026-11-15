@@ -1,0 +1,67 @@
+// „Profil & Einstellungen“ (mockup `#/profile`): who is signed in, the theme, the way to the categories and Abmelden.
+// Mockup entries with nothing behind them in the app (counts, Timer-Ton, Offline, wake-lock: #245) are left out.
+import { Link } from 'react-router-dom'
+import { Avatar, AvatarFallback, Button, Card, cn } from '@postxl/ui-components'
+import { ChevronRight } from 'lucide-react'
+import { foodly } from '../api'
+import { useMe } from '../catalog/CatalogProvider'
+import { ThemeSegment } from '../components/ThemeMenu'
+import { FOCUS_RING } from '../components/focusRing'
+import { ROW_DIVIDER } from '../components/rowDivider'
+import { Page } from '../components/shell/Page'
+
+// Mockup `.card.set-card` and `.row.set`.
+const CARD = 'mb-5 gap-0 px-1 py-0.5'
+const ROW = cn('flex items-center gap-3 rounded-sm p-3', ROW_DIVIDER)
+const SECTION_HEADING = 'mb-2 text-xs font-semibold text-muted-foreground'
+
+export function Profile() {
+  const me = useMe()
+  const name = me?.name ?? 'Profil'
+  const initial = (me?.name.trim()[0] ?? '?').toUpperCase()
+
+  return (
+    <Page className="pb-10">
+      <h1 className="sr-only">Profil & Einstellungen</h1>
+      <div className="max-w-[640px]">
+        <div className="mb-6 flex items-center gap-4">
+          <Avatar aria-hidden className="size-14">
+            <AvatarFallback className="text-[22px] font-semibold">{initial}</AvatarFallback>
+          </Avatar>
+          <h2 className="min-w-0 truncate text-[22px] font-semibold tracking-[-0.01em]">{name}</h2>
+        </div>
+
+        <h2 className={SECTION_HEADING}>Darstellung</h2>
+        <Card className={CARD}>
+          <div className={ROW}>
+            <span id="profile-design" className="flex-1 font-medium">
+              Design
+            </span>
+            <ThemeSegment labelledBy="profile-design" />
+          </div>
+        </Card>
+
+        <Card className={CARD}>
+          <Link to="/categories" className={cn(ROW, 'font-medium hover:bg-hover focus-visible:ring-ring', FOCUS_RING)}>
+            <span className="flex-1">Kategorien</span>
+            <ChevronRight aria-hidden className="size-4 text-muted-foreground" />
+          </Link>
+          {foodly.auth.canSignOut && (
+            // No confirm, no toast: the guard takes over to /login at once (design spec „Abmelden“). text-base: the
+            // Button's own text-sm would sit smaller than the link row above it.
+            <Button
+              variant="ghost"
+              className={cn(
+                ROW,
+                'h-auto w-full justify-start text-base font-medium text-destructive hover:bg-transparent hover:text-destructive',
+              )}
+              onClick={() => void foodly.auth.signOut()}
+            >
+              Abmelden
+            </Button>
+          )}
+        </Card>
+      </div>
+    </Page>
+  )
+}

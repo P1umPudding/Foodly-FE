@@ -55,7 +55,7 @@ describe('Categories page (mock mode)', () => {
       setViewport(width)
       await renderPage()
       const header = within(screen.getByRole('banner'))
-      expect(header.getByRole('link', { name: 'Zurück' }).getAttribute('href')).toBe('/')
+      expect(header.getByRole('link', { name: 'Zurück' }).getAttribute('href')).toBe('/profile')
       header.getByText('Kategorien')
       expect(within(main()).queryByRole('link', { name: /Zurück/ })).toBeNull()
       expect(within(main()).queryByRole('button', { name: /Zurück/ })).toBeNull()

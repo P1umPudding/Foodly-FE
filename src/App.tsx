@@ -10,6 +10,7 @@ import { RecipeDetail } from './pages/RecipeDetail'
 import { RecipeEditor } from './pages/RecipeEditor'
 import { Categories } from './pages/Categories'
 import { CategoryPage } from './pages/CategoryPage'
+import { Profile } from './pages/Profile'
 
 export function RecipeEditorRoute() {
   const { id } = useParams()
@@ -46,6 +47,7 @@ export default function App() {
           {/* static segment: stays before /categories/:id */}
           <Route path="/categories" element={<Categories />} />
           <Route path="/categories/:id" element={<CategoryPageRoute />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

@@ -110,7 +110,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   Foodly
                 </span>
               ) : (
-                <span className="truncate font-semibold">{routeTitle(pathname)}</span>
+                <span className="truncate font-semibold">
+                  {!isDesktop && pathname === '/profile' ? 'Profil' : routeTitle(pathname)}
+                </span>
               )}
               <div className="flex-1" />
               {/* Page actions (HeaderActions). Always mounted at this spot, so a portalled menu survives re-renders. */}
