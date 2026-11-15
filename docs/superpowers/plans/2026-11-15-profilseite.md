@@ -1,6 +1,6 @@
 # Plan — #245 Profilseite /profile
 
-Spec: `.git/agent-work/spec.md` (A1–A9, C1 = Option A: no wake-lock on profile).
+Spec: issue #245 incl. worker assumptions A1–A9 and clarification C1 (Option A: no wake-lock on profile).
 Rules: CLAUDE.md (postxl components, Tailwind only, why-comments, no AI trailer).
 
 ## Step 1 — Theme segment (reuse reveal animation)

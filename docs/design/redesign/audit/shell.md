@@ -18,7 +18,7 @@ Legende Art: **L** = Layout/Struktur, **V** = Verhalten, **T** = Text, **F** = F
 | S4 | Seitenleiste · Kategorie-Eintrag | Punkt 8 px mit Rand `0 3px 0 4px` (`screens.css .nav-item .cat-dot`), der Text beginnt also weiter rechts | Punkt `size-2.5` (10 px) direkt am Rand, `gap-2.5` | F | NEU (G7) |
 | S5 | Eingeklappt (64 px) | Zwischen Zielen und Kategorien eine 24-px-Haarlinie (`.side-c .nav-label`: 1 px, `--nav-border`, Abstand 14/8) | kein Trenner, die ganze Kopfzeile fehlt (`{!collapsed && …}`) | L | NEU (G7) |
 | S6 | Eingeklappt · Tooltip Kategorie | Tooltip nur mit Name (`data-tip="${c.name}"`) | „Name (Anzahl)“ | T | NEU (G7, klein) |
-| S7 | Profil-Eintrag unten | `nav-item` als **Link** auf `#/profile`, Avatar `xs` 22 px, aktiv hinterlegt auf der Profilseite (`app.js:256`) | Dropdown-Trigger mit 24-px-Avatar, öffnet das Menü (`ProfileMenu.tsx`) | V | #245 |
+| S7 | Profil-Eintrag unten | `nav-item` als **Link** auf `#/profile`, Avatar `xs` 22 px, aktiv hinterlegt auf der Profilseite (`app.js:256`) | Dropdown-Trigger mit 24-px-Avatar, öffnet das Menü (`ProfileMenu.tsx`) | V | #245 (heute Link `ProfileLink.tsx`, 22 px, aktiv auf /profile) |
 
 ## 2. Shell: Kopfzeile, Timer-Knopf
 

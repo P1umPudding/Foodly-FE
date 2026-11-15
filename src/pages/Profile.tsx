@@ -32,37 +32,51 @@ export function Profile() {
           <h2 className="min-w-0 truncate text-[22px] leading-[1.15] font-[650] tracking-[-0.025em]">{name}</h2>
         </div>
 
-        <h2 className={SECTION_HEADING}>Darstellung</h2>
-        <Card className={CARD}>
-          {/* Wraps on very narrow phones (320 px) instead of pushing the segment out of the card. */}
-          <div className={cn(ROW, 'flex-wrap gap-y-2')}>
-            <span id="profile-design" className="min-w-0 flex-1 font-medium">
-              Design
-            </span>
-            <ThemeSegment labelledBy="profile-design" />
-          </div>
-        </Card>
+        <section aria-labelledby="profile-appearance">
+          <h2 id="profile-appearance" className={SECTION_HEADING}>
+            Darstellung
+          </h2>
+          <Card className={CARD}>
+            {/* Wraps on very narrow phones (320 px) instead of pushing the segment out of the card. */}
+            <div className={cn(ROW, 'flex-wrap gap-y-2')}>
+              <span id="profile-design" className="min-w-0 flex-1 font-medium">
+                Design
+              </span>
+              <ThemeSegment labelledBy="profile-design" />
+            </div>
+          </Card>
+        </section>
 
-        <Card className={CARD}>
-          <Link to="/categories" className={cn(ROW, 'font-medium hover:bg-hover focus-visible:ring-ring', FOCUS_RING)}>
-            <span className="flex-1">Kategorien</span>
-            <ChevronRight aria-hidden className="size-4 text-muted-foreground" />
-          </Link>
-          {foodly.auth.canSignOut && (
-            // No confirm, no toast: the guard takes over to /login at once (design spec „Abmelden“). text-base: the
-            // Button's own text-sm would sit smaller than the link row above it.
-            <Button
-              variant="ghost"
-              className={cn(
-                ROW,
-                'h-auto w-full justify-start text-base font-medium text-destructive hover:bg-transparent hover:text-destructive dark:hover:bg-transparent',
-              )}
-              onClick={() => void foodly.auth.signOut()}
+        {/* The mockup shows this card without a heading; the sr-only one keeps it out of „Darstellung“ for
+            heading navigation. */}
+        <section aria-labelledby="profile-account">
+          <h2 id="profile-account" className="sr-only">
+            Konto
+          </h2>
+          <Card className={CARD}>
+            <Link
+              to="/categories"
+              className={cn(ROW, 'font-medium hover:bg-hover focus-visible:ring-ring', FOCUS_RING)}
             >
-              Abmelden
-            </Button>
-          )}
-        </Card>
+              <span className="flex-1">Kategorien</span>
+              <ChevronRight aria-hidden className="size-4 text-muted-foreground" />
+            </Link>
+            {foodly.auth.canSignOut && (
+              // No confirm, no toast: the guard takes over to /login at once (design spec „Abmelden“). text-base: the
+              // Button's own text-sm would sit smaller than the link row above it.
+              <Button
+                variant="ghost"
+                className={cn(
+                  ROW,
+                  'h-auto w-full justify-start text-base font-medium text-destructive hover:bg-transparent hover:text-destructive dark:hover:bg-transparent',
+                )}
+                onClick={() => void foodly.auth.signOut()}
+              >
+                Abmelden
+              </Button>
+            )}
+          </Card>
+        </section>
       </div>
     </Page>
   )

@@ -87,10 +87,33 @@ describe('ThemeSegment', () => {
     }
   })
 
+  it('anchors the reveal at the click point for a pointer pick', async () => {
+    localStorage.setItem('foodly-theme', 'light')
+    Object.defineProperty(document, 'startViewTransition', {
+      value: (update: () => void) => {
+        update()
+        return { ready: Promise.resolve(), finished: Promise.resolve() } as unknown as ViewTransition
+      },
+      configurable: true,
+    })
+    const animate = vi.fn()
+    Object.defineProperty(document.documentElement, 'animate', { value: animate, configurable: true })
+    try {
+      renderSegment()
+      fireEvent.click(screen.getByRole('radio', { name: 'Dunkel' }), { detail: 1, clientX: 100, clientY: 50 })
+      await waitFor(() => expect(animate).toHaveBeenCalledOnce())
+      const [keyframes] = animate.mock.calls[0] as [{ clipPath: string[] }]
+      expect(keyframes.clipPath[0]).toContain('at 100px 50px')
+    } finally {
+      Reflect.deleteProperty(document.documentElement, 'animate')
+    }
+  })
+
   it('offers System', () => {
     renderSegment()
     fireEvent.click(screen.getByRole('radio', { name: 'System' }))
     expect(localStorage.getItem('foodly-theme')).toBe('system')
+    expect(screen.getByRole('radio', { name: 'System' }).getAttribute('aria-checked')).toBe('true')
   })
 
   it('applies the mode and cleans up when the reveal transition fails', async () => {

@@ -146,7 +146,7 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
   Der Avatar (Handy) bzw. der Profil-Eintrag unten in der Seitenleiste führt zur Profilseite `/profile` (#245):
   Kopf mit Avatar und Name, „Darstellung“ mit Segment „Design“ (Hell/Dunkel/System), „Kategorien ›“ und
   „Abmelden“ in Rot (nur REST). Wake-Lock bleibt auf der Rezeptseite (Daniel, 15.11.2026). `/profile` ist eine
-  Hauptseite (kein Zurück-Pfeil, Handy-Titel „Profil“); Elternseite von `/categories` ist das Profil.
+  Hauptseite (kein Zurück-Pfeil, kein Avatar, Handy-Titel „Profil“); Elternseite von `/categories` ist das Profil.
   „Neues Rezept“ ist der runde FAB unten rechts über der Tab-Leiste.
 - **Nur echte Ziele zeigen** (Kolja/Lead, 29.10.2026): heute Start (`/`) und Rezepte (`/recipes`). Planer, Einkauf,
   Gruppen kommen in Leiste und Tabs, wenn ihre Phase kommt – keine Platzhalter-Einträge.
