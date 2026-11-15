@@ -90,7 +90,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               {subpage ? (
                 <>
                   <BackLink pathname={pathname} />
-                  {subpage === 'editor' ? (
+                  {/* Editor and settings pages have no crumb, only their title (mockup). */}
+                  {subpage === 'editor' || subpage === 'settings' ? (
                     <span className="truncate font-semibold">{routeTitle(pathname)}</span>
                   ) : (
                     // Phones show only the arrow and the icons (mockup).

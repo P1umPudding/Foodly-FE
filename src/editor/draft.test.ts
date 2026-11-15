@@ -30,7 +30,7 @@ function recipe(over: Partial<Recipe> = {}): Recipe {
         name: 'Sugo',
         ingredients: [
           { id: 100, ingredient: { id: 5, name: 'Zwiebel' }, text: null, amount: '1', amountPrefix: null, unit: null },
-          { id: 101, ingredient: null, text: 'Salz', amount: null, amountPrefix: 'ca.', unit: 'Prise' },
+          { id: 101, ingredient: null, text: 'Salz', amount: '1', amountPrefix: 'ca.', unit: 'Prise' },
         ],
         steps: ['Hacken.', 'Braten.'],
       },
@@ -98,12 +98,30 @@ describe('toCreateRecipe', () => {
           name: 'Sugo',
           ingredients: [
             { ingredient: 5, text: null, amount: '1', amountPrefix: null, unit: null },
-            { ingredient: null, text: 'Salz', amount: null, amountPrefix: 'ca.', unit: 'Prise' },
+            { ingredient: null, text: 'Salz', amount: '1', amountPrefix: 'ca.', unit: 'Prise' },
           ],
           steps: ['Hacken.', 'Braten.'],
         },
       ],
     })
+  })
+
+  it('shows prefix and amount in one field and splits them again on save', () => {
+    const draft = toDraft(recipe())
+    expect(draft.sections[0].ingredients[1].amount).toBe('ca. 1')
+
+    draft.sections[0].ingredients[1].amount = 'etwa 200'
+    expect(toCreateRecipe(draft).sections[0].ingredients[1]).toMatchObject({ amountPrefix: 'etwa', amount: '200' })
+  })
+
+  // Accepted drift of the README §3.3 rule: a legacy prefix without any number becomes the amount.
+  it('saves a legacy prefix without an amount as the amount', () => {
+    const legacy = recipe()
+    legacy.sections[0].ingredients[1] = { ...legacy.sections[0].ingredients[1], amount: null, amountPrefix: 'ca.' }
+
+    const wire = toCreateRecipe(toDraft(legacy))
+
+    expect(wire.sections[0].ingredients[1]).toMatchObject({ amount: 'ca.', amountPrefix: null })
   })
 
   it('keeps the Zusatz of a catalog ingredient through draft and save', () => {

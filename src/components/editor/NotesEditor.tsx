@@ -1,13 +1,8 @@
 import { useRef } from 'react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Textarea,
-} from '@postxl/ui-components'
-import { ArrowDown, ArrowUp, EllipsisVertical, Plus, Trash2 } from 'lucide-react'
+import { Textarea } from '@postxl/ui-components'
+import { Plus } from 'lucide-react'
 import { TriggerButton } from '../TriggerButton'
+import { RowMenu } from './RowMenu'
 import { move, newNote } from '../../editor/draft'
 import type { DraftNote } from '../../editor/draft'
 
@@ -29,7 +24,7 @@ export function NotesEditor({ notes, onChange }: { notes: DraftNote[]; onChange:
             value={note.text}
             onChange={(e) => onChange(notes.map((n) => (n.key === note.key ? { ...n, text: e.target.value } : n)))}
           />
-          <NoteMenu
+          <RowMenu
             label={`Notiz ${i + 1}: Aktionen`}
             canMoveUp={i > 0}
             canMoveDown={i < notes.length - 1}
@@ -51,64 +46,5 @@ export function NotesEditor({ notes, onChange }: { notes: DraftNote[]; onChange:
         Notiz
       </TriggerButton>
     </>
-  )
-}
-
-function NoteMenu({
-  label,
-  canMoveUp,
-  canMoveDown,
-  onUp,
-  onDown,
-  onRemove,
-  onRemovedFocus,
-}: {
-  label: string
-  canMoveUp: boolean
-  canMoveDown: boolean
-  onUp: () => void
-  onDown: () => void
-  onRemove: () => void
-  onRemovedFocus: () => void
-}) {
-  const removed = useRef(false)
-  return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <TriggerButton variant="ghost" size="icon" aria-label={label} className="size-[30px] touch:size-10">
-          <EllipsisVertical className="size-4" />
-        </TriggerButton>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        onCloseAutoFocus={(e) => {
-          if (removed.current) {
-            e.preventDefault()
-            onRemovedFocus()
-          }
-          removed.current = false
-        }}
-      >
-        <DropdownMenuItem className="gap-2" disabled={!canMoveUp} onSelect={onUp}>
-          <ArrowUp className="size-4" />
-          Nach oben
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-2" disabled={!canMoveDown} onSelect={onDown}>
-          <ArrowDown className="size-4" />
-          Nach unten
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          variant="destructive"
-          className="gap-2"
-          onSelect={() => {
-            removed.current = true
-            onRemove()
-          }}
-        >
-          <Trash2 className="size-4" />
-          Entfernen
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }
