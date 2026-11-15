@@ -56,6 +56,7 @@ export function IngredientRow({
         label="Einheit"
         placeholder="Einheit"
         icon={<ChevronDown className="size-4" />}
+        openOnClick
         value={line.unit}
         onValueChange={(value) => onChange({ unit: value })}
         suggestions={UNITS.filter((u) => u.toLowerCase().startsWith(unit) && u.toLowerCase() !== unit).map((u) => ({

@@ -152,6 +152,17 @@ describe('SectionEditor', () => {
     expect(screen.getByPlaceholderText('Abschnitt ohne Namen')).toBeTruthy()
   })
 
+  it.each([
+    ['Zutat 2: Aktionen', 'Zutat hinzufügen'],
+    ['Schritt 2: Aktionen', 'Schritt hinzufügen'],
+  ])('puts focus on its add button after "Entfernen" in %s', async (trigger, addButton) => {
+    setup()
+
+    fireEvent.click(within(await openMenu(trigger)).getByRole('menuitem', { name: 'Entfernen' }))
+
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: addButton })))
+  })
+
   it('edits the section name', () => {
     const onChange = setup()
 

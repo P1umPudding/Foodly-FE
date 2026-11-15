@@ -46,7 +46,8 @@ export function SectionEditor({
     <Card className="py-0">
       <CardContent className="flex flex-col gap-1.5 px-4 pt-3.5 pb-4 phone:p-3.5">
         <div className="mb-2 flex items-center gap-2">
-          {/* The name is the card's heading (mockup `.ed-sec-name`): a borderless field until hovered or focused. */}
+          {/* The name is the card's heading (mockup `.ed-sec-name`): a borderless field until hovered or focused. text-lg is
+              the app's heading token (as SectionHeader); no Input size prop gives a heading. */}
           <Input
             variant="discreet"
             aria-label="Abschnittsname"

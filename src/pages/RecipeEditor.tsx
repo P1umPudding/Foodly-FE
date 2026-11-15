@@ -268,7 +268,7 @@ export function RecipeEditor() {
               <TriggerButton
                 ref={addSection}
                 variant="outline"
-                className="w-full gap-1.5 border-dashed text-muted-foreground"
+                className="w-full gap-1.5 border-dashed text-muted-foreground touch:h-10"
                 onClick={() => patch({ sections: [...draft.sections, newSection()] })}
               >
                 <Plus className="size-4" />

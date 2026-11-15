@@ -5,7 +5,8 @@ export type Suggestion = { id: string; label: ReactNode }
 
 // A text field whose suggestions open right below it while typing (TagPicker pattern, mockup `.unit-in`/`.name-in`):
 // the list is rendered inline (no portal), the keyboard stays on the input and drives it via aria-activedescendant.
-// It opens on typing or ArrowDown only, never on focus, so tabbing through a table row doesn't pop lists open.
+// It opens on typing or ArrowDown, never on focus, so tabbing through a table row doesn't pop lists open. `openOnClick`
+// also opens it on a click or tap, for fields that look like a choice (Einheit) and would otherwise hide their list.
 export function SuggestInput({
   value,
   onValueChange,
@@ -13,6 +14,7 @@ export function SuggestInput({
   onSelect,
   onEscape,
   onBlur,
+  openOnClick = false,
   icon,
   label,
   placeholder,
@@ -25,6 +27,7 @@ export function SuggestInput({
   onSelect: (id: string) => void
   onEscape?: () => void
   onBlur?: (e: FocusEvent<HTMLInputElement>) => void
+  openOnClick?: boolean
   icon?: ReactNode
   label: string
   placeholder?: string
@@ -59,7 +62,11 @@ export function SuggestInput({
         select(suggestions[activeIndex].id)
       }
     } else if (e.key === 'Escape') {
-      if (open) e.preventDefault()
+      // Closing the list must not also close a surrounding sheet or dialog.
+      if (open) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
       setOpen(false)
       onEscape?.()
     }
@@ -83,6 +90,7 @@ export function SuggestInput({
           setActive(0)
           setOpen(true)
         }}
+        onClick={openOnClick ? () => setOpen(true) : undefined}
         onBlur={(e) => {
           setOpen(false)
           onBlur?.(e)

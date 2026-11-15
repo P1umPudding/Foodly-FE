@@ -109,7 +109,7 @@ describe('IngredientRow · Zusatz', () => {
     const { line } = setup(catalogLine({ text: 'gehackt' }))
 
     fireEvent.change(nameField(), { target: { value: 'Zimtstange' } })
-    fireEvent.click(screen.getByRole('option', { name: '„Zimtstange" als Freitext übernehmen' }))
+    fireEvent.click(screen.getByRole('option', { name: '„Zimtstange“ als Freitext übernehmen' }))
 
     expect(line()).toMatchObject({ ingredient: null, text: 'Zimtstange' })
     expect(zusatz().disabled).toBe(true)
@@ -133,5 +133,14 @@ describe('IngredientRow · Zusatz', () => {
     pick('Schalotte')
 
     expect(line()).toMatchObject({ ingredient: 2, text: 'gehackt' })
+  })
+
+  it('opens the unit suggestions on a click and takes one', () => {
+    const { line } = setup(catalogLine())
+
+    fireEvent.click(screen.getByRole('combobox', { name: 'Einheit' }))
+    fireEvent.click(screen.getByRole('option', { name: 'EL' }))
+
+    expect(line().unit).toBe('EL')
   })
 })

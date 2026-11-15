@@ -71,7 +71,7 @@ describe('IngredientPicker', () => {
     const { onText } = setup()
 
     type('Zimtstange')
-    fireEvent.click(screen.getByRole('option', { name: '„Zimtstange" als Freitext übernehmen' }))
+    fireEvent.click(screen.getByRole('option', { name: '„Zimtstange“ als Freitext übernehmen' }))
 
     expect(onText).toHaveBeenCalledWith('Zimtstange')
     expect(screen.queryByRole('listbox')).toBeNull()
@@ -96,5 +96,40 @@ describe('IngredientPicker', () => {
     fireEvent.blur(field())
 
     expect(onText).not.toHaveBeenCalled()
+  })
+
+  it('lists nothing for an empty field, so Enter links no catalog entry', () => {
+    const { onPick, onText } = setup(null, 'Salz')
+
+    type('')
+    expect(screen.queryByRole('listbox')).toBeNull()
+    fireEvent.keyDown(field(), { key: 'Enter' })
+    fireEvent.blur(field())
+
+    expect(onPick).not.toHaveBeenCalled()
+    expect(onText).not.toHaveBeenCalled()
+    expect(field().value).toBe('Salz')
+  })
+
+  it('keeps the catalog link when only the case differs', () => {
+    const { onText } = setup(1)
+
+    type('zwiebel')
+    fireEvent.blur(field())
+
+    expect(onText).not.toHaveBeenCalled()
+  })
+
+  it('takes the active catalog hit on Enter but keeps the typed text as free text on blur', () => {
+    const { onPick, onText } = setup()
+
+    type('Zuc')
+    fireEvent.blur(field())
+    expect(onText).toHaveBeenCalledWith('Zuc')
+    expect(onPick).not.toHaveBeenCalled()
+
+    type('Zuc')
+    fireEvent.keyDown(field(), { key: 'Enter' })
+    expect(onPick).toHaveBeenCalledWith(2)
   })
 })
