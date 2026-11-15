@@ -3,7 +3,8 @@
 // before the first number. Ranges ("1-2", "1–2") and decimals ("0,5") start with that number and stay whole in `amount`.
 // Without any number ("etwas") everything is the amount and there is no prefix.
 
-const FIRST_NUMBER = /[\d½¼¾⅓⅔⅛⅜⅝⅞]/
+// \p{No} covers the vulgar fractions (½ ⅓ ⅕ …); it also matches rare superscripts (²), which then start the amount.
+const FIRST_NUMBER = /[\p{Nd}\p{No}]/u
 
 export function splitAmount(input: string): { amountPrefix: string; amount: string } {
   const value = input.trim()
