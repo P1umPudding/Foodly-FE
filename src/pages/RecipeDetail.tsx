@@ -2,15 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ChefHat, Clock, Copy, ListChecks, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-react'
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Skeleton,
   Toggle,
   Tooltip,
   TooltipContent,
@@ -18,6 +14,8 @@ import {
   buttonVariants,
   cn,
 } from '@postxl/ui-components'
+import { Skeleton } from '../components/Skeleton'
+import { ErrorState } from '../components/StateCard'
 import { foodly } from '../api'
 import { errorMessage } from '../lib/errorMessage'
 import { useRequest } from '../hooks/useRequest'
@@ -53,7 +51,7 @@ function isUrl(s: string): boolean {
 export function RecipeDetail() {
   const { id } = useParams()
   const recipeId = Number(id)
-  const { status, data: recipe, error } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
+  const { status, data: recipe, reload } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
   const currentUserId = useCurrentUserId()
   const { byId: tags } = useTags()
 
@@ -248,16 +246,23 @@ export function RecipeDetail() {
         </div>
       )}
 
+      {/* REST errors carry no status, so "not found" and "server unreachable" look the same here: one neutral card,
+          no raw backend message. */}
       {status === 'error' && (
-        <Alert variant="destructive">
-          <AlertTitle>Rezept nicht gefunden</AlertTitle>
-          <AlertDescription className="flex flex-col gap-2">
-            <span>{error?.message}</span>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/recipes">Zur Liste</Link>
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <>
+          {/* The page keeps one h1 (the recipe name once loaded). */}
+          <h1 className="sr-only">Rezept</h1>
+          <ErrorState
+            title="Rezept konnte nicht geladen werden"
+            description="Vielleicht wurde es gelöscht, oder der Server ist gerade nicht erreichbar."
+            onRetry={reload}
+            extraAction={
+              <Button asChild variant="outline" size="sm">
+                <Link to="/recipes">Zur Liste</Link>
+              </Button>
+            }
+          />
+        </>
       )}
 
       {status === 'ready' && recipe && (

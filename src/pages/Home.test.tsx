@@ -60,7 +60,9 @@ describe('Home', () => {
         'Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.',
       )
     ).parentElement!
-    expect(within(card).getByRole('link', { name: 'Alle Rezepte' }).getAttribute('href')).toBe('/recipes')
+    // One action at most (design.md §5): only "Neues Rezept"; the list is one click away in the navigation.
+    expect(within(card).queryByRole('link', { name: 'Alle Rezepte' })).toBeNull()
+    expect(within(card).getByText('Noch nichts zu sehen')).toBeTruthy()
     expect(within(card).getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
   })
 

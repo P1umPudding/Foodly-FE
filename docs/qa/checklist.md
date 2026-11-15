@@ -6,9 +6,17 @@ Grundlage für die Broad Runs von Foodly QA (am 1. und 15. jedes Monats). Jede J
 - Desktop: Seitenleiste mit Wortmarke (→ `/` → `/recipes`), „Neues Rezept“, „Rezepte“, Kategorien mit Punkt und Anzahl, Profilmenü
 - Seitenleiste ein- und ausklappen (Tooltips, Zustand bleibt nach Neuladen)
 - Handy: Tab-Leiste; „+“-FAB und Avatar nur auf `/recipes`; FAB verdeckt keinen Inhalt
-- `/` leitet mit Query und Hash auf `/recipes` weiter; unbekannte Route zeigt 404 mit „Zur Startseite“
+- Unbekannte Route zeigt 404 mit „Zur Startseite“; Seitenleiste mit „Start“ und „Rezepte“, Tab-Leiste am Handy ebenso
 - Kopfzeilen-Titel je Route (Rezepte / Neues Rezept / Rezept bearbeiten / Rezept); genau ein h1 pro Seite
 - Breakpoint wechseln, ohne dass die Seite neu aufgebaut wird (Entwurf und Liste bleiben erhalten)
+
+## Start
+- `/` zeigt Datum, Begrüßung, Kategorien-Kacheln mit Anzahl und „Verwalten“, „Zuletzt erstellt“; Kacheln führen auf `/categories/:id`
+
+## Kategorien
+- `/categories`: Liste mit Anzahl, „Neue Kategorie“ (Name, Farbe) anlegen, bearbeiten, löschen; Zurück
+- `/categories/:id`: Kopf mit Name, Anzahl, Sichtbarkeit, Rezeptliste, Weitere Aktionen
+- Im Rezept „Kategorien ändern“: Popover (Desktop) bzw. Sheet (Handy), zuordnen, neue anlegen
 
 ## Rezeptliste
 - Suche (Name, Tags, Abschnitte), Leeren-✕, Hinweis zur Zutatensuche bei 0 Treffern; Zurück verhält sich sinnvoll

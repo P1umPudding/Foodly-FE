@@ -7,12 +7,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Skeleton,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@postxl/ui-components'
-import { FolderOpen, MoreHorizontal, Pencil, SearchX } from 'lucide-react'
+import { Skeleton } from '../components/Skeleton'
+import { EyeOff, FolderOpen, MoreHorizontal, Pencil, Search } from 'lucide-react'
 import { useCategories, useCurrentUserId } from '../catalog/CatalogProvider'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
 import { CategoryMark } from '../components/category/CategoryMark'
@@ -23,7 +23,7 @@ import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
 import { SortMenu } from '../components/list/SortMenu'
 import { ViewToggles } from '../components/list/ViewToggles'
-import { RetryAlert } from '../components/RetryAlert'
+import { EmptyState, ErrorState } from '../components/StateCard'
 import { PageTitle } from '../components/PageTitle'
 import { Page } from '../components/shell/Page'
 import { HeaderActions } from '../components/shell/PageHeader'
@@ -74,7 +74,11 @@ export function CategoryPage() {
       )}
 
       {catalog.status === 'error' && (
-        <RetryAlert title="Konnte Kategorien nicht laden" message={catalog.error?.message} onRetry={catalog.retry} />
+        <ErrorState
+          title="Kategorien konnten nicht geladen werden"
+          description={catalog.error?.message}
+          onRetry={catalog.retry}
+        />
       )}
 
       {/* Also when the catalog drops the category while the page is open (deleted through it). */}
@@ -258,7 +262,11 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
         {search.status === 'loading' && <ListSkeleton detail={state.detail} count={4} />}
 
         {search.status === 'error' && (
-          <RetryAlert title="Konnte Rezepte nicht laden" message={search.error?.message} onRetry={search.reload} />
+          <ErrorState
+            title="Rezepte konnten nicht geladen werden"
+            description={search.error?.message}
+            onRetry={search.reload}
+          />
         )}
 
         {pending && visible.length === 0 && !loadMoreFailed && (
@@ -266,28 +274,38 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
         )}
 
         {/* The head counts every recipe in the category; one the user may no longer view is not "nothing in it". */}
-        {allLoaded && visible.length === 0 && !searching && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <FolderOpen className="size-5 text-muted-foreground/40" />
-            <p className="max-w-sm text-muted-foreground">
-              {category.recipes.length === 0
-                ? `Noch nichts in „${category.name}“. Öffne ein Rezept und füg es über „+“ hinzu.`
-                : 'Keine Rezepte, die du sehen kannst.'}
-            </p>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/recipes">Zu den Rezepten</Link>
-            </Button>
-          </div>
-        )}
+        {allLoaded &&
+          visible.length === 0 &&
+          !searching &&
+          (category.recipes.length === 0 ? (
+            <EmptyState
+              icon={FolderOpen}
+              title={`Noch nichts in „${category.name}“`}
+              description="Öffne ein Rezept und füg es über „+“ hinzu."
+            />
+          ) : (
+            <EmptyState
+              icon={EyeOff}
+              title="Keine Rezepte, die du sehen kannst"
+              action={
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/recipes">Zu den Rezepten</Link>
+                </Button>
+              }
+            />
+          ))}
 
         {allLoaded && visible.length === 0 && searching && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <SearchX className="size-5 text-muted-foreground/40" />
-            <p className="text-muted-foreground">Keine Treffer.</p>
-            <Button variant="outline" size="sm" onClick={() => setSearch('')}>
-              Suche leeren
-            </Button>
-          </div>
+          <EmptyState
+            icon={Search}
+            title={`Nichts gefunden für „${state.search.trim()}“`}
+            description="Prüf die Schreibweise oder such nach etwas anderem."
+            action={
+              <Button variant="outline" size="sm" onClick={() => setSearch('')}>
+                Suche leeren
+              </Button>
+            }
+          />
         )}
 
         {ready && visible.length > 0 && (
@@ -307,9 +325,10 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
         )}
         {loadMoreFailed && !search.loadingMore && (
           <div className="pt-3">
-            <RetryAlert
-              title="Weitere Rezepte konnten nicht geladen werden."
-              message={search.loadMoreError?.message}
+            <ErrorState
+              compact
+              title="Weitere Rezepte konnten nicht geladen werden"
+              description={search.loadMoreError?.message}
               onRetry={search.retryLoadMore}
             />
           </div>

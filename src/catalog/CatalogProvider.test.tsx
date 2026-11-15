@@ -190,7 +190,7 @@ it('shows an error with a retry instead of the app when /users/me fails', async 
       <MeProbe />
     </CatalogProvider>,
   )
-  await screen.findByText('Konnte Profil nicht laden')
+  await screen.findByText('Profil konnte nicht geladen werden')
   screen.getByText('Serverfehler')
   expect(screen.queryByText(/me:/)).toBeNull()
 
@@ -198,7 +198,7 @@ it('shows an error with a retry instead of the app when /users/me fails', async 
   fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
   await screen.findByText(/me:Kolja/)
   expect(calls).toHaveBeenCalledTimes(2)
-  expect(screen.queryByText('Konnte Profil nicht laden')).toBeNull()
+  expect(screen.queryByText('Profil konnte nicht geladen werden')).toBeNull()
 })
 
 it('keeps a successful first load when a refresh started meanwhile fails', async () => {

@@ -5,7 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Loader } from '@postxl/ui-components'
 import { foodly } from '../api'
 import { useRequest } from '../hooks/useRequest'
-import { RetryAlert } from '../components/RetryAlert'
+import { ErrorState } from '../components/StateCard'
 import { toError } from '../lib/toError'
 import type { Ingredient, IngredientId, Tag, TagId, User, UserCategory, UserCategoryId, UserId } from '../api/protocol'
 
@@ -223,7 +223,11 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     return (
       <main className="mx-auto max-w-md p-6">
         <h1 className="sr-only">Foodly</h1>
-        <RetryAlert title="Konnte Profil nicht laden" message={meReq.error?.message} onRetry={meReq.reload} />
+        <ErrorState
+          title="Profil konnte nicht geladen werden"
+          description={meReq.error?.message}
+          onRetry={meReq.reload}
+        />
       </main>
     )
   }
