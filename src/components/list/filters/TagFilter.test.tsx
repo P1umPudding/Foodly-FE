@@ -35,14 +35,33 @@ describe('TagFilter', () => {
 
   it('filters the list by the search', () => {
     render(<TagFilter tags={tags} selected={[]} set={() => {}} />)
-    fireEvent.change(screen.getByPlaceholderText('Tag suchen…'), { target: { value: 'veg' } })
+    fireEvent.change(screen.getByPlaceholderText('Tag suchen'), { target: { value: 'veg' } })
     expect(checkboxLabels()).toEqual(['vegan', 'vegetarisch'])
   })
 
   it('says so when nothing matches', () => {
     render(<TagFilter tags={tags} selected={[]} set={() => {}} />)
-    fireEvent.change(screen.getByPlaceholderText('Tag suchen…'), { target: { value: 'xyz' } })
+    fireEvent.change(screen.getByPlaceholderText('Tag suchen'), { target: { value: 'xyz' } })
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
     expect(screen.getByText('Keine Treffer')).toBeTruthy()
+  })
+})
+
+describe('TagFilter, order and hint', () => {
+  it('shows the mockup hint', () => {
+    render(<TagFilter tags={tags} selected={[]} set={() => {}} />)
+    expect(screen.getByText('Mehrere = Rezept hat alle.')).toBeTruthy()
+  })
+
+  it('keeps the unselected order from when it opened (toggling refetches the frequencies)', () => {
+    const { rerender } = render(<TagFilter tags={tags} selected={[]} set={() => {}} />)
+    rerender(<TagFilter tags={[...tags].reverse()} selected={['vegan']} set={() => {}} />)
+    expect(checkboxLabels()).toEqual(['vegan', 'schnell', 'günstig', 'vegetarisch', 'scharf'])
+  })
+
+  it('shows at most 40 tags without a search', () => {
+    const many = Array.from({ length: 45 }, (_, i) => ({ id: `t${i}`, svg: null }) as Tag)
+    render(<TagFilter tags={many} selected={[]} set={() => {}} />)
+    expect(checkboxLabels()).toHaveLength(40)
   })
 })
