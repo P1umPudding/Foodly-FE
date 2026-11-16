@@ -220,8 +220,9 @@ export function Categories() {
                   {/* Not modal: a modal menu opening a modal dialog can leave pointer-events: none on the body. */}
                   <DropdownMenu modal={false}>
                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <DropdownMenuTrigger asChild>
+                      {/* Menu trigger outside: postxl's drops refs, so TooltipTrigger asChild can't wrap it. */}
+                      <DropdownMenuTrigger asChild>
+                        <TooltipTrigger asChild>
                           <TriggerButton
                             ref={(el) => {
                               if (el) menuTriggers.current.set(c.id, el)
@@ -234,8 +235,8 @@ export function Categories() {
                           >
                             <MoreHorizontal aria-hidden className="size-4" />
                           </TriggerButton>
-                        </DropdownMenuTrigger>
-                      </TooltipTrigger>
+                        </TooltipTrigger>
+                      </DropdownMenuTrigger>
                       <TooltipContent>Aktionen</TooltipContent>
                     </Tooltip>
                     {/* Only the editor or a dialog opened from here places focus itself; moves and Escape let Radix return

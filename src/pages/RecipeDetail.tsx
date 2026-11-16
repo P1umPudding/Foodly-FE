@@ -168,8 +168,9 @@ export function RecipeDetail() {
             {isOwner(recipe, currentUserId) && (
               <DropdownMenu modal={false}>
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
+                  {/* Menu trigger outside: postxl's drops refs, so TooltipTrigger asChild can't wrap it. */}
+                  <DropdownMenuTrigger asChild>
+                    <TooltipTrigger asChild>
                       <TriggerButton
                         ref={moreTrigger}
                         variant="ghost"
@@ -179,8 +180,8 @@ export function RecipeDetail() {
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </TriggerButton>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
+                    </TooltipTrigger>
+                  </DropdownMenuTrigger>
                   <TooltipContent>Weitere Aktionen</TooltipContent>
                 </Tooltip>
                 {/* The dialog opened from the menu takes focus itself; only a plain close (Escape) returns it to ⋯. */}

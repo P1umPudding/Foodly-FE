@@ -145,8 +145,9 @@ function CategoryHead({ category }: { category: UserCategory }) {
         {/* Not modal: a modal menu opening a modal dialog can leave pointer-events: none on the body. */}
         <DropdownMenu modal={false}>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
+            {/* Menu trigger outside: postxl's drops refs, so TooltipTrigger asChild can't wrap it. */}
+            <DropdownMenuTrigger asChild>
+              <TooltipTrigger asChild>
                 <TriggerButton
                   ref={moreTrigger}
                   variant="ghost"
@@ -156,8 +157,8 @@ function CategoryHead({ category }: { category: UserCategory }) {
                 >
                   <MoreHorizontal aria-hidden className="size-4" />
                 </TriggerButton>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
+              </TooltipTrigger>
+            </DropdownMenuTrigger>
             <TooltipContent>Weitere Aktionen</TooltipContent>
           </Tooltip>
           {/* Opened via "Bearbeiten", the dialog decides where focus goes once it closes; a plain close (Escape,
