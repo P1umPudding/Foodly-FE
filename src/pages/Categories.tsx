@@ -233,10 +233,13 @@ export function Categories() {
                         e.preventDefault()
                       }}
                     >
-                      <DropdownMenuItem className="gap-2" onSelect={() => {
+                      <DropdownMenuItem
+                        className="gap-2"
+                        onSelect={() => {
                           menuHandsOffFocus.current = true
                           openEditor(c)
-                        }}>
+                        }}
+                      >
                         <Pencil aria-hidden className="size-4" />
                         Bearbeiten
                       </DropdownMenuItem>
@@ -252,11 +255,7 @@ export function Categories() {
                           Nach unten
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem
-                        variant="destructive"
-                        className="gap-2"
-                        onSelect={() => openDelete(c)}
-                      >
+                      <DropdownMenuItem variant="destructive" className="gap-2" onSelect={() => openDelete(c)}>
                         <Trash2 aria-hidden className="size-4" />
                         Löschen
                       </DropdownMenuItem>

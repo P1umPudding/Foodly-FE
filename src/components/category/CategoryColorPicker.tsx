@@ -130,11 +130,7 @@ export function CategoryColorPicker({
       </div>
 
       {/* Always in the accessibility tree (never display:none) so a hint appearing later is announced. */}
-      <p
-        id={statusId}
-        role="status"
-        className="mt-3.5 flex items-start gap-2 text-sm text-muted-foreground empty:mt-0"
-      >
+      <p id={statusId} role="status" className="mt-3.5 flex items-start gap-2 text-sm text-muted-foreground empty:mt-0">
         {similar && (
           <>
             <Info aria-hidden className="mt-0.5 size-3.5 shrink-0" />
