@@ -182,7 +182,8 @@ function BackLink({ pathname }: { pathname: string }) {
 
 // "<Origin> / <Name>": the origin muted and a link back to it, the name once the page knows it (loading, not found:
 // only the origin). No percentage cap on the origin: the nav is only as wide as its content, so 45 % of it cut
-// "Rezepte" to "R…" (#268). Instead the name gives way first; the origin only truncates when even that isn't enough.
+// "Rezepte" to "R…" (#268). Instead the name gives way first (down to a few letters, so it never vanishes); the
+// origin only truncates when even that isn't enough.
 function Crumb({ origin, fromShell, name }: { origin: Origin; fromShell: boolean; name: string | null }) {
   return (
     <nav aria-label="Pfad" className="flex min-w-0 items-center gap-1.5 font-semibold">
@@ -204,7 +205,7 @@ function Crumb({ origin, fromShell, name }: { origin: Origin; fromShell: boolean
           <span aria-hidden className="text-muted-foreground">
             /
           </span>
-          <span aria-current="page" className="min-w-0 shrink-[1000] truncate">
+          <span aria-current="page" className="min-w-12 shrink-[1000] truncate">
             {name}
           </span>
         </>

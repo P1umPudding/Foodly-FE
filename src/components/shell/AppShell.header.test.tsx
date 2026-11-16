@@ -163,7 +163,7 @@ describe('AppShell header on subpages', () => {
     expect(crumbText()).toBe('Rezepte')
     // jsdom has no layout: this and the next test only guard the classes that keep "Rezepte" from being cut to
     // "R…" (#268).
-    expect(header().getByRole('link', { name: 'Rezepte' }).className).not.toContain('max-w-[45%]')
+    expect(header().getByRole('link', { name: 'Rezepte' }).className).not.toMatch(/max-w-\[\d+%\]/)
   })
 
   it('lets the recipe name give way before the origin', () => {
