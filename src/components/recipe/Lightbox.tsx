@@ -53,8 +53,9 @@ export function Lightbox({
     const swallow = (e: Event) => e.preventDefault()
     // The thumbnail strip stays finger-scrollable: on the phone it is the only direct way to pick an image.
     // Its touch-pan-x + overscroll-contain keep that drag from reaching the page behind.
-    const swallowTouch = (e: Event) => {
-      if (e.target instanceof Node && stripRef.current?.contains(e.target)) return
+    // Only one finger: a pinch that starts on the strip must still not zoom the page.
+    const swallowTouch = (e: TouchEvent) => {
+      if (e.touches.length === 1 && e.target instanceof Node && stripRef.current?.contains(e.target)) return
       e.preventDefault()
     }
     const swallowKeys = (e: KeyboardEvent) => {
@@ -112,8 +113,9 @@ export function Lightbox({
     swipeStart.current = null
   }
   // A click that ends a swipe (e.g. on an arrow or the empty stage) must neither step again nor close.
+  // Keyboard clicks (detail 0) never end a swipe, so a stale flag can't swallow Enter on an arrow.
   const onClickCapture = (e: React.MouseEvent) => {
-    if (!swiped.current) return
+    if (!swiped.current || e.detail === 0) return
     swiped.current = false
     e.stopPropagation()
   }
@@ -154,7 +156,8 @@ export function Lightbox({
       </div>
 
       {/* touch-none: without it the browser takes over a horizontal drag and cancels the swipe
-          (pointercancel). Pinch-zoom was already off through the window touchmove lock. */}
+          (pointercancel). Pinch-zoom was already off through the window touchmove lock.
+          The strip only lets single-finger drags through, and only horizontally (touch-pan-x). */}
       <div
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
@@ -171,7 +174,7 @@ export function Lightbox({
               stop(e)
               go(-1)
             }}
-            className={`absolute left-4 top-1/2 -translate-y-1/2 phone:hidden ${ctrl}`}
+            className={cn('absolute left-4 top-1/2 -translate-y-1/2 phone:hidden', ctrl)}
           >
             <ChevronLeft className="size-5" />
           </Button>
@@ -194,7 +197,7 @@ export function Lightbox({
               stop(e)
               go(1)
             }}
-            className={`absolute right-4 top-1/2 -translate-y-1/2 phone:hidden ${ctrl}`}
+            className={cn('absolute right-4 top-1/2 -translate-y-1/2 phone:hidden', ctrl)}
           >
             <ChevronRight className="size-5" />
           </Button>

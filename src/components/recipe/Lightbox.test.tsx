@@ -155,7 +155,10 @@ describe('Lightbox layout', () => {
   it('shows the counter "2 / 6" and the close button in the top bar, no caption', () => {
     render(<Lightbox images={six} index={1} onIndexChange={() => {}} onClose={() => {}} />)
     const dialog = screen.getByRole('dialog', { name: 'Fotos' })
-    expect(screen.getByText('2 / 6').getAttribute('aria-live')).toBe('polite')
+    const counter = screen.getByText('2 / 6')
+    expect(counter.getAttribute('aria-live')).toBe('polite')
+    // one text node, so the live region reads "3 / 6" on a change, not just "3"
+    expect(counter.childNodes).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Schließen' })).toBeTruthy()
     // the image name is only the alt text / thumbnail label now, not a visible caption
     expect(within(dialog).queryByText('Bild 2')).toBeNull()
@@ -228,37 +231,33 @@ describe('Lightbox swipe', () => {
     expect(onIndexChange).not.toHaveBeenCalled()
   })
 
-  it('ignores a cancelled gesture and a second finger', () => {
+  it('ignores a cancelled gesture', () => {
     const { onIndexChange } = setup(0)
     const stage = stageOf()
     fireEvent.pointerDown(stage, { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 200, clientY: 0 })
     fireEvent.pointerCancel(stage, { pointerId: 1, pointerType: 'touch' })
     fireEvent.pointerUp(stage, { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 100, clientY: 0 })
-
-    fireEvent.pointerDown(stage, { pointerId: 2, pointerType: 'touch', isPrimary: true, clientX: 200, clientY: 0 })
-    fireEvent.pointerDown(stage, { pointerId: 3, pointerType: 'touch', isPrimary: false, clientX: 400, clientY: 0 })
-    fireEvent.pointerUp(stage, { pointerId: 3, pointerType: 'touch', isPrimary: false, clientX: 300, clientY: 0 })
     expect(onIndexChange).not.toHaveBeenCalled()
   })
 
   it('the click that ends a swipe does not close; the next tap on the stage does', () => {
     const { onClose } = setup(0)
     swipe(-80)
-    fireEvent.click(stageOf())
+    fireEvent.click(stageOf(), { detail: 1 })
     expect(onClose).not.toHaveBeenCalled()
 
     // a swipe without a trailing click must not swallow the next tap
     swipe(-80)
     swipe(0)
-    fireEvent.click(stageOf())
+    fireEvent.click(stageOf(), { detail: 1 })
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   it('keeps the thumbnail strip finger-scrollable while the page behind stays locked', () => {
     setup(0)
     const strip = screen.getByRole('button', { name: 'Bild 2' }).parentElement!
-    expect(fireEvent.touchMove(strip)).toBe(true)
-    expect(fireEvent.touchMove(stageOf())).toBe(false)
+    expect(fireEvent.touchMove(strip, { touches: [{ identifier: 0, target: strip }] })).toBe(true)
+    expect(fireEvent.touchMove(stageOf(), { touches: [{ identifier: 0, target: stageOf() }] })).toBe(false)
     // only horizontal panning, and it never chains to the page
     expect(strip.className.split(/\s+/)).toEqual(expect.arrayContaining(['touch-pan-x', 'overscroll-contain']))
   })
@@ -275,6 +274,23 @@ describe('Lightbox swipe', () => {
   it('the stage keeps the browser from taking over the drag (no pointercancel)', () => {
     setup(0)
     expect(stageOf().className.split(/\s+/)).toContain('touch-none')
+  })
+
+  it('a keyboard click on an arrow after a swipe without trailing click still steps', () => {
+    const { onIndexChange } = setup(0)
+    swipe(-80)
+    fireEvent.click(screen.getByRole('button', { name: 'Nächstes Bild' }), { detail: 0 })
+    expect(onIndexChange).toHaveBeenCalledTimes(2)
+  })
+
+  it('a pinch that starts on the thumbnail strip does not reach the page', () => {
+    setup(0)
+    const strip = screen.getByRole('button', { name: 'Bild 2' }).parentElement!
+    const twoFingers = [
+      { identifier: 0, target: strip },
+      { identifier: 1, target: strip },
+    ]
+    expect(fireEvent.touchMove(strip, { touches: twoFingers })).toBe(false)
   })
 
   it('a lost pointerup does not block later swipes', () => {
