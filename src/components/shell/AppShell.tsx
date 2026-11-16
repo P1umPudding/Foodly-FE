@@ -25,7 +25,7 @@ import { TabBar } from './TabBar'
 // --shell-left / --shell-bottom so the sidebar or tab bar never covers them (none today since the editor's footer
 // moved into the header, #231).
 const SIDEBAR_WIDTH = {
-  expanded: { width: 'w-60', shellVar: '[--shell-left:15rem]' },
+  expanded: { width: 'w-62', shellVar: '[--shell-left:15.5rem]' },
   collapsed: { width: 'w-16', shellVar: '[--shell-left:4rem]' },
 }
 // --site-nav-h: header height, which the list's group headers stick under; the desktop 60 px is the :root default.

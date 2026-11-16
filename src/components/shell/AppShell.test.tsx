@@ -107,6 +107,13 @@ describe('AppShell on the desktop', () => {
     within(screen.getByRole('banner')).getByText('Start')
   })
 
+  it('is 248 px wide expanded and 64 px collapsed (#246)', () => {
+    renderAt('/recipes')
+    expect(sidebar().className.split(/\s+/)).toContain('w-62')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    expect(sidebar().className.split(/\s+/)).toContain('w-16')
+  })
+
   it('collapses to icons, remembers it, and expands again', () => {
     const { unmount } = renderAt('/recipes')
     within(sidebar()).getByRole('link', { name: 'Foodly' })
