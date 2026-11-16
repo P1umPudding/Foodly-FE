@@ -72,6 +72,7 @@ function TimerChip({ match, timerLabel, variant }: { match: DurationMatch; timer
       variant="outline"
       size="xs"
       onClick={onClick}
+      data-timer-chip
       // Built from the visible text, so speech input can name the chip by what it shows (WCAG 2.5.3).
       aria-label={`Timer starten: ${short}`}
       className={cn(

@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
+import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { StepText } from './StepText'
 import { TimerProvider, useTimers } from '../../timers/TimerProvider'
@@ -126,6 +127,35 @@ describe('StepText', () => {
       [LABEL, 30 * 60_000, 'expired'],
       [LABEL, 30 * 60_000, 'running'],
     ])
+  })
+
+  it('keeps the panel open when another chip is pressed', async () => {
+    const openStates: Array<boolean | undefined> = []
+    function OpenLog() {
+      const open = useTimerPanel()?.open
+      useEffect(() => {
+        openStates.push(open)
+      }, [open])
+      return null
+    }
+    render(
+      <TooltipProvider>
+        <TimerProvider userId={1}>
+          <TimerPanelProvider>
+            <TimerPanel />
+            <StepText value={STEP} timerLabel={LABEL} />
+            <OpenLog />
+          </TimerPanelProvider>
+        </TimerProvider>
+      </TooltipProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' }))
+    await screen.findByRole('dialog', { name: 'Timer' })
+    const other = screen.getByRole('button', { name: 'Timer starten: 1½ Std.' })
+    fireEvent.pointerDown(other)
+    fireEvent.click(other)
+    // Closed once and reopened would show as [false, true, false, true]: the panel would flicker.
+    expect(openStates).toEqual([false, true])
   })
 
   it('gives focus back to the chip when the panel it opened closes', async () => {

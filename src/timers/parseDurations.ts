@@ -166,5 +166,6 @@ export function shortDurationLabel(label: string): string {
     lastUnit = part.unitMs
     end += n[0].length
   }
+  // The label is the source text: flatten its line breaks and double spaces for the chip.
   return end === label.length ? parts.join(' ').replace(/\s+/g, ' ') : label
 }
