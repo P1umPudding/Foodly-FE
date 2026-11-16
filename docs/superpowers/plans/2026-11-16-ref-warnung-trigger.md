@@ -34,11 +34,11 @@ Neue Datei `src/pages/triggerRefs.test.tsx`, nur nach dem Muster von `Categories
 | AC | Nachweis |
 |----|----------|
 | 1 keine Warnung auf den 5 Routen | `triggerRefs.test.tsx` (Spy vor dem ersten Render) + Konsole im Dev-Server |
-| 2 Tooltip/Menü/Fokus wie vorher | Tooltip bei Fokus/Hover, Menü öffnet und Tooltip weg (neu); Escape-Fokus (neu für RecipeDetail/CategoryPage, bestehend für Categories) + Sichtprüfung |
+| 2 Tooltip/Menü/Fokus wie vorher | Tooltip bei Fokus, Menü öffnet und Tooltip weg (neu); Escape-Fokus (neu für RecipeDetail/CategoryPage, bestehend für Categories) + Sichtprüfung |
 | 3 keine Änderungen an node_modules/postxl | Diff enthält nur `src/` + Plan-Dokument |
 | 4 fünf Checks grün | Schritt 3 |
 
 ## Review-Log
 - Review pass 1 (frischer Subagent, 2026-11-16): kein Blocker. Major: (1) Tooltip schließt nach dem Tausch erst beim click, nicht beim pointerdown → dokumentiert + Test „Menü offen ⇒ kein Tooltip“; (2) React-Warn-once macht Einzeltests unzuverlässig → Spy in `beforeAll`, Sammelassertion am Ende, Rotphase für alle drei Seiten belegen; (3) Mock-Muster nicht mischbar → nur Categories.mock-Muster mit echter App. Minor übernommen: kein fragiler Stack-Filter, sondern null Meldungen; `data-state`-Unterschied benannt; doppelter Escape-Test gestrichen; einheitlicher Einzeiler-Kommentar; Plan-Doc im selben Commit.
 - Review pass 2 (frischer Subagent, 2026-11-16): kein Blocker. Major: (1) die Escape-Abdeckung war falsch behauptet (CategoryPage-Test betrifft das Sortiermenü, RecipeDetail den Dialog) → Escape auf ⋯ für beide neu; (2) `restoreAllMocks` im kopierten Muster entfernt den Spy → weggelassen; (3) die Sammelassertion lief bei `-t` gar nicht → Delta je Routen-Test. Minor: Rotphase je Route belegen, Tooltip per Fokus statt Hover (Verzögerung), Meldungen im Fehlertext; Nit: `data-state`-Grep (nur FilterButton, nicht betroffen) in den PR.
-- Code-Review Runde 1 und 2 (frische Subagenten): kein Blocker/Major. Umgesetzt: Kommentartext präzisiert, Spy reicht andere `console.error` durch, Schrittnummern im Plan, Test prüft `aria-describedby` des Auslösers gegen die Tooltip-ID (Tooltip am Auslöser verdrahtet).
+- Code-Review Runde 1 und 2 (frische Subagenten): kein Blocker/Major. Umgesetzt: Kommentartext präzisiert, Spy reicht andere `console.error` durch, Schrittnummern im Plan, Test prüft `aria-describedby` des Auslösers gegen die Tooltip-ID (a11y-Verknüpfung; den Fehler selbst fangen die Routen-Tests).
