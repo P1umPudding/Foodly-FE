@@ -8,7 +8,7 @@ Die äußere postxl-Funktion bekommt dann keinen Ref mehr; ihr Radix-`DropdownMe
 
 Verworfen: ein eigener `forwardRef`-Wrapper um `DropdownMenuPrimitive.Trigger`. Er bräuchte `@radix-ui/react-dropdown-menu` als direkte Abhängigkeit, und postxl exportiert das Primitive nicht.
 
-## Schritt 2 – Test zuerst (rot)
+## Schritt 1 – Test zuerst (rot)
 Neue Datei `src/pages/triggerRefs.test.tsx`, nur nach dem Muster von `Categories.mock.test.tsx` (`vi.stubEnv('VITE_MOCK','1')` + `vi.resetModules()` + echte `<App/>` im `MemoryRouter`, `SLOW`-Timeouts). Kein `vi.mock` von `CatalogProvider`/`react-router-dom`/`Link`, kein Mix mit anderen Mustern. **Kein `vi.restoreAllMocks()` in `afterEach`** (würde den Spy entfernen), nur `vi.unstubAllEnvs()`. Der Spy wird in `afterAll` per `mockRestore()` zurückgesetzt.
 - **Warn-once:** react-dom merkt sich die Warnung pro JSX-Quellzeile (`didWarnAboutFunctionRefs`), modulweit; `resetModules` setzt das nicht zurück. Deshalb: ein `console.error`-Spy (`mockImplementation(() => {})`) **einmal in `beforeAll`**; jeder Routen-Test merkt sich zu Beginn `n = spy.mock.calls.length`, rendert, wartet auf den Auslöser und prüft `refWarnings(n)` (Aufrufe ab `n`, deren erstes Argument „cannot be given refs“ enthält) `toEqual([])`. Bei Fehlschlag stehen Meldung und Stack im Diff. Die drei Stellen liegen auf verschiedenen Zeilen und werden je zuerst im eigenen Routen-Test gerendert, deshalb unabhängig von `-t`. Die Routen-Tests stehen in der Datei **vor** den Verhaltenstests.
 - Routen: `/recipes/:id` (eigenes Rezept von Nutzer 1), `/categories`, `/categories/:id`, Regression `/recipes/new`, `/recipes/:id/edit` (A1). Kein Dialog wird geöffnet (postxl-`DialogOverlay`, A5).
@@ -18,13 +18,13 @@ Neue Datei `src/pages/triggerRefs.test.tsx`, nur nach dem Muster von `Categories
   - Escape auf ⋯ für RecipeDetail und CategoryPage neu: Öffnen per `keyDown Enter`, `keyDown Escape` auf dem Menü, `waitFor` → `document.activeElement` ist der Auslöser. Categories ist schon durch `Categories.mock.test.tsx:349` abgedeckt.
 - Rotphase belegen: vor dem Fix laufen lassen; die Routen-Tests für RecipeDetail, Categories und CategoryPage schlagen **jeweils** fehl, die Editor-Tests sind grün.
 
-## Schritt 3 – Verschachtelung umdrehen (grün)
+## Schritt 2 – Verschachtelung umdrehen (grün)
 - `src/pages/RecipeDetail.tsx` (~171–183), `src/pages/CategoryPage.tsx` (~148–160), `src/pages/Categories.tsx` (~223–238): `TooltipTrigger asChild` und `DropdownMenuTrigger asChild` tauschen, Kinder/Props unverändert.
 - Je ein gleichlautender Einzeiler-Kommentar, z. B. `{/* Menu trigger outside: the postxl DropdownMenuTrigger doesn't forward refs, so it can't sit under TooltipTrigger asChild. */}`.
 - Lauf: neue Testdatei grün, dazu `Categories*.test.tsx`, `CategoryPage*.test.tsx`, `RecipeDetail*.test.tsx`, `App.pageTitle.test.tsx`, `catalog/categoriesFreshness.rest.test.tsx`.
 - Ein Commit mit Plan-Dokument (`docs/superpowers/plans/2026-11-16-ref-warnung-trigger.md` = dieser Plan, Konvention wie #277/#278), Test und Fix: `Ref-Warnung bei Tooltip- und Dropdown-Trigger beheben (#269)`, ohne AI-Trailer.
 
-## Schritt 4 – Abschluss
+## Schritt 3 – Abschluss
 - `npm run build`, `npm test -- --passWithNoTests`, `npm run format`, `npm run format:check`, `npm run lint` (ohne neue Suppressions).
 - Prüfung im Test-Log: `grep "cannot be given refs" -A3 | grep DropdownMenuTrigger` → 0 Treffer.
 - Sichtprüfung: Dev-Server im Mock-Modus (`VITE_MOCK=1`), `/recipes/2`, `/categories`, `/categories/:id`, `/recipes/new`: Konsole ohne die Warnung; Tooltip erscheint am ⋯, Menü öffnet und schließt, Escape führt den Fokus zurück. Wenn kein Chrome-MCP verfügbar ist, steht das im PR (keine sichtbare Änderung, Screenshots laut Spec nicht nötig).
@@ -36,7 +36,7 @@ Neue Datei `src/pages/triggerRefs.test.tsx`, nur nach dem Muster von `Categories
 | 1 keine Warnung auf den 5 Routen | `triggerRefs.test.tsx` (Spy vor dem ersten Render) + Konsole im Dev-Server |
 | 2 Tooltip/Menü/Fokus wie vorher | Tooltip bei Fokus/Hover, Menü öffnet und Tooltip weg (neu); Escape-Fokus (neu für RecipeDetail/CategoryPage, bestehend für Categories) + Sichtprüfung |
 | 3 keine Änderungen an node_modules/postxl | Diff enthält nur `src/` + Plan-Dokument |
-| 4 fünf Checks grün | Schritt 4 |
+| 4 fünf Checks grün | Schritt 3 |
 
 ## Review-Log
 - Review pass 1 (frischer Subagent, 2026-11-16): kein Blocker. Major: (1) Tooltip schließt nach dem Tausch erst beim click, nicht beim pointerdown → dokumentiert + Test „Menü offen ⇒ kein Tooltip“; (2) React-Warn-once macht Einzeltests unzuverlässig → Spy in `beforeAll`, Sammelassertion am Ende, Rotphase für alle drei Seiten belegen; (3) Mock-Muster nicht mischbar → nur Categories.mock-Muster mit echter App. Minor übernommen: kein fragiler Stack-Filter, sondern null Meldungen; `data-state`-Unterschied benannt; doppelter Escape-Test gestrichen; einheitlicher Einzeiler-Kommentar; Plan-Doc im selben Commit.

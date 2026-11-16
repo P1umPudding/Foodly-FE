@@ -12,7 +12,10 @@ let App: typeof import('../App').default
 // everything and each route test only looks at what its own render added. No restoreAllMocks: it would drop the spy.
 let consoleError: MockInstance<typeof console.error>
 beforeAll(() => {
-  consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+  const realError = console.error.bind(console)
+  consoleError = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+    if (!args.map(String).join(' ').includes('cannot be given refs')) realError(...args)
+  })
 })
 afterAll(() => consoleError.mockRestore())
 

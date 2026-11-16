@@ -220,7 +220,8 @@ export function Categories() {
                   {/* Not modal: a modal menu opening a modal dialog can leave pointer-events: none on the body. */}
                   <DropdownMenu modal={false}>
                     <Tooltip>
-                      {/* Menu trigger outside: postxl's drops refs, so TooltipTrigger asChild can't wrap it. */}
+                      {/* Menu trigger outside: postxl's DropdownMenuTrigger doesn't forward refs, so it can't sit under
+                          TooltipTrigger asChild. */}
                       <DropdownMenuTrigger asChild>
                         <TooltipTrigger asChild>
                           <TriggerButton

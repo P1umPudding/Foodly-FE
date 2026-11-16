@@ -168,7 +168,8 @@ export function RecipeDetail() {
             {isOwner(recipe, currentUserId) && (
               <DropdownMenu modal={false}>
                 <Tooltip>
-                  {/* Menu trigger outside: postxl's drops refs, so TooltipTrigger asChild can't wrap it. */}
+                  {/* Menu trigger outside: postxl's DropdownMenuTrigger doesn't forward refs, so it can't sit under
+                      TooltipTrigger asChild. */}
                   <DropdownMenuTrigger asChild>
                     <TooltipTrigger asChild>
                       <TriggerButton
