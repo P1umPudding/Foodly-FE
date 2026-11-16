@@ -8,6 +8,8 @@ import type { UserCategory } from '../../api/protocol'
 const SIZE = {
   sm: 'size-5 rounded-sm text-xs/none',
   md: 'size-8 rounded-md text-base/none',
+  // The editor's symbol field next to the name (mockup `.ce-icon`, 38 px, 14 px initial).
+  field: 'size-[38px] rounded-md text-base/none',
   xl: 'size-10 rounded-sm text-lg/none',
 } as const
 

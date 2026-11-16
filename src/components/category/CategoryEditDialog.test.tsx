@@ -1,8 +1,8 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TooltipProvider } from '@postxl/ui-components'
 import { CategoryEditDialog } from './CategoryEditDialog'
-import { SUGGESTED_COLORS } from '../../lib/categoryColor'
+import { SUGGESTED_COLORS, categoryColors } from '../../lib/categoryColor'
 import { setViewport } from '../../test/viewport'
 import type { UserCategory } from '../../api/protocol'
 
@@ -99,6 +99,26 @@ describe('CategoryEditDialog', () => {
       colorLight: '#111111',
       colorDark: '#eeeeee',
     })
+  })
+
+  it('turns the preview neutral with the grey swatch and saves the grey', async () => {
+    const pasta = cat({ id: 4 })
+    actions.update.mockResolvedValue(pasta)
+    const { onClose } = renderDialog(pasta)
+    const chip = () => within(screen.getByTestId('category-preview')).getAllByText('Pasta')[0].closest('[data-cat]')
+    const dotOf = (color: string) => categoryColors({ color, colorLight: null, colorDark: null }).light.dot
+    expect((chip() as HTMLElement).style.getPropertyValue('--cat-dot-l')).toBe(dotOf(SUGGESTED_COLORS[0]))
+    fireEvent.click(screen.getByRole('radio', { name: 'Farbe 12' }))
+    expect((chip() as HTMLElement).style.getPropertyValue('--cat-dot-l')).toBe(dotOf('#808080'))
+    fireEvent.click(saveButton())
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(actions.update).toHaveBeenCalledWith(4, expect.objectContaining({ color: '#78716c' }))
+  })
+
+  it('shows the initial in the symbol field with the hint', () => {
+    renderDialog(cat({ name: 'Brot' }))
+    expect(screen.getByText(/Symbol kommt aus den Tag-Symbolen/)).toBeTruthy()
+    expect(nameInput().getAttribute('aria-describedby')).toBe(screen.getByText(/Symbol kommt/).id)
   })
 
   it('shows a failed save in the dialog and keeps the input', async () => {
