@@ -51,6 +51,13 @@ describe('Login', () => {
     expect(document.title).toBe('Foodly')
   })
 
+  it('shows the brand above the title, as in the shell (#246)', () => {
+    renderAuthRoutes('/login', { login: <Login /> })
+    expect(screen.getByText('Foodly').className.split(/\s+/)).toEqual(
+      expect.arrayContaining(['text-[17px]', 'font-bold']),
+    )
+  })
+
   it('goes to next after signing in', async () => {
     mockCatalogs()
     const fetchSpy = loginReply(ok)

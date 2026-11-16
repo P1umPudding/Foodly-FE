@@ -107,6 +107,17 @@ describe('AppShell on the desktop', () => {
     within(screen.getByRole('banner')).getByText('Start')
   })
 
+  it('is 248 px wide expanded and 64 px collapsed (#246)', () => {
+    renderAt('/recipes')
+    // The shell's --shell-left (overlay inset) has to move with the sidebar width.
+    const shell = () => sidebar().closest('.min-h-screen')!.className.split(/\s+/)
+    expect(sidebar().className.split(/\s+/)).toContain('w-62')
+    expect(shell()).toContain('[--shell-left:15.5rem]')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    expect(sidebar().className.split(/\s+/)).toContain('w-16')
+    expect(shell()).toContain('[--shell-left:4rem]')
+  })
+
   it('collapses to icons, remembers it, and expands again', () => {
     const { unmount } = renderAt('/recipes')
     within(sidebar()).getByRole('link', { name: 'Foodly' })
@@ -138,6 +149,13 @@ describe('AppShell on the desktop', () => {
     const classes = within(sidebar()).getByRole('link', { name: 'Foodly' }).className.split(/\s+/)
     expect(classes).toEqual(expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-sidebar-ring']))
     expect(classes).not.toContain('focus-visible:ring-2')
+  })
+
+  it('sets the wordmark at the mockup 17/700, not .font-display (#246)', () => {
+    renderAt('/recipes')
+    const classes = within(sidebar()).getByText('Foodly').className.split(/\s+/)
+    expect(classes).toEqual(expect.arrayContaining(['text-[17px]', 'font-bold']))
+    expect(classes).not.toContain('font-display')
   })
 
   it('highlights the single shown category instead of "Rezepte"', () => {
@@ -258,6 +276,34 @@ describe('AppShell on the desktop', () => {
     expect(screen.getByRole('banner').textContent).toContain('Kategorien')
   })
 
+  it('shows only the category name in the collapsed tooltip, keeping the count in the aria-label (#246)', async () => {
+    renderAt('/recipes')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    const link = within(sidebar()).getByRole('link', { name: 'Favoriten (3)' })
+    act(() => link.focus())
+    // Not via getByText: Radix renders the tooltip label twice.
+    expect((await screen.findByRole('tooltip')).textContent).toBe('Favoriten')
+  })
+
+  it('replaces the "Kategorien" heading with a divider only when collapsed, also while loading (#246)', () => {
+    const { unmount } = renderAt('/recipes')
+    expect(within(sidebar()).queryByTestId('category-divider')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    within(sidebar()).getByTestId('category-divider')
+    expect(within(sidebar()).queryByRole('heading', { name: 'Kategorien' })).toBeNull()
+    unmount()
+    catalog.categories = { status: 'loading', list: [] }
+    renderAt('/recipes')
+    within(sidebar()).getByTestId('category-divider')
+  })
+
+  it('sets the "Kategorien" heading in subtle (#246)', () => {
+    renderAt('/recipes')
+    expect(within(sidebar()).getByRole('heading', { name: 'Kategorien' }).className.split(/\s+/)).toContain(
+      'text-subtle-foreground',
+    )
+  })
+
   it('has no gear in the collapsed sidebar', () => {
     renderAt('/recipes')
     fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
@@ -282,6 +328,24 @@ describe('AppShell on the phone', () => {
     expect(fab.className).toContain('shadow-[0_6px_20px_rgb(0_0_0/0.22)]')
     expect(fab.className).not.toContain('size-14')
     expect(fab.className).not.toContain('shadow-lg')
+  })
+
+  it('has a 28 px avatar pulled to the header edge (#246)', () => {
+    renderAt('/recipes')
+    const link = screen.getByRole('link', { name: 'Profil & Einstellungen' })
+    expect(link.className.split(/\s+/)).toEqual(expect.arrayContaining(['-mr-1.5', 'size-10']))
+    expect(link.firstElementChild!.className.split(/\s+/)).toContain('size-7')
+  })
+
+  it('has a translucent, blurred tab bar with 22 px icons and 11 px labels (#246)', () => {
+    renderAt('/recipes')
+    const nav = mainNav()
+    expect(nav.className.split(/\s+/)).toEqual(
+      expect.arrayContaining(['tab-bar', 'bg-sidebar/92', 'backdrop-blur-[14px]']),
+    )
+    const tab = within(nav).getByRole('link', { name: 'Rezepte' })
+    expect(tab.className.split(/\s+/)).toEqual(expect.arrayContaining(['text-[11px]', 'gap-[3px]']))
+    expect(tab.querySelector('svg')!.getAttribute('class')!.split(/\s+/)).toContain('size-5.5')
   })
 
   it('leads to the profile page from the avatar', () => {

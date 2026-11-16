@@ -15,7 +15,7 @@ import { profileName } from './profileName'
 const LABEL = 'Profil & Einstellungen'
 
 // The way to /profile: the avatar in the phone header or the sidebar's bottom row.
-//  • avatar — phone header, 40 px tap target
+//  • avatar — phone header, 40 px tap target, 28 px avatar
 //  • row    — expanded sidebar: avatar + name
 //  • icon   — collapsed sidebar: avatar only, tooltip
 export function ProfileLink({ variant }: { variant: 'avatar' | 'row' | 'icon' }) {
@@ -28,7 +28,7 @@ export function ProfileLink({ variant }: { variant: 'avatar' | 'row' | 'icon' })
 
   // Sidebar: mockup `.avatar.xs` (22 px, 11 px initial), off the text scale.
   const avatar = (
-    <Avatar aria-hidden className={variant === 'avatar' ? 'size-8' : 'size-[22px]'}>
+    <Avatar aria-hidden className={variant === 'avatar' ? 'size-7' : 'size-[22px]'}>
       <AvatarFallback className={cn('font-semibold', variant === 'avatar' ? 'text-xs' : 'text-[11px]')}>
         {initial}
       </AvatarFallback>
@@ -40,7 +40,8 @@ export function ProfileLink({ variant }: { variant: 'avatar' | 'row' | 'icon' })
       <Link
         to="/profile"
         aria-label={LABEL}
-        className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'size-10 rounded-full')}
+        // -mr-1.5: mockup `.me-btn`, pulls the avatar to the header's edge while keeping the 40 px tap target.
+        className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), '-mr-1.5 size-10 rounded-full')}
       >
         {avatar}
       </Link>
