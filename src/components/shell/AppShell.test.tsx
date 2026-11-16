@@ -140,6 +140,13 @@ describe('AppShell on the desktop', () => {
     expect(classes).not.toContain('focus-visible:ring-2')
   })
 
+  it('sets the wordmark at the mockup 17/700, not .font-display (#246)', () => {
+    renderAt('/recipes')
+    const classes = within(sidebar()).getByText('Foodly').className.split(/\s+/)
+    expect(classes).toEqual(expect.arrayContaining(['text-[17px]', 'font-bold']))
+    expect(classes).not.toContain('font-display')
+  })
+
   it('highlights the single shown category instead of "Rezepte"', () => {
     renderAt('/recipes?cat=2')
     const side = within(sidebar())
