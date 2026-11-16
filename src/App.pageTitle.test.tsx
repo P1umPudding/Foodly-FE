@@ -204,6 +204,7 @@ describe('exactly one h1', () => {
     await renderAt('/recipes/5')
     await screen.findByText('Rezept konnte nicht geladen werden')
     expect(h1s()).toHaveLength(1)
+    expect(screen.queryByText('nicht da')).toBeNull()
   })
 
   it('detail keeps the recipe name as its h1', async () => {
