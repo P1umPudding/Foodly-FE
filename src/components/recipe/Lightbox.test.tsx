@@ -263,6 +263,15 @@ describe('Lightbox swipe', () => {
     expect(strip.className.split(/\s+/)).toEqual(expect.arrayContaining(['touch-pan-x', 'overscroll-contain']))
   })
 
+  it('a pinch (second finger down) never ends as a swipe', () => {
+    const { onIndexChange } = setup(0)
+    const stage = stageOf()
+    fireEvent.pointerDown(stage, { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 200, clientY: 0 })
+    fireEvent.pointerDown(stage, { pointerId: 2, pointerType: 'touch', isPrimary: false, clientX: 300, clientY: 0 })
+    fireEvent.pointerUp(stage, { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 100, clientY: 0 })
+    expect(onIndexChange).not.toHaveBeenCalled()
+  })
+
   it('the stage keeps the browser from taking over the drag (no pointercancel)', () => {
     setup(0)
     expect(stageOf().className.split(/\s+/)).toContain('touch-none')

@@ -90,7 +90,12 @@ export function Lightbox({
   // browsers usually send no click after a swipe and a stale flag would swallow the next tap.
   const onPointerDown = (e: React.PointerEvent) => {
     swiped.current = false
-    if (e.pointerType === 'mouse' || !e.isPrimary || n < 2) return
+    if (e.pointerType === 'mouse' || n < 2) return
+    // A second finger turns the gesture into a pinch: never a swipe.
+    if (!e.isPrimary) {
+      swipeStart.current = null
+      return
+    }
     swipeStart.current = { id: e.pointerId, x: e.clientX, y: e.clientY }
   }
   const onPointerUp = (e: React.PointerEvent) => {
@@ -132,7 +137,7 @@ export function Lightbox({
     >
       <div className="flex h-14 shrink-0 items-center justify-between pl-5 pr-3">
         <span onClick={stop} aria-live="polite" className="cursor-default text-sm tabular-nums text-white/75">
-          {index + 1} / {n}
+          {`${index + 1} / ${n}`}
         </span>
         <Button
           variant="ghost"
@@ -149,7 +154,7 @@ export function Lightbox({
       </div>
 
       {/* touch-none: without it the browser takes over a horizontal drag and cancels the swipe
-          (pointercancel). Pinch-zoom was already off through the touchmove lock above. */}
+          (pointercancel). Pinch-zoom was already off through the window touchmove lock. */}
       <div
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
