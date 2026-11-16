@@ -37,7 +37,11 @@ export function StepText({
     <>
       {parts.map((p, i) => (
         <Fragment key={i}>
-          {typeof p === 'string' ? <TagText value={p} /> : <TimerChip match={p} timerLabel={timerLabel} variant={variant} />}
+          {typeof p === 'string' ? (
+            <TagText value={p} />
+          ) : (
+            <TimerChip match={p} timerLabel={timerLabel} variant={variant} />
+          )}
         </Fragment>
       ))}
     </>
