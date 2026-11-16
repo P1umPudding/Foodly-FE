@@ -61,10 +61,10 @@ Bei diesen Punkten wird nur angeglichen, was das Mockup an gemeinsamen Bausteine
 
 | # | Zustand | Mockup | App (Lightbox.tsx) | Art | Abgedeckt |
 |---|---|---|---|---|---|
-| B1 | Desktop | Deckender Hintergrund `oklch(0.12 0 0)`, Kopfleiste 56 px mit „4 / 9“ **links oben** und ✕ 40 px rechts. Bild füllt die Bühne (Padding 72 px, max-height 100vh−140), Radius 6 | Halbtransparent `bg-black/70` + Blur (Seite scheint durch), Bild fest 50vw × 64vh, ✕ 56 px. Unter dem Bild Bildname groß „Bild 5“ + „4 / 9“ | Struktur | NEU (#208 sagt „Lightbox unverändert“, das Mockup zeigt sie aber restyled) |
-| B2 | Desktop · Pfeile | 40-px-Knöpfe am **Bildschirmrand** (16 px), `rgb(255 255 255/.1)` | 56-px-Knöpfe bei 18vw, liegen teils über dem Bild | Layout | NEU |
-| B3 | Vorschaubilder | 56 px, inaktiv opacity .55, aktiv 2 px weißer Rand, zentriert am unteren Rand (14 px Padding) | 80 px, inaktiv mit schwarzem Overlay, aktiv `ring-2`, mt-12 unter der Bildunterschrift | Fein | NEU |
-| B4 | Handy | Bild **volle Breite** ohne Radius, **keine Pfeilknöpfe**, **Wischen**, Vorschaubilder 44 px | Bild 50vw (≈195 px breit), Pfeilknöpfe liegen auf dem Bild, kein Wischen (touchmove wird geschluckt), Vorschaubilder 80 px | Struktur / Verhalten | NEU |
+| B1 | Desktop | Deckender Hintergrund `oklch(0.12 0 0)`, Kopfleiste 56 px mit „4 / 9“ **links oben** und ✕ 40 px rechts. Bild füllt die Bühne (Padding 72 px, max-height 100vh−140), Radius 6 | Halbtransparent `bg-black/70` + Blur (Seite scheint durch), Bild fest 50vw × 64vh, ✕ 56 px. Unter dem Bild Bildname groß „Bild 5“ + „4 / 9“ | Struktur | #248 (#208 sagte noch „Lightbox unverändert“) |
+| B2 | Desktop · Pfeile | 40-px-Knöpfe am **Bildschirmrand** (16 px), `rgb(255 255 255/.1)` | 56-px-Knöpfe bei 18vw, liegen teils über dem Bild | Layout | #248 |
+| B3 | Vorschaubilder | 56 px, inaktiv opacity .55, aktiv 2 px weißer Rand, zentriert am unteren Rand (14 px Padding) | 80 px, inaktiv mit schwarzem Overlay, aktiv `ring-2`, mt-12 unter der Bildunterschrift | Fein | #248 |
+| B4 | Handy | Bild **volle Breite** ohne Radius, **keine Pfeilknöpfe**, **Wischen**, Vorschaubilder 44 px | Bild 50vw (≈195 px breit), Pfeilknöpfe liegen auf dem Bild, kein Wischen (touchmove wird geschluckt), Vorschaubilder 80 px | Struktur / Verhalten | #248 |
 
 ## C. Timer-Knopf und Timer-Panel (Mockup `#/timer`, app.js:186-210, screens.css:1198-1254, README §3.2)
 

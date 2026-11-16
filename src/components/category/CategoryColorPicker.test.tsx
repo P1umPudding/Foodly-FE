@@ -1,4 +1,4 @@
-import { act, render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { CategoryColorPicker } from './CategoryColorPicker'
 import { SUGGESTED_COLORS, categoryColors, oklchToHex } from '../../lib/categoryColor'
@@ -100,5 +100,45 @@ describe('CategoryColorPicker', () => {
     expect((screen.getByLabelText('Eigene Farbe') as HTMLInputElement).value).toBe('#000000')
     for (const radio of screen.getAllByRole('radio')) expect(radio.getAttribute('aria-checked')).toBe('false')
     expect(status().textContent).toBe('')
+  })
+
+  it('labels the swatches with the „Farbe“ heading', () => {
+    setup()
+    expect(screen.getByRole('radiogroup', { name: 'Farbe' })).toBeTruthy()
+  })
+
+  it('offers the neutral grey as the last suggestion', () => {
+    const { onChange } = setup()
+    fireEvent.click(swatch(12))
+    expect(onChange).toHaveBeenCalledWith('#78716c')
+  })
+
+  it('marks the „+“ swatch as chosen for a custom colour only', () => {
+    const { rerender } = render(
+      <CategoryColorPicker value="#123456" onChange={() => {}} name="Suppen" categories={[]} />,
+    )
+    expect(screen.getByLabelText('Eigene Farbe').getAttribute('aria-describedby')).toContain(
+      document.getElementById(screen.getByLabelText('Eigene Farbe').getAttribute('aria-describedby')!.split(' ')[0])!
+        .id,
+    )
+    expect(document.querySelector('[hidden]')?.textContent).toBe('gewählt')
+    rerender(<CategoryColorPicker value={SUGGESTED_COLORS[0]} onChange={() => {}} name="Suppen" categories={[]} />)
+    expect(screen.getByLabelText('Eigene Farbe').getAttribute('aria-describedby')).not.toContain(
+      (document.querySelector('[hidden]') as HTMLElement).id,
+    )
+  })
+
+  it('shows chip, mark and dot label under „So sieht es aus“', () => {
+    setup()
+    expect(screen.getByText('So sieht es aus')).toBeTruthy()
+    const preview = screen.getByTestId('category-preview')
+    expect(within(preview).getAllByText('Suppen')).toHaveLength(2)
+    // The chip's small mark plus the standalone mark, both with the initial.
+    expect(within(preview).getAllByText('S')).toHaveLength(2)
+  })
+
+  it('puts an info icon in front of the similarity hint', () => {
+    setup({ categories: [pasta] })
+    expect(status().querySelector('svg')).toBeTruthy()
   })
 })

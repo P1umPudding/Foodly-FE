@@ -156,9 +156,22 @@ export function categoryColorVars(cat: CategoryColorInput): { 'data-cat': ''; st
   return { 'data-cat': '', style: vars as CSSProperties }
 }
 
-export const SUGGESTED_COLORS: readonly string[] = Array.from({ length: 12 }, (_, i) =>
-  oklchToHex(ROLE_TABLE.light.dot.l, ROLE_TABLE.light.dot.maxC, i * 30),
-)
+// The mockup's palette (app.js `S.categories`): eleven hues plus a neutral grey. Their hues are at least 20° apart, so
+// two suggestions never trigger the similarity hint against each other.
+export const SUGGESTED_COLORS: readonly string[] = [
+  '#e11d48',
+  '#f97316',
+  '#f59e0b',
+  '#fde047',
+  '#84cc16',
+  '#10b981',
+  '#06b6d4',
+  '#0ea5e9',
+  '#1e3a8a',
+  '#7c3aed',
+  '#c026d3',
+  '#78716c',
+]
 
 // Neutral or invalid colours have no meaningful hue; 180 (maximally far) keeps a
 // "too similar" hint from firing on them.
@@ -185,5 +198,6 @@ export function similarCategory<C extends CategoryLike>(
 }
 
 export function firstFreeColor(categories: readonly CategoryLike[]): string {
+  // Grey is never „similar“, so the fallback is unreachable while it is in the palette; the type needs it anyway.
   return SUGGESTED_COLORS.find((c) => !similarCategory(c, categories)) ?? SUGGESTED_COLORS[0]
 }
