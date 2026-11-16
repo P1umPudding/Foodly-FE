@@ -326,6 +326,24 @@ describe('AppShell on the phone', () => {
     expect(fab.className).not.toContain('shadow-lg')
   })
 
+  it('has a 28 px avatar pulled to the header edge (#246)', () => {
+    renderAt('/recipes')
+    const link = screen.getByRole('link', { name: 'Profil & Einstellungen' })
+    expect(link.className.split(/\s+/)).toEqual(expect.arrayContaining(['-mr-1.5', 'size-10']))
+    expect(link.firstElementChild!.className).toContain('size-7')
+  })
+
+  it('has a translucent, blurred tab bar with 22 px icons and 11 px labels (#246)', () => {
+    renderAt('/recipes')
+    const nav = mainNav()
+    expect(nav.className.split(/\s+/)).toEqual(
+      expect.arrayContaining(['tab-bar', 'bg-sidebar/92', 'backdrop-blur-[14px]']),
+    )
+    const tab = within(nav).getByRole('link', { name: 'Rezepte' })
+    expect(tab.className.split(/\s+/)).toEqual(expect.arrayContaining(['text-[11px]', 'gap-[3px]']))
+    expect(tab.querySelector('svg')!.getAttribute('class')).toContain('size-5.5')
+  })
+
   it('leads to the profile page from the avatar', () => {
     renderAt('/recipes')
     const avatar = screen.getByRole('link', { name: 'Profil & Einstellungen' })
