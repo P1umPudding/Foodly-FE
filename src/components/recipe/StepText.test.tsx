@@ -145,6 +145,7 @@ describe('StepText', () => {
             <TimerPanel />
             <StepText value={STEP} timerLabel={LABEL} />
             <OpenLog />
+            <Probe />
           </TimerPanelProvider>
         </TimerProvider>
       </TooltipProvider>,
@@ -156,6 +157,11 @@ describe('StepText', () => {
     fireEvent.click(other)
     // Closed once and reopened would show as [false, true, false, true]: the panel would flicker.
     expect(openStates).toEqual([false, true])
+    expect(probe().timers).toHaveLength(2)
+
+    // Escape now hands focus to the chip pressed last.
+    fireEvent.keyDown(screen.getByRole('dialog', { name: 'Timer' }), { key: 'Escape' })
+    await waitFor(() => expect(document.activeElement).toBe(other))
   })
 
   it('gives focus back to the chip when the panel it opened closes', async () => {
