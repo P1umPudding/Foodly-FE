@@ -52,8 +52,8 @@ describe('StepText', () => {
   it('renders tag tokens and one chip per time span', () => {
     renderStep()
     expect(screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual([
-      'Timer starten: Etwa 30 Minuten',
-      'Timer starten: 1½ Stunden',
+      'Timer starten: Etwa 30 Min.',
+      'Timer starten: 1½ Std.',
     ])
     expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['Etwa 30 Min.', '1½ Std.'])
     expect(document.body.textContent).toContain('im Ofen bei 180 °C')
@@ -62,7 +62,7 @@ describe('StepText', () => {
 
   it('starts a named timer that survives a reload', () => {
     const { unmount } = renderStep()
-    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' }))
     expect(probe().timers).toEqual([[LABEL, 30 * 60_000, 'running']])
 
     unmount()
@@ -72,7 +72,7 @@ describe('StepText', () => {
 
   it('starts the timer and opens the panel with one click, without a toast', () => {
     renderStep()
-    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' })
     fireEvent.click(chip)
     expect(probe()).toEqual({ open: true, timers: [[LABEL, 30 * 60_000, 'running']] })
     expect(toast).not.toHaveBeenCalled()
@@ -82,7 +82,7 @@ describe('StepText', () => {
     expect(probe()).toEqual({ open: true, timers: [[LABEL, 30 * 60_000, 'running']] })
 
     // A different span of the same step is its own timer.
-    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: 1½ Stunden' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: 1½ Std.' }))
     expect(probe().timers).toHaveLength(2)
   })
 
@@ -93,7 +93,7 @@ describe('StepText', () => {
         <Probe />
       </TimerProvider>,
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' }))
     expect(probe()).toEqual({ timers: [[LABEL, 30 * 60_000, 'running']] })
   })
 
@@ -103,7 +103,8 @@ describe('StepText', () => {
         <StepText value={STEP} timerLabel={LABEL} variant="cook" />
       </TimerProvider>,
     )
-    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' })
+    // jsdom has no layout, so the em sizing can only be checked through the classes.
     const classes = [...chip.classList]
     expect(classes).toEqual(expect.arrayContaining(['h-[1.3em]', 'text-[0.8em]']))
     expect(classes).not.toContain('h-6')
@@ -113,7 +114,7 @@ describe('StepText', () => {
   it('starts a new timer once the old one for the step has run out', () => {
     vi.useFakeTimers()
     renderStep()
-    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' })
     fireEvent.click(chip)
     act(() => {
       vi.advanceTimersByTime(30 * 60_000 + 500)
@@ -138,7 +139,7 @@ describe('StepText', () => {
         </TimerProvider>
       </TooltipProvider>,
     )
-    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' })
     fireEvent.click(chip)
     const panel = await screen.findByRole('dialog', { name: 'Timer' })
     fireEvent.keyDown(panel, { key: 'Escape' })

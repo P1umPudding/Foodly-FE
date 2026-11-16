@@ -166,5 +166,5 @@ export function shortDurationLabel(label: string): string {
     lastUnit = part.unitMs
     end += n[0].length
   }
-  return end === label.length ? parts.join(' ') : label
+  return end === label.length ? parts.join(' ').replace(/\s+/g, ' ') : label
 }

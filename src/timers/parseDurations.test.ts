@@ -149,6 +149,7 @@ describe('shortDurationLabel', () => {
     ['eine Viertelstunde', '15 Min.'],
     ['Dreiviertelstunde', '45 Min.'],
     ['ca. eine halbe Stunde', 'ca. 30 Min.'],
+    ['ca.  5 min', 'ca. 5 Min.'],
   ]
 
   it.each(CASES)('%s → %s', (label, short) => {

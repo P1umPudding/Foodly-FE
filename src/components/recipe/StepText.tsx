@@ -52,6 +52,7 @@ export function StepText({
 function TimerChip({ match, timerLabel, variant }: { match: DurationMatch; timerLabel: string; variant: ChipVariant }) {
   const { timers, add } = useTimers()
   const panel = useTimerPanel()
+  const short = shortDurationLabel(match.label)
 
   const onClick = (e: MouseEvent<HTMLButtonElement>) => {
     // The label names the step, so two equal spans in one step count as the same timer.
@@ -71,10 +72,10 @@ function TimerChip({ match, timerLabel, variant }: { match: DurationMatch; timer
       variant="outline"
       size="xs"
       onClick={onClick}
-      // The long text stays the accessible name; the visible short label is part of it.
-      aria-label={`Timer starten: ${match.label}`}
+      // Built from the visible text, so speech input can name the chip by what it shows (WCAG 2.5.3).
+      aria-label={`Timer starten: ${short}`}
       className={cn(
-        'relative mx-px gap-1 rounded-sm bg-card px-2 py-0 leading-none font-semibold text-foreground shadow-none hover:bg-hover hover:text-foreground dark:border-border dark:bg-card dark:hover:bg-hover',
+        'relative mx-px gap-1 rounded-sm bg-card px-2 py-0 font-semibold text-foreground shadow-none hover:bg-hover hover:text-foreground dark:border-border dark:bg-card dark:hover:bg-hover',
         // 40 px tap area on touch (design.md §7) around the 24 px chip. It reaches into the line above and below; no
         // z-index, as a negative one would put it behind the step text.
         'touch:after:absolute touch:after:inset-x-0 touch:after:-inset-y-2',
@@ -82,7 +83,7 @@ function TimerChip({ match, timerLabel, variant }: { match: DurationMatch; timer
       )}
     >
       <TimerIcon className="size-3.5" />
-      {shortDurationLabel(match.label)}
+      {short}
     </Button>
   )
 }
