@@ -1,5 +1,5 @@
 // „Meine Kategorien“: the user's categories, created, renamed, recoloured, reordered and deleted here.
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Alert,
@@ -18,7 +18,7 @@ import { Skeleton } from '../components/Skeleton'
 import { ArrowDown, ArrowUp, Folder, MoreHorizontal, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useCategories } from '../catalog/CatalogProvider'
 import { useCategoryActions } from '../catalog/useCategoryActions'
-import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
+import { CategoryEditorCard } from '../components/category/CategoryEditorCard'
 import { CategoryMark } from '../components/category/CategoryMark'
 import { DeleteCategoryDialog } from '../components/category/DeleteCategoryDialog'
 import { EmptyState, ErrorState } from '../components/StateCard'
@@ -31,8 +31,10 @@ import { moveCategory } from '../lib/moveCategory'
 import type { UserCategory, UserCategoryId } from '../api/protocol'
 
 // `target` outlives `open`, so a closing dialog keeps its title and name during the exit animation. `key` is new per
-// opening: the dialog starts from scratch every time, even when reopened mid-animation.
-type DialogState = { kind: 'edit' | 'delete'; target: UserCategory | null; open: boolean; key: number }
+// opening: the dialog (and the inline editor) starts from scratch every time, even when reopened mid-animation.
+type DialogState = { target: UserCategory; open: boolean; key: number }
+// The mockup edits inline: one card under the list, null target = a new category.
+type EditorState = { target: UserCategory | null; key: number }
 
 // Mockup `.pad-rows > .row` in a `.divided` card.
 const ROW = cn('flex items-center gap-3.5 rounded-sm px-3 py-2.5', ROW_DIVIDER)
@@ -43,6 +45,9 @@ export function Categories() {
   const categories = useCategories()
   const ordered = [...categories.list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   const [dialog, setDialog] = useState<DialogState | null>(null)
+  const [editor, setEditor] = useState<EditorState | null>(null)
+  // Set when the editor closes; run once it is gone, so focus lands on a trigger that exists by then.
+  const focusAfterEditor = useRef<(() => void) | null>(null)
   const openings = useRef(0)
   // Header and empty state never show at once: one ref for whichever „Neue Kategorie“ is rendered.
   const newButton = useRef<HTMLButtonElement>(null)
@@ -51,8 +56,8 @@ export function Categories() {
   const [moveFailed, setMoveFailed] = useState(false)
   const moves = useRef(0)
   const lastMoved = useRef<UserCategoryId | null>(null)
-  // Bearbeiten/Löschen: the dialog places focus when it closes, so the menu must not put it back on the ⋯ first.
-  const dialogOwnsFocus = useRef(false)
+  // Bearbeiten/Löschen: the editor or dialog places focus itself, so the menu must not put it back on the ⋯ first.
+  const menuHandsOffFocus = useRef(false)
 
   const focusLastMoved = () => {
     const trigger = lastMoved.current === null ? undefined : menuTriggers.current.get(lastMoved.current)
@@ -74,24 +79,44 @@ export function Categories() {
     })
   }
 
-  const openDialog = (kind: DialogState['kind'], target: UserCategory | null) =>
-    setDialog({ kind, target, open: true, key: ++openings.current })
-  const openFromMenu = (kind: DialogState['kind'], target: UserCategory) => {
-    dialogOwnsFocus.current = true
-    openDialog(kind, target)
+  // Opening another one replaces an open editor and drops its draft.
+  const openEditor = (target: UserCategory | null) => setEditor({ target, key: ++openings.current })
+  const openDelete = (target: UserCategory) => {
+    menuHandsOffFocus.current = true
+    setDialog({ target, open: true, key: ++openings.current })
   }
   const closeDialog = () => setDialog((d) => (d ? { ...d, open: false } : d))
 
-  // The ⋯ item that opened the dialog is gone by now; back to its row's ⋯, or, when there is no such row (created,
-  // deleted), to „Neue Kategorie“.
-  const restoreFocus = (e: Event) => {
-    e.preventDefault()
-    const trigger = dialog?.target ? menuTriggers.current.get(dialog.target.id) : undefined
+  // Back to the row's ⋯, or, when there is no such row (created, deleted), to „Neue Kategorie“.
+  const focusTrigger = (target: UserCategory | null) => {
+    const trigger = target ? menuTriggers.current.get(target.id) : undefined
     ;(trigger ?? newButton.current)?.focus()
   }
+  // The ⋯ item that opened the dialog is gone by now.
+  const restoreFocus = (e: Event) => {
+    e.preventDefault()
+    focusTrigger(dialog?.target ?? null)
+  }
+  const closeEditor = () => {
+    const target = editor?.target ?? null
+    focusAfterEditor.current = () => focusTrigger(target)
+    setEditor(null)
+  }
+
+  useEffect(() => {
+    if (editor) return
+    focusAfterEditor.current?.()
+    focusAfterEditor.current = null
+  }, [editor])
+
+  // The category being edited was deleted (here or in another tab): its draft has nothing left to save to.
+  const editedGone = editor?.target != null && !categories.list.some((c) => c.id === editor.target?.id)
+  useEffect(() => {
+    if (editedGone) setEditor(null)
+  }, [editedGone])
 
   const newCategoryButton = (
-    <TriggerButton ref={newButton} variant="outline" size="sm" onClick={() => openDialog('edit', null)}>
+    <TriggerButton ref={newButton} variant="outline" size="sm" onClick={() => openEditor(null)}>
       <Plus aria-hidden className="size-4" />
       Neue Kategorie
     </TriggerButton>
@@ -198,16 +223,20 @@ export function Categories() {
                       </TooltipTrigger>
                       <TooltipContent>Aktionen</TooltipContent>
                     </Tooltip>
-                    {/* Only a dialog opened from here places focus itself; moves and Escape let Radix return it to this ⋯. */}
+                    {/* Only the editor or a dialog opened from here places focus itself; moves and Escape let Radix return
+                        it to this ⋯. */}
                     <DropdownMenuContent
                       align="end"
                       onCloseAutoFocus={(e) => {
-                        if (!dialogOwnsFocus.current) return
-                        dialogOwnsFocus.current = false
+                        if (!menuHandsOffFocus.current) return
+                        menuHandsOffFocus.current = false
                         e.preventDefault()
                       }}
                     >
-                      <DropdownMenuItem className="gap-2" onSelect={() => openFromMenu('edit', c)}>
+                      <DropdownMenuItem className="gap-2" onSelect={() => {
+                          menuHandsOffFocus.current = true
+                          openEditor(c)
+                        }}>
                         <Pencil aria-hidden className="size-4" />
                         Bearbeiten
                       </DropdownMenuItem>
@@ -226,7 +255,7 @@ export function Categories() {
                       <DropdownMenuItem
                         variant="destructive"
                         className="gap-2"
-                        onSelect={() => openFromMenu('delete', c)}
+                        onSelect={() => openDelete(c)}
                       >
                         <Trash2 aria-hidden className="size-4" />
                         Löschen
@@ -238,18 +267,13 @@ export function Categories() {
             </ul>
           </Card>
         )}
+
+        {ready && editor && !editedGone && (
+          <CategoryEditorCard key={editor.key} category={editor.target} onClose={closeEditor} />
+        )}
       </section>
 
-      {dialog?.kind === 'edit' && (
-        <CategoryEditDialog
-          key={dialog.key}
-          open={dialog.open}
-          onClose={closeDialog}
-          category={dialog.target}
-          onCloseAutoFocus={restoreFocus}
-        />
-      )}
-      {dialog?.kind === 'delete' && dialog.target && (
+      {dialog && (
         <DeleteCategoryDialog
           key={dialog.key}
           open={dialog.open}

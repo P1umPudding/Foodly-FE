@@ -12,10 +12,9 @@ import {
   DialogTitle,
   Sheet,
   SheetClose,
-  Spinner,
 } from '@postxl/ui-components'
 import { BottomSheet } from '../BottomSheet'
-import { CategoryFormFields, useCategoryDraft } from './CategoryForm'
+import { CategoryFormFields, CategorySaveButton, useCategoryDraft } from './CategoryForm'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import type { UserCategory } from '../../api/protocol'
 const DESCRIPTION = 'Name und Farbe der Kategorie'
@@ -58,18 +57,7 @@ export function CategoryEditDialog({
     </Button>
   )
 
-  // aria-disabled instead of disabled while saving keeps focus on the button (see DeleteRecipeButton).
-  const save = (
-    <Button
-      type="submit"
-      disabled={!draft.canSave}
-      aria-disabled={pending}
-      className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
-    >
-      {pending && <Spinner className="size-4" />}
-      Speichern
-    </Button>
-  )
+  const save = <CategorySaveButton draft={draft} />
 
   if (isDesktop) {
     return (

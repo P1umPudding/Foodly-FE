@@ -1,7 +1,7 @@
 // The body of the category form, shared by the inline editor on /categories and the dialog on a category's page:
 // the draft with its save, and the fields as in the mockup's `.cat-editor`.
 import { useId, useRef, useState, type FormEvent, type RefObject } from 'react'
-import { Alert, AlertDescription, Input, Label } from '@postxl/ui-components'
+import { Alert, AlertDescription, Button, Input, Label, Spinner } from '@postxl/ui-components'
 import { CategoryColorPicker } from './CategoryColorPicker'
 import { CategoryMark } from './CategoryMark'
 import { useCategories } from '../../catalog/CatalogProvider'
@@ -103,5 +103,20 @@ export function CategoryFormFields({
         </Alert>
       )}
     </div>
+  )
+}
+
+// aria-disabled instead of disabled while saving keeps focus on the button (see DeleteRecipeButton).
+export function CategorySaveButton({ draft }: { draft: CategoryDraft }) {
+  return (
+    <Button
+      type="submit"
+      disabled={!draft.canSave}
+      aria-disabled={draft.pending}
+      className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+    >
+      {draft.pending && <Spinner className="size-4" />}
+      Speichern
+    </Button>
   )
 }
