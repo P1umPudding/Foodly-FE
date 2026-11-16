@@ -6,12 +6,24 @@ import { CategoryFormFields, CategorySaveButton, useCategoryDraft } from './Cate
 import { COL_HEAD } from '../editor/EditorSidebar'
 import type { UserCategory } from '../../api/protocol'
 
-export function CategoryEditorCard({ category, onClose }: { category: UserCategory | null; onClose: () => void }) {
+export function CategoryEditorCard({
+  category,
+  onClose,
+  onSavingChange,
+}: {
+  category: UserCategory | null
+  onClose: () => void
+  onSavingChange?: (saving: boolean) => void
+}) {
   const titleId = useId()
   const formRef = useRef<HTMLFormElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const draft = useCategoryDraft(category, onClose)
   const { pending } = draft
+
+  useEffect(() => {
+    onSavingChange?.(pending)
+  }, [pending, onSavingChange])
 
   useEffect(() => {
     formRef.current?.scrollIntoView?.({ block: 'nearest' })

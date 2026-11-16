@@ -46,6 +46,8 @@ export function Categories() {
   const ordered = [...categories.list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   const [dialog, setDialog] = useState<DialogState | null>(null)
   const [editor, setEditor] = useState<EditorState | null>(null)
+  // While the editor saves, nothing may replace it: a failed save would report into a card that is gone.
+  const [editorSaving, setEditorSaving] = useState(false)
   // Set when the editor closes; run once it is gone, so focus lands on a trigger that exists by then.
   const focusAfterEditor = useRef<(() => void) | null>(null)
   const openings = useRef(0)
@@ -97,13 +99,12 @@ export function Categories() {
     e.preventDefault()
     focusTrigger(dialog?.target ?? null)
   }
-  // Tied to one opening: a save that resolves after its card was replaced must not close the next one.
-  const closeEditor = (opening: EditorState) => {
-    setEditor((current) => {
-      if (current?.key !== opening.key) return current
-      focusAfterEditor.current = () => focusTrigger(opening.target)
-      return null
-    })
+  const closeEditor = () => {
+    const target = editor?.target ?? null
+    focusAfterEditor.current = () => focusTrigger(target)
+    // In the same render as the close, so „Neue Kategorie“ is enabled again before focus goes back to it.
+    setEditorSaving(false)
+    setEditor(null)
   }
 
   useEffect(() => {
@@ -115,11 +116,14 @@ export function Categories() {
   // The category being edited was deleted (here or in another tab): its draft has nothing left to save to.
   const editedGone = editor?.target != null && !categories.list.some((c) => c.id === editor.target?.id)
   useEffect(() => {
-    if (editedGone) setEditor(null)
+    if (!editedGone) return
+    focusAfterEditor.current = () => focusTrigger(null)
+    setEditorSaving(false)
+    setEditor(null)
   }, [editedGone])
 
   const newCategoryButton = (
-    <TriggerButton ref={newButton} variant="outline" size="sm" onClick={() => openEditor(null)}>
+    <TriggerButton ref={newButton} variant="outline" size="sm" disabled={editorSaving} onClick={() => openEditor(null)}>
       <Plus aria-hidden className="size-4" />
       Neue Kategorie
     </TriggerButton>
@@ -238,6 +242,7 @@ export function Categories() {
                     >
                       <DropdownMenuItem
                         className="gap-2"
+                        disabled={editorSaving}
                         onSelect={() => {
                           menuHandsOffFocus.current = true
                           openEditor(c)
@@ -271,7 +276,12 @@ export function Categories() {
         )}
 
         {ready && editor && !editedGone && (
-          <CategoryEditorCard key={editor.key} category={editor.target} onClose={() => closeEditor(editor)} />
+          <CategoryEditorCard
+            key={editor.key}
+            category={editor.target}
+            onClose={closeEditor}
+            onSavingChange={setEditorSaving}
+          />
         )}
       </section>
 

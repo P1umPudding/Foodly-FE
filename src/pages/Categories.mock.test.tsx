@@ -190,7 +190,7 @@ describe('Categories page (mock mode)', () => {
   )
 
   it(
-    'keeps a newer editor open when an earlier save finishes',
+    'lets nothing replace the editor while it saves',
     async () => {
       await renderPage()
       let finish!: () => void
@@ -203,13 +203,17 @@ describe('Categories page (mock mode)', () => {
       )
       openMenu('Favoriten')
       fireEvent.click(await screen.findByRole('menuitem', { name: 'Bearbeiten' }))
-      fireEvent.click(within(await editor('Kategorie bearbeiten')).getByRole('button', { name: 'Speichern' }))
-      fireEvent.click(within(main()).getByRole('button', { name: 'Neue Kategorie' }))
-      await editor('Neue Kategorie')
+      const form = await editor('Kategorie bearbeiten')
+      fireEvent.click(within(form).getByRole('button', { name: 'Speichern' }))
+      const newButton = within(main()).getByRole('button', { name: 'Neue Kategorie' }) as HTMLButtonElement
+      await waitFor(() => expect(newButton.disabled).toBe(true))
+      openMenu('Meal Prep')
+      expect((await screen.findByRole('menuitem', { name: 'Bearbeiten' })).getAttribute('aria-disabled')).toBe('true')
+      fireEvent.keyDown(await screen.findByRole('menu'), { key: 'Escape' })
+
       finish()
-      // The mock answers after 250 ms; give the earlier save time to land.
-      await act(() => new Promise((r) => setTimeout(r, 600)))
-      expect(screen.getByRole('form', { name: 'Neue Kategorie' })).toBeTruthy()
+      await waitFor(() => expect(screen.queryByRole('form')).toBeNull(), { timeout: 3000 })
+      expect(newButton.disabled).toBe(false)
     },
     SLOW,
   )
