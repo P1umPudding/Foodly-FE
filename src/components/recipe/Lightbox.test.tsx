@@ -155,7 +155,7 @@ describe('Lightbox layout', () => {
   it('shows the counter "2 / 6" and the close button in the top bar, no caption', () => {
     render(<Lightbox images={six} index={1} onIndexChange={() => {}} onClose={() => {}} />)
     const dialog = screen.getByRole('dialog', { name: 'Fotos' })
-    expect(screen.getByText('2 / 6')).toBeTruthy()
+    expect(screen.getByText('2 / 6').getAttribute('aria-live')).toBe('polite')
     expect(screen.getByRole('button', { name: 'Schließen' })).toBeTruthy()
     // the image name is only the alt text / thumbnail label now, not a visible caption
     expect(within(dialog).queryByText('Bild 2')).toBeNull()
@@ -259,5 +259,19 @@ describe('Lightbox swipe', () => {
     const strip = screen.getByRole('button', { name: 'Bild 2' }).parentElement!
     expect(fireEvent.touchMove(strip)).toBe(true)
     expect(fireEvent.touchMove(stageOf())).toBe(false)
+    // only horizontal panning, and it never chains to the page
+    expect(strip.className.split(/\s+/)).toEqual(expect.arrayContaining(['touch-pan-x', 'overscroll-contain']))
+  })
+
+  it('the stage keeps the browser from taking over the drag (no pointercancel)', () => {
+    setup(0)
+    expect(stageOf().className.split(/\s+/)).toContain('touch-none')
+  })
+
+  it('a lost pointerup does not block later swipes', () => {
+    const { onIndexChange } = setup(0)
+    fireEvent.pointerDown(stageOf(), { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 200, clientY: 0 })
+    swipe(-80)
+    expect(onIndexChange).toHaveBeenCalledExactlyOnceWith(1)
   })
 })

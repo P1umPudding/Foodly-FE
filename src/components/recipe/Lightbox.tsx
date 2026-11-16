@@ -52,6 +52,7 @@ export function Lightbox({
     if (scrollbarW > 0) html.style.paddingRight = `${scrollbarW}px`
     const swallow = (e: Event) => e.preventDefault()
     // The thumbnail strip stays finger-scrollable: on the phone it is the only direct way to pick an image.
+    // Its touch-pan-x + overscroll-contain keep that drag from reaching the page behind.
     const swallowTouch = (e: Event) => {
       if (e.target instanceof Node && stripRef.current?.contains(e.target)) return
       e.preventDefault()
@@ -89,7 +90,7 @@ export function Lightbox({
   // browsers usually send no click after a swipe and a stale flag would swallow the next tap.
   const onPointerDown = (e: React.PointerEvent) => {
     swiped.current = false
-    if (e.pointerType === 'mouse' || !e.isPrimary || n < 2 || swipeStart.current) return
+    if (e.pointerType === 'mouse' || !e.isPrimary || n < 2) return
     swipeStart.current = { id: e.pointerId, x: e.clientX, y: e.clientY }
   }
   const onPointerUp = (e: React.PointerEvent) => {
@@ -121,7 +122,6 @@ export function Lightbox({
   )
 
   return createPortal(
-    // cursor-zoom-out: clicking the backdrop shrinks the image again.
     <div
       ref={dialogRef}
       role="dialog"
@@ -131,7 +131,7 @@ export function Lightbox({
       className="fixed inset-0 z-[100] flex cursor-zoom-out flex-col bg-[oklch(0.12_0_0)] text-white"
     >
       <div className="flex h-14 shrink-0 items-center justify-between pl-5 pr-3">
-        <span onClick={stop} className="cursor-default text-sm tabular-nums text-white/75">
+        <span onClick={stop} aria-live="polite" className="cursor-default text-sm tabular-nums text-white/75">
           {index + 1} / {n}
         </span>
         <Button
@@ -202,7 +202,7 @@ export function Lightbox({
         <div
           ref={stripRef}
           onClick={stop}
-          className="relative flex shrink-0 cursor-default gap-1.5 overflow-x-auto p-3.5 [scrollbar-width:none] [&>:first-child]:ms-auto [&>:last-child]:me-auto"
+          className="relative flex shrink-0 cursor-default touch-pan-x gap-1.5 overflow-x-auto overscroll-contain p-3.5 [scrollbar-width:none] [&>:first-child]:ms-auto [&>:last-child]:me-auto"
         >
           {images.map((thumb, i) => (
             <TriggerButton
