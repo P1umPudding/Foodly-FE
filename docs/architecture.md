@@ -110,6 +110,11 @@ werden hier nicht wiederholt.
   „Start“ vor „Rezepte“); ab 761 px (`useIsDesktop`) Seitenleiste
   (einklappbar, Kategorien, Profil), darunter Tab-Leiste + „+“-FAB + Avatar. Das Fenster
   bleibt der Scroll-Container; feste Seitenleisten nutzen `--shell-left`/`--shell-bottom`.
+  Kopfzeile (#228): Unterseiten (Rezept, Kategorie, Editor) zeigen Zurück-Pfeil und Brotkrume
+  „<Herkunft> / <Name>“. Seiten legen ihre Aktionen per `HeaderActions` (Portal) in die Kopfzeile
+  und melden den Namen per `HeaderCrumbName` (`PageHeader.tsx`, ohne Router-Import); Dialoge
+  bleiben im Seitenbaum. Die Herkunft merkt sich `useOrigin` je History-Eintrag (sessionStorage).
+  Seiteninhalt in `Page` (max. 1080 px, Liste `wide` 1280 px).
   Groups-Routen erst nach B12 + Backend #13.
 - Anmeldung (#142): `/login` und `/register` liegen **außerhalb** von `AppShell` und
   `CatalogProvider` (hinter `RedirectIfSignedIn`); alle anderen Routen inkl. 404 hängen an

@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigationType } from 'react-router-dom'
 import { Button } from '@postxl/ui-components'
-import { UtensilsCrossed, SearchX } from 'lucide-react'
+import { Search, UtensilsCrossed } from 'lucide-react'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
 import { useCategories, useCurrentUserId, useTags, useIngredients } from '../catalog/CatalogProvider'
 import { useListState } from '../list/useListState'
@@ -11,22 +11,33 @@ import { buildSearchQuery } from '../list/query'
 import { matchesSearch } from '../list/search'
 import { usedIngredients } from '../list/counts'
 import { canViewRecipe } from '../api/views'
-import { isFilterActive } from '../list/state'
+import { isFacetActive, isFilterActive } from '../list/state'
 import { loadCollapsed, saveCollapsed } from '../list/persistence'
 import { FilterBar } from '../components/list/FilterBar'
+import { DesktopListOptions } from '../components/list/DesktopListOptions'
 import { MobileListOptions } from '../components/list/MobileListOptions'
 import { RecipeListView } from '../components/list/RecipeListView'
 import { ListSkeleton, LoadMoreSkeleton } from '../components/list/ListSkeleton'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
-import { SortMenu } from '../components/list/SortMenu'
-import { ViewToggles } from '../components/list/ViewToggles'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { fromSearchParams, toSearchParams } from '../list/url'
 import { isShellNavState } from '../components/shell/nav'
-import { RetryAlert } from '../components/RetryAlert'
+import { Page } from '../components/shell/Page'
+import { EmptyState, ErrorState } from '../components/StateCard'
 
 const SCROLL_KEY = 'recipeList:scroll'
+
+// The saved position of this list, 0 when there is none to restore.
+function savedScrollY(list: string): number {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null') as { list: string; y: number } | null
+    return saved?.list === list && saved.y > 0 ? saved.y : 0
+  } catch {
+    // unreadable entry → start at the top
+    return 0
+  }
+}
 // Pages the scroll restore loads at most to reach a saved position. Pages that add no height (client-side category
 // or text filter) would otherwise load the whole list.
 const MAX_RESTORE_PAGES = 10
@@ -88,6 +99,8 @@ export function RecipeList() {
   const loadMoreFailed = listReady && search.loadMoreError !== null
   const loadingAnnounced = (listReady && search.loadingMore) || (pending && visible.length === 0 && !loadMoreFailed)
   const filterActive = isFilterActive(categoryState)
+  // The reset link names filters, so a plain search doesn't bring it up (the search has its own ✕).
+  const facetActive = isFacetActive(categoryState)
 
   // Per-category collapse state (clicking a sticky group header folds that group),
   // persisted per user. Closed group keys; empty = all open. First visit (nothing
@@ -101,29 +114,6 @@ export function RecipeList() {
     setCollapsedState(next)
     saveCollapsed(currentUserId, next)
   }
-
-  // Measure layout into CSS vars so the sticky pieces line up pixel-perfectly:
-  //  • --site-nav-h      — exact nav height (its border makes it non-round; a hardcoded
-  //                        rem would leave a ~1px drift on first scroll)
-  //  • --list-sticky-top — nav + page-header height (where category headers tuck under); the header
-  //                        grows when the filter bar wraps, so it is observed, not measured once
-  // useLayoutEffect → set before paint (no first-frame jump).
-  const headerRef = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    const el = headerRef.current
-    if (!el) return
-    const nav = document.querySelector('header.site-header')
-    const root = document.documentElement.style
-    const apply = () => {
-      if (nav) root.setProperty('--site-nav-h', `${nav.getBoundingClientRect().height}px`)
-      root.setProperty('--list-sticky-top', `calc(var(--site-nav-h) + ${el.getBoundingClientRect().height}px)`)
-    }
-    apply()
-    const ro = new ResizeObserver(apply)
-    ro.observe(el)
-    if (nav) ro.observe(nav)
-    return () => ro.disconnect()
-  }, [])
 
   // Restore scroll position when returning from a recipe (within the session): track
   // the live position, then re-apply it once the list has rendered. sessionStorage so
@@ -167,17 +157,12 @@ export function RecipeList() {
   useEffect(() => {
     if (scrollRestored.current || !listReady) return
     if (restoreTarget.current === null) {
-      let saved: { list: string; y: number } | null = null
-      try {
-        saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? 'null') as { list: string; y: number } | null
-      } catch {
-        // unreadable entry → start at the top
-      }
-      if (saved === null || saved.list !== listRef.current || !(saved.y > 0) || openedFromShellNav.current) {
+      const y = savedScrollY(listRef.current)
+      if (y === 0 || openedFromShellNav.current) {
         scrollRestored.current = true
         return
       }
-      restoreTarget.current = saved
+      restoreTarget.current = { list: listRef.current, y }
     }
     const { list, y } = restoreTarget.current
     if (list !== listRef.current) {
@@ -198,11 +183,16 @@ export function RecipeList() {
 
   // Desktop: the search is ready to type into when the page opens. Not on phones, where focusing would pop the
   // keyboard over the list. Only the first render's viewport counts, so resizing never steals focus.
-  // preventScroll: the scroll restore above owns the position on this mount.
+  // preventScroll: the scroll restore above owns the position on this mount. A restore skips the focus: the search
+  // scrolls away with the list, and keys typed into a field out of view would silently refilter it. Decided at mount
+  // from the saved position alone: a restore that ends up clamped near the top (the list got shorter) leaves the
+  // search unfocused, which is harmless.
   const searchInputRef = useRef<HTMLInputElement>(null)
   const focusSearchOnMount = useRef(isDesktop)
   useEffect(() => {
-    if (focusSearchOnMount.current) searchInputRef.current?.focus({ preventScroll: true })
+    if (!focusSearchOnMount.current) return
+    if (!openedFromShellNav.current && savedScrollY(listRef.current) > 0) return
+    searchInputRef.current?.focus({ preventScroll: true })
   }, [])
 
   // Load the next page when a sentinel near the list end scrolls into view. The effect re-subscribes
@@ -223,34 +213,29 @@ export function RecipeList() {
   return (
     // On phones the shell's bottom padding only clears the tab bar; the extra room lets the last card scroll past
     // the fixed "+" button above it (safe-area inset ready for viewport-fit=cover).
-    <div
+    <Page
+      wide
       data-testid="recipe-list-page"
-      className="mx-auto max-w-6xl px-6 pb-10 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]"
+      className="pt-0 pb-10 phone:pt-0 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]"
     >
-      {/* Sticky page header over the scrolling list (solid — no blur). Its measured
-          height feeds --list-sticky-top so the category headers tuck right beneath it. */}
-      <div ref={headerRef} className="sticky top-(--site-nav-h) z-30 bg-background pb-3 pt-6">
+      {/* Not sticky (mockup): search, filters and count scroll away; only the site header and the category
+          headers stick. */}
+      <div data-testid="list-toolbar" className="pb-3 pt-6 phone:pt-3">
         <h1 className="sr-only">Rezepte</h1>
 
         {/* Search with the sort menu and view toggles to its right; on phones they sit behind one button. */}
-        <div data-testid="search-row" className="flex items-center gap-4 phone:gap-3">
+        <div data-testid="search-row" className="flex items-center gap-2 phone:gap-3">
           <SearchInput
             value={state.search}
             onChange={setSearch}
-            placeholder="Suchen…"
+            placeholder="Rezept suchen"
             label="Rezepte suchen"
             clearLabel="Suche leeren"
             className="min-w-0 flex-1"
+            inputClassName="h-[38px]"
             inputRef={searchInputRef}
           />
-          {isDesktop ? (
-            <div className="flex items-center gap-4">
-              <SortMenu state={state} set={set} />
-              <ViewToggles state={state} set={set} />
-            </div>
-          ) : (
-            <MobileListOptions state={state} set={set} />
-          )}
+          {isDesktop ? <DesktopListOptions state={state} set={set} /> : <MobileListOptions state={state} set={set} />}
         </div>
 
         <div className="mt-3">
@@ -265,32 +250,28 @@ export function RecipeList() {
           />
         </div>
 
-        {/* Both items are one text-sm line and ResultCount always renders (invisible while unknown), so the
-            row, and with it --list-sticky-top, keeps its height whether or not the reset link shows. */}
-        <div className="mt-3 flex items-baseline gap-2 text-sm text-muted-foreground">
+        {/* min-h fits the 26 px reset link (mockup .link-btn) and ResultCount always renders (invisible while
+            unknown), so the row keeps its height and the list doesn't jump whether or not the link shows. */}
+        <div className="mt-3 flex min-h-[26px] items-center gap-2.5 text-sm text-muted-foreground">
           {/* Loading or failed: count 0 + more is the hidden placeholder — no number we don't know. */}
           <ResultCount count={listReady ? visible.length : 0} more={!listReady || search.hasMore} />
-          {filterActive && (
-            <>
-              {/* Invisible next to the invisible count placeholder, so the link never shifts sideways. */}
-              <span aria-hidden className={listReady ? undefined : 'invisible'}>
-                ·
-              </span>
-              {/* The link variant is text-primary; design.md keeps accent colour off links. */}
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => {
-                  clear()
-                  // The link unmounts with the filters; keep focus on the page rather than lose it to <body>.
-                  // Not on phones, where focusing the search would pop the keyboard over the list.
-                  if (isDesktop) searchInputRef.current?.focus({ preventScroll: true })
-                }}
-                className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground"
-              >
-                Alle Filter zurücksetzen
-              </Button>
-            </>
+          {facetActive && (
+            // Mockup link-btn: quiet 12 px text with a hover fill (design.md keeps accent colour off links), hence the
+            // text-xs over the size's text-base. On phones the ::after widens the hit area to 40 px (design.md §7); the 7 px
+            // above and below fit into the header's mt-3/pb-3.
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => {
+                clear()
+                // The link unmounts with the filters; keep focus on the page rather than lose it to <body>.
+                // Not on phones, where focusing the search would pop the keyboard over the list.
+                if (isDesktop) searchInputRef.current?.focus({ preventScroll: true })
+              }}
+              className="relative h-[26px] px-1.5 text-xs font-medium text-muted-foreground hover:bg-hover hover:text-foreground dark:hover:bg-hover phone:after:absolute phone:after:-inset-y-[7px] phone:after:inset-x-0"
+            >
+              Alle Filter zurücksetzen
+            </Button>
           )}
         </div>
       </div>
@@ -298,9 +279,9 @@ export function RecipeList() {
       <div className="pt-1">
         {categoriesFailed && (
           <div className="pb-4">
-            <RetryAlert
-              title="Konnte Kategorien nicht laden"
-              message={categoriesCatalog.error?.message}
+            <ErrorState
+              title="Kategorien konnten nicht geladen werden"
+              description={categoriesCatalog.error?.message}
               onRetry={categoriesCatalog.retry}
             />
           </div>
@@ -310,46 +291,65 @@ export function RecipeList() {
           <ListSkeleton
             detail={state.detail}
             count={4}
+            denseTiles
             testId={search.status === 'ready' ? 'list-categories-skeleton' : undefined}
           />
         )}
 
         {search.status === 'error' && (
-          <RetryAlert title="Konnte Rezepte nicht laden" message={search.error?.message} onRetry={search.reload} />
+          <ErrorState
+            title="Rezepte konnten nicht geladen werden"
+            description={search.error?.message}
+            onRetry={search.reload}
+          />
         )}
 
         {/* Pages still to come may hold matches: hold the empty texts back until the list is exhausted.
           The sentinel below stays in view, so loading carries on by itself. */}
         {pending && visible.length === 0 && !loadMoreFailed && (
-          <ListSkeleton detail={state.detail} count={1} testId="list-pending-skeleton" />
+          <ListSkeleton detail={state.detail} count={1} denseTiles testId="list-pending-skeleton" />
         )}
 
         {/* Server-side facets already narrow the loaded set, so only the filter state can tell an empty
           collection from a filter without matches. */}
         {allLoaded && visible.length === 0 && !filterActive && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <UtensilsCrossed className="size-5 text-muted-foreground/40" />
-            <p className="text-muted-foreground">Noch keine Rezepte.</p>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/recipes/new">Neues Rezept</Link>
-            </Button>
-          </div>
+          <EmptyState
+            icon={UtensilsCrossed}
+            title="Noch keine Rezepte"
+            description="Leg dein erstes Rezept an."
+            action={
+              <Button asChild variant="outline" size="sm">
+                <Link to="/recipes/new">Neues Rezept</Link>
+              </Button>
+            }
+          />
         )}
 
         {allLoaded && visible.length === 0 && filterActive && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <SearchX className="size-5 text-muted-foreground/40" />
-            <p className="text-muted-foreground">Keine Treffer für die aktuellen Filter.</p>
-            {/* Search ignores ingredients on purpose — point users at the Zutaten filter. */}
-            {state.search.trim() !== '' && (
-              <p className="max-w-xs text-sm text-muted-foreground/80">
-                Die Suche durchsucht Name, Tags &amp; Abschnitte – nach Zutaten filterst du über den Zutaten-Filter.
-              </p>
-            )}
-            <Button variant="outline" size="sm" onClick={clear}>
-              Filter zurücksetzen
-            </Button>
-          </div>
+          <EmptyState
+            icon={Search}
+            title={facetActive ? 'Keine Rezepte gefunden' : `Nichts gefunden für „${state.search.trim()}“`}
+            description={
+              <>
+                <p>
+                  {facetActive
+                    ? 'Lockere die Filter oder such nach etwas anderem.'
+                    : 'Prüf die Schreibweise oder setz die Filter zurück.'}
+                </p>
+                {/* Search ignores ingredients on purpose — point users at the Zutaten filter. */}
+                {state.search.trim() !== '' && (
+                  <p className="mt-1">
+                    Die Suche durchsucht Name, Tags &amp; Abschnitte – nach Zutaten filterst du über den Zutaten-Filter.
+                  </p>
+                )}
+              </>
+            }
+            action={
+              <Button variant="outline" size="sm" onClick={clear}>
+                Filter zurücksetzen
+              </Button>
+            }
+          />
         )}
 
         {listReady && visible.length > 0 && (
@@ -358,6 +358,7 @@ export function RecipeList() {
             categories={groupingCats}
             allCategories={categories}
             showImages={showImages}
+            denseTiles
             detail={state.detail}
             grouped={grouped}
             collapsed={collapsed}
@@ -368,15 +369,16 @@ export function RecipeList() {
         {/* Infinite-scroll trigger + more-pages spinner. */}
         <div ref={sentinelRef} aria-hidden className="h-1" />
         {listReady && search.loadingMore && visible.length > 0 && (
-          <LoadMoreSkeleton detail={state.detail} grouped={grouped} />
+          <LoadMoreSkeleton detail={state.detail} grouped={grouped} denseTiles />
         )}
         {/* The retry unmounts the alert (focus falls back to the page, as with the first-page error); the
             status line below announces the loading instead. */}
         {loadMoreFailed && !search.loadingMore && (
           <div className="pt-3">
-            <RetryAlert
-              title="Weitere Rezepte konnten nicht geladen werden."
-              message={search.loadMoreError?.message}
+            <ErrorState
+              compact
+              title="Weitere Rezepte konnten nicht geladen werden"
+              description={search.loadMoreError?.message}
               onRetry={search.retryLoadMore}
             />
           </div>
@@ -387,6 +389,6 @@ export function RecipeList() {
           {loadingAnnounced ? 'Weitere Rezepte werden geladen …' : ''}
         </p>
       </div>
-    </div>
+    </Page>
   )
 }

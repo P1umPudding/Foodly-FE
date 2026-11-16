@@ -3,7 +3,8 @@
 // below it and a 64 px icon rail (docs/design/redesign §1.6).
 import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
+import { Button, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
+import { Skeleton } from '../Skeleton'
 import { PanelLeftClose, PanelLeftOpen, Plus, Settings } from 'lucide-react'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { categoryColorVars } from '../../lib/categoryColor'
@@ -13,6 +14,7 @@ import { ProfileMenu } from './ProfileMenu'
 import { TriggerButton } from '../TriggerButton'
 import { FOCUS_RING } from '../focusRing'
 import { useNavState } from './useNavState'
+import { BrandMark } from './BrandMark'
 
 const COLLAPSED_KEY = 'foodly:sidebar-collapsed'
 
@@ -80,8 +82,12 @@ export function Sidebar({
         {!collapsed && (
           <Link
             to="/"
-            className={cn('-ml-1 rounded-md px-1 font-display text-xl focus-visible:ring-sidebar-ring', FOCUS_RING)}
+            className={cn(
+              '-ml-1 flex items-center gap-2 rounded-md px-1 font-display text-xl focus-visible:ring-sidebar-ring',
+              FOCUS_RING,
+            )}
           >
+            <BrandMark />
             Foodly
           </Link>
         )}

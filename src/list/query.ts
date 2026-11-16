@@ -54,6 +54,8 @@ function sortValue(recipe: Recipe, field: RecipeSortField): number | string | nu
       return recipe.overallMinutes
     case 'rating':
       return averageRating(recipe)
+    case 'accessSince':
+      return recipe.myAccessSince
   }
 }
 
@@ -79,15 +81,17 @@ export function applyQuery(recipes: Recipe[], query: RecipeSearchQuery, currentU
   const sort = query.sort
   if (sort) {
     const dir = sort.order === 'asc' ? 1 : -1
+    // Like the backend, 'accessSince' breaks ties by id ascending in both directions (backend #22).
+    const tieBreak = (a: Recipe, b: Recipe) => (sort.field === 'accessSince' ? a.id - b.id : 0)
     out = [...out].sort((a, b) => {
       const va = sortValue(a, sort.field)
       const vb = sortValue(b, sort.field)
-      if (va === null && vb === null) return 0
+      if (va === null && vb === null) return tieBreak(a, b)
       if (va === null) return 1 // nulls last, both directions
       if (vb === null) return -1
       if (va < vb) return -1 * dir
       if (va > vb) return 1 * dir
-      return 0
+      return tieBreak(a, b)
     })
   }
   return out

@@ -3,9 +3,8 @@ import { TagText } from '../TagText'
 import { ingredientParts, isScalableAmount, scaleAmount } from '../../api/views'
 import type { RecipeIngredient, RecipeIngredientId } from '../../api/protocol'
 
-// One row of the (visually borderless) ingredient table: quantity right-aligned
-// and pale, name left-aligned. In Koch-Modus the amount is scaled by `factor` and
-// an optional leading check-off cell is rendered.
+// One row of the ingredient table: quantity right-aligned and muted, name left-aligned, a hairline below. In Koch-Modus
+// the amount is scaled by `factor` and an optional leading check-off cell is rendered.
 export function IngredientLine({
   line,
   factor = 1,
@@ -23,14 +22,13 @@ export function IngredientLine({
   // Without the hint an amount like "etwas" looks scaled next to the scaled rows.
   const unscaled = factor !== 1 && Boolean(line.amount?.trim()) && !isScalableAmount(line.amount)
 
-  // Dim via row opacity so both text cells fade uniformly regardless of their own
-  // colour utilities (the quantity cell is already text-foreground/75).
+  // Dim via row opacity so both text cells fade uniformly regardless of their own colour utilities.
   const dim = checkable && checked ? 'line-through opacity-50' : undefined
 
   return (
-    <tr>
+    <tr className="border-b">
       {checkable && (
-        <td className="py-1 pr-2 align-baseline">
+        <td className="py-[7px] pr-2 align-baseline">
           <Checkbox
             checked={checked}
             onChange={() => onToggle?.(line.id)}
@@ -39,11 +37,20 @@ export function IngredientLine({
           />
         </td>
       )}
-      <td className={cn('py-1 pr-3 text-right align-baseline text-foreground/75', dim)}>
+      <td className={cn('py-[7px] pr-3 text-right align-baseline text-muted-foreground', dim)}>
         <TagText value={quantity} />
       </td>
-      <td className={cn('py-1 align-baseline', dim)}>
-        <TagText value={name} />
+      <td className={cn('py-[7px] align-baseline', dim)}>
+        {line.ingredient && line.text?.trim() ? (
+          <>
+            <TagText value={line.ingredient.name} />{' '}
+            <span className="text-muted-foreground">
+              <TagText value={line.text} />
+            </span>
+          </>
+        ) : (
+          <TagText value={name} />
+        )}
         {/* text-muted-foreground, not subtle: subtle at text-xs falls below 4.5:1. */}
         {unscaled && (
           <span className="ml-2 whitespace-nowrap text-xs text-muted-foreground">

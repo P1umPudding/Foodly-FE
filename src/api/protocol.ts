@@ -30,6 +30,12 @@ export type Recipe = {
   editors: UserId[] // jeder viewer (und editor und owner) kann eine kopie des rezeptes erstellen wo er dann owner ist (viewers und editors sind dort erst leer)
   viewers: UserId[]
 
+  createdAt: string | null
+  updatedAt: string | null
+  // When the requesting user got access: the owner's is createdAt, an editor's/viewer's the day they were added
+  // (backend #22). Sorting by 'accessSince' orders by it.
+  myAccessSince: string | null
+
   name: string
   tags: TagId[]
   source: string | null
@@ -137,7 +143,7 @@ export type PaginatedResponse<T> = { data: T[]; cursor: string | null }
 
 export type RecipeAccessRight = 'owner' | 'editor' | 'viewer'
 export type RecipeShareStateWire = 'private' | 'shared' | 'collaborative'
-export type RecipeSortField = 'name' | 'workTime' | 'totalTime' | 'rating'
+export type RecipeSortField = 'name' | 'workTime' | 'totalTime' | 'rating' | 'accessSince'
 export type SortOrder = 'asc' | 'desc'
 
 export type RecipeFilters = {

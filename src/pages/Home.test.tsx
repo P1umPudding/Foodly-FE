@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { foodly } from '../api'
 import { Home } from './Home'
 import type { UserCategory } from '../api/protocol'
 
@@ -29,9 +30,12 @@ beforeEach(() => {
   // Only Date: faking the timers too would stall Testing Library's polling.
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 10, 12, 12))
+  // "Zuletzt erstellt" loads on mount; without own recipes it hides itself.
+  vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
 })
 afterEach(() => {
   vi.useRealTimers()
+  vi.restoreAllMocks()
   me.current = { id: 1, name: 'Kolja Beispiel', profilePicture: null }
   categories.current = { list: [], status: 'ready', error: null, retry: () => {} }
 })
@@ -49,12 +53,16 @@ describe('Home', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Hallo')
   })
 
-  it('shows the "nothing to show" card while no section has content', () => {
+  it('shows the "nothing to show" card while no section has content', async () => {
     renderHome()
-    const card = screen.getByText(
-      'Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.',
+    const card = (
+      await screen.findByText(
+        'Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.',
+      )
     ).parentElement!
-    expect(within(card).getByRole('link', { name: 'Alle Rezepte' }).getAttribute('href')).toBe('/recipes')
+    // One action at most (design.md §5): only "Neues Rezept"; the list is one click away in the navigation.
+    expect(within(card).queryByRole('link', { name: 'Alle Rezepte' })).toBeNull()
+    expect(within(card).getByText('Noch nichts zu sehen')).toBeTruthy()
     expect(within(card).getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
   })
 
@@ -72,7 +80,10 @@ describe('Home', () => {
       },
     ]
     renderHome()
-    screen.getByRole('heading', { level: 2, name: 'Kategorien' })
+    expect(screen.getByRole('heading', { level: 1, name: /Kolja/ }).getAttribute('data-slot')).toBe('page-title')
+    const header = screen.getByRole('heading', { level: 2, name: 'Kategorien' }).closest('[data-slot="section-header"]')
+    expect(header).not.toBeNull()
+    within(header as HTMLElement).getByRole('link', { name: 'Verwalten' })
     expect(screen.getByRole('link', { name: 'Favoriten, 2 Rezepte' }).getAttribute('href')).toBe('/categories/4')
     expect(screen.queryByRole('link', { name: 'Alle Rezepte' })).toBeNull()
   })

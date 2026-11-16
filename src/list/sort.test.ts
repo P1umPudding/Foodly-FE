@@ -1,4 +1,4 @@
-import { sortRecipes } from './sort'
+import { sortPatchForKey, sortRecipes } from './sort'
 import { DEFAULT_STATE } from './state'
 import type { Recipe } from '../api/protocol'
 
@@ -7,6 +7,9 @@ const base: Recipe = {
   owner: 1,
   editors: [],
   viewers: [],
+  createdAt: null,
+  updatedAt: null,
+  myAccessSince: null,
   name: '',
   tags: [],
   source: null,
@@ -75,5 +78,15 @@ describe('sortRecipes', () => {
       { ...base, id: 3 },
     ]
     expect(ids(sortRecipes(withRating, { ...DEFAULT_STATE, sortKey: 'rating', sortDir: 'desc' }, 1))).toEqual([2, 1, 3])
+  })
+})
+
+describe('sortPatchForKey', () => {
+  it('sorts by rating best first', () => {
+    expect(sortPatchForKey('rating')).toEqual({ sortKey: 'rating', sortDir: 'desc' })
+  })
+
+  it.each(['name', 'work', 'overall'] as const)('sorts %s ascending', (key) => {
+    expect(sortPatchForKey(key)).toEqual({ sortKey: key, sortDir: 'asc' })
   })
 })

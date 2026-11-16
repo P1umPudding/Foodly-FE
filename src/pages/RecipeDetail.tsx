@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ChefHat, Clock, Copy, ListChecks, Pencil, Users } from 'lucide-react'
+import { ChefHat, Clock, Copy, ListChecks, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-react'
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   Button,
-  Skeleton,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Toggle,
   Tooltip,
   TooltipContent,
@@ -14,10 +14,11 @@ import {
   buttonVariants,
   cn,
 } from '@postxl/ui-components'
+import { Skeleton } from '../components/Skeleton'
+import { ErrorState } from '../components/StateCard'
 import { foodly } from '../api'
 import { errorMessage } from '../lib/errorMessage'
 import { useRequest } from '../hooks/useRequest'
-import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { canEdit, isOwner } from '../editor/access'
 import { useCurrentUserId, useRefreshCategories, useTags, useUsers } from '../catalog/CatalogProvider'
 import { TagText } from '../components/TagText'
@@ -28,9 +29,11 @@ import { SectionBlock } from '../components/recipe/SectionBlock'
 import { PortionScaler } from '../components/recipe/PortionScaler'
 import { WakeLockToggle } from '../components/WakeLockToggle'
 import { RecipeHero, RecipeImages } from '../components/recipe/RecipeImages'
-import { DeleteRecipeButton } from '../components/recipe/DeleteRecipeButton'
+import { DeleteRecipeDialog } from '../components/recipe/DeleteRecipeDialog'
+import { HeaderActions, HeaderCrumbName } from '../components/shell/PageHeader'
 import { Lightbox } from '../components/recipe/Lightbox'
 import { TriggerButton } from '../components/TriggerButton'
+import { Page } from '../components/shell/Page'
 import { RecipeCategoryChips } from '../components/category/RecipeCategoryChips'
 import type { Recipe, UserId } from '../api/protocol'
 import { cookHref, parseSize, withSize } from '../cook/size'
@@ -48,15 +51,17 @@ function isUrl(s: string): boolean {
 export function RecipeDetail() {
   const { id } = useParams()
   const recipeId = Number(id)
-  const { status, data: recipe, error } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
+  const { status, data: recipe, reload } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
   const currentUserId = useCurrentUserId()
   const { byId: tags } = useTags()
 
   const navigate = useNavigate()
   const refreshCategories = useRefreshCategories()
-  const hasAppHistory = useHasAppHistory()
   const [cloning, setCloning] = useState(false)
   const [cloneError, setCloneError] = useState<string | null>(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const moreTrigger = useRef<HTMLButtonElement>(null)
+  const openingDelete = useRef(false)
   // Bumped per clone attempt and on every recipe switch, so a late failure of an outdated clone is ignored.
   const cloneAttempt = useRef(0)
 
@@ -105,15 +110,6 @@ export function RecipeDetail() {
     if (loadedId !== null && currentUserId !== null) pushRecentlyViewed(currentUserId, loadedId)
   }, [loadedId, currentUserId])
 
-  // Came from inside the app: go back like the browser does, so the list keeps its search, filters and scroll
-  // and no extra history entry piles up. Otherwise (direct link) the plain link to /recipes applies.
-  const onBack = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-    if (!hasAppHistory()) return
-    e.preventDefault()
-    navigate(-1)
-  }
-
   // Timer labels are plain text, so tag tokens in the name become the tag's name.
   const plainName = recipe ? plainTagText(recipe.name, tags) : ''
   // All images of the recipe in viewer order: main first, then the gallery. Empty → no hero, no gallery.
@@ -128,36 +124,17 @@ export function RecipeDetail() {
   const hasSteps = recipe ? recipe.sections.some((s) => s.steps.length > 0) : false
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/recipes" onClick={onBack}>
-            ← Zurück
-          </Link>
-        </Button>
-        {status === 'ready' && recipe && (
-          <div className="flex items-center gap-2">
-            {cloneError && <span className="text-sm text-destructive">{cloneError}</span>}
-            {isOwner(recipe, currentUserId) && (
-              <DeleteRecipeButton
-                recipeId={recipe.id}
-                name={plainName}
-                // replace: Back must not lead to the deleted recipe's "not found" page.
-                onDeleted={() => {
-                  // Otherwise six deleted recipes in front would keep "Zuletzt angesehen" empty for good (failed
-                  // loads are only forgotten when another one loaded).
-                  if (currentUserId !== null) removeRecentlyViewed(currentUserId, [recipe.id])
-                  refreshCategories()
-                  navigate('/recipes', { replace: true })
-                }}
-              />
-            )}
+    <Page className="pb-10">
+      {status === 'ready' && recipe && (
+        <>
+          <HeaderCrumbName name={plainName} />
+          <HeaderActions>
             {/* On phones every action is an icon-only 40×40 tap target (design.md §7). Editors get only the
                 pencil there; viewers get "Kopie erstellen" in its place, their way to an editable version. */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <TriggerButton
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
                   aria-label="Kopie erstellen"
                   onClick={() => void onClone()}
@@ -178,7 +155,7 @@ export function RecipeDetail() {
                     to={`/recipes/${recipe.id}/edit`}
                     state={{ fromDetail: true }}
                     aria-label="Bearbeiten"
-                    className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5 phone:size-10')}
+                    className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 phone:size-10')}
                   >
                     <Pencil className="h-4 w-4" />
                     <span className="phone:hidden">Bearbeiten</span>
@@ -187,9 +164,75 @@ export function RecipeDetail() {
                 <TooltipContent>Rezept bearbeiten</TooltipContent>
               </Tooltip>
             )}
-          </div>
-        )}
-      </div>
+            {/* Löschen isn't in the mockup's header: a lead decision keeps it reachable behind ⋯ (owner only). */}
+            {isOwner(recipe, currentUserId) && (
+              <DropdownMenu modal={false}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <TriggerButton
+                        ref={moreTrigger}
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Weitere Aktionen"
+                        className="phone:size-10"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </TriggerButton>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Weitere Aktionen</TooltipContent>
+                </Tooltip>
+                {/* The dialog opened from the menu takes focus itself; only a plain close (Escape) returns it to ⋯. */}
+                <DropdownMenuContent
+                  align="end"
+                  onCloseAutoFocus={(e) => {
+                    if (openingDelete.current) e.preventDefault()
+                    openingDelete.current = false
+                  }}
+                >
+                  <DropdownMenuItem
+                    variant="destructive"
+                    className="gap-2"
+                    onSelect={() => {
+                      openingDelete.current = true
+                      setDeleteOpen(true)
+                    }}
+                  >
+                    <Trash2 className="size-4" />
+                    Löschen
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </HeaderActions>
+          {isOwner(recipe, currentUserId) && (
+            <DeleteRecipeDialog
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              onCloseAutoFocus={(e) => {
+                e.preventDefault()
+                moreTrigger.current?.focus()
+              }}
+              recipeId={recipe.id}
+              name={plainName}
+              // replace: Back must not lead to the deleted recipe's "not found" page.
+              onDeleted={() => {
+                // Otherwise six deleted recipes in front would keep "Zuletzt angesehen" empty for good (failed
+                // loads are only forgotten when another one loaded).
+                if (currentUserId !== null) removeRecentlyViewed(currentUserId, [recipe.id])
+                refreshCategories()
+                navigate('/recipes', { replace: true })
+              }}
+            />
+          )}
+          {cloneError && (
+            <p role="alert" className="mb-4 text-sm text-destructive">
+              {cloneError}
+            </p>
+          )}
+        </>
+      )}
 
       {status === 'loading' && (
         <div data-testid="detail-skeleton" className={HEAD_GRID}>
@@ -203,16 +246,23 @@ export function RecipeDetail() {
         </div>
       )}
 
+      {/* REST errors carry no status, so "not found" and "server unreachable" look the same here: one neutral card,
+          no raw backend message. */}
       {status === 'error' && (
-        <Alert variant="destructive">
-          <AlertTitle>Rezept nicht gefunden</AlertTitle>
-          <AlertDescription className="flex flex-col gap-2">
-            <span>{error?.message}</span>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/recipes">Zur Liste</Link>
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <>
+          {/* The page keeps one h1 (the recipe name once loaded). */}
+          <h1 className="sr-only">Rezept</h1>
+          <ErrorState
+            title="Rezept konnte nicht geladen werden"
+            description="Vielleicht wurde es gelöscht, oder der Server ist gerade nicht erreichbar."
+            onRetry={reload}
+            extraAction={
+              <Button asChild variant="outline" size="sm">
+                <Link to="/recipes">Zur Liste</Link>
+              </Button>
+            }
+          />
+        </>
       )}
 
       {status === 'ready' && recipe && (
@@ -247,7 +297,7 @@ export function RecipeDetail() {
 
               {recipe.tags.length > 0 && (
                 <div className="mt-3">
-                  <TagChips tags={recipe.tags} hoverName />
+                  <TagChips tags={recipe.tags} />
                 </div>
               )}
 
@@ -297,12 +347,11 @@ export function RecipeDetail() {
             </div>
           </header>
 
-          <RecipeImages images={allImages.slice(1)} onOpen={(i) => setLightboxIndex(i + 1)} />
-
           {recipe.sections.map((section, k) => (
             <SectionBlock
               key={section.id}
               section={section}
+              showTitle={recipe.sections.length > 1}
               recipeName={plainName}
               stepOffset={recipe.sections.slice(0, k).reduce((n, s) => n + s.steps.length, 0)}
               factor={factor}
@@ -311,6 +360,8 @@ export function RecipeDetail() {
               onToggle={toggleChecked}
             />
           ))}
+
+          <RecipeImages images={allImages} onOpen={setLightboxIndex} />
 
           {recipe.source && (
             <footer className="mt-16 text-[0.95rem] text-foreground/75">
@@ -335,7 +386,7 @@ export function RecipeDetail() {
           )}
         </article>
       )}
-    </div>
+    </Page>
   )
 }
 

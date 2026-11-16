@@ -55,6 +55,20 @@ function StatefulBar({ initial, ...props }: Props & { initial: ListState }) {
 const bar = () => screen.getByRole('group', { name: 'Filter' })
 
 describe('FilterBar', () => {
+  it('gives each filter its icon while inactive', () => {
+    renderBar(DEFAULT_STATE)
+    const icons = {
+      Kategorie: 'lucide-folder',
+      Tags: 'lucide-tag',
+      Zutaten: 'lucide-list-checks',
+      Arbeitszeit: 'lucide-clock',
+      Zugriff: 'lucide-users',
+    }
+    for (const [name, icon] of Object.entries(icons)) {
+      expect(screen.getByRole('button', { name }).querySelector(`svg.${icon}`)).toBeTruthy()
+    }
+  })
+
   it('always shows the five filter buttons, also without tags or ingredients', () => {
     renderBar(DEFAULT_STATE)
     for (const name of ['Kategorie', 'Tags', 'Zutaten', 'Arbeitszeit', 'Zugriff']) {

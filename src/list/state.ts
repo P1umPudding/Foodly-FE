@@ -36,16 +36,20 @@ export const DEFAULT_STATE: ListState = {
   grouped: true,
 }
 
-export function isFilterActive(s: ListState): boolean {
+// A facet = one of the filter-bar filters; the search text is not one.
+export function isFacetActive(s: ListState): boolean {
   return (
     s.categories.length > 0 ||
     s.tags.length > 0 ||
     s.ingredients.length > 0 ||
     s.durationMax !== null ||
     s.role !== 'any' ||
-    s.collab !== 'any' ||
-    s.search.trim() !== ''
+    s.collab !== 'any'
   )
+}
+
+export function isFilterActive(s: ListState): boolean {
+  return isFacetActive(s) || s.search.trim() !== ''
 }
 
 export function clearedState(s: ListState): ListState {

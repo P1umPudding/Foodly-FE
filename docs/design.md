@@ -36,12 +36,16 @@ gilt: nichts Neues im alten Stil bauen.
 |---|---|
 | `bg-background` | Seite |
 | `bg-card` + `border` | Karten, Listen-Container, Eingabeflächen |
-| `bg-muted` / `bg-secondary` | ruhige Flächen: Segment-Schalter, Tags, Skeletons, Foto-Platzhalter |
-| `bg-accent` | Hover-Fläche von Zeilen und Ghost-Buttons |
+| `bg-muted` / `bg-secondary` | ruhige Flächen: Skeletons, Foto-Platzhalter |
+| `bg-tag` | Tag-Chips (`TagChip`) |
+| `bg-seg` + `shadow-seg` | Segment-Schalter: Spur `bg-seg`, aktives Segment `bg-card` mit `shadow-seg` (dunkel ohne Schatten) |
+| `bg-accent` | Hover-Fläche von Ghost-Buttons |
+| `bg-hover` | Hover-Fläche der Rezeptzeilen (Liste, Kompakt), der Filterknöpfe und des Links „Alle Filter zurücksetzen“ (Mockup `--hover`) |
 | `text-foreground` | Text, Titel, Icons in Aktionen |
 | `text-muted-foreground` | Sekundärtext (Untertitel, Beschreibungen) und Meta: Zähler („14 Rezepte“), Zeiten, selbst gerenderte Platzhalter |
-| `text-subtle-foreground` | derzeit ungenutzt; kein AA für kleinen Text – nur Nicht-Text und großer Text (≥ 3:1, Ausnahme siehe unten) |
-| `border-border` (Standard) / `border-border-strong` | Haarlinie / Hover- und Checkbox-Rand |
+| `text-subtle-foreground` | nur Nicht-Text und großer Text (kein AA für kleinen Text, ≥ 3:1, Ausnahme siehe unten): Fortschrittsbalken eines pausierten Timers, Icons und Chevron der Filterknöpfe, Chevron der Gruppenköpfe, Rahmen des geöffneten Filterknopfs |
+| `border-border` (Standard) / `border-border-strong` | Haarlinie (auch das ✕ im Filterknopf) / Hover- und Checkbox-Rand, aktiver Filterknopf |
+| `border-divider` | leise Trennlinie zwischen Listenzeilen und Abschnitten (Mockup `--divider`, schwächer als `border`); Rezeptzeilen haben seit V3 (#229) keine Trennlinie, sie sind flach mit Hover-Fläche |
 | `bg-sidebar`, `bg-sidebar-accent` | Seitenleiste, aktiver Navigationspunkt |
 | `bg-primary text-primary-foreground` | **eine** Hauptaktion pro Ansicht („Neues Rezept“, „Speichern“) |
 | `text-star` | Bewertungssterne |
@@ -88,9 +92,10 @@ dem Shell-/Detail-Issue (Override von `--text-base` unter 761 px), weil die heut
 
 Zahlen, die sich vergleichen lassen (Zeiten, Mengen, Zähler), mit `tabular-nums`. Keine weiteren Größen; Ausnahmen sind
 der Koch-Modus (großer Schritttext, siehe Redesign-README) und die Kacheln (`RecipeTile`): Titel 17 px / 700
-(Handy `text-lg`), Name der Typo-Kachel 22 px / 750 (Handy 17 px), beide nur dort. Außerdem: Eingabefelder auf
-Touch 16 px (`pointer: coarse`, sonst zoomt iOS beim Fokus). Das regelt eine zentrale Regel in `styles.css`, keine
-Klassen pro Feld; sie gilt auch bei der geplanten Handy-Grundschrift 15 px. Felder mit `text-xl` und größer
+(Handy `text-lg`), Name der Typo-Kachel 22 px / 750 (Handy 17 px), beide nur dort. Ebenso das „+N“ auf der letzten
+Galerie-Kachel im Rezept-Detail (`RecipeImages`): 20 px / 600, nur dort. Sheet- und Popover-Titel (`PanelHead`,
+Mockup `.sheet-h`): 16 px / 650, nur dort. Außerdem: Eingabefelder auf Touch 16 px (`pointer: coarse`, sonst zoomt
+iOS beim Fokus). Das regelt eine zentrale Regel in `styles.css`, keine Klassen pro Feld; sie gilt auch bei der geplanten Handy-Grundschrift 15 px. Felder mit `text-xl` und größer
 behalten ihre Größe.
 
 ### Abstände
@@ -115,7 +120,7 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 | `dot` | Punkte, Swatches | 0,62 / 0,17 | 0,70 / 0,15 |
 | `soft` | Chip-, Kachel-, Gruppenkopf-Fläche | 0,955 / 0,035 | 0,27 / 0,045 |
 | `ink` | Text/Symbol auf `soft`, Kategorie-Label | 0,46 / 0,13 | 0,86 / 0,10 |
-| `line` | 2-px-Linie an Gruppen, Rahmen | 0,84 / 0,08 | 0,42 / 0,09 |
+| `line` | Rahmen (die 2-px-Linie an Gruppen nutzt seit V3 #229 `dot`, wie im Mockup) | 0,84 / 0,08 | 0,42 / 0,09 |
 
 - Spezifikation des Utils (Entscheidung: `docs/decisions/0002-category-colors.md`): Eingabe beliebige Hex-Farbe,
   Ausgabe `{ light, dark }` je mit den vier Rollen als sRGB-Hex. Ungültige Eingabe sowie Schwarz/Weiß/Grau
@@ -152,7 +157,9 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 - **Liste (Rezepte, Kategorie):** volle Breite, keine Filter-Spalte. Zeile 1 Suche · Sortierung · Ansicht
   (Kompakt / Detailliert = Standard / Kacheln); Zeile 2 Filterleiste mit Facetten-Knöpfen (Wert im Knopf, eigenes ✕;
   Desktop Popover, Handy Sheet); Zeile 3 Trefferzahl · „Alle Filter zurücksetzen“. Gruppiert nach Kategorie mit
-  2-px-`cat-line` und Sticky-Kopf; „Ohne Kategorie“ zuerst und eingeklappt.
+  2-px-Linie in `cat-dot` („Ohne Kategorie“: `border`) und Sticky-Kopf (Chevron, Farbpunkt, neutraler Name 600,
+  Anzahl muted; „Öffnen ›“ am Desktop erst bei Hover/Fokus, auf Touch immer); „Ohne Kategorie“ zuerst und eingeklappt.
+  Rezeptzeilen flach ohne Rahmen, eine Meta-Zeile (Gesamtzeit „1 h 30 min“, ★, „von <Name>“).
   **Trefferzahl nennt nur, was bekannt ist** (`ResultCount`): „N Rezepte“ = sichtbare Rezepte („1 Rezept“), solange
   weitere Seiten ausstehen „N+ Rezepte“. Kein „x von y“, bis der Server eine Gesamtzahl liefert (B16). Beim Laden,
   bei Fehler und bei „0 + weitere Seiten“ bleibt der Platz leer (unsichtbar, `aria-hidden`), damit der Kopf nicht springt.
@@ -169,15 +176,20 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 
 Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 
-- **Laden:** postxl `Skeleton` in der Form des Inhalts (Zeilen, Kacheln), kein Vollbild-Spinner. `Loader` nur in
-  Buttons während einer Aktion.
+- **Laden:** `Skeleton` aus `src/components/Skeleton.tsx` (Shimmer wie im Mockup, Token `--skel`, steht bei
+  `prefers-reduced-motion` still) in der Form des Inhalts (Zeilen mit Textbalken, Kacheln), kein Vollbild-Spinner.
+  `Loader` nur in Buttons während einer Aktion.
+- **Bausteine:** `EmptyState` und `ErrorState` aus `src/components/StateCard.tsx`; keine eigenen Leer- oder
+  Fehlertexte daneben bauen.
 - **Leer:** Leerzustand-Karte wie im Mockup (`#/states`): Icon im Kreis, Titel, ein Satz, höchstens eine Aktion
   (Daniel, 2026-11-13: Mockup gilt; vorher „kein großes Icon“).
-- **Keine Treffer (Filter):** „Keine Treffer für die aktuellen Filter.“ + „Filter zurücksetzen“ – erst, wenn keine
-  Seiten mehr ausstehen. Filtert der Client über geladene Seiten und es kommen noch welche, eine Skelett-Zeile statt
-  Leer-Text (`RecipeList.tsx`).
-- **Fehler:** neutrale Karte wie im Mockup (`#/states`) mit Icon, Satz und „↺ Erneut versuchen“, kein roter Alert
-  (Daniel, 2026-11-13). Nachladen fehlgeschlagen: unter der Liste.
+- **Keine Treffer (Filter):** „Keine Rezepte gefunden“ / „Lockere die Filter oder such nach etwas anderem.“ +
+  „Filter zurücksetzen“; nur Suche: „Nichts gefunden für „…““ / „Prüf die Schreibweise oder setz die Filter zurück.“
+  (Mockup). Mit Suchtext bleibt der Hinweis auf den Zutaten-Filter als zweite Zeile (Ausnahme von „ein Satz“). Erst,
+  wenn keine Seiten mehr ausstehen. Filtert der Client über geladene Seiten und es kommen noch welche, eine
+  Skelett-Zeile statt Leer-Text (`RecipeList.tsx`).
+- **Fehler:** `ErrorState`, neutrale Karte wie im Mockup (`#/states`) mit Icon, Satz und „↺ Erneut versuchen“, kein
+  roter Alert (Daniel, 2026-11-13). Nachladen fehlgeschlagen: kompakte Karte unter der Liste.
   Aktion fehlgeschlagen: `toast`.
 - **Kein Zugriff / nicht gefunden:** eigene Seite mit Weg zurück (`NotFound.tsx`).
 
@@ -194,10 +206,12 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
   an der klickbaren Fläche, nicht am Symbol (Icon-Buttons `size="icon"`). Mit Maus bleibt die Dichte. Layout hängt an
   der Breite (`phone:`), Tippflächen und Eingabe-Schrift an `touch:` (Daniel, 2026-11-13, Phase 6).
 - Eingabefelder auf Touch mit 16 px (sonst zoomt iOS beim Fokus); Zoomen der Seite nie sperren.
-- Feste Leisten unten (Tab-Leiste, FAB, Editor-Leiste, Sheets) halten `env(safe-area-inset-bottom)` frei; Sheets in
+- Feste Leisten unten (Tab-Leiste, FAB, Sheets) halten `env(safe-area-inset-bottom)` frei; Sheets in
   `dvh`, ihre Aktionen bleiben über der Bildschirmtastatur.
 - Unterseiten mit eigener Abschluss-Aktion (Editor „Fertig“, Koch-Modus) zeigen auf dem Handy keine Tab-Leiste.
-- Popover mit Inhalt (Filter, Timer, Formulare) werden auf dem Handy zu Bottom-Sheets mit Griff, Titel und ✕;
+- Popover mit Inhalt (Filter, Timer, Formulare) werden auf dem Handy zu Bottom-Sheets mit Griff, Titel linksbündig
+  und ✕ rechts in einer Zeile (`PanelHead`; Ghost-Button 30 px, auf Touch 40 px); Popover mit Kopf im Mockup (Timer)
+  zeigen denselben Kopf;
   Filter-Sheets haben unten „Zurücksetzen“ und „Anzeigen“ wie im Mockup (Daniel, 2026-11-13). Kurze Aktionsmenüs (bis 5 Einträge, z. B. das Profil-Menü) bleiben auch
   auf dem Handy ein `DropdownMenu`.
 - Horizontal scrollen nur für die Filterleiste und Chip-Reihen, nie für Inhalt.

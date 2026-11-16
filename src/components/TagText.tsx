@@ -9,7 +9,8 @@ import { TAG_TOKEN } from './tagTokens'
 // but always through this one component so the dimensions live in one place and
 // are never hand-written inline at each call site.
 const TAG_ICON_SIZE = {
-  sm: 'h-[1.15em] align-[-0.22em]', // ingredients, steps, notes, chips
+  xs: 'h-3', // tag chips (12 px)
+  sm: 'h-[1.15em] align-[-0.22em]', // ingredients, steps, notes
   md: 'h-[1.2em] align-[-0.25em]', // time, portions, section headings
   lg: 'h-[1.2em] align-[-0.23em]', // title (optically centred on cap height)
 } as const

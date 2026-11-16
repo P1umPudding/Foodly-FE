@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptyDraft, move, newIngredient, sizeNumberError, toCreateRecipe, toDraft } from './draft'
+import { addImage, emptyDraft, move, newIngredient, sizeNumberError, toCreateRecipe, toDraft } from './draft'
 import type { Recipe } from '../api/protocol'
 import { ref } from '../test/images'
 
@@ -9,6 +9,9 @@ function recipe(over: Partial<Recipe> = {}): Recipe {
     owner: 1,
     editors: [],
     viewers: [],
+    createdAt: null,
+    updatedAt: null,
+    myAccessSince: null,
     rating: [],
     name: 'Pasta',
     tags: ['Vegan'],
@@ -27,7 +30,7 @@ function recipe(over: Partial<Recipe> = {}): Recipe {
         name: 'Sugo',
         ingredients: [
           { id: 100, ingredient: { id: 5, name: 'Zwiebel' }, text: null, amount: '1', amountPrefix: null, unit: null },
-          { id: 101, ingredient: null, text: 'Salz', amount: null, amountPrefix: 'ca.', unit: 'Prise' },
+          { id: 101, ingredient: null, text: 'Salz', amount: '1', amountPrefix: 'ca.', unit: 'Prise' },
         ],
         steps: ['Hacken.', 'Braten.'],
       },
@@ -95,12 +98,30 @@ describe('toCreateRecipe', () => {
           name: 'Sugo',
           ingredients: [
             { ingredient: 5, text: null, amount: '1', amountPrefix: null, unit: null },
-            { ingredient: null, text: 'Salz', amount: null, amountPrefix: 'ca.', unit: 'Prise' },
+            { ingredient: null, text: 'Salz', amount: '1', amountPrefix: 'ca.', unit: 'Prise' },
           ],
           steps: ['Hacken.', 'Braten.'],
         },
       ],
     })
+  })
+
+  it('shows prefix and amount in one field and splits them again on save', () => {
+    const draft = toDraft(recipe())
+    expect(draft.sections[0].ingredients[1].amount).toBe('ca. 1')
+
+    draft.sections[0].ingredients[1].amount = 'etwa 200'
+    expect(toCreateRecipe(draft).sections[0].ingredients[1]).toMatchObject({ amountPrefix: 'etwa', amount: '200' })
+  })
+
+  // Accepted drift of the README §3.3 rule: a legacy prefix without any number becomes the amount.
+  it('saves a legacy prefix without an amount as the amount', () => {
+    const legacy = recipe()
+    legacy.sections[0].ingredients[1] = { ...legacy.sections[0].ingredients[1], amount: null, amountPrefix: 'ca.' }
+
+    const wire = toCreateRecipe(toDraft(legacy))
+
+    expect(wire.sections[0].ingredients[1]).toMatchObject({ amount: 'ca.', amountPrefix: null })
   })
 
   it('keeps the Zusatz of a catalog ingredient through draft and save', () => {
@@ -181,5 +202,18 @@ describe('sizeNumberError', () => {
 
   it('ignores the number in text mode', () => {
     expect(sizeNumberError({ sizeMode: 'text', sizeNumber: 0 })).toBeNull()
+  })
+})
+
+describe('addImage', () => {
+  it('makes the image the main one while there is none', () => {
+    expect(addImage({ mainImage: null, images: [ref(2)] }, ref(5))).toEqual({ mainImage: ref(5), images: [ref(2)] })
+  })
+
+  it('appends to the gallery once there is a main image', () => {
+    expect(addImage({ mainImage: ref(1), images: [ref(2)] }, ref(5))).toEqual({
+      mainImage: ref(1),
+      images: [ref(2), ref(5)],
+    })
   })
 })

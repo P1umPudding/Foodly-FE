@@ -36,6 +36,9 @@ function recipe(): Recipe {
     owner: 1,
     editors: [],
     viewers: [],
+    createdAt: null,
+    updatedAt: null,
+    myAccessSince: null,
     rating: [],
     name: 'Base',
     tags: [],
@@ -81,7 +84,7 @@ describe('RecipeDetail remembers the recipe as recently viewed', () => {
   it('does not store a recipe that failed to load', async () => {
     vi.spyOn(foodly, 'getRecipe').mockRejectedValue(new Error('recipe 5 not found'))
     renderDetail()
-    await waitFor(() => screen.getByText('Rezept nicht gefunden'))
+    await waitFor(() => screen.getByText('Rezept konnte nicht geladen werden'))
     expect(readRecentlyViewed(1)).toEqual([])
   })
 
@@ -102,7 +105,8 @@ describe('RecipeDetail remembers the recipe as recently viewed', () => {
     renderDetail()
     await waitFor(() => screen.getByText('Base'))
     pushRecentlyViewed(1, 99)
-    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Weitere Aktionen' }), { key: 'Enter' })
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Löschen' }))
     const dialog = within(await screen.findByRole('alertdialog'))
     fireEvent.click(dialog.getByRole('button', { name: 'Löschen' }))
     await waitFor(() => expect(readRecentlyViewed(1)).toEqual([99]))

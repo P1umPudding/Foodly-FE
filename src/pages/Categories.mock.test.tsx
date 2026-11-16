@@ -48,6 +48,21 @@ function openMenu(name: string) {
 }
 
 describe('Categories page (mock mode)', () => {
+  // #243 AC1: a subpage — back arrow and title in the header, no back button in the content.
+  it.each([1200, 390])(
+    'shows back and title in the header, not in the content (%i px)',
+    async (width) => {
+      setViewport(width)
+      await renderPage()
+      const header = within(screen.getByRole('banner'))
+      expect(header.getByRole('link', { name: 'Zurück' }).getAttribute('href')).toBe('/')
+      header.getByText('Kategorien')
+      expect(within(main()).queryByRole('link', { name: /Zurück/ })).toBeNull()
+      expect(within(main()).queryByRole('button', { name: /Zurück/ })).toBeNull()
+    },
+    SLOW,
+  )
+
   it(
     'lists the categories in their order with recipe counts',
     async () => {

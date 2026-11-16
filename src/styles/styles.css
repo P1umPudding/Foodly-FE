@@ -76,10 +76,15 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-star: var(--star);
+  --color-skel: var(--skel);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-divider: var(--divider);
+  --color-hover: var(--hover);
+  --color-tag: var(--tag-bg);
+  --color-seg: var(--seg-bg);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -121,6 +126,7 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+  --shadow-seg: var(--seg-shadow);
 }
 
 /* Compact TEXT SCALE — Tailwind's text tokens are redefined smaller than the
@@ -143,14 +149,24 @@
   --text-2xl--line-height: 32px;
 }
 
+/* Skeleton shimmer (mockup base.css .skel): the gradient is twice as wide as the box and slides across it. */
+@theme {
+  --animate-shimmer: shimmer 1.4s linear infinite;
+  @keyframes shimmer {
+    to {
+      background-position: -200% 0;
+    }
+  }
+}
+
 /* Themed document defaults. Preflight already reset margins. */
 @layer base {
   :root {
     /* Headings use the body face; weight and tracking set them apart
        (see .font-display). Kept as its own token so it stays swappable. */
     --font-display: var(--font-sans);
-    /* Height of the sticky site nav — single source for everything that sticks
-       just beneath it (the list's sticky header, category headers, filter rail). */
+    /* Height of the sticky site header (desktop; AppShell sets the phone value on the
+       shell root) — the list's category headers stick right beneath it. */
     --site-nav-h: 3.75rem;
   }
   html {

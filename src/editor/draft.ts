@@ -7,14 +7,14 @@
 //    leaving the UI to infer it from nulls;
 //  - text fields are '' rather than null, so inputs stay controlled.
 
+import { joinAmount, splitAmount } from './amount'
 import type { CreateRecipe, ImageRef, IngredientId, Recipe, TagId } from '../api/protocol'
 
 export type DraftIngredient = {
   key: number
   ingredient: IngredientId | null // catalog hit …
   text: string // … or free text; at least one must be set to survive the save
-  amount: string
-  amountPrefix: string
+  amount: string // prefix included ("ca. 800"), split again on save
   unit: string
 }
 
@@ -53,7 +53,7 @@ let counter = 0
 const nextKey = () => ++counter
 
 export function newIngredient(): DraftIngredient {
-  return { key: nextKey(), ingredient: null, text: '', amount: '', amountPrefix: '', unit: '' }
+  return { key: nextKey(), ingredient: null, text: '', amount: '', unit: '' }
 }
 
 export function newStep(): DraftStep {
@@ -108,8 +108,7 @@ export function toDraft(recipe: Recipe): Draft {
         key: nextKey(),
         ingredient: line.ingredient?.id ?? null,
         text: line.text ?? '',
-        amount: line.amount ?? '',
-        amountPrefix: line.amountPrefix ?? '',
+        amount: joinAmount(line.amountPrefix ?? '', line.amount ?? ''),
         unit: line.unit ?? '',
       })),
     })),
@@ -145,13 +144,16 @@ export function toCreateRecipe(draft: Draft): CreateRecipe {
       // trailing row is normal while typing, so drop it instead of failing.
       ingredients: section.ingredients
         .filter((line) => line.ingredient !== null || line.text.trim() !== '')
-        .map((line) => ({
-          ingredient: line.ingredient,
-          text: orNull(line.text),
-          amount: orNull(line.amount),
-          amountPrefix: orNull(line.amountPrefix),
-          unit: orNull(line.unit),
-        })),
+        .map((line) => {
+          const { amountPrefix, amount } = splitAmount(line.amount)
+          return {
+            ingredient: line.ingredient,
+            text: orNull(line.text),
+            amount: orNull(amount),
+            amountPrefix: orNull(amountPrefix),
+            unit: orNull(line.unit),
+          }
+        }),
     })),
   }
 }
@@ -163,4 +165,10 @@ export function move<T extends { key: number }>(rows: T[], key: number, delta: -
   const next = [...rows]
   ;[next[from], next[to]] = [next[to], next[from]]
   return next
+}
+
+// Applied to the current draft per finished upload, so a batch of uploads (or an edit made meanwhile) never works
+// from a stale copy: the first image becomes the main one while there is none.
+export function addImage<T extends Pick<Draft, 'mainImage' | 'images'>>(draft: T, image: ImageRef): T {
+  return draft.mainImage === null ? { ...draft, mainImage: image } : { ...draft, images: [...draft.images, image] }
 }

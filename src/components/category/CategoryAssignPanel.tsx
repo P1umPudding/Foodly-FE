@@ -2,8 +2,9 @@
 // Every toggle saves at once; the state lives in RecipeCategoryChips (see there).
 import { useEffect, useRef, type FormEvent } from 'react'
 import { Loader2 } from 'lucide-react'
-import { Button, Input, Skeleton, cn } from '@postxl/ui-components'
-import { RetryAlert } from '../RetryAlert'
+import { Button, Input, cn } from '@postxl/ui-components'
+import { Skeleton } from '../Skeleton'
+import { ErrorState } from '../StateCard'
 import { FilterCheckRow } from '../list/filters/FilterCheckRow'
 import { CategoryLabel } from '../list/filters/CategoryFilter'
 import { categoryColorVars } from '../../lib/categoryColor'
@@ -50,7 +51,12 @@ export function CategoryAssignPanel({
           <Skeleton className="h-6 w-2/3" />
         </div>
       ) : status === 'error' ? (
-        <RetryAlert title="Kategorien nicht geladen" message={error?.message} onRetry={onRetry} />
+        <ErrorState
+          compact
+          title="Kategorien konnten nicht geladen werden"
+          description={error?.message}
+          onRetry={onRetry}
+        />
       ) : (
         <AssignList recipeId={recipeId} list={list} assign={assign} variant={variant} />
       )}
