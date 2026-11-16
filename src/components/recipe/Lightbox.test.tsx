@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { Lightbox } from './Lightbox'
 import { ref } from '../../test/images'
@@ -27,7 +27,7 @@ describe('Lightbox image that fails to load', () => {
 
     fireEvent.error(screen.getByAltText('Bild 1'))
     const fallback = screen.getByRole('img', { name: 'Bild 1' })
-    expect(fallback.className).toContain('h-[64vh]')
+    expect(fallback.className).toContain('h-[calc(100dvh-140px)]')
 
     fireEvent.click(fallback)
     expect(onClose).not.toHaveBeenCalled()
@@ -65,7 +65,7 @@ describe('Lightbox thumbnails', () => {
     expect(fireEvent.keyDown(document.body, { key: ' ' })).toBe(false)
   })
 
-  it('show a white focus ring with a gap, full white on the active one', () => {
+  it('show a white focus ring with a gap; the active one has a white border, the others are dimmed', () => {
     render(<Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />)
 
     const inactive = screen.getByRole('button', { name: 'Bild 2' }).className.split(/\s+/)
@@ -74,14 +74,18 @@ describe('Lightbox thumbnails', () => {
         'focus-visible:ring-[3px]',
         'focus-visible:ring-white/60',
         'focus-visible:ring-offset-2',
-        'focus-visible:ring-offset-black',
+        'opacity-55',
+        // focus lifts the dimming, or the ring would fall below 3:1
+        'focus-visible:opacity-100',
+        'size-14',
+        'phone:size-11',
       ]),
     )
-    expect(inactive).not.toContain('ring-white')
+    expect(inactive).not.toContain('border-white')
 
     const active = screen.getByRole('button', { name: 'Bild 1' }).className.split(/\s+/)
-    expect(active).toEqual(expect.arrayContaining(['ring-2', 'ring-white', 'focus-visible:ring-white']))
-    expect(active).not.toContain('focus-visible:ring-white/60')
+    expect(active).toContain('border-white')
+    expect(active).not.toContain('opacity-55')
   })
 })
 
@@ -142,5 +146,118 @@ describe('Lightbox keyboard', () => {
     press('Escape')
     expect(onIndexChange).not.toHaveBeenCalled()
     expect(onClose).not.toHaveBeenCalled()
+  })
+})
+
+describe('Lightbox layout', () => {
+  const six = [1, 2, 3, 4, 5, 6].map(ref)
+
+  it('shows the counter "2 / 6" and the close button in the top bar, no caption', () => {
+    render(<Lightbox images={six} index={1} onIndexChange={() => {}} onClose={() => {}} />)
+    const dialog = screen.getByRole('dialog', { name: 'Fotos' })
+    expect(screen.getByText('2 / 6')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Schließen' })).toBeTruthy()
+    // the image name is only the alt text / thumbnail label now, not a visible caption
+    expect(within(dialog).queryByText('Bild 2')).toBeNull()
+  })
+
+  it('hides the arrow buttons on the phone', () => {
+    render(<Lightbox images={six} index={0} onIndexChange={() => {}} onClose={() => {}} />)
+    for (const name of ['Vorheriges Bild', 'Nächstes Bild']) {
+      expect(screen.getByRole('button', { name }).className.split(/\s+/)).toContain('phone:hidden')
+    }
+  })
+
+  it('with a single image: "1 / 1", no arrows, no thumbnails', () => {
+    render(<Lightbox images={[ref(1)]} index={0} onIndexChange={() => {}} onClose={() => {}} />)
+    expect(screen.getByText('1 / 1')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Nächstes Bild' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Bild 1' })).toBeNull()
+  })
+
+  it('closes on a click on the empty stage or the top bar, not on the image or the counter', () => {
+    const onClose = vi.fn()
+    render(<Lightbox images={six} index={0} onIndexChange={() => {}} onClose={onClose} />)
+    fireEvent.click(screen.getByAltText('Bild 1'))
+    fireEvent.click(screen.getByText('1 / 6'))
+    expect(onClose).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByAltText('Bild 1').parentElement!)
+    expect(onClose).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByText('1 / 6').parentElement!)
+    expect(onClose).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('Lightbox swipe', () => {
+  const images = [ref(1), ref(2), ref(3)]
+  const stageOf = () => screen.getByAltText(/^Bild \d$/).parentElement!
+  const swipe = (dx: number, dy = 0, pointerType = 'touch') => {
+    const stage = stageOf()
+    fireEvent.pointerDown(stage, { pointerId: 1, pointerType, isPrimary: true, clientX: 200, clientY: 300 })
+    fireEvent.pointerUp(stage, { pointerId: 1, pointerType, isPrimary: true, clientX: 200 + dx, clientY: 300 + dy })
+  }
+  const setup = (index = 0) => {
+    const onIndexChange = vi.fn()
+    const onClose = vi.fn()
+    render(<Lightbox images={images} index={index} onIndexChange={onIndexChange} onClose={onClose} />)
+    return { onIndexChange, onClose }
+  }
+
+  it('a swipe to the left shows the next image, to the right the previous one, wrapping around', () => {
+    const { onIndexChange } = setup(0)
+    swipe(-80)
+    expect(onIndexChange).toHaveBeenLastCalledWith(1)
+    swipe(80)
+    expect(onIndexChange).toHaveBeenLastCalledWith(2)
+  })
+
+  it('works with a pen too', () => {
+    const { onIndexChange } = setup(0)
+    swipe(-80, 0, 'pen')
+    expect(onIndexChange).toHaveBeenCalledExactlyOnceWith(1)
+  })
+
+  it.each([
+    ['too short', 30, 0, 'touch'],
+    ['mostly vertical', 60, 90, 'touch'],
+    ['a mouse drag', -80, 0, 'mouse'],
+  ])('ignores %s', (_name, dx, dy, pointerType) => {
+    const { onIndexChange } = setup(0)
+    swipe(dx, dy, pointerType)
+    expect(onIndexChange).not.toHaveBeenCalled()
+  })
+
+  it('ignores a cancelled gesture and a second finger', () => {
+    const { onIndexChange } = setup(0)
+    const stage = stageOf()
+    fireEvent.pointerDown(stage, { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 200, clientY: 0 })
+    fireEvent.pointerCancel(stage, { pointerId: 1, pointerType: 'touch' })
+    fireEvent.pointerUp(stage, { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 100, clientY: 0 })
+
+    fireEvent.pointerDown(stage, { pointerId: 2, pointerType: 'touch', isPrimary: true, clientX: 200, clientY: 0 })
+    fireEvent.pointerDown(stage, { pointerId: 3, pointerType: 'touch', isPrimary: false, clientX: 400, clientY: 0 })
+    fireEvent.pointerUp(stage, { pointerId: 3, pointerType: 'touch', isPrimary: false, clientX: 300, clientY: 0 })
+    expect(onIndexChange).not.toHaveBeenCalled()
+  })
+
+  it('the click that ends a swipe does not close; the next tap on the stage does', () => {
+    const { onClose } = setup(0)
+    swipe(-80)
+    fireEvent.click(stageOf())
+    expect(onClose).not.toHaveBeenCalled()
+
+    // a swipe without a trailing click must not swallow the next tap
+    swipe(-80)
+    swipe(0)
+    fireEvent.click(stageOf())
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the thumbnail strip finger-scrollable while the page behind stays locked', () => {
+    setup(0)
+    const strip = screen.getByRole('button', { name: 'Bild 2' }).parentElement!
+    expect(fireEvent.touchMove(strip)).toBe(true)
+    expect(fireEvent.touchMove(stageOf())).toBe(false)
   })
 })
