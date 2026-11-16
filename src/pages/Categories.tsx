@@ -24,6 +24,7 @@ import { DeleteCategoryDialog } from '../components/category/DeleteCategoryDialo
 import { EmptyState, ErrorState } from '../components/StateCard'
 import { TriggerButton } from '../components/TriggerButton'
 import { FOCUS_RING } from '../components/focusRing'
+import { ROW_DIVIDER } from '../components/rowDivider'
 import { Page } from '../components/shell/Page'
 import { categoryPageHref } from '../components/shell/nav'
 import { moveCategory } from '../lib/moveCategory'
@@ -33,10 +34,8 @@ import type { UserCategory, UserCategoryId } from '../api/protocol'
 // opening: the dialog starts from scratch every time, even when reopened mid-animation.
 type DialogState = { kind: 'edit' | 'delete'; target: UserCategory | null; open: boolean; key: number }
 
-// Mockup `.pad-rows > .row` in a `.divided` card: the hairline between rows is inset by the row padding, so it ends
-// short of the rounded hover fill instead of bending with it.
-const ROW =
-  'relative flex items-center gap-3.5 rounded-sm px-3 py-2.5 not-first:before:pointer-events-none not-first:before:absolute not-first:before:inset-x-3 not-first:before:top-0 not-first:before:border-t not-first:before:border-divider'
+// Mockup `.pad-rows > .row` in a `.divided` card.
+const ROW = cn('flex items-center gap-3.5 rounded-sm px-3 py-2.5', ROW_DIVIDER)
 
 const recipeCount = (n: number) => `${n} ${n === 1 ? 'Rezept' : 'Rezepte'}`
 

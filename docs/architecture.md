@@ -172,5 +172,5 @@ Begründete Einzelausnahme: `eslint-disable-next-line <regel> -- <grund>`.
 - Auth/Token-Handling: Backend fertig (B7, PR #20); FE baut es in #141–#143
   (Spec `superpowers/specs/2026-11-08-auth-login-design.md`). Sitzung und
   Token-Refresh liegen seit #141 in `src/api/auth.ts`; Anmelden, Registrieren und
-  Routen-Schutz seit #142 (§5), Abmelden im Profil-Menü und Hinweis bei
+  Routen-Schutz seit #142 (§5), Abmelden (heute auf der Profilseite, #245) und Hinweis bei
   abgelaufener Sitzung seit #143.
