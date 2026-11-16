@@ -150,15 +150,33 @@ describe('RecipeEditor · edit', () => {
     )
   })
 
-  it('surfaces a load failure', async () => {
+  it('surfaces a load failure as the neutral error card, without the raw message', async () => {
     params = { id: '5' }
-    vi.spyOn(foodly, 'getRecipe').mockRejectedValue(new Error('weg'))
+    vi.spyOn(foodly, 'getRecipe').mockRejectedValue(new Error('recipe 5 not found'))
     view()
 
-    await waitFor(() => screen.getByText('Rezept nicht gefunden'))
-    expect(screen.getByText('Rezept nicht gefunden').closest('.max-w-3xl')!.className.split(/\s+/)).toContain(
+    await waitFor(() => screen.getByText('Rezept konnte nicht geladen werden'))
+    expect(screen.getByRole('button', { name: 'Erneut versuchen' })).toBeTruthy()
+    expect(screen.getByText('Zur Liste')).toBeTruthy()
+    expect(screen.queryByText(/not found/)).toBeNull()
+    expect(screen.getByText('Rezept konnte nicht geladen werden').closest('.pb-10')!.className.split(/\s+/)).toContain(
       'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]',
     )
+  })
+
+  it('retries a failed load and then shows the editor', async () => {
+    params = { id: '5' }
+    const get = vi
+      .spyOn(foodly, 'getRecipe')
+      .mockRejectedValueOnce(new Error('weg'))
+      .mockResolvedValue(recipe())
+    view()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Erneut versuchen' }))
+    expect(screen.getByTestId('editor-skeleton')).toBeTruthy()
+    await waitFor(() => expect((screen.getByLabelText('Titel') as HTMLInputElement).value).toBe('Pasta'))
+    expect(get).toHaveBeenCalledTimes(2)
+    expect(screen.queryByText('Kein Zugriff')).toBeNull()
   })
 
   it('orders the phone flow images first, notes and source last, with safe-area room below (#218)', async () => {

@@ -187,14 +187,22 @@ describe('exactly one h1', () => {
   it('editor on error', async () => {
     vi.mocked(foodly.getRecipe).mockRejectedValue(new Error('nicht da'))
     await renderAt('/recipes/5/edit')
-    await screen.findByText('Rezept nicht gefunden')
+    await screen.findByText('Rezept konnte nicht geladen werden')
     expect(h1s()).toHaveLength(1)
+    expect(screen.queryByText('nicht da')).toBeNull()
   })
 
   it('editor without edit rights', async () => {
     vi.mocked(foodly.getRecipe).mockResolvedValue(recipe({ owner: 2, viewers: [1] }))
     await renderAt('/recipes/5/edit')
     await screen.findByText('Kein Zugriff')
+    expect(h1s()).toHaveLength(1)
+  })
+
+  it('detail on error', async () => {
+    vi.mocked(foodly.getRecipe).mockRejectedValue(new Error('nicht da'))
+    await renderAt('/recipes/5')
+    await screen.findByText('Rezept konnte nicht geladen werden')
     expect(h1s()).toHaveLength(1)
   })
 
