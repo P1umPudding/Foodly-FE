@@ -295,9 +295,7 @@ describe('AppShell on the desktop', () => {
 
   it('sets the "Kategorien" heading in subtle (#246)', () => {
     renderAt('/recipes')
-    expect(within(sidebar()).getByRole('heading', { name: 'Kategorien' }).className).toContain(
-      'text-subtle-foreground',
-    )
+    expect(within(sidebar()).getByRole('heading', { name: 'Kategorien' }).className).toContain('text-subtle-foreground')
   })
 
   it('has no gear in the collapsed sidebar', () => {

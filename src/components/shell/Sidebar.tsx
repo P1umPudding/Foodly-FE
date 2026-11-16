@@ -82,10 +82,7 @@ export function Sidebar({
         {!collapsed && (
           <Link
             to="/"
-            className={cn(
-              '-ml-1 flex items-center rounded-md px-1 focus-visible:ring-sidebar-ring',
-              FOCUS_RING,
-            )}
+            className={cn('-ml-1 flex items-center rounded-md px-1 focus-visible:ring-sidebar-ring', FOCUS_RING)}
           >
             <Brand />
           </Link>
@@ -149,7 +146,11 @@ export function Sidebar({
         >
           {collapsed ? (
             // Mockup `.side-c`: a short rule stands in for the heading in the icon rail.
-            <div aria-hidden data-testid="category-divider" className="mx-auto mt-3.5 mb-2 h-px w-6 shrink-0 bg-sidebar-border" />
+            <div
+              aria-hidden
+              data-testid="category-divider"
+              className="mx-auto mt-3.5 mb-2 h-px w-6 shrink-0 bg-sidebar-border"
+            />
           ) : (
             <div className="flex items-center justify-between pb-1.5 pl-2.5">
               {/* Subtle although this is small text (design.md: subtle is below AA there): #246 names it explicitly, as
