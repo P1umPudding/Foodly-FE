@@ -10,7 +10,7 @@ import { useCategories } from '../../catalog/CatalogProvider'
 import { categoryColorVars } from '../../lib/categoryColor'
 import { SHELL_NAV_STATE, NAV_DESTINATIONS, categoryPageHref, currentFor, isCategoryPage } from './nav'
 import { navItemClass } from './navItem'
-import { ProfileMenu } from './ProfileMenu'
+import { ProfileLink } from './ProfileLink'
 import { TriggerButton } from '../TriggerButton'
 import { FOCUS_RING } from '../focusRing'
 import { useNavState } from './useNavState'
@@ -202,7 +202,7 @@ export function Sidebar({
       )}
 
       <div className="mt-auto pt-3">
-        <ProfileMenu variant={collapsed ? 'icon' : 'row'} />
+        <ProfileLink variant={collapsed ? 'icon' : 'row'} />
       </div>
     </aside>
   )

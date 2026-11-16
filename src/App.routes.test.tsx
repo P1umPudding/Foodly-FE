@@ -21,6 +21,7 @@ vi.mock('./pages/Home', () => ({ Home: () => <Page name="home" /> }))
 vi.mock('./pages/RecipeList', () => ({ RecipeList: () => <Page name="list" /> }))
 vi.mock('./pages/RecipeDetail', () => ({ RecipeDetail: () => <Page name="detail" /> }))
 vi.mock('./pages/Categories', () => ({ Categories: () => <Page name="categories" /> }))
+vi.mock('./pages/Profile', () => ({ Profile: () => <Page name="profile" /> }))
 vi.mock('./pages/NotFound', () => ({ NotFound: () => <Page name="404" /> }))
 
 const at = (path: string) => {
@@ -38,6 +39,7 @@ describe('App routes', () => {
   it.each([
     ['/recipes/5', 'login /login?next=%2Frecipes%2F5'],
     ['/categories', 'login /login?next=%2Fcategories'],
+    ['/profile', 'login /login?next=%2Fprofile'],
     ['/recipes', 'login /login?next=%2Frecipes'],
     ['/nowhere', 'login /login?next=%2Fnowhere'],
     ['/', 'login /login?next=%2F'],
@@ -50,6 +52,7 @@ describe('App routes', () => {
   it.each([
     ['/recipes/5', 'detail /recipes/5'],
     ['/categories', 'categories /categories'],
+    ['/profile', 'profile /profile'],
     ['/nowhere', '404 /nowhere'],
     ['/', 'home /'],
     ['/?cat=3&q=x', 'list /recipes?cat=3&q=x'],

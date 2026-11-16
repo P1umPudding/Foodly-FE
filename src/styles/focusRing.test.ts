@@ -185,7 +185,7 @@ describe('hand-written focus rings (#133)', () => {
   })
 
   // Any ring width behind a focus variant (also stacked, e.g. `focus-visible:dark:ring-2`); colours don't count.
-  // Only focus widths: the Lightbox thumbnail's selection ring (`ring-2 ring-white`) is not a focus ring.
+  // Only focus widths: a plain selection ring (e.g. `ring-2 ring-white`) is not a focus ring.
   const focusWidths = (source: string) =>
     (
       source.match(

@@ -18,12 +18,12 @@ describe('subpageOf', () => {
 })
 
 describe('parentHref', () => {
-  it('leads the editor back to its recipe, the categories to Start, everything else to the list', () => {
+  it('leads the editor back to its recipe, the categories to the profile, everything else to the list', () => {
     expect(parentHref('/recipes/7/edit')).toBe('/recipes/7')
     expect(parentHref('/recipes/new')).toBe('/recipes')
     expect(parentHref('/recipes/7')).toBe('/recipes')
     expect(parentHref('/categories/2')).toBe('/recipes')
-    expect(parentHref('/categories')).toBe('/')
+    expect(parentHref('/categories')).toBe('/profile')
   })
 })
 
@@ -32,6 +32,7 @@ describe('staticOriginLabel', () => {
     expect(staticOriginLabel('/')).toBe('Start')
     expect(staticOriginLabel('/recipes')).toBe('Rezepte')
     expect(staticOriginLabel('/categories')).toBe('Kategorien')
+    expect(staticOriginLabel('/profile')).toBe('Profil')
     expect(staticOriginLabel('/recipes/7')).toBeNull()
   })
 })

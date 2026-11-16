@@ -66,6 +66,7 @@ export function routeTitle(pathname: string): string {
   if (pathname === '/recipes/new') return 'Neues Rezept'
   if (/^\/recipes\/[^/]+\/edit$/.test(pathname)) return 'Rezept bearbeiten'
   if (pathname === '/categories') return 'Kategorien'
+  if (pathname === '/profile') return 'Profil & Einstellungen'
   return ''
 }
 

@@ -124,6 +124,7 @@ describe('routeTitle', () => {
     expect(routeTitle('/recipes/7')).toBe('')
     expect(routeTitle('/recipes/7/edit')).toBe('Rezept bearbeiten')
     expect(routeTitle('/categories')).toBe('Kategorien')
+    expect(routeTitle('/profile')).toBe('Profil & Einstellungen')
     expect(routeTitle('/nope')).toBe('')
   })
 })

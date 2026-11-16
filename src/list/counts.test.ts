@@ -1,4 +1,4 @@
-import { roleGridCounts, roleCellKey, usedIngredients } from './counts'
+import { roleGridCounts, roleCellKey, usedIngredients, byFrequency, recipeTagIds, recipeIngredientIds } from './counts'
 import { DEFAULT_STATE } from './state'
 import type { Recipe, UserCategory, Ingredient } from '../api/protocol'
 
@@ -72,5 +72,46 @@ describe('usedIngredients', () => {
     ]
     const cat: Record<number, Ingredient> = { 5: { id: 5, name: 'Zwiebel' }, 9: { id: 9, name: 'Apfel' } }
     expect(usedIngredients(r, cat)).toEqual([{ id: 5, name: 'Zwiebel' }])
+  })
+})
+
+describe('byFrequency', () => {
+  const ing = (id: number) => ({
+    id: 0,
+    ingredient: { id, name: `I${id}` },
+    text: null,
+    amount: null,
+    amountPrefix: null,
+    unit: null,
+  })
+  const withIngs = (id: number, ids: (number | null)[]): Recipe => ({
+    ...base,
+    id,
+    sections: [
+      {
+        id: 1,
+        name: null,
+        steps: [],
+        ingredients: ids.map((i) => (i === null ? { ...ing(0), ingredient: null, text: 'Salz' } : ing(i))),
+      },
+    ],
+  })
+
+  it('orders by how many recipes use an item, ties keep the input order', () => {
+    const rs = [
+      { ...base, id: 1, tags: ['b', 'c'] },
+      { ...base, id: 2, tags: ['c'] },
+    ]
+    expect(byFrequency(['a', 'b', 'c', 'd'], rs, recipeTagIds, (t) => t)).toEqual(['c', 'b', 'a', 'd'])
+  })
+
+  it('keeps the input order without recipes', () => {
+    expect(byFrequency(['x', 'a', 'm'], [], recipeTagIds, (t) => t)).toEqual(['x', 'a', 'm'])
+  })
+
+  it('counts an ingredient once per recipe and skips free-text rows', () => {
+    const rs = [withIngs(1, [2, 2, 2, null]), withIngs(2, [1]), withIngs(3, [1])]
+    expect(recipeIngredientIds(rs[0])).toEqual([2, 2, 2])
+    expect(byFrequency([2, 1, 3], rs, recipeIngredientIds, (i) => i)).toEqual([1, 2, 3])
   })
 })

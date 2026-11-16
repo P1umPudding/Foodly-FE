@@ -3,10 +3,11 @@
 Grundlage für die Broad Runs von Foodly QA (am 1. und 15. jedes Monats). Jede Journey am Desktop und bei schmaler Breite (375 px) durchgehen, im Mock-Modus (`VITE_MOCK=1`) und im REST-Modus.
 
 ## App-Shell
-- Desktop: Seitenleiste mit Wortmarke (→ `/` → `/recipes`), „Neues Rezept“, „Rezepte“, Kategorien mit Punkt und Anzahl, Profilmenü
+- Desktop: Seitenleiste mit Wortmarke (→ `/` → `/recipes`), „Neues Rezept“, „Rezepte“, Kategorien mit Punkt und Anzahl, Profil-Eintrag unten (→ `/profile`)
 - Seitenleiste ein- und ausklappen (Tooltips, Zustand bleibt nach Neuladen)
 - Handy: Tab-Leiste; „+“-FAB und Avatar nur auf `/recipes`; FAB verdeckt keinen Inhalt
 - Unbekannte Route zeigt 404 mit „Zur Startseite“; Seitenleiste mit „Start“ und „Rezepte“, Tab-Leiste am Handy ebenso
+- `/profile`: Avatar (Handy) bzw. Profil-Eintrag unten → Profil; Handy-Titel „Profil“, dort kein Avatar und kein aktiver Tab; Design Hell/Dunkel/System; „Kategorien ›“ → `/categories` → Zurück → `/profile`; „Abmelden“ (rot, nur REST) → `/login`
 - Kopfzeilen-Titel je Route (Rezepte / Neues Rezept / Rezept bearbeiten / Rezept); genau ein h1 pro Seite
 - Breakpoint wechseln, ohne dass die Seite neu aufgebaut wird (Entwurf und Liste bleiben erhalten)
 
@@ -29,7 +30,7 @@ Grundlage für die Broad Runs von Foodly QA (am 1. und 15. jedes Monats). Jede J
 ## Rezeptdetail
 - Portionen bzw. Faktor per Eingabe und ±, ungültige Eingabe (leer, 0, negativ); Mengen mit Dezimalkomma; Abhaken; Wachhalten
 - Bewertung: Popover am Desktop, Bottom-Sheet am Handy, Entfernen, Durchschnitt bei gemeinsamen Rezepten, Demo-Hinweis (REST)
-- Bilder, Lightbox (Pfeile, Escape, Thumbnails); REST-Modus ohne Fotos (Platzhalter)
+- Bilder, Lightbox (Zähler, Pfeile, Escape, Thumbnails; Handy: Wischen, keine Pfeile, Thumbnails per Finger scrollbar, senkrechtes Ziehen am Streifen bewegt die Seite dahinter nicht); REST-Modus ohne Fotos (Platzhalter)
 - Tags als Icon oder Name; Tag-Tokens im Text
 - Zeit-Chips in Schritten starten einen Timer bzw. öffnen das Panel
 - Quelle als Link; Kopie erstellen (auch mehrfach hintereinander); Löschen mit Dialog (inkl. Fehlerfall); Bearbeiten nur mit Rechten; ungültige ID
@@ -46,5 +47,5 @@ Grundlage für die Broad Runs von Foodly QA (am 1. und 15. jedes Monats). Jede J
 - Timer-Knopf: Popover (Desktop) bzw. Sheet (Handy); Schnellwahl und Dauer-Rad; benannte und unbenannte Timer
 - Pause, Fortsetzen, Neustart, Löschen; Alarm mit Toast und Stopp; Countdown in der Kopfzeile
 - Timer überleben Navigation und Neuladen (benannte)
-- Theme Hell/Dunkel/System über das Profilmenü
+- Theme Hell/Dunkel/System über das Segment „Design“ auf `/profile`
 - Tastatur: sichtbarer Fokus auf allen Bedienelementen; Handy: Tippflächen ≥ 40 px

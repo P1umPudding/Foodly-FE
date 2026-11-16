@@ -9,7 +9,7 @@ import { groupingCategories, inSelectedCategory } from '../list/filter'
 import { hasDisplayableImages } from '../list/rowData'
 import { buildSearchQuery } from '../list/query'
 import { matchesSearch } from '../list/search'
-import { usedIngredients } from '../list/counts'
+import { byFrequency, recipeIngredientIds, recipeTagIds, usedIngredients } from '../list/counts'
 import { canViewRecipe } from '../api/views'
 import { isFacetActive, isFilterActive } from '../list/state'
 import { loadCollapsed, saveCollapsed } from '../list/persistence'
@@ -20,6 +20,7 @@ import { RecipeListView } from '../components/list/RecipeListView'
 import { ListSkeleton, LoadMoreSkeleton } from '../components/list/ListSkeleton'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
+import { ResetLinkButton } from '../components/list/ResetLinkButton'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { fromSearchParams, toSearchParams } from '../list/url'
 import { isShellNavState } from '../components/shell/nav'
@@ -78,10 +79,14 @@ export function RecipeList() {
   // so the ingredient filter stays usable.
   const usedIngredientList = usedIngredients(accessibleRecipes, ingredients.byId)
   const ingredientCatalog = Object.values(ingredients.byId)
-  const ingredientOptions =
+  const ingredientFallback =
     usedIngredientList.length > 0
       ? usedIngredientList
-      : [...ingredientCatalog].sort((a, b) => a.name.localeCompare(b.name))
+      : [...ingredientCatalog].sort((a, b) => a.name.localeCompare(b.name, 'de'))
+  // Most used on the loaded recipes first (mockup). REST previews carry no sections, so there the ingredients keep
+  // the alphabetical fallback; tags come with every preview.
+  const ingredientOptions = byFrequency(ingredientFallback, accessibleRecipes, recipeIngredientIds, (i) => i.id)
+  const tagOptions = byFrequency(tagList, accessibleRecipes, recipeTagIds, (t) => t.id)
 
   // The server (or the mock) applies tag/ingredient/duration/role/collab facets and
   // sorting. The client narrows the loaded set by category selection and free-text
@@ -244,7 +249,7 @@ export function RecipeList() {
             set={set}
             categories={categories}
             categoriesStatus={categoriesCatalog.status}
-            tags={tagList}
+            tags={tagOptions}
             ingredients={ingredientOptions}
             labelIngredients={ingredientCatalog}
           />
@@ -259,19 +264,17 @@ export function RecipeList() {
             // Mockup link-btn: quiet 12 px text with a hover fill (design.md keeps accent colour off links), hence the
             // text-xs over the size's text-base. On phones the ::after widens the hit area to 40 px (design.md §7); the 7 px
             // above and below fit into the header's mt-3/pb-3.
-            <Button
-              variant="ghost"
-              size="xs"
+            <ResetLinkButton
               onClick={() => {
                 clear()
                 // The link unmounts with the filters; keep focus on the page rather than lose it to <body>.
                 // Not on phones, where focusing the search would pop the keyboard over the list.
                 if (isDesktop) searchInputRef.current?.focus({ preventScroll: true })
               }}
-              className="relative h-[26px] px-1.5 text-xs font-medium text-muted-foreground hover:bg-hover hover:text-foreground dark:hover:bg-hover phone:after:absolute phone:after:-inset-y-[7px] phone:after:inset-x-0"
+              className="relative phone:after:absolute phone:after:-inset-y-[7px] phone:after:inset-x-0"
             >
               Alle Filter zurücksetzen
-            </Button>
+            </ResetLinkButton>
           )}
         </div>
       </div>

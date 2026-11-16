@@ -22,8 +22,8 @@ export function subpageOf(pathname: string): Subpage | null {
 export function parentHref(pathname: string): string {
   const edit = RECIPE_EDIT.exec(pathname)
   if (edit) return `/recipes/${edit[1]}`
-  // The mockup's parent is the profile page; until it exists (#245) Start.
-  if (pathname === '/categories') return '/'
+  // Categories are a setting: the mockup leads back to the profile page.
+  if (pathname === '/categories') return '/profile'
   return '/recipes'
 }
 
@@ -32,5 +32,6 @@ export function staticOriginLabel(pathname: string): string | null {
   if (pathname === '/') return 'Start'
   if (pathname === '/recipes') return 'Rezepte'
   if (pathname === '/categories') return 'Kategorien'
+  if (pathname === '/profile') return 'Profil'
   return null
 }

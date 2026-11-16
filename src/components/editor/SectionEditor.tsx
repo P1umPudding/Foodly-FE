@@ -1,12 +1,13 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Card, CardContent, Input } from '@postxl/ui-components'
-import { Plus } from 'lucide-react'
+import { ClipboardPaste, Plus } from 'lucide-react'
 import { TriggerButton } from '../TriggerButton'
 import { COL_HEAD } from './EditorSidebar'
 import { INGREDIENT_COLUMNS, IngredientRow } from './IngredientRow'
+import { PasteIngredientsDialog } from './PasteIngredientsDialog'
 import { RowMenu } from './RowMenu'
 import { StepRow } from './StepRow'
-import { move, newIngredient, newStep } from '../../editor/draft'
+import { appendIngredients, move, newIngredient, newStep } from '../../editor/draft'
 import type { DraftIngredient, DraftSection } from '../../editor/draft'
 
 // One card per section (mockup `.ed-sec`): the name as the card's heading with ⋯ beside it, ingredients as a table,
@@ -36,6 +37,9 @@ export function SectionEditor({
 }) {
   const addIngredient = useRef<HTMLButtonElement>(null)
   const addStep = useRef<HTMLButtonElement>(null)
+  const pasteButton = useRef<HTMLButtonElement>(null)
+  // Keyed per opening (see PasteIngredientsDialog); null until first opened.
+  const [paste, setPaste] = useState<{ key: number; open: boolean } | null>(null)
   const patchIngredient = (key: number, patch: Partial<DraftIngredient>) =>
     onChange({
       ...section,
@@ -92,17 +96,42 @@ export function SectionEditor({
             canMoveDown={i < section.ingredients.length - 1}
           />
         ))}
-        <TriggerButton
-          ref={addIngredient}
-          variant="ghost"
-          size="sm"
-          aria-label="Zutat hinzufügen"
-          className={ADD_BUTTON}
-          onClick={() => onChange({ ...section, ingredients: [...section.ingredients, newIngredient()] })}
-        >
-          <Plus className="size-4" />
-          Zutat
-        </TriggerButton>
+        {/* mockup `.ed-adds` */}
+        <div className="flex gap-1 self-start">
+          <TriggerButton
+            ref={addIngredient}
+            variant="ghost"
+            size="sm"
+            aria-label="Zutat hinzufügen"
+            className={ADD_BUTTON}
+            onClick={() => onChange({ ...section, ingredients: [...section.ingredients, newIngredient()] })}
+          >
+            <Plus className="size-4" />
+            Zutat
+          </TriggerButton>
+          <TriggerButton
+            ref={pasteButton}
+            variant="ghost"
+            size="sm"
+            className={ADD_BUTTON}
+            onClick={() => setPaste((p) => ({ key: (p?.key ?? 0) + 1, open: true }))}
+          >
+            <ClipboardPaste className="size-4" />
+            Mehrere einfügen
+          </TriggerButton>
+        </div>
+        {paste && (
+          <PasteIngredientsDialog
+            key={paste.key}
+            open={paste.open}
+            onClose={() => setPaste((p) => (p ? { ...p, open: false } : p))}
+            onInsert={(rows) => onChange({ ...section, ingredients: appendIngredients(section.ingredients, rows) })}
+            onCloseAutoFocus={(e) => {
+              e.preventDefault()
+              pasteButton.current?.focus()
+            }}
+          />
+        )}
 
         <h3 className={`${COL_HEAD} mt-[18px]`}>Zubereitung</h3>
         {section.steps.map((step, i) => (
