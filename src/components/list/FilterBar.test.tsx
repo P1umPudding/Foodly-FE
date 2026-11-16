@@ -124,7 +124,7 @@ describe('FilterBar', () => {
     ['Kategorie', 'checkbox', /Ohne Kategorie/],
     ['Tags', 'checkbox', 'vegan'],
     ['Zutaten', 'checkbox', 'Mehl'],
-    ['Arbeitszeit', 'radio', '≤ 30 Minuten'],
+    ['Arbeitszeit', 'button', '≤ 30 Minuten'],
     ['Zugriff', 'radiogroup', 'Meine Rolle'],
   ])('opens %s with its filter content', (label, role, name) => {
     renderBar(DEFAULT_STATE, { tags, ingredients: [mehl], labelIngredients: [mehl] })
@@ -160,5 +160,128 @@ describe('FilterBar', () => {
     const { set } = renderBar({ ...DEFAULT_STATE, ...active }, { labelIngredients: [mehl] })
     fireEvent.click(screen.getByRole('button', { name: `${label} entfernen` }))
     expect(set).toHaveBeenCalledWith(cleared)
+  })
+})
+
+describe('FilterBar panels (mockup #236)', () => {
+  // An active button reads "<Filter>: <Wert>"; its ✕ is "<Filter> entfernen".
+  const open = (label: string) => {
+    fireEvent.click(within(bar()).getByRole('button', { name: new RegExp(`^${label}(:|$)`) }))
+    return screen.getByRole('dialog', { name: label })
+  }
+  const allProps = { tags, ingredients: [mehl], labelIngredients: [mehl] }
+
+  it.each([
+    ['Kategorie', 'Mehrere = Rezepte aus einer davon.'],
+    ['Tags', 'Mehrere = Rezept hat alle.'],
+    ['Zutaten', 'Alle weiteren über die Suche. Mehrere = Rezept enthält alle.'],
+    ['Arbeitszeit', 'Zählt die Arbeitszeit. Rezepte ohne Angabe fallen raus.'],
+  ])('%s shows its mockup hint', (label, hint) => {
+    renderBar(DEFAULT_STATE, allProps)
+    expect(within(open(label)).getByText(hint)).toBeTruthy()
+  })
+
+  it.each<[string, Partial<ListState>, Partial<ListState>]>([
+    ['Kategorie', { categories: [1] }, { categories: [] }],
+    ['Tags', { tags: ['vegan'] }, { tags: [] }],
+    ['Zutaten', { ingredients: [1] }, { ingredients: [] }],
+    ['Arbeitszeit', { durationMax: 30 }, { durationMax: null }],
+    ['Zugriff', { role: 'owner' }, { role: 'any', collab: 'any' }],
+  ])('%s resets via the „Zurücksetzen“ footer while active', (label, active, cleared) => {
+    const { set } = renderBar({ ...DEFAULT_STATE, ...active }, allProps)
+    fireEvent.click(within(open(label)).getByRole('button', { name: 'Zurücksetzen' }))
+    expect(set).toHaveBeenCalledWith(cleared)
+  })
+
+  it('has no footer while the filter is inactive', () => {
+    renderBar(DEFAULT_STATE, allProps)
+    for (const label of ['Kategorie', 'Tags', 'Zutaten', 'Arbeitszeit', 'Zugriff']) {
+      expect(within(open(label)).queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
+      fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+      expect(screen.queryByRole('dialog')).toBeNull()
+    }
+  })
+
+  it('typing a work time, then clicking the footer reset is one edit (the field keeps focus)', () => {
+    const { set } = renderBar({ ...DEFAULT_STATE, durationMax: 30 })
+    const dialog = open('Arbeitszeit')
+    const field = within(dialog).getByLabelText<HTMLInputElement>('Maximale Arbeitszeit in Minuten')
+    field.focus()
+    fireEvent.change(field, { target: { value: '45' } })
+    const reset = within(dialog).getByRole('button', { name: 'Zurücksetzen' })
+    expect(fireEvent.mouseDown(reset)).toBe(false)
+    fireEvent.click(reset, { detail: 1 })
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set).toHaveBeenCalledWith({ durationMax: null })
+    expect(document.activeElement).toBe(field)
+  })
+
+  it('a keyboard reset hands focus to the panel', () => {
+    renderBar({ ...DEFAULT_STATE, tags: ['vegan'] }, allProps)
+    const dialog = open('Tags')
+    const reset = within(dialog).getByRole('button', { name: 'Zurücksetzen' })
+    reset.focus()
+    fireEvent.click(reset, { detail: 0 })
+    expect(document.activeElement).toBe(dialog)
+  })
+
+  it('does not focus the search when a filter opens', () => {
+    renderBar(DEFAULT_STATE, allProps)
+    const dialog = open('Tags')
+    expect(document.activeElement).toBe(dialog)
+  })
+
+  it('the phone sheet has „Zurücksetzen“ (while active) and „Anzeigen“', () => {
+    desktop.value = false
+    const { set } = renderBar({ ...DEFAULT_STATE, tags: ['vegan'] }, allProps)
+    const sheet = open('Tags')
+    expect(document.activeElement).not.toBe(within(sheet).getByPlaceholderText('Tag suchen'))
+    expect(within(sheet).getByRole('button', { name: 'Anzeigen' })).toBeTruthy()
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Zurücksetzen' }))
+    expect(set).toHaveBeenCalledWith({ tags: [] })
+  })
+
+  it('the phone sheet has only „Anzeigen“ while inactive', () => {
+    desktop.value = false
+    renderBar(DEFAULT_STATE, allProps)
+    const sheet = open('Tags')
+    expect(within(sheet).getByRole('button', { name: 'Anzeigen' })).toBeTruthy()
+    expect(within(sheet).queryByRole('button', { name: 'Zurücksetzen' })).toBeNull()
+  })
+})
+
+describe('FilterBar panel reset focus', () => {
+  it('a mouse reset leaves focus on the search, still in the panel', () => {
+    renderBar({ ...DEFAULT_STATE, tags: ['vegan'] }, { tags })
+    fireEvent.click(within(bar()).getByRole('button', { name: /^Tags:/ }))
+    const dialog = screen.getByRole('dialog', { name: 'Tags' })
+    const search = within(dialog).getByPlaceholderText('Tag suchen')
+    search.focus()
+    const reset = within(dialog).getByRole('button', { name: 'Zurücksetzen' })
+    expect(fireEvent.mouseDown(reset)).toBe(false)
+    fireEvent.click(reset, { detail: 1 })
+    expect(document.activeElement).toBe(search)
+  })
+
+  it('a mouse reset that unmounts the focused row moves focus to the panel after the re-render', async () => {
+    const many: Ingredient[] = Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `Zutat ${i + 1}` }))
+    render(
+      <StatefulBar
+        initial={{ ...DEFAULT_STATE, ingredients: many.map((i) => i.id) }}
+        ingredients={many}
+        labelIngredients={many}
+      />,
+    )
+    fireEvent.click(within(bar()).getByRole('button', { name: /^Zutaten:/ }))
+    const dialog = screen.getByRole('dialog', { name: 'Zutaten' })
+    // Past the 9-row cap once the selection is gone.
+    const row = within(dialog).getByRole('checkbox', { name: 'Zutat 12' })
+    row.focus()
+    const reset = within(dialog).getByRole('button', { name: 'Zurücksetzen' })
+    expect(fireEvent.mouseDown(reset)).toBe(false)
+    fireEvent.click(reset, { detail: 1 })
+    expect(row.isConnected).toBe(false)
+    await new Promise(requestAnimationFrame)
+    expect(document.activeElement).toBe(dialog)
   })
 })
