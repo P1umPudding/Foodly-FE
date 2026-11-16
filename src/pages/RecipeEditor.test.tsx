@@ -166,10 +166,7 @@ describe('RecipeEditor · edit', () => {
 
   it('retries a failed load and then shows the editor', async () => {
     params = { id: '5' }
-    const get = vi
-      .spyOn(foodly, 'getRecipe')
-      .mockRejectedValueOnce(new Error('weg'))
-      .mockResolvedValue(recipe())
+    const get = vi.spyOn(foodly, 'getRecipe').mockRejectedValueOnce(new Error('weg')).mockResolvedValue(recipe())
     view()
 
     fireEvent.click(await screen.findByRole('button', { name: 'Erneut versuchen' }))
