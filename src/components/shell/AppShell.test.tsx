@@ -272,6 +272,34 @@ describe('AppShell on the desktop', () => {
     expect(screen.getByRole('banner').textContent).toContain('Kategorien')
   })
 
+  it('shows only the category name in the collapsed tooltip, keeping the count in the aria-label (#246)', async () => {
+    renderAt('/recipes')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    const link = within(sidebar()).getByRole('link', { name: 'Favoriten (3)' })
+    act(() => link.focus())
+    // Not via getByText: Radix renders the tooltip label twice.
+    expect((await screen.findByRole('tooltip')).textContent).toBe('Favoriten')
+  })
+
+  it('replaces the "Kategorien" heading with a divider only when collapsed, also while loading (#246)', () => {
+    const { unmount } = renderAt('/recipes')
+    expect(within(sidebar()).queryByTestId('category-divider')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    within(sidebar()).getByTestId('category-divider')
+    expect(within(sidebar()).queryByRole('heading', { name: 'Kategorien' })).toBeNull()
+    unmount()
+    catalog.categories = { status: 'loading', list: [] }
+    renderAt('/recipes')
+    within(sidebar()).getByTestId('category-divider')
+  })
+
+  it('sets the "Kategorien" heading in subtle (#246)', () => {
+    renderAt('/recipes')
+    expect(within(sidebar()).getByRole('heading', { name: 'Kategorien' }).className).toContain(
+      'text-subtle-foreground',
+    )
+  })
+
   it('has no gear in the collapsed sidebar', () => {
     renderAt('/recipes')
     fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))

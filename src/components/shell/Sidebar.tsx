@@ -143,10 +143,18 @@ export function Sidebar({
 
       {categories.status !== 'error' && (categories.status === 'loading' || ordered.length > 0) && (
         // Own scroll area, so a long category list never pushes the profile row off the screen.
-        <nav aria-label="Kategorien" className="mt-4 flex min-h-0 flex-col gap-0.5 overflow-y-auto">
-          {!collapsed && (
+        <nav
+          aria-label="Kategorien"
+          className={cn('flex min-h-0 flex-col gap-0.5 overflow-y-auto', collapsed ? 'mt-0' : 'mt-4.5')}
+        >
+          {collapsed ? (
+            // Mockup `.side-c`: a short rule stands in for the heading in the icon rail.
+            <div aria-hidden data-testid="category-divider" className="mx-auto mt-3.5 mb-2 h-px w-6 shrink-0 bg-sidebar-border" />
+          ) : (
             <div className="flex items-center justify-between pb-1.5 pl-2.5">
-              <h2 className="text-xs font-semibold text-muted-foreground">Kategorien</h2>
+              {/* Subtle although this is small text (design.md: subtle is below AA there): #246 names it explicitly, as
+                  in the mockup. */}
+              <h2 className="text-xs font-semibold text-subtle-foreground">Kategorien</h2>
               <Tooltip>
                 <TooltipTrigger asChild>
                   {/* A Link styled via buttonVariants, not <Button asChild>: the postxl Button would drop the
@@ -174,7 +182,8 @@ export function Sidebar({
                 const active = highlightedCategory === c.id
                 const count = c.recipes.length
                 return (
-                  <WithTip key={c.id} collapsed={collapsed} label={`${c.name} (${count})`}>
+                  // The tooltip shows the name only (mockup); the aria-label keeps the count for screen readers.
+                  <WithTip key={c.id} collapsed={collapsed} label={c.name}>
                     <Link
                       to={categoryPageHref(c.id)}
                       state={SHELL_NAV_STATE}
@@ -185,7 +194,10 @@ export function Sidebar({
                       <span
                         aria-hidden
                         {...categoryColorVars(c)}
-                        className="size-2.5 shrink-0 rounded-full bg-cat-dot"
+                        className={cn(
+                          'shrink-0 rounded-full bg-cat-dot',
+                          collapsed ? 'size-2.5' : 'mr-[3px] ml-1 size-2',
+                        )}
                       />
                       {!collapsed && (
                         <>
