@@ -102,7 +102,7 @@ There's no server code and no secrets in the repo.
   is installed (mock mode only; it sets the socket to open) and does **not** reflect REST/backend health.
 - `src/components/` — shared UI, plus `editor/`, `home/`, `list/`, `recipe/`, `shell/`
   (app shell and navigation);
-  `src/pages/` — `Home`, `RecipeList`, `RecipeDetail`, `RecipeEditor`, `NotFound`,
+  `src/pages/` — `Home`, `RecipeList`, `RecipeDetail`, `RecipeEditor`, `Categories`, `CategoryPage`, `Profile`, `NotFound`,
   `Login`, `Register` (outside the shell; every other route sits behind
   `RequireAuth`, see `docs/architecture.md` §5).
 - `src/styles/theme.css` holds the design-token VALUES (direction "Ruhig":

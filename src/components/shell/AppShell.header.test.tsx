@@ -175,11 +175,24 @@ describe('AppShell header on subpages', () => {
     header().getByText('Neues Rezept')
   })
 
-  it('titles /categories as a subpage, back leads to Start without history (#243)', () => {
+  it('titles /categories as a subpage, back leads to the profile without history (#245)', () => {
     renderAt(['/categories'])
     header().getByText('Kategorien')
     expect(screen.queryByRole('navigation', { name: 'Pfad' })).toBeNull()
-    expect(header().getByRole('link', { name: 'Zurück' }).getAttribute('href')).toBe('/')
+    expect(header().getByRole('link', { name: 'Zurück' }).getAttribute('href')).toBe('/profile')
+  })
+
+  it('titles /profile as a main page: no back arrow, "Profil & Einstellungen" on the desktop', () => {
+    renderAt(['/profile'])
+    header().getByText('Profil & Einstellungen')
+    expect(header().queryByRole('link', { name: 'Zurück' })).toBeNull()
+  })
+
+  it('titles /profile "Profil" on the phone', () => {
+    setViewport(390)
+    renderAt(['/profile'])
+    header().getByText('Profil')
+    expect(header().queryByRole('link', { name: 'Zurück' })).toBeNull()
   })
 
   it('keeps the /categories title on the phone', () => {

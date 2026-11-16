@@ -54,6 +54,7 @@ function renderAt(entry: string) {
                 <Route path="/recipes/:id" element={<p>detail page</p>} />
                 <Route path="/categories" element={<p>categories page</p>} />
                 <Route path="/categories/:id" element={<p>category page</p>} />
+                <Route path="/profile" element={<p>profile page</p>} />
               </Routes>
             </AppShell>
           </MemoryRouter>
@@ -94,7 +95,7 @@ describe('AppShell on the desktop', () => {
     side.getByText('3')
     // phone-only pieces are absent
     expect(screen.getAllByRole('navigation', { name: 'Hauptnavigation' })).toHaveLength(1)
-    expect(screen.queryByRole('button', { name: 'Profil & Einstellungen' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Profil & Einstellungen' })).toBeNull()
   })
 
   it('marks Start current on / only', () => {
@@ -209,14 +210,43 @@ describe('AppShell on the desktop', () => {
     screen.getByText('editor page')
   })
 
-  it('opens the profile menu with the name and the theme choice', async () => {
+  it('leads to the profile page from the name at the bottom', () => {
     renderAt('/recipes')
-    fireEvent.keyDown(within(sidebar()).getByRole('button', { name: 'Kolja – Profil & Einstellungen' }), {
-      key: 'Enter',
-    })
-    const menu = await screen.findByRole('menu')
-    within(menu).getByText('Kolja')
-    within(menu).getByRole('menuitem', { name: /Theme/ })
+    const row = within(sidebar()).getByRole('link', { name: 'Kolja – Profil & Einstellungen' })
+    expect(row.getAttribute('href')).toBe('/profile')
+    expect(row.getAttribute('aria-current')).toBeNull()
+    within(row).getByText('Kolja')
+    fireEvent.click(row)
+    screen.getByText('profile page')
+  })
+
+  it('leads to the profile page from the avatar in the collapsed sidebar', () => {
+    renderAt('/recipes')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    fireEvent.click(within(sidebar()).getByRole('link', { name: 'Profil & Einstellungen' }))
+    screen.getByText('profile page')
+  })
+
+  it('marks the profile entry current on /profile and on /categories, not on a category page', () => {
+    const profileRow = () => within(sidebar()).getByRole('link', { name: 'Kolja – Profil & Einstellungen' })
+    const { unmount } = renderAt('/profile')
+    expect(profileRow().getAttribute('aria-current')).toBe('page')
+    expect(within(mainNav()).getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBeNull()
+    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBeNull()
+    unmount()
+    const second = renderAt('/categories')
+    expect(profileRow().getAttribute('aria-current')).toBe('location')
+    second.unmount()
+    renderAt('/categories/2')
+    expect(profileRow().getAttribute('aria-current')).toBeNull()
+  })
+
+  it('marks the profile avatar current in the collapsed sidebar', () => {
+    renderAt('/profile')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    const avatar = within(sidebar()).getByRole('link', { name: 'Profil & Einstellungen' })
+    expect(avatar.getAttribute('aria-current')).toBe('page')
+    expect(avatar.className).toContain('bg-sidebar-accent')
   })
 
   it('leads to the categories page from the gear next to "Kategorien"', () => {
@@ -232,17 +262,6 @@ describe('AppShell on the desktop', () => {
     renderAt('/recipes')
     fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
     expect(within(sidebar()).queryByRole('link', { name: 'Kategorien verwalten' })).toBeNull()
-  })
-
-  it('leads to the categories page from the profile menu', async () => {
-    renderAt('/recipes')
-    fireEvent.keyDown(within(sidebar()).getByRole('button', { name: 'Kolja – Profil & Einstellungen' }), {
-      key: 'Enter',
-    })
-    const item = await screen.findByRole('menuitem', { name: 'Kategorien' })
-    expect(item.getAttribute('href')).toBe('/categories')
-    fireEvent.click(item)
-    screen.getByText('categories page')
   })
 })
 
@@ -265,18 +284,26 @@ describe('AppShell on the phone', () => {
     expect(fab.className).not.toContain('shadow-lg')
   })
 
-  it('leads to the categories page from the avatar menu', async () => {
+  it('leads to the profile page from the avatar', () => {
     renderAt('/recipes')
-    fireEvent.keyDown(screen.getByRole('button', { name: 'Profil & Einstellungen' }), { key: 'Enter' })
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'Kategorien' }))
-    screen.getByText('categories page')
+    const avatar = screen.getByRole('link', { name: 'Profil & Einstellungen' })
+    expect(avatar.getAttribute('href')).toBe('/profile')
+    fireEvent.click(avatar)
+    screen.getByText('profile page')
+  })
+
+  it('has no avatar and no active tab on /profile', () => {
+    renderAt('/profile')
+    expect(screen.queryByRole('link', { name: 'Profil & Einstellungen' })).toBeNull()
+    expect(within(mainNav()).getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBeNull()
+    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBeNull()
   })
 
   it('shows tab bar, "+" button and avatar on the list; "+" opens the editor', () => {
     renderAt('/recipes')
     expect(screen.queryByRole('complementary', { name: 'Seitenleiste' })).toBeNull()
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
-    screen.getByRole('button', { name: 'Profil & Einstellungen' })
+    screen.getByRole('link', { name: 'Profil & Einstellungen' })
     fireEvent.click(screen.getByRole('link', { name: 'Neues Rezept' }))
     screen.getByText('editor page')
   })
@@ -288,7 +315,7 @@ describe('AppShell on the phone', () => {
     const banner = within(screen.getByRole('banner'))
     banner.getByText('Foodly')
     expect(banner.queryByText('Start')).toBeNull()
-    banner.getByRole('button', { name: 'Profil & Einstellungen' })
+    banner.getByRole('link', { name: 'Profil & Einstellungen' })
     expect(screen.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
   })
 
@@ -317,13 +344,7 @@ describe('AppShell on the phone', () => {
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('location')
     mainNav()
     expect(screen.queryByRole('link', { name: 'Neues Rezept' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Profil & Einstellungen' })).toBeNull()
-  })
-
-  it('opens the profile menu from the avatar', async () => {
-    renderAt('/recipes')
-    fireEvent.keyDown(screen.getByRole('button', { name: 'Profil & Einstellungen' }), { key: 'Enter' })
-    within(await screen.findByRole('menu')).getByText('Kolja')
+    expect(screen.queryByRole('link', { name: 'Profil & Einstellungen' })).toBeNull()
   })
 })
 
