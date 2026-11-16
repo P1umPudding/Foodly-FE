@@ -8,7 +8,7 @@ export function AuthCard({ title, children, footer }: { title: string; children:
   return (
     <main className="min-h-screen bg-background px-4 pt-[12vh] pb-8 text-foreground">
       <div className="mx-auto w-full max-w-sm rounded-lg border bg-card p-6">
-        <Brand className="mb-4" />
+        <Brand className="mb-4 flex" />
         <PageTitle className="mb-6">{title}</PageTitle>
         {children}
         <p className="mt-6 text-center text-sm text-muted-foreground">{footer}</p>

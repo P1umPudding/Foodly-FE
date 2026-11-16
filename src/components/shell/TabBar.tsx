@@ -25,6 +25,7 @@ export function TabBar() {
             // text-[11px]: mockup `.tabbar a`, below the xs step.
             className={cn(
               'flex flex-1 flex-col items-center justify-center gap-[3px] text-[11px] font-medium',
+              // Inactive stays muted, not the mockup's subtle: design.md keeps subtle off small text.
               active ? 'text-foreground' : 'text-muted-foreground',
             )}
           >

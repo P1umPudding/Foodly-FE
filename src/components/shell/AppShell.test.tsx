@@ -295,7 +295,9 @@ describe('AppShell on the desktop', () => {
 
   it('sets the "Kategorien" heading in subtle (#246)', () => {
     renderAt('/recipes')
-    expect(within(sidebar()).getByRole('heading', { name: 'Kategorien' }).className).toContain('text-subtle-foreground')
+    expect(within(sidebar()).getByRole('heading', { name: 'Kategorien' }).className.split(/\s+/)).toContain(
+      'text-subtle-foreground',
+    )
   })
 
   it('has no gear in the collapsed sidebar', () => {
@@ -328,7 +330,7 @@ describe('AppShell on the phone', () => {
     renderAt('/recipes')
     const link = screen.getByRole('link', { name: 'Profil & Einstellungen' })
     expect(link.className.split(/\s+/)).toEqual(expect.arrayContaining(['-mr-1.5', 'size-10']))
-    expect(link.firstElementChild!.className).toContain('size-7')
+    expect(link.firstElementChild!.className.split(/\s+/)).toContain('size-7')
   })
 
   it('has a translucent, blurred tab bar with 22 px icons and 11 px labels (#246)', () => {
@@ -339,7 +341,7 @@ describe('AppShell on the phone', () => {
     )
     const tab = within(nav).getByRole('link', { name: 'Rezepte' })
     expect(tab.className.split(/\s+/)).toEqual(expect.arrayContaining(['text-[11px]', 'gap-[3px]']))
-    expect(tab.querySelector('svg')!.getAttribute('class')).toContain('size-5.5')
+    expect(tab.querySelector('svg')!.getAttribute('class')!.split(/\s+/)).toContain('size-5.5')
   })
 
   it('leads to the profile page from the avatar', () => {
