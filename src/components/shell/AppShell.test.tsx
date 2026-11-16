@@ -109,9 +109,13 @@ describe('AppShell on the desktop', () => {
 
   it('is 248 px wide expanded and 64 px collapsed (#246)', () => {
     renderAt('/recipes')
+    // The shell's --shell-left (overlay inset) has to move with the sidebar width.
+    const shell = () => sidebar().closest('.min-h-screen')!.className.split(/\s+/)
     expect(sidebar().className.split(/\s+/)).toContain('w-62')
+    expect(shell()).toContain('[--shell-left:15.5rem]')
     fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
     expect(sidebar().className.split(/\s+/)).toContain('w-16')
+    expect(shell()).toContain('[--shell-left:4rem]')
   })
 
   it('collapses to icons, remembers it, and expands again', () => {
