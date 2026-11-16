@@ -43,6 +43,8 @@ const rowNames = (list: HTMLElement) =>
     .getAllByRole('listitem')
     .map((li) => within(li).getAllByRole('link')[0].textContent)
 
+const editor = (title: string) => screen.findByRole('form', { name: title })
+
 function openMenu(name: string) {
   fireEvent.keyDown(within(main()).getByRole('button', { name: `Aktionen für „${name}“` }), { key: 'Enter' })
 }
@@ -80,12 +82,16 @@ describe('Categories page (mock mode)', () => {
     async () => {
       const list = await renderPage()
       fireEvent.click(within(main()).getByRole('button', { name: 'Neue Kategorie' }))
-      const dialog = await screen.findByRole('dialog')
-      fireEvent.change(within(dialog).getByLabelText('Name'), { target: { value: 'Suppen' } })
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }))
-      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), { timeout: 3000 })
+      // Inline under the list, like the mockup; no dialog.
+      const form = await editor('Neue Kategorie')
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(document.activeElement).toBe(within(form).getByLabelText('Name'))
+      fireEvent.change(within(form).getByLabelText('Name'), { target: { value: 'Suppen' } })
+      fireEvent.click(within(form).getByRole('button', { name: 'Speichern' }))
+      await waitFor(() => expect(screen.queryByRole('form')).toBeNull(), { timeout: 3000 })
       expect(rowNames(list)).toContain('Suppen')
       expect(within(sidebar()).getByText('Suppen')).toBeTruthy()
+      expect(document.activeElement).toBe(within(main()).getByRole('button', { name: 'Neue Kategorie' }))
     },
     SLOW,
   )
@@ -97,17 +103,119 @@ describe('Categories page (mock mode)', () => {
       const update = vi.spyOn(api.foodly, 'updateCategory')
       openMenu('Favoriten')
       fireEvent.click(await screen.findByRole('menuitem', { name: 'Bearbeiten' }))
-      const dialog = await screen.findByRole('dialog')
-      fireEvent.change(within(dialog).getByLabelText('Name'), { target: { value: 'Lieblinge' } })
-      fireEvent.click(within(dialog).getByRole('radio', { name: 'Farbe 3' }))
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }))
-      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), { timeout: 3000 })
+      const form = await editor('Kategorie bearbeiten')
+      await waitFor(() => expect(document.activeElement).toBe(within(form).getByLabelText('Name')))
+      fireEvent.change(within(form).getByLabelText('Name'), { target: { value: 'Lieblinge' } })
+      fireEvent.click(within(form).getByRole('radio', { name: 'Farbe 3' }))
+      fireEvent.click(within(form).getByRole('button', { name: 'Speichern' }))
+      await waitFor(() => expect(screen.queryByRole('form')).toBeNull(), { timeout: 3000 })
       expect(rowNames(list)[0]).toBe('Lieblinge')
       expect(update).toHaveBeenCalledTimes(1)
       expect(update.mock.calls[0][1]).toMatchObject({ name: 'Lieblinge', color: SUGGESTED_COLORS[2] })
-      // The dialog hands focus back to the row's ⋮ and leaves the page clickable.
+      // The editor hands focus back to the row's ⋮ and leaves the page clickable.
       expect(document.activeElement).toBe(within(main()).getByRole('button', { name: 'Aktionen für „Lieblinge“' }))
       expect(document.body.style.pointerEvents).toBe('')
+    },
+    SLOW,
+  )
+
+  it(
+    'saves the grey swatch as a neutral category',
+    async () => {
+      await renderPage()
+      const create = vi.spyOn(api.foodly, 'createCategory')
+      fireEvent.click(within(main()).getByRole('button', { name: 'Neue Kategorie' }))
+      const form = await editor('Neue Kategorie')
+      fireEvent.change(within(form).getByLabelText('Name'), { target: { value: 'Vorrat' } })
+      fireEvent.click(within(form).getByRole('radio', { name: 'Farbe 12' }))
+      fireEvent.click(within(form).getByRole('button', { name: 'Speichern' }))
+      await waitFor(() => expect(screen.queryByRole('form')).toBeNull(), { timeout: 3000 })
+      expect(create.mock.calls[0][0]).toMatchObject({ name: 'Vorrat', color: '#78716c' })
+    },
+    SLOW,
+  )
+
+  it(
+    'cancels with Abbrechen or Escape, keeps one editor at a time, and returns focus',
+    async () => {
+      const list = await renderPage()
+      const update = vi.spyOn(api.foodly, 'updateCategory')
+      openMenu('Favoriten')
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Bearbeiten' }))
+      let form = await editor('Kategorie bearbeiten')
+      fireEvent.change(within(form).getByLabelText('Name'), { target: { value: 'Verworfen' } })
+
+      // Another Bearbeiten replaces the card and starts from that category.
+      openMenu('Meal Prep')
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Bearbeiten' }))
+      await waitFor(() =>
+        expect((within(screen.getByRole('form')).getByLabelText('Name') as HTMLInputElement).value).toBe('Meal Prep'),
+      )
+      expect(screen.getAllByRole('form')).toHaveLength(1)
+
+      form = screen.getByRole('form')
+      fireEvent.click(within(form).getByRole('button', { name: 'Abbrechen' }))
+      await waitFor(() => expect(screen.queryByRole('form')).toBeNull())
+      expect(document.activeElement).toBe(within(main()).getByRole('button', { name: 'Aktionen für „Meal Prep“' }))
+
+      openMenu('Favoriten')
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Bearbeiten' }))
+      form = await editor('Kategorie bearbeiten')
+      fireEvent.keyDown(within(form).getByLabelText('Name'), { key: 'Escape' })
+      await waitFor(() => expect(screen.queryByRole('form')).toBeNull())
+      expect(document.activeElement).toBe(within(main()).getByRole('button', { name: 'Aktionen für „Favoriten“' }))
+
+      expect(update).not.toHaveBeenCalled()
+      expect(rowNames(list)[0]).toBe('Favoriten')
+    },
+    SLOW,
+  )
+
+  it(
+    'closes the editor when its category is deleted',
+    async () => {
+      await renderPage()
+      openMenu('Meal Prep')
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Bearbeiten' }))
+      await editor('Kategorie bearbeiten')
+      openMenu('Meal Prep')
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Löschen' }))
+      const dialog = await screen.findByRole('alertdialog')
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }))
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull(), { timeout: 3000 })
+      expect(screen.queryByRole('form')).toBeNull()
+      expect(document.activeElement).toBe(within(main()).getByRole('button', { name: 'Neue Kategorie' }))
+    },
+    SLOW,
+  )
+
+  it(
+    'lets nothing replace the editor while it saves',
+    async () => {
+      await renderPage()
+      let finish!: () => void
+      const real = api.foodly.updateCategory.bind(api.foodly)
+      vi.spyOn(api.foodly, 'updateCategory').mockImplementationOnce(
+        (...args) =>
+          new Promise((resolve, reject) => {
+            finish = () => void real(...args).then(resolve, reject)
+          }),
+      )
+      openMenu('Favoriten')
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Bearbeiten' }))
+      const form = await editor('Kategorie bearbeiten')
+      fireEvent.click(within(form).getByRole('button', { name: 'Speichern' }))
+      const newButton = within(main()).getByRole('button', { name: 'Neue Kategorie' }) as HTMLButtonElement
+      await waitFor(() => expect(newButton.disabled).toBe(true))
+      openMenu('Meal Prep')
+      expect((await screen.findByRole('menuitem', { name: 'Bearbeiten' })).getAttribute('aria-disabled')).toBe('true')
+      expect(screen.getByRole('menuitem', { name: 'Löschen' }).getAttribute('aria-disabled')).toBe('true')
+      fireEvent.keyDown(await screen.findByRole('menu'), { key: 'Escape' })
+
+      finish()
+      await waitFor(() => expect(screen.queryByRole('form')).toBeNull(), { timeout: 3000 })
+      expect(newButton.disabled).toBe(false)
+      expect(document.activeElement).toBe(within(main()).getByRole('button', { name: 'Aktionen für „Favoriten“' }))
     },
     SLOW,
   )
@@ -139,17 +247,17 @@ describe('Categories page (mock mode)', () => {
   )
 
   it(
-    'keeps the dialog open with the message when saving fails',
+    'keeps the editor open with the message when saving fails',
     async () => {
       await renderPage()
       vi.spyOn(api.foodly, 'createCategory').mockRejectedValue(new Error('Name already taken'))
       fireEvent.click(within(main()).getByRole('button', { name: 'Neue Kategorie' }))
-      const dialog = await screen.findByRole('dialog')
-      fireEvent.change(within(dialog).getByLabelText('Name'), { target: { value: 'Favoriten' } })
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }))
-      expect((await within(dialog).findByRole('alert')).textContent).toContain('Name already taken')
-      expect(screen.getByRole('dialog')).toBe(dialog)
-      expect((within(dialog).getByLabelText('Name') as HTMLInputElement).value).toBe('Favoriten')
+      const form = await editor('Neue Kategorie')
+      fireEvent.change(within(form).getByLabelText('Name'), { target: { value: 'Favoriten' } })
+      fireEvent.click(within(form).getByRole('button', { name: 'Speichern' }))
+      expect((await within(form).findByRole('alert')).textContent).toContain('Name already taken')
+      expect(screen.getByRole('form')).toBe(form)
+      expect((within(form).getByLabelText('Name') as HTMLInputElement).value).toBe('Favoriten')
     },
     SLOW,
   )
