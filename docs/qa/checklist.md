@@ -30,7 +30,7 @@ Grundlage für die Broad Runs von Foodly QA (am 1. und 15. jedes Monats). Jede J
 ## Rezeptdetail
 - Portionen bzw. Faktor per Eingabe und ±, ungültige Eingabe (leer, 0, negativ); Mengen mit Dezimalkomma; Abhaken; Wachhalten
 - Bewertung: Popover am Desktop, Bottom-Sheet am Handy, Entfernen, Durchschnitt bei gemeinsamen Rezepten, Demo-Hinweis (REST)
-- Bilder, Lightbox (Pfeile, Escape, Thumbnails); REST-Modus ohne Fotos (Platzhalter)
+- Bilder, Lightbox (Zähler, Pfeile, Escape, Thumbnails; Handy: Wischen, keine Pfeile, Thumbnails per Finger scrollbar, senkrechtes Ziehen am Streifen bewegt die Seite dahinter nicht); REST-Modus ohne Fotos (Platzhalter)
 - Tags als Icon oder Name; Tag-Tokens im Text
 - Zeit-Chips in Schritten starten einen Timer bzw. öffnen das Panel
 - Quelle als Link; Kopie erstellen (auch mehrfach hintereinander); Löschen mit Dialog (inkl. Fehlerfall); Bearbeiten nur mit Rechten; ungültige ID
