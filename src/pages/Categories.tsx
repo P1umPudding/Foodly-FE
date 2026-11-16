@@ -97,10 +97,13 @@ export function Categories() {
     e.preventDefault()
     focusTrigger(dialog?.target ?? null)
   }
-  const closeEditor = () => {
-    const target = editor?.target ?? null
-    focusAfterEditor.current = () => focusTrigger(target)
-    setEditor(null)
+  // Tied to one opening: a save that resolves after its card was replaced must not close the next one.
+  const closeEditor = (opening: EditorState) => {
+    setEditor((current) => {
+      if (current?.key !== opening.key) return current
+      focusAfterEditor.current = () => focusTrigger(opening.target)
+      return null
+    })
   }
 
   useEffect(() => {
@@ -268,7 +271,7 @@ export function Categories() {
         )}
 
         {ready && editor && !editedGone && (
-          <CategoryEditorCard key={editor.key} category={editor.target} onClose={closeEditor} />
+          <CategoryEditorCard key={editor.key} category={editor.target} onClose={() => closeEditor(editor)} />
         )}
       </section>
 

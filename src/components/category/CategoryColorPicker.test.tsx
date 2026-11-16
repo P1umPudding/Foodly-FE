@@ -118,11 +118,13 @@ describe('CategoryColorPicker', () => {
       <CategoryColorPicker value="#123456" onChange={() => {}} name="Suppen" categories={[]} />,
     )
     expect(screen.getByLabelText('Eigene Farbe').getAttribute('aria-describedby')).toContain(
-      screen.getByText('gewählt').id,
+      document.getElementById(screen.getByLabelText('Eigene Farbe').getAttribute('aria-describedby')!.split(' ')[0])!
+        .id,
     )
+    expect(document.querySelector('[hidden]')?.textContent).toBe('gewählt')
     rerender(<CategoryColorPicker value={SUGGESTED_COLORS[0]} onChange={() => {}} name="Suppen" categories={[]} />)
     expect(screen.getByLabelText('Eigene Farbe').getAttribute('aria-describedby')).not.toContain(
-      screen.getByText('gewählt').id,
+      (document.querySelector('[hidden]') as HTMLElement).id,
     )
   })
 

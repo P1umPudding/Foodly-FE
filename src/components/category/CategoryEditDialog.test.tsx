@@ -110,6 +110,11 @@ describe('CategoryEditDialog', () => {
     expect((chip() as HTMLElement).style.getPropertyValue('--cat-dot-l')).toBe(dotOf(SUGGESTED_COLORS[0]))
     fireEvent.click(screen.getByRole('radio', { name: 'Farbe 12' }))
     expect((chip() as HTMLElement).style.getPropertyValue('--cat-dot-l')).toBe(dotOf('#808080'))
+    // Every preview element follows, not just the chip.
+    for (const el of screen.getByTestId('category-preview').querySelectorAll<HTMLElement>('[data-cat]'))
+      expect(el.style.getPropertyValue('--cat-soft-l')).toBe(
+        categoryColors({ color: '#808080', colorLight: null, colorDark: null }).light.soft,
+      )
     fireEvent.click(saveButton())
     await waitFor(() => expect(onClose).toHaveBeenCalled())
     expect(actions.update).toHaveBeenCalledWith(4, expect.objectContaining({ color: '#78716c' }))
@@ -118,7 +123,8 @@ describe('CategoryEditDialog', () => {
   it('shows the initial in the symbol field with the hint', () => {
     renderDialog(cat({ name: 'Brot' }))
     expect(screen.getByText(/Symbol kommt aus den Tag-Symbolen/)).toBeTruthy()
-    expect(nameInput().getAttribute('aria-describedby')).toBe(screen.getByText(/Symbol kommt/).id)
+    expect(within(screen.getByRole('dialog')).getAllByText('B')[0]).toBeTruthy()
+    expect(nameInput().placeholder).toBe('Name')
   })
 
   it('shows a failed save in the dialog and keeps the input', async () => {

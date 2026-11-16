@@ -68,7 +68,6 @@ export function CategoryFormFields({
 }) {
   const id = useId()
   const inputId = `${id}-name`
-  const symbolHintId = `${id}-symbol-hint`
   const { category, list, name, setName, color, setColor, error } = draft
 
   return (
@@ -88,11 +87,13 @@ export function CategoryFormFields({
             maxLength={NAME_MAX}
             required
             autoComplete="off"
-            aria-describedby={symbolHintId}
+            // The label is visually hidden (mockup), so the placeholder names the empty field.
+            placeholder="Name"
+            // As tall as the symbol field beside it (mockup `.ce-row`); the Input has no size prop for that.
             className="h-[38px] flex-1"
           />
         </div>
-        <p id={symbolHintId} className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Symbol kommt aus den Tag-Symbolen. Ohne Symbol zeigt Foodly den Anfangsbuchstaben.
         </p>
       </div>

@@ -65,7 +65,8 @@ export function CategoryColorPicker({
         orientation="horizontal"
         value={selected}
         onValueChange={onChange}
-        // The „+“ sits inside the group so it wraps with the swatches (8 + 5 on the phone, like the mockup).
+        // The „+“ sits inside the group so it wraps with the swatches (8 + 5 on the phone, like the mockup); outside,
+        // the group would take the whole row and push it onto a line of its own.
         className="flex flex-wrap gap-2"
       >
         {SUGGESTED_COLORS.map((color, i) => (
@@ -104,7 +105,8 @@ export function CategoryColorPicker({
             onChange={(e) => onChange(e.target.value)}
             className="absolute inset-0 size-full min-h-0 cursor-pointer rounded-full border-0 p-0 opacity-0"
           />
-          <span id={customStateId} className="sr-only">
+          {/* hidden: only read through aria-describedby, never as loose text in the group. */}
+          <span id={customStateId} hidden>
             gewählt
           </span>
         </span>

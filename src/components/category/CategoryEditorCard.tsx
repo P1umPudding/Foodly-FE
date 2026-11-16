@@ -20,7 +20,8 @@ export function CategoryEditorCard({ category, onClose }: { category: UserCatego
 
   // Like a dialog's Escape. Not mid-save: closing would leave the request running behind a vanished form.
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key !== 'Escape' || e.defaultPrevented || pending) return
+    // isComposing: Escape that cancels an IME composition is not meant for the form.
+    if (e.key !== 'Escape' || e.defaultPrevented || e.nativeEvent.isComposing || pending) return
     e.preventDefault()
     onClose()
   }

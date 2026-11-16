@@ -184,6 +184,32 @@ describe('Categories page (mock mode)', () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }))
       await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull(), { timeout: 3000 })
       expect(screen.queryByRole('form')).toBeNull()
+      expect(document.activeElement).toBe(within(main()).getByRole('button', { name: 'Neue Kategorie' }))
+    },
+    SLOW,
+  )
+
+  it(
+    'keeps a newer editor open when an earlier save finishes',
+    async () => {
+      await renderPage()
+      let finish!: () => void
+      const real = api.foodly.updateCategory.bind(api.foodly)
+      vi.spyOn(api.foodly, 'updateCategory').mockImplementationOnce(
+        (...args) =>
+          new Promise((resolve, reject) => {
+            finish = () => void real(...args).then(resolve, reject)
+          }),
+      )
+      openMenu('Favoriten')
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Bearbeiten' }))
+      fireEvent.click(within(await editor('Kategorie bearbeiten')).getByRole('button', { name: 'Speichern' }))
+      fireEvent.click(within(main()).getByRole('button', { name: 'Neue Kategorie' }))
+      await editor('Neue Kategorie')
+      finish()
+      // The mock answers after 250 ms; give the earlier save time to land.
+      await act(() => new Promise((r) => setTimeout(r, 600)))
+      expect(screen.getByRole('form', { name: 'Neue Kategorie' })).toBeTruthy()
     },
     SLOW,
   )
