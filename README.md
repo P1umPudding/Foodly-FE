@@ -95,7 +95,7 @@ session. Against a local backend, create the seed users with
 `cargo run --bin seed` in the backend repo and sign in as `user1@example.com`
 (also `user2`, `user3`); the password is in the
 [backend README](https://github.com/klassenserver7b/Foodly-backend#readme), or
-register a new account. "Abmelden" sits in the profile menu (REST mode only).
+register a new account. "Abmelden" sits on the profile page `/profile` (REST mode only).
 
 - **Cross-origin backend:** with a `VITE_API_URL` on another origin, add the
   app's origin to the backend's `CORS_ALLOWED_ORIGINS` (default

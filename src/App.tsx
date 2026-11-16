@@ -10,6 +10,7 @@ import { RecipeDetail } from './pages/RecipeDetail'
 import { RecipeEditor } from './pages/RecipeEditor'
 import { Categories } from './pages/Categories'
 import { CategoryPage } from './pages/CategoryPage'
+import { Profile } from './pages/Profile'
 
 export function RecipeEditorRoute() {
   const { id } = useParams()
@@ -30,7 +31,7 @@ export default function App() {
   return (
     <TooltipProvider>
       {/* The timers, the catalog and the shell live inside RequireAuth: timers belong to the signed-in user,
-          and the sidebar and profile menu need the categories and `me`, which need a session. */}
+          and the sidebar and profile page need the categories and `me`, which need a session. */}
       <Routes>
         <Route element={<RedirectIfSignedIn />}>
           <Route path="/login" element={<Login />} />
@@ -46,6 +47,7 @@ export default function App() {
           {/* static segment: stays before /categories/:id */}
           <Route path="/categories" element={<Categories />} />
           <Route path="/categories/:id" element={<CategoryPageRoute />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

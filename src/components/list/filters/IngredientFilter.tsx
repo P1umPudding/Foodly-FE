@@ -3,13 +3,15 @@ import { normalizeText } from '../../../list/search'
 import type { ListState } from '../../../list/state'
 import type { Ingredient } from '../../../api/protocol'
 import { SearchInput } from '../SearchInput'
-import { FilterCheckRow, NoMatches } from './FilterCheckRow'
+import { FilterCheckRow, FilterHint, NoMatches } from './FilterCheckRow'
+import { selectedThenCapped, useOrderAtOpen } from './optionOrder'
 import { toggle } from './toggle'
 
-// Without a query only this many unselected ingredients show; the catalogue is too long to scan.
-const PREVIEW_COUNT = 12
+// Without a query only this many rows show (mockup); the catalogue is too long to scan, the rest is a search away.
+const PREVIEW_COUNT = 9
 
 // Multi-select (AND). Selected ingredients always sit on top; no match counts (server-side, paged list).
+// `ingredients` come most used first.
 export function IngredientFilter({
   ingredients,
   selected,
@@ -21,23 +23,21 @@ export function IngredientFilter({
 }) {
   const [query, setQuery] = useState('')
   const q = normalizeText(query.trim())
+  const ordered = useOrderAtOpen(ingredients, (i) => i.id)
   // The search narrows selected items too (as before); they stay on top among the matches.
-  const sorted = [...ingredients].sort((a, b) => a.name.localeCompare(b.name, 'de'))
-  const matches = q === '' ? sorted : sorted.filter((i) => normalizeText(i.name).includes(q))
-  const picked = matches.filter((i) => selected.includes(i.id))
-  const rest = matches.filter((i) => !selected.includes(i.id))
-  const shownRest = q === '' ? rest.slice(0, PREVIEW_COUNT) : rest
-  const ordered = [...picked, ...shownRest]
+  const matches = q === '' ? ordered : ordered.filter((i) => normalizeText(i.name).includes(q))
+  const rows = selectedThenCapped(matches, (i) => selected.includes(i.id), q === '' ? PREVIEW_COUNT : null)
   return (
-    <div className="flex flex-col gap-2">
-      <SearchInput value={query} onChange={setQuery} placeholder="Zutat suchen…" />
-      {ordered.length === 0 ? (
+    <div className="flex flex-col">
+      <SearchInput value={query} onChange={setQuery} placeholder="Zutat suchen" className="mb-1.5" />
+      {rows.length === 0 ? (
         <NoMatches />
       ) : (
-        <div className="flex max-h-60 flex-col gap-0.5 overflow-y-auto">
-          {ordered.map((i) => (
+        <div className="flex max-h-[264px] flex-col overflow-y-auto phone:max-h-[50vh]">
+          {rows.map((i) => (
             <FilterCheckRow
               key={i.id}
+              look="filter"
               checked={selected.includes(i.id)}
               onToggle={() => set({ ingredients: toggle(selected, i.id) })}
             >
@@ -46,7 +46,7 @@ export function IngredientFilter({
           ))}
         </div>
       )}
-      {shownRest.length < rest.length && <p className="px-1 text-sm text-muted-foreground">Weitere über die Suche</p>}
+      <FilterHint>Alle weiteren über die Suche. Mehrere = Rezept enthält alle.</FilterHint>
     </div>
   )
 }

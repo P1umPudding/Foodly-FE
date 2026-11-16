@@ -143,8 +143,10 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
   Titel oder Breadcrumb, Seitenaktionen, Timer-Knopf.
 - **Handy (bis 760 px):** Tab-Leiste unten (Icon + Label), Kopfzeile mit Titel, Aktionen, Timer-Knopf und ganz
   rechts dem **Avatar → Profil** (auf Hauptseiten; Unterseiten haben stattdessen links den Zurück-Pfeil).
-  Erste Stufe: Der Avatar (Handy) bzw. der Profil-Eintrag unten in der Seitenleiste öffnet ein `DropdownMenu` mit
-  Name, Theme und Wake-Lock; eine eigene Profilseite kommt erst, wenn es mehr Einstellungen gibt.
+  Der Avatar (Handy) bzw. der Profil-Eintrag unten in der Seitenleiste führt zur Profilseite `/profile` (#245):
+  Kopf mit Avatar und Name, „Darstellung“ mit Segment „Design“ (Hell/Dunkel/System), „Kategorien ›“ und
+  „Abmelden“ in Rot (nur REST). Wake-Lock bleibt auf der Rezeptseite (Daniel, 15.11.2026). `/profile` ist eine
+  Hauptseite (kein Zurück-Pfeil, kein Avatar, Handy-Titel „Profil“); Elternseite von `/categories` ist das Profil.
   „Neues Rezept“ ist der runde FAB unten rechts über der Tab-Leiste.
 - **Nur echte Ziele zeigen** (Kolja/Lead, 29.10.2026): heute Start (`/`) und Rezepte (`/recipes`). Planer, Einkauf,
   Gruppen kommen in Leiste und Tabs, wenn ihre Phase kommt – keine Platzhalter-Einträge.
@@ -212,7 +214,7 @@ Jede Ansicht hat alle vier; ein PR ohne sie ist nicht fertig.
 - Popover mit Inhalt (Filter, Timer, Formulare) werden auf dem Handy zu Bottom-Sheets mit Griff, Titel linksbündig
   und ✕ rechts in einer Zeile (`PanelHead`; Ghost-Button 30 px, auf Touch 40 px); Popover mit Kopf im Mockup (Timer)
   zeigen denselben Kopf;
-  Filter-Sheets haben unten „Zurücksetzen“ und „Anzeigen“ wie im Mockup (Daniel, 2026-11-13). Kurze Aktionsmenüs (bis 5 Einträge, z. B. das Profil-Menü) bleiben auch
+  Filter-Sheets haben unten „Zurücksetzen“ und „Anzeigen“ wie im Mockup (Daniel, 2026-11-13). Kurze Aktionsmenüs (bis 5 Einträge, z. B. das ⋯-Menü einer Kategorie) bleiben auch
   auf dem Handy ein `DropdownMenu`.
 - Horizontal scrollen nur für die Filterleiste und Chip-Reihen, nie für Inhalt.
 - Kein Hover-only: alles, was ein Tooltip erklärt, braucht ein Label oder ist selbsterklärend.
