@@ -6,6 +6,11 @@ import { TimerProvider, useTimers } from '../../timers/TimerProvider'
 import { TimerPanelProvider, useTimerPanel } from '../../timers/TimerPanelContext'
 import { TimerPanel } from '../../timers/TimerPanel'
 
+const toast = vi.hoisted(() => Object.assign(vi.fn(), { dismiss: vi.fn() }))
+vi.mock('@postxl/ui-components', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@postxl/ui-components')>()),
+  toast,
+}))
 vi.mock('../../catalog/CatalogProvider', () => ({
   useTags: () => ({ byId: { Ofen: { id: 'Ofen', svg: null } }, status: 'ready' }),
 }))
@@ -37,7 +42,10 @@ function renderStep() {
 
 const probe = () => JSON.parse(screen.getByTestId('probe').textContent ?? '{}')
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => {
+  localStorage.clear()
+  toast.mockClear()
+})
 afterEach(() => vi.useRealTimers())
 
 describe('StepText', () => {
@@ -47,6 +55,7 @@ describe('StepText', () => {
       'Timer starten: Etwa 30 Minuten',
       'Timer starten: 1½ Stunden',
     ])
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['Etwa 30 Min.', '1½ Std.'])
     expect(document.body.textContent).toContain('im Ofen bei 180 °C')
     expect(document.body.textContent).not.toContain('{Ofen}')
   })
@@ -61,17 +70,44 @@ describe('StepText', () => {
     expect(probe().timers).toEqual([[LABEL, 30 * 60_000, 'running']])
   })
 
-  it('opens the panel instead of starting the same step timer twice', () => {
+  it('starts the timer and opens the panel with one click, without a toast', () => {
     renderStep()
     const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
     fireEvent.click(chip)
-    expect(probe().open).toBe(false)
+    expect(probe()).toEqual({ open: true, timers: [[LABEL, 30 * 60_000, 'running']] })
+    expect(toast).not.toHaveBeenCalled()
+
+    // A second click only opens the panel again: no second timer for the same span.
     fireEvent.click(chip)
     expect(probe()).toEqual({ open: true, timers: [[LABEL, 30 * 60_000, 'running']] })
 
     // A different span of the same step is its own timer.
     fireEvent.click(screen.getByRole('button', { name: 'Timer starten: 1½ Stunden' }))
     expect(probe().timers).toHaveLength(2)
+  })
+
+  it('still starts the timer where no panel exists', () => {
+    render(
+      <TimerProvider userId={1}>
+        <StepText value={STEP} timerLabel={LABEL} />
+        <Probe />
+      </TimerProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' }))
+    expect(probe()).toEqual({ timers: [[LABEL, 30 * 60_000, 'running']] })
+  })
+
+  it('scales the chip with the step text in cook mode', () => {
+    render(
+      <TimerProvider userId={1}>
+        <StepText value={STEP} timerLabel={LABEL} variant="cook" />
+      </TimerProvider>,
+    )
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
+    const classes = [...chip.classList]
+    expect(classes).toEqual(expect.arrayContaining(['h-[1.3em]', 'text-[0.8em]']))
+    expect(classes).not.toContain('h-6')
+    expect(classes).not.toContain('text-sm')
   })
 
   it('starts a new timer once the old one for the step has run out', () => {
@@ -103,7 +139,6 @@ describe('StepText', () => {
       </TooltipProvider>,
     )
     const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
-    fireEvent.click(chip)
     fireEvent.click(chip)
     const panel = await screen.findByRole('dialog', { name: 'Timer' })
     fireEvent.keyDown(panel, { key: 'Escape' })
