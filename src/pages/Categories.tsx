@@ -48,6 +48,9 @@ export function Categories() {
   const [editor, setEditor] = useState<EditorState | null>(null)
   // While the editor saves, nothing may replace it: a failed save would report into a card that is gone.
   const [editorSaving, setEditorSaving] = useState(false)
+  // The opening the page shows now. A card dropped mid-save (its category deleted in another tab) still finishes its
+  // request and calls onClose; that must not close a newer card.
+  const currentEditorKey = useRef<number | null>(null)
   // Set when the editor closes; run once it is gone, so focus lands on a trigger that exists by then.
   const focusAfterEditor = useRef<(() => void) | null>(null)
   const openings = useRef(0)
@@ -82,7 +85,10 @@ export function Categories() {
   }
 
   // Opening another one replaces an open editor and drops its draft.
-  const openEditor = (target: UserCategory | null) => setEditor({ target, key: ++openings.current })
+  const openEditor = (target: UserCategory | null) => {
+    currentEditorKey.current = ++openings.current
+    setEditor({ target, key: currentEditorKey.current })
+  }
   const openDelete = (target: UserCategory) => {
     menuHandsOffFocus.current = true
     setDialog({ target, open: true, key: ++openings.current })
@@ -99,9 +105,10 @@ export function Categories() {
     e.preventDefault()
     focusTrigger(dialog?.target ?? null)
   }
-  const closeEditor = () => {
-    const target = editor?.target ?? null
-    focusAfterEditor.current = () => focusTrigger(target)
+  const closeEditor = (opening: EditorState) => {
+    if (opening.key !== currentEditorKey.current) return
+    currentEditorKey.current = null
+    focusAfterEditor.current = () => focusTrigger(opening.target)
     // In the same render as the close, so „Neue Kategorie“ is enabled again before focus goes back to it.
     setEditorSaving(false)
     setEditor(null)
@@ -117,6 +124,7 @@ export function Categories() {
   const editedGone = editor?.target != null && !categories.list.some((c) => c.id === editor.target?.id)
   useEffect(() => {
     if (!editedGone) return
+    currentEditorKey.current = null
     focusAfterEditor.current = () => focusTrigger(null)
     setEditorSaving(false)
     setEditor(null)
@@ -263,7 +271,12 @@ export function Categories() {
                           Nach unten
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem variant="destructive" className="gap-2" onSelect={() => openDelete(c)}>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        className="gap-2"
+                        disabled={editorSaving}
+                        onSelect={() => openDelete(c)}
+                      >
                         <Trash2 aria-hidden className="size-4" />
                         Löschen
                       </DropdownMenuItem>
@@ -279,7 +292,7 @@ export function Categories() {
           <CategoryEditorCard
             key={editor.key}
             category={editor.target}
-            onClose={closeEditor}
+            onClose={() => closeEditor(editor)}
             onSavingChange={setEditorSaving}
           />
         )}

@@ -209,11 +209,13 @@ describe('Categories page (mock mode)', () => {
       await waitFor(() => expect(newButton.disabled).toBe(true))
       openMenu('Meal Prep')
       expect((await screen.findByRole('menuitem', { name: 'Bearbeiten' })).getAttribute('aria-disabled')).toBe('true')
+      expect(screen.getByRole('menuitem', { name: 'Löschen' }).getAttribute('aria-disabled')).toBe('true')
       fireEvent.keyDown(await screen.findByRole('menu'), { key: 'Escape' })
 
       finish()
       await waitFor(() => expect(screen.queryByRole('form')).toBeNull(), { timeout: 3000 })
       expect(newButton.disabled).toBe(false)
+      expect(document.activeElement).toBe(within(main()).getByRole('button', { name: 'Aktionen für „Favoriten“' }))
     },
     SLOW,
   )
