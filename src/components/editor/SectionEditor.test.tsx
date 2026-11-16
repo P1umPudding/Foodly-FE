@@ -1,11 +1,15 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SectionEditor } from './SectionEditor'
+import { setViewport } from '../../test/viewport'
 import type { DraftSection } from '../../editor/draft'
 
 vi.mock('../../catalog/CatalogProvider', () => ({
-  useIngredients: () => ({ byId: { 1: { id: 1, name: 'Zwiebel' } }, status: 'ready' }),
+  useIngredients: () => ({
+    byId: { 1: { id: 1, name: 'Zwiebel' }, 2: { id: 2, name: 'Salz' }, 3: { id: 3, name: 'Olivenöl' } },
+    status: 'ready',
+  }),
 }))
 
 const section: DraftSection = {
@@ -186,5 +190,116 @@ describe('SectionEditor', () => {
     fireEvent.change(screen.getByLabelText('Abschnittsname'), { target: { value: 'Teig' } })
 
     expect(onChange.mock.calls[0][0].name).toBe('Teig')
+  })
+})
+
+describe('SectionEditor: Mehrere einfügen', () => {
+  afterEach(() => setViewport(1024))
+
+  const lines = '500 g Hackfleisch\n\n2 EL Olivenöl\nSalz nach Geschmack'
+  const openPaste = () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Mehrere einfügen' }))
+    return screen.getByRole('textbox', { name: 'Zutaten, eine pro Zeile' })
+  }
+  const added = [
+    { ingredient: null, text: 'Hackfleisch', amount: '500', unit: 'g' },
+    { ingredient: 3, text: '', amount: '2', unit: 'EL' },
+    { ingredient: 2, text: 'nach Geschmack', amount: '', unit: '' },
+  ]
+  const withoutKeys = (rows: { key: number }[]) => rows.map(({ key: _key, ...rest }) => rest)
+
+  it('appends one ingredient per pasted line', async () => {
+    const onChange = setup()
+
+    const field = openPaste()
+    await waitFor(() => expect(document.activeElement).toBe(field))
+    expect(screen.getByRole('dialog', { name: 'Mehrere Zutaten einfügen' })).toBeTruthy()
+    const insert = screen.getByRole('button', { name: 'Einfügen' }) as HTMLButtonElement
+    expect(insert.disabled).toBe(true)
+    fireEvent.change(field, { target: { value: '  \n ' } })
+    expect(insert.disabled).toBe(true)
+    fireEvent.change(field, { target: { value: lines } })
+    fireEvent.click(insert)
+
+    const rows = onChange.mock.calls[0][0].ingredients
+    expect(rows.slice(0, 2)).toEqual(section.ingredients)
+    expect(withoutKeys(rows.slice(2))).toEqual(added)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Mehrere einfügen' }))
+  })
+
+  it('replaces the empty placeholder row of a new section', () => {
+    const onChange = setup(vi.fn(), {
+      ...section,
+      ingredients: [{ key: 30, ingredient: null, text: '', amount: '', unit: '' }],
+    })
+
+    fireEvent.change(openPaste(), { target: { value: lines } })
+    fireEvent.click(screen.getByRole('button', { name: 'Einfügen' }))
+
+    expect(withoutKeys(onChange.mock.calls[0][0].ingredients)).toEqual(added)
+  })
+
+  it('changes nothing on „Abbrechen“ and starts empty on the next opening', async () => {
+    const onChange = setup()
+
+    fireEvent.change(openPaste(), { target: { value: lines } })
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+    expect(onChange).not.toHaveBeenCalled()
+    expect((openPaste() as HTMLTextAreaElement).value).toBe('')
+  })
+
+  it('uses a bottom sheet on the phone', async () => {
+    setViewport(600)
+    const onChange = setup()
+
+    const field = openPaste()
+    await waitFor(() => expect(document.activeElement).toBe(field))
+    expect(screen.getByRole('dialog', { name: 'Mehrere Zutaten einfügen' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Schließen' })).toBeTruthy()
+    fireEvent.change(field, { target: { value: lines } })
+    fireEvent.click(screen.getByRole('button', { name: 'Einfügen' }))
+
+    expect(withoutKeys(onChange.mock.calls[0][0].ingredients.slice(2))).toEqual(added)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Mehrere einfügen' }))
+  })
+
+  it('stays open on an outside click once text was entered', async () => {
+    setup()
+
+    const field = openPaste()
+    await waitFor(() => expect(document.activeElement).toBe(field))
+    fireEvent.change(field, { target: { value: lines } })
+    await new Promise((r) => setTimeout(r, 10))
+    fireEvent.pointerDown(document.body)
+    await new Promise((r) => setTimeout(r, 50))
+
+    expect(screen.getByRole('dialog')).toBeTruthy()
+  })
+
+  it('closes on an outside click while empty', async () => {
+    setup()
+
+    const field = openPaste()
+    await waitFor(() => expect(document.activeElement).toBe(field))
+    // Radix registers its outside-pointer listener a tick after mounting.
+    await new Promise((r) => setTimeout(r, 10))
+    fireEvent.pointerDown(document.body)
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('closes on Escape without changes', async () => {
+    const onChange = setup()
+
+    const field = openPaste()
+    fireEvent.change(field, { target: { value: lines } })
+    fireEvent.keyDown(field, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+    expect(onChange).not.toHaveBeenCalled()
   })
 })
