@@ -22,8 +22,8 @@ import { Sidebar, loadSidebarCollapsed, saveSidebarCollapsed } from './Sidebar'
 import { TabBar } from './TabBar'
 
 // Sidebar width and the matching --shell-left, kept side by side. Fixed page bars offset themselves by
-// --shell-left / var(--shell-bottom,0px) so the sidebar or tab bar never covers them (none today since the editor's
-// footer moved into the header, #231).
+// --shell-left / --shell-bottom so the sidebar or tab bar never covers them (none today since the editor's footer
+// moved into the header, #231). --shell-bottom is unset without the tab bar: read it as var(--shell-bottom,0px).
 const SIDEBAR_WIDTH = {
   expanded: { width: 'w-62', shellVar: '[--shell-left:15.5rem]' },
   collapsed: { width: 'w-16', shellVar: '[--shell-left:4rem]' },
