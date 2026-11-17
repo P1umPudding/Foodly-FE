@@ -1,11 +1,17 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
+import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { StepText } from './StepText'
 import { TimerProvider, useTimers } from '../../timers/TimerProvider'
 import { TimerPanelProvider, useTimerPanel } from '../../timers/TimerPanelContext'
 import { TimerPanel } from '../../timers/TimerPanel'
 
+const toast = vi.hoisted(() => Object.assign(vi.fn(), { dismiss: vi.fn() }))
+vi.mock('@postxl/ui-components', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@postxl/ui-components')>()),
+  toast,
+}))
 vi.mock('../../catalog/CatalogProvider', () => ({
   useTags: () => ({ byId: { Ofen: { id: 'Ofen', svg: null } }, status: 'ready' }),
 }))
@@ -37,23 +43,27 @@ function renderStep() {
 
 const probe = () => JSON.parse(screen.getByTestId('probe').textContent ?? '{}')
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => {
+  localStorage.clear()
+  toast.mockClear()
+})
 afterEach(() => vi.useRealTimers())
 
 describe('StepText', () => {
   it('renders tag tokens and one chip per time span', () => {
     renderStep()
     expect(screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual([
-      'Timer starten: Etwa 30 Minuten',
-      'Timer starten: 1½ Stunden',
+      'Timer starten: Etwa 30 Min.',
+      'Timer starten: 1½ Std.',
     ])
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['Etwa 30 Min.', '1½ Std.'])
     expect(document.body.textContent).toContain('im Ofen bei 180 °C')
     expect(document.body.textContent).not.toContain('{Ofen}')
   })
 
   it('starts a named timer that survives a reload', () => {
     const { unmount } = renderStep()
-    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' }))
     expect(probe().timers).toEqual([[LABEL, 30 * 60_000, 'running']])
 
     unmount()
@@ -61,23 +71,51 @@ describe('StepText', () => {
     expect(probe().timers).toEqual([[LABEL, 30 * 60_000, 'running']])
   })
 
-  it('opens the panel instead of starting the same step timer twice', () => {
+  it('starts the timer and opens the panel with one click, without a toast', () => {
     renderStep()
-    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' })
     fireEvent.click(chip)
-    expect(probe().open).toBe(false)
+    expect(probe()).toEqual({ open: true, timers: [[LABEL, 30 * 60_000, 'running']] })
+    expect(toast).not.toHaveBeenCalled()
+
+    // A second click only opens the panel again: no second timer for the same span.
     fireEvent.click(chip)
     expect(probe()).toEqual({ open: true, timers: [[LABEL, 30 * 60_000, 'running']] })
 
     // A different span of the same step is its own timer.
-    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: 1½ Stunden' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: 1½ Std.' }))
     expect(probe().timers).toHaveLength(2)
+  })
+
+  it('still starts the timer where no panel exists', () => {
+    render(
+      <TimerProvider userId={1}>
+        <StepText value={STEP} timerLabel={LABEL} />
+        <Probe />
+      </TimerProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' }))
+    expect(probe()).toEqual({ timers: [[LABEL, 30 * 60_000, 'running']] })
+  })
+
+  it('scales the chip with the step text in cook mode', () => {
+    render(
+      <TimerProvider userId={1}>
+        <StepText value={STEP} timerLabel={LABEL} variant="cook" />
+      </TimerProvider>,
+    )
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' })
+    // jsdom has no layout, so the em sizing can only be checked through the classes.
+    const classes = [...chip.classList]
+    expect(classes).toEqual(expect.arrayContaining(['h-[1.3em]', 'text-[0.8em]']))
+    expect(classes).not.toContain('h-6')
+    expect(classes).not.toContain('text-sm')
   })
 
   it('starts a new timer once the old one for the step has run out', () => {
     vi.useFakeTimers()
     renderStep()
-    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' })
     fireEvent.click(chip)
     act(() => {
       vi.advanceTimersByTime(30 * 60_000 + 500)
@@ -91,6 +129,41 @@ describe('StepText', () => {
     ])
   })
 
+  it('keeps the panel open when another chip is pressed', async () => {
+    const openStates: Array<boolean | undefined> = []
+    function OpenLog() {
+      const open = useTimerPanel()?.open
+      useEffect(() => {
+        openStates.push(open)
+      }, [open])
+      return null
+    }
+    render(
+      <TooltipProvider>
+        <TimerProvider userId={1}>
+          <TimerPanelProvider>
+            <TimerPanel />
+            <StepText value={STEP} timerLabel={LABEL} />
+            <OpenLog />
+            <Probe />
+          </TimerPanelProvider>
+        </TimerProvider>
+      </TooltipProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' }))
+    await screen.findByRole('dialog', { name: 'Timer' })
+    const other = screen.getByRole('button', { name: 'Timer starten: 1½ Std.' })
+    fireEvent.pointerDown(other)
+    fireEvent.click(other)
+    // Closed once and reopened would show as [false, true, false, true]: the panel would flicker.
+    expect(openStates).toEqual([false, true])
+    expect(probe().timers).toHaveLength(2)
+
+    // Escape now hands focus to the chip pressed last.
+    fireEvent.keyDown(screen.getByRole('dialog', { name: 'Timer' }), { key: 'Escape' })
+    await waitFor(() => expect(document.activeElement).toBe(other))
+  })
+
   it('gives focus back to the chip when the panel it opened closes', async () => {
     render(
       <TooltipProvider>
@@ -102,8 +175,7 @@ describe('StepText', () => {
         </TimerProvider>
       </TooltipProvider>,
     )
-    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Minuten' })
-    fireEvent.click(chip)
+    const chip = screen.getByRole('button', { name: 'Timer starten: Etwa 30 Min.' })
     fireEvent.click(chip)
     const panel = await screen.findByRole('dialog', { name: 'Timer' })
     fireEvent.keyDown(panel, { key: 'Escape' })

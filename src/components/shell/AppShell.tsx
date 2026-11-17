@@ -13,7 +13,7 @@ import { useHasAppHistory } from '../../hooks/useHasAppHistory'
 import { PageHeaderContext } from './PageHeader'
 import { parentHref, staticOriginLabel, subpageOf, type Origin } from './origin'
 import { useOrigin } from './useOrigin'
-import { BrandMark } from './BrandMark'
+import { Brand } from './BrandMark'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { useNavState } from './useNavState'
 import { FOCUS_RING } from '../focusRing'
@@ -25,7 +25,7 @@ import { TabBar } from './TabBar'
 // --shell-left / --shell-bottom so the sidebar or tab bar never covers them (none today since the editor's footer
 // moved into the header, #231).
 const SIDEBAR_WIDTH = {
-  expanded: { width: 'w-60', shellVar: '[--shell-left:15rem]' },
+  expanded: { width: 'w-62', shellVar: '[--shell-left:15.5rem]' },
   collapsed: { width: 'w-16', shellVar: '[--shell-left:4rem]' },
 }
 // --site-nav-h: header height, which the list's group headers stick under; the desktop 60 px is the :root default.
@@ -105,10 +105,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   )}
                 </>
               ) : !isDesktop && pathname === '/' ? (
-                <span className="flex items-center gap-2 font-display text-xl">
-                  <BrandMark small />
-                  Foodly
-                </span>
+                <Brand small />
               ) : (
                 <span className="truncate font-semibold">
                   {!isDesktop && pathname === '/profile' ? 'Profil' : routeTitle(pathname)}

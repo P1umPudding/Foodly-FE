@@ -75,7 +75,7 @@ describe('SectionBlock', () => {
     expect(within(second).getByText('4')).toBeTruthy()
     expect(first.textContent).toBe('3Mehl sieben')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: 10 Minuten' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Timer starten: 10 Min.' }))
     expect(screen.getByTestId('timers').textContent).toBe('Gulasch · Schritt 4')
   })
 
