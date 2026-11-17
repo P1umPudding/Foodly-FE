@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addImage,
   appendIngredients,
+  draftLineParts,
   emptyDraft,
   move,
   newIngredient,
@@ -252,5 +253,34 @@ describe('appendIngredients', () => {
     )
     expect(rows).toHaveLength(5)
     expect(rows[1]).toBe(gap)
+  })
+})
+
+describe('draftLineParts', () => {
+  const byId = { 1: { name: 'Tomaten' } }
+  const line = (over: Partial<ReturnType<typeof newIngredient>>) => ({ ...newIngredient(), ...over })
+
+  it('splits a catalog row into quantity, name and Zusatz', () => {
+    expect(draftLineParts(line({ ingredient: 1, amount: 'ca. 800', unit: 'g', text: 'gehackt' }), byId)).toEqual({
+      quantity: 'ca. 800 g',
+      name: 'Tomaten',
+      extra: 'gehackt',
+    })
+  })
+
+  it('takes the whole free text as the name', () => {
+    expect(draftLineParts(line({ text: ' Salz nach Geschmack ' }), byId)).toEqual({
+      quantity: '',
+      name: 'Salz nach Geschmack',
+      extra: '',
+    })
+  })
+
+  it('keeps an amount without a name', () => {
+    expect(draftLineParts(line({ amount: '2', unit: ' ' }), byId)).toEqual({ quantity: '2', name: '', extra: '' })
+  })
+
+  it('is empty for a blank row', () => {
+    expect(draftLineParts(line({}), byId)).toEqual({ quantity: '', name: '', extra: '' })
   })
 })
