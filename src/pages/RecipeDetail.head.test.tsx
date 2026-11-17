@@ -144,7 +144,14 @@ describe('RecipeDetail head layout', () => {
     expect(screen.queryByRole('heading', { name: 'Fotos' })).toBeNull()
     expect(classesOf(header())).toContain('max-w-[720px]')
     expect(classesOf(title)).toContain('text-[32px]')
-    // text-[32px] brings no line height; without its own a two-line title overlapped itself.
+  })
+
+  it('gives a long, two-line title without a photo its own line height (no overlap)', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ name: 'Hähnchen-Curry mit Reis und Koriander nach Omas Rezept' }) })
+    const title = await screen.findByRole('heading', { level: 1, name: /Hähnchen-Curry/ })
+    // text-[32px] brings no line height; without its own the lines overlapped (body's 20 px). jsdom can't lay out,
+    // so the class stands in for the screenshot check.
+    expect(classesOf(title)).toContain('text-[32px]')
     expect(classesOf(title)).toContain('leading-[1.15]')
   })
 
