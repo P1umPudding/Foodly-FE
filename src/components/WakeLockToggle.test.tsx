@@ -16,14 +16,24 @@ function renderToggle(enabled: boolean) {
       <WakeLockToggle />
     </TooltipProvider>,
   )
-  return screen.getByRole('button', { name: enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus' })
+  return screen.getByRole('button', { name: 'Bildschirm anlassen' })
 }
 
 describe('WakeLockToggle — tap target', () => {
-  it('is 40 px high on phones, desktop size unchanged', () => {
+  it('is 40 px on phones, 30 px on desktop', () => {
     const button = renderToggle(false)
-    expect(button.classList.contains('h-8')).toBe(true)
-    expect(button.classList.contains('phone:h-10')).toBe(true)
+    expect(button.classList.contains('size-7.5')).toBe(true)
+    expect(button.classList.contains('phone:size-10')).toBe(true)
+  })
+})
+
+describe('WakeLockToggle — state', () => {
+  it.each([false, true])('reports the state via aria-pressed (enabled: %s)', (enabled) => {
+    const button = renderToggle(enabled)
+    expect(button.getAttribute('aria-pressed')).toBe(String(enabled))
+    // jsdom applies no CSS: the on-state look hangs on aria-pressed, so these classes must be present.
+    expect(button.classList.contains('aria-pressed:border-foreground')).toBe(true)
+    expect(button.classList.contains('aria-pressed:bg-accent')).toBe(true)
   })
 })
 
