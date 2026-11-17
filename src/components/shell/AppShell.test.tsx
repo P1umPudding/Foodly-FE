@@ -138,6 +138,7 @@ describe('AppShell on the desktop', () => {
 
   it('starts collapsed below 1024 px and open from 1024 px while nothing is saved (#222)', () => {
     for (const [width, expected] of [
+      [761, 'w-16'],
       [800, 'w-16'],
       [1023, 'w-16'],
       [1024, 'w-62'],
@@ -158,6 +159,7 @@ describe('AppShell on the desktop', () => {
     setViewport(800)
     expect(width()).toContain('w-16')
     screen.getByRole('button', { name: 'Seitenleiste ausklappen' })
+    expect(sidebar().closest('.min-h-screen')!.className.split(/\s+/)).toContain('[--shell-left:4rem]')
     setViewport(1280)
     expect(width()).toContain('w-62')
     screen.getByRole('button', { name: 'Seitenleiste einklappen' })
@@ -174,6 +176,7 @@ describe('AppShell on the desktop', () => {
     renderAt('/recipes')
     const width = () => sidebar().className.split(/\s+/)
     expect(width()).toContain('w-62')
+    screen.getByRole('button', { name: 'Seitenleiste einklappen' })
     setViewport(1280)
     expect(width()).toContain('w-62')
     setViewport(800)
@@ -187,6 +190,7 @@ describe('AppShell on the desktop', () => {
     const width = () => sidebar().className.split(/\s+/)
     expect(width()).toContain('w-16')
     setViewport(800)
+    expect(width()).toContain('w-16')
     setViewport(1280)
     expect(width()).toContain('w-16')
   })
