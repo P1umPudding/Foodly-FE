@@ -143,8 +143,8 @@ describe('Rating', () => {
       />,
     )
     const trigger = screen.getByRole('button', { name: /^Bewertung .* von 5$/ })
-    // One meter (StarMeter draws its base and fill as two SVGs), not the five-star bar.
-    expect(within(trigger).getAllByLabelText(/von 5$/)).toHaveLength(1)
+    // One star: StarMeter draws its base and fill as two SVGs; the five-star bar drew ten.
+    expect(trigger.querySelectorAll('svg')).toHaveLength(2)
     expect(trigger.textContent).toMatch(/^\d,\d$/)
     fireEvent.click(trigger)
     expect(await screen.findByRole('dialog', { name: 'Bewertung' })).toBeTruthy()
@@ -153,7 +153,7 @@ describe('Rating', () => {
   it('shows one empty star and „Bewerten“ while unrated', () => {
     render(<Rating recipe={recipe()} />)
     const trigger = screen.getByRole('button', { name: 'Bewerten' })
-    expect(within(trigger).getAllByLabelText('0,0 von 5')).toHaveLength(1)
+    expect(trigger.querySelectorAll('svg')).toHaveLength(2)
     expect(trigger.textContent).toBe('Bewerten')
   })
 

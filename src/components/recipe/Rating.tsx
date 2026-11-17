@@ -219,13 +219,13 @@ export function Rating({ recipe, onChange }: { recipe: Recipe; onChange?: (recip
         <TriggerButton
           variant="bare"
           aria-label={value === null ? 'Bewerten' : `Bewertung ${formatRating(value)} von 5`}
-          className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-ring phone:-my-2 phone:min-h-10"
+          className="inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted focus-visible:ring-ring phone:-my-2 phone:min-h-10"
         >
           {/* Mockup: one star and the value, like the list rows; the popover keeps the details. */}
           <span aria-hidden className="inline-flex text-muted-foreground">
             {value === null ? <StarMeter value={0} /> : <RatingMeta value={value} />}
           </span>
-          {value === null && <span className="text-sm text-muted-foreground">Bewerten</span>}
+          {value === null && <span className="text-muted-foreground">Bewerten</span>}
         </TriggerButton>
       }
       popover={{ 'aria-label': 'Bewertung', className: 'max-h-[60vh] w-72 overflow-y-auto' }}

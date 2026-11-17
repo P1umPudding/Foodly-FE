@@ -124,7 +124,7 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
           {...categoryColorVars(c)}
           className={cn(
             FOCUS_RING,
-            'inline-flex h-[22px] items-center rounded-sm bg-cat-soft px-2 text-xs font-semibold whitespace-nowrap text-cat-ink focus-visible:ring-ring/50 phone:h-auto phone:min-h-10',
+            'inline-flex h-5.5 items-center rounded-sm bg-cat-soft px-2 text-xs font-semibold whitespace-nowrap text-cat-ink focus-visible:ring-ring/50 phone:h-auto phone:min-h-10',
           )}
         >
           {/* Mockup: no symbol slot, the name alone, until categories can carry a symbol (B11). */}
@@ -142,7 +142,7 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
             aria-label={showText ? undefined : 'Kategorien ändern'}
             // Mockup `.add-cat`: 22 px like the chips, dashed in the stronger border. buttonVariants' own dark:
             // border/background would survive the merge, hence the dark: overrides. Phones get the 40 px tap target.
-            className="h-[22px] gap-1 rounded-sm border-dashed border-border-strong bg-transparent px-[7px] text-xs font-medium text-muted-foreground shadow-none phone:h-auto phone:min-h-10 dark:border-border-strong dark:bg-transparent"
+            className="h-5.5 gap-1 rounded-sm border-dashed border-border-strong bg-transparent px-[7px] text-xs font-medium text-muted-foreground shadow-none phone:h-auto phone:min-h-10 dark:border-border-strong dark:bg-transparent"
           >
             <Plus aria-hidden className="size-3" />
             {showText && 'Zu Kategorie hinzufügen'}

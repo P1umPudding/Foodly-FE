@@ -26,7 +26,8 @@ import { Rating } from '../components/recipe/Rating'
 import { TagChips } from '../components/recipe/TagChips'
 import { SectionBlock } from '../components/recipe/SectionBlock'
 import { PortionScaler } from '../components/recipe/PortionScaler'
-import { COMPACT_TOGGLE, WakeLockToggle } from '../components/WakeLockToggle'
+import { WakeLockToggle } from '../components/WakeLockToggle'
+import { CompactToggle } from '../components/CompactToggle'
 import { RecipeHero, RecipeImages } from '../components/recipe/RecipeImages'
 import { DeleteRecipeDialog } from '../components/recipe/DeleteRecipeDialog'
 import { HeaderActions, HeaderCrumbName } from '../components/shell/PageHeader'
@@ -330,21 +331,14 @@ export function RecipeDetail() {
                   sizeText={recipe.sizeText}
                 />
                 <div className="flex items-center gap-2 phone:order-last phone:basis-full">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TriggerButton
-                        variant="outline"
-                        size="iconSm"
-                        onClick={() => setCheckable(!checkable)}
-                        aria-pressed={checkable}
-                        aria-label="Zutaten abhaken"
-                        className={COMPACT_TOGGLE}
-                      >
-                        <ListChecks className="size-4" />
-                      </TriggerButton>
-                    </TooltipTrigger>
-                    <TooltipContent>Zutaten abhaken</TooltipContent>
-                  </Tooltip>
+                  <CompactToggle
+                    pressed={checkable}
+                    onClick={() => setCheckable(!checkable)}
+                    label="Zutaten abhaken"
+                    tooltip="Zutaten abhaken"
+                  >
+                    <ListChecks className="size-4" />
+                  </CompactToggle>
                   <WakeLockToggle />
                 </div>
                 {hasSteps && (

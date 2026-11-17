@@ -109,15 +109,15 @@ export function PortionScaler({
   )
 
   return (
-    // On phones the stepper takes the room left beside „Kochen“ (flex-1, zero basis), so a long size text
-    // truncates instead of pushing „Kochen“ into the next line.
+    // A long size text truncates instead of pushing „Kochen“ into the next line: capped on desktop (narrow
+    // windows included), and on phones the stepper takes just the room left beside „Kochen“ (flex-1, zero basis).
     <div className="inline-flex min-w-0 items-center gap-2.5 phone:flex-1 phone:basis-0">
       {minus}
       <span className="inline-flex min-w-0 items-center gap-1 text-base">
         {!portions && <span className="font-bold">×</span>}
         {input}
         {sizeText && (
-          <span className={cn('min-w-0 truncate', !portions && 'text-muted-foreground')}>
+          <span className={cn('max-w-36 min-w-0 truncate phone:max-w-none', !portions && 'text-muted-foreground')}>
             <TagText value={sizeText} size="md" />
           </span>
         )}
