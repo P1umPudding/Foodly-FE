@@ -144,6 +144,8 @@ describe('RecipeDetail head layout', () => {
     expect(screen.queryByRole('heading', { name: 'Fotos' })).toBeNull()
     expect(classesOf(header())).toContain('max-w-[720px]')
     expect(classesOf(title)).toContain('text-[32px]')
+    // The size token brings no line height; without its own a two-line title overlapped itself.
+    expect(classesOf(title)).toContain('leading-[1.15]')
   })
 
   it('with a photo the title uses the 26 px token', async () => {
@@ -151,7 +153,7 @@ describe('RecipeDetail head layout', () => {
     expect(classesOf(await heading())).toContain('text-2xl')
   })
 
-  it('shows notes as a plain list and leaves out empty parts', async () => {
+  it('shows notes as a bulleted list and leaves out empty parts', async () => {
     renderDetail('/recipes/5', { 5: recipe({ notes: ['Warm servieren', 'Mit Sirup'] }) })
     await heading()
 
@@ -162,6 +164,7 @@ describe('RecipeDetail head layout', () => {
         .map((li) => li.textContent),
     ).toEqual(['Warm servieren', 'Mit Sirup'])
     expect(list.querySelector('svg')).toBeNull()
+    expect(classesOf(list)).toContain('list-disc')
     // No time and no other people: neither part leaves an empty element behind.
     expect(screen.queryByText(/^(von|mit)/)).toBeNull()
   })

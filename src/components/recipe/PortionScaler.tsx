@@ -58,13 +58,13 @@ export function PortionScaler({
   const canIncrement = portions || current < FACTOR_SERIES[FACTOR_SERIES.length - 1]
   const canDecrement = portions ? current > Math.min(1, base) : current > FACTOR_SERIES[0]
 
-  // Phones get 40 px tap targets (docs/design.md §7); desktop keeps the compact iconSm.
-  const stepperClass = 'rounded-md text-muted-foreground hover:text-foreground phone:size-10'
+  // Outlined 30 px buttons on the card surface (mockup `.btn sm icon`); phones get 40 px tap targets (design.md §7).
+  const stepperClass = 'bg-card phone:size-10 dark:bg-card'
 
   const minus = (
     <Button
       type="button"
-      variant="ghost"
+      variant="outline"
       size="iconSm"
       onClick={stepDown}
       disabled={!canDecrement}
@@ -78,7 +78,7 @@ export function PortionScaler({
   const plus = (
     <Button
       type="button"
-      variant="ghost"
+      variant="outline"
       size="iconSm"
       onClick={stepUp}
       disabled={!canIncrement}
@@ -104,18 +104,20 @@ export function PortionScaler({
       wrapperClassName="h-7 w-10 shrink-0 border-transparent shadow-none transition-[color,box-shadow] hover:border-input hover:shadow-xs"
       // Input ships a `md:text-sm` that would shrink the value on desktop; override at the same breakpoint.
       // bg-transparent so the field matches the wrapper (the lib otherwise leaves dark:bg-input/30 on the input).
-      className="bg-transparent px-0.5 text-center text-base font-semibold tabular-nums md:text-base dark:bg-transparent"
+      className="bg-transparent px-0.5 text-center text-base font-bold tabular-nums md:text-base dark:bg-transparent"
     />
   )
 
   return (
-    <div className="inline-flex items-center gap-1 phone:gap-0">
+    // On phones the stepper takes the room left beside „Kochen“ (flex-1, zero basis), so a long size text
+    // truncates instead of pushing „Kochen“ into the next line.
+    <div className="inline-flex min-w-0 items-center gap-2.5 phone:flex-1 phone:basis-0">
       {minus}
-      <span className="inline-flex items-center gap-1 px-1 text-base">
-        {!portions && <span className="font-semibold">×</span>}
+      <span className="inline-flex min-w-0 items-center gap-1 text-base">
+        {!portions && <span className="font-bold">×</span>}
         {input}
         {sizeText && (
-          <span className={cn(!portions && 'text-muted-foreground')}>
+          <span className={cn('min-w-0 truncate', !portions && 'text-muted-foreground')}>
             <TagText value={sizeText} size="md" />
           </span>
         )}

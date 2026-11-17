@@ -2,7 +2,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-componen
 import { TriggerButton } from './TriggerButton'
 import { useWakeLock } from '../hooks/useWakeLock'
 
-const ICON = 'size-5'
+const ICON = 'size-4'
 
 function MugIcon({ steam }: { steam: boolean }) {
   return (
@@ -23,7 +23,15 @@ function MugIcon({ steam }: { steam: boolean }) {
   )
 }
 
-// Lives in the recipe detail control row (Koch-Modus), next to „Abhaken“.
+// The look of the icon-only on/off buttons in the detail action row (Abhaken, Wachhalten): outlined like the
+// size stepper's buttons. The on-state keys on aria-pressed, not Radix' data-state: under TooltipTrigger asChild
+// the tooltip's data-state would win. Its dark border tells "on" apart from a hovered "off".
+export const COMPACT_TOGGLE = cn(
+  'bg-card text-muted-foreground hover:text-foreground phone:size-10 dark:bg-card',
+  'aria-pressed:border-foreground aria-pressed:bg-accent aria-pressed:text-foreground aria-pressed:hover:bg-accent',
+)
+
+// Lives in the recipe detail action row, next to „Abhaken“.
 export function WakeLockToggle() {
   const { enabled, supported, toggle } = useWakeLock()
   if (!supported) return null
@@ -32,18 +40,14 @@ export function WakeLockToggle() {
     <Tooltip>
       <TooltipTrigger asChild>
         <TriggerButton
-          variant="ghost"
-          size="sm"
+          variant="outline"
+          size="iconSm"
           onClick={toggle}
           aria-pressed={enabled}
-          aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
-          className={cn(
-            'gap-1.5 rounded-md transition-colors phone:h-10',
-            enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
-          )}
+          aria-label="Bildschirm anlassen"
+          className={COMPACT_TOGGLE}
         >
           <MugIcon steam={enabled} />
-          <span className="text-lg">Wachhalten</span>
         </TriggerButton>
       </TooltipTrigger>
       <TooltipContent>{enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}</TooltipContent>
