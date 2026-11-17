@@ -348,7 +348,7 @@ describe('SectionEditor on the phone', () => {
     return onChange
   }
 
-  const last = (onChange: ReturnType<typeof vi.fn>) => onChange.mock.calls.at(-1)?.[0] as DraftSection
+  const last = (onChange: ReturnType<typeof vi.fn>) => onChange.mock.lastCall?.[0] as DraftSection
   const openRow = async (name: RegExp) => {
     fireEvent.click(screen.getByRole('button', { name }))
     return screen.findByRole('dialog', { name: 'Zutat bearbeiten' })
@@ -384,7 +384,13 @@ describe('SectionEditor on the phone', () => {
     fireEvent.change(within(sheet).getByRole('textbox', { name: 'Menge' }), { target: { value: '1 kg' } })
     fireEvent.click(within(sheet).getByRole('button', { name: 'kg' }))
 
-    expect(last(onChange).ingredients[0]).toEqual({ key: 30, ingredient: 1, text: 'gehackt', amount: '1 kg', unit: 'kg' })
+    expect(last(onChange).ingredients[0]).toEqual({
+      key: 30,
+      ingredient: 1,
+      text: 'gehackt',
+      amount: '1 kg',
+      unit: 'kg',
+    })
     fireEvent.click(within(sheet).getByRole('button', { name: 'Fertig' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(screen.getByRole('button', { name: '1 kg kg Zwiebel gehackt' })).toBeTruthy()
@@ -415,9 +421,7 @@ describe('SectionEditor on the phone', () => {
     expect(last(onChange).ingredients.map((l) => l.key)).toEqual([30, 32])
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(screen.queryByRole('button', { name: /Salz/ })).toBeNull()
-    await waitFor(() =>
-      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Zutat hinzufügen' })),
-    )
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Zutat hinzufügen' })))
   })
 
   it('opens the sheet for a new row on „Zutat hinzufügen“ and drops it when closed blank', async () => {
@@ -448,7 +452,10 @@ describe('SectionEditor on the phone', () => {
   })
 
   it('drops the blank row a new section starts with when its sheet closes', async () => {
-    const onChange = setupPhone({ ...phone, ingredients: [{ key: 40, ingredient: null, text: '', amount: '', unit: '' }] })
+    const onChange = setupPhone({
+      ...phone,
+      ingredients: [{ key: 40, ingredient: null, text: '', amount: '', unit: '' }],
+    })
 
     const sheet = await openRow(/Neue Zutat/)
     fireEvent.click(within(sheet).getByRole('button', { name: 'Fertig' }))

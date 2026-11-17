@@ -148,14 +148,7 @@ export function IngredientSheet({
               <ArrowUp className="size-4" />
               Nach oben
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-10"
-              disabled={!canMoveDown}
-              onClick={onDown}
-            >
+            <Button type="button" variant="outline" size="sm" className="h-10" disabled={!canMoveDown} onClick={onDown}>
               <ArrowDown className="size-4" />
               Nach unten
             </Button>
