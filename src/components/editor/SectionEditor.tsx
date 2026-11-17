@@ -56,13 +56,14 @@ export function SectionEditor({
   // Phone (#217): reading rows, one ingredient at a time in IngredientSheet.
   const isDesktop = useIsDesktop()
   const [editing, setEditing] = useState<{ key: number; isNew: boolean } | null>(null)
-  // Crossing to the desktop drops the sheet; it must not come back when crossing back.
-  if (isDesktop && editing !== null) setEditing(null)
   const editedIndex = editing ? section.ingredients.findIndex((line) => line.key === editing.key) : -1
   const edited = editedIndex === -1 ? null : section.ingredients[editedIndex]
   // Keeps the sheet's content while it animates out after „Entfernen“.
   const [shown, setShown] = useState<DraftIngredient | null>(null)
   if (edited && edited !== shown) setShown(edited)
+  // Crossing to the desktop drops the sheet, and it must not come back when crossing back. A row gone from outside (a
+  // reload swaps the keys) leaves nothing to edit.
+  if (editing !== null && (isDesktop || edited === null)) setEditing(null)
   const rowButtons = useRef(new Map<number, HTMLButtonElement>())
   const lastEdited = useRef<number | null>(null)
   const closed = useRef<number | null>(null)

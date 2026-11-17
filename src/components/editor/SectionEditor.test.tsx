@@ -436,6 +436,7 @@ describe('SectionEditor on the phone', () => {
     fireEvent.click(within(sheet).getByRole('button', { name: 'Fertig' }))
     await waitFor(() => expect(last(onChange).ingredients).toHaveLength(3))
     expect(screen.queryByRole('button', { name: 'Neue Zutat' })).toBeNull()
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Zutat hinzufügen' })))
   })
 
   it('keeps a new row with only an amount', async () => {
@@ -478,6 +479,32 @@ describe('SectionEditor on the phone', () => {
     expect(screen.getByRole('button', { name: 'Pfeffer' })).toBeTruthy()
   })
 
+  it('commits a typed name when the sheet is closed by a tap next to it', async () => {
+    const onChange = setupPhone()
+
+    const sheet = await openRow(/Salz/)
+    const name = within(sheet).getByRole('combobox', { name: 'Zutat' })
+    name.focus()
+    fireEvent.change(name, { target: { value: 'Pfeffer' } })
+    // Radix registers its outside-pointer listener a tick after mounting.
+    await new Promise((r) => setTimeout(r, 10))
+    fireEvent.pointerDown(document.body)
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(last(onChange).ingredients[1]).toMatchObject({ key: 31, ingredient: null, text: 'Pfeffer' })
+  })
+
+  it('sets a unit from a chip on a row without one', async () => {
+    const onChange = setupPhone()
+
+    const sheet = await openRow(/Salz/)
+    expect(within(sheet).queryByRole('button', { pressed: true })).toBeNull()
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Prise' }))
+
+    expect(last(onChange).ingredients[1]).toMatchObject({ key: 31, unit: 'Prise' })
+    expect(within(sheet).getByRole('button', { name: 'Prise', pressed: true })).toBeTruthy()
+  })
+
   it('keeps the sheet open on Escape in an open suggestion list, then drops typed text on Escape', async () => {
     setupPhone()
 
@@ -492,6 +519,7 @@ describe('SectionEditor on the phone', () => {
     fireEvent.keyDown(name, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(screen.getByRole('button', { name: 'Salz' })).toBeTruthy()
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Salz' })))
   })
 
   it('drops the sheet when the window widens and does not bring it back', async () => {

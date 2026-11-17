@@ -18,10 +18,12 @@ export function UnitInput({
   value,
   onChange,
   className,
+  field,
 }: {
   value: string
   onChange: (unit: string) => void
   className?: string
+  field?: { id?: string; className?: string }
 }) {
   const unit = value.trim().toLowerCase()
   return (
@@ -29,6 +31,8 @@ export function UnitInput({
       label="Einheit"
       placeholder="Einheit"
       className={className}
+      id={field?.id}
+      inputClassName={field?.className}
       icon={<ChevronDown className="size-4" />}
       openOnClick
       value={value}

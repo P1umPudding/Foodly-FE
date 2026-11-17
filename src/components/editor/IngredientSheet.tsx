@@ -40,6 +40,7 @@ export function IngredientSheet({
 }) {
   const id = useId()
   const escaping = useRef(false)
+  const amount = useRef<HTMLInputElement>(null)
   const isCatalog = line.ingredient !== null
 
   const onOpenChange = (next: boolean) => {
@@ -60,9 +61,8 @@ export function IngredientSheet({
 
   const onOpenAutoFocus = (e: Event) => {
     if (!focusAmount) return
-    // The postxl Input doesn't forward its ref.
     e.preventDefault()
-    document.getElementById(`${id}-amount`)?.focus()
+    amount.current?.focus()
   }
 
   return (
@@ -80,8 +80,9 @@ export function IngredientSheet({
           <div>
             <Label htmlFor={`${id}-amount`}>Menge</Label>
             <Input
+              ref={amount}
               id={`${id}-amount`}
-              className="mt-1.5 tabular-nums"
+              className="mt-1.5 h-10 tabular-nums"
               placeholder="z. B. ca. 800"
               aria-describedby={`${id}-amount-hint`}
               value={line.amount}
@@ -92,45 +93,51 @@ export function IngredientSheet({
             </p>
           </div>
           <div>
-            {/* The combobox carries its own aria-label; this is its visible caption. */}
-            <Label asChild>
-              <span>Einheit</span>
-            </Label>
-            <UnitInput className="mt-1.5" value={line.unit} onChange={(unit) => onChange({ unit })} />
+            <Label htmlFor={`${id}-unit`}>Einheit</Label>
+            <UnitInput
+              className="mt-1.5"
+              field={{ id: `${id}-unit`, className: 'h-10' }}
+              value={line.unit}
+              onChange={(unit) => onChange({ unit })}
+            />
             <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {UNIT_CHIPS.map((unit) => (
-                <Button
-                  key={unit}
-                  type="button"
-                  size="sm"
-                  variant={line.unit.trim() === unit ? 'default' : 'outline'}
-                  aria-pressed={line.unit.trim() === unit}
-                  className="h-10 min-w-10 rounded-full"
-                  onClick={() => onChange({ unit })}
-                >
-                  {unit}
-                </Button>
-              ))}
+              {UNIT_CHIPS.map((unit) => {
+                const on = line.unit.trim().toLowerCase() === unit.toLowerCase()
+                return (
+                  <Button
+                    key={unit}
+                    type="button"
+                    size="sm"
+                    variant={on ? 'default' : 'outline'}
+                    aria-pressed={on}
+                    className="h-10 min-w-10 rounded-full"
+                    onClick={() => onChange({ unit })}
+                  >
+                    {unit}
+                  </Button>
+                )
+              })}
             </div>
           </div>
           <div>
-            <Label asChild>
-              <span>Zutat</span>
-            </Label>
+            <Label htmlFor={`${id}-name`}>Zutat</Label>
             <IngredientPicker
               className="mt-1.5"
+              field={{ id: `${id}-name`, describedBy: `${id}-name-hint`, className: 'h-10' }}
               value={line.ingredient}
               text={line.text}
               {...pickHandlers(line, onChange)}
             />
-            <p className={HINT}>Aus dem Zutaten-Katalog, sonst Freitext.</p>
+            <p id={`${id}-name-hint`} className={HINT}>
+              Aus dem Zutaten-Katalog, sonst Freitext.
+            </p>
           </div>
           <div>
             <Label htmlFor={`${id}-extra`}>Zusatz</Label>
             {/* Free text keeps its whole name in `text` (nothing is split), so there is no Zusatz to edit. */}
             <Input
               id={`${id}-extra`}
-              className="mt-1.5"
+              className="mt-1.5 h-10"
               placeholder="z. B. gehackt, nach Geschmack"
               disabled={!isCatalog}
               aria-describedby={isCatalog ? undefined : `${id}-extra-hint`}

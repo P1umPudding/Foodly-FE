@@ -21,6 +21,8 @@ export function SuggestInput({
   placeholder,
   className,
   inputClassName,
+  id,
+  describedBy,
 }: {
   value: string
   onValueChange: (value: string) => void
@@ -36,6 +38,8 @@ export function SuggestInput({
   placeholder?: string
   className?: string
   inputClassName?: string
+  id?: string
+  describedBy?: string
 }) {
   const listId = useId()
   const [open, setOpen] = useState(false)
@@ -83,8 +87,10 @@ export function SuggestInput({
   return (
     <div className={cn('relative', className)}>
       <Input
+        id={id}
         role="combobox"
         aria-label={label}
+        aria-describedby={describedBy}
         aria-expanded={expanded}
         aria-controls={expanded ? listId : undefined}
         aria-autocomplete="list"
