@@ -20,7 +20,7 @@ export const IngredientLineButton = forwardRef<HTMLButtonElement, { line: DraftI
         variant="bare"
         aria-haspopup="dialog"
         onClick={onOpen}
-        className="grid min-h-[46px] w-full grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-2.5 border-b py-2 text-left [@media(hover:hover)]:hover:bg-accent/50"
+        className="grid min-h-[46px] w-full grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-2.5 border-b py-2 text-left hover:bg-accent/50"
       >
         <span className="text-right text-muted-foreground tabular-nums">
           <TagText value={quantity} />
