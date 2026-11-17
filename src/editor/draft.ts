@@ -167,8 +167,22 @@ export function move<T extends { key: number }>(rows: T[], key: number, delta: -
   return next
 }
 
-const isBlank = (line: DraftIngredient) =>
+export const isBlank = (line: DraftIngredient) =>
   line.ingredient === null && [line.text, line.amount, line.unit].every((v) => v.trim() === '')
+
+// The phone's reading row (#217), split like `ingredientParts` for the detail page. `amount` already carries the prefix
+// ("ca. 800"), so it is not joined with one again. On a catalog row `text` is the Zusatz, on a free-text row the name.
+export function draftLineParts(
+  line: DraftIngredient,
+  byId: Record<IngredientId, { name: string } | undefined>,
+): { quantity: string; name: string; extra: string } {
+  const quantity = [line.amount, line.unit]
+    .map((part) => part.trim())
+    .filter((part) => part !== '')
+    .join(' ')
+  if (line.ingredient === null) return { quantity, name: line.text.trim(), extra: '' }
+  return { quantity, name: byId[line.ingredient]?.name ?? '', extra: line.text.trim() }
+}
 
 // "Mehrere einfügen": the empty placeholder row a new section starts with is replaced, not left above the pasted rows.
 export function appendIngredients(rows: DraftIngredient[], added: Omit<DraftIngredient, 'key'>[]): DraftIngredient[] {
