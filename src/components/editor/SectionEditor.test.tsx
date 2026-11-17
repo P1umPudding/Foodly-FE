@@ -381,19 +381,19 @@ describe('SectionEditor on the phone', () => {
     const onChange = setupPhone()
 
     const sheet = await openRow(/Zwiebel/)
-    fireEvent.change(within(sheet).getByRole('textbox', { name: 'Menge' }), { target: { value: '1 kg' } })
+    fireEvent.change(within(sheet).getByRole('textbox', { name: 'Menge' }), { target: { value: '1' } })
     fireEvent.click(within(sheet).getByRole('button', { name: 'kg' }))
 
     expect(last(onChange).ingredients[0]).toEqual({
       key: 30,
       ingredient: 1,
       text: 'gehackt',
-      amount: '1 kg',
+      amount: '1',
       unit: 'kg',
     })
     fireEvent.click(within(sheet).getByRole('button', { name: 'Fertig' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(screen.getByRole('button', { name: '1 kg kg Zwiebel gehackt' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '1 kg Zwiebel gehackt' })).toBeTruthy()
     await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: /Zwiebel/ })))
   })
 
@@ -492,6 +492,26 @@ describe('SectionEditor on the phone', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(last(onChange).ingredients[1]).toMatchObject({ key: 31, ingredient: null, text: 'Pfeffer' })
+  })
+
+  it('disables the Zusatz of a free-text row, with its hint', async () => {
+    setupPhone()
+
+    const sheet = await openRow(/Salz/)
+    const extra = within(sheet).getByRole('textbox', { name: 'Zusatz' })
+    expect(extra).toHaveProperty('disabled', true)
+    expect(extra.getAttribute('aria-describedby')).toBeTruthy()
+    expect(within(sheet).getByText('Zusatz nur bei Zutaten aus dem Katalog')).toBeTruthy()
+  })
+
+  it('clears the unit when the active chip is tapped again', async () => {
+    const onChange = setupPhone()
+
+    const sheet = await openRow(/Zwiebel/)
+    fireEvent.click(within(sheet).getByRole('button', { name: 'g', pressed: true }))
+
+    expect(last(onChange).ingredients[0]).toMatchObject({ key: 30, unit: '' })
+    expect(within(sheet).queryByRole('button', { pressed: true })).toBeNull()
   })
 
   it('sets a unit from a chip on a row without one', async () => {

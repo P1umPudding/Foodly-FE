@@ -100,7 +100,7 @@ export function IngredientSheet({
               value={line.unit}
               onChange={(unit) => onChange({ unit })}
             />
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <div role="group" aria-label="Schnellwahl Einheit" className="mt-1.5 flex flex-wrap gap-1.5">
               {UNIT_CHIPS.map((unit) => {
                 const on = line.unit.trim().toLowerCase() === unit.toLowerCase()
                 return (
@@ -111,7 +111,7 @@ export function IngredientSheet({
                     variant={on ? 'default' : 'outline'}
                     aria-pressed={on}
                     className="h-10 min-w-10 rounded-full"
-                    onClick={() => onChange({ unit })}
+                    onClick={() => onChange({ unit: on ? '' : unit })}
                   >
                     {unit}
                   </Button>

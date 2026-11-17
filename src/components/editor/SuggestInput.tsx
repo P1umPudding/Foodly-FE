@@ -73,7 +73,7 @@ export function SuggestInput({
     } else if (e.key === 'Escape') {
       // Usual combobox steps: the first Escape closes the list, the next one reverts. stopPropagation only shields
       // React-level handlers; a Radix sheet listens on document in the capture phase and must check for an open
-      // combobox itself (relevant once #217 hosts this field in a sheet).
+      // combobox itself (IngredientSheet does, see its onEscapeKeyDown).
       if (expanded) {
         e.preventDefault()
         e.stopPropagation()
