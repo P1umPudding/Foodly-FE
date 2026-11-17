@@ -24,10 +24,13 @@ export function TimerPanel() {
   // clicked elsewhere: that click owns the focus now.
   const closedByOutsideClick = useRef(false)
   const onInteractOutside = (e: Event) => {
+    const target = outsideTarget(e)
     keepOpenForToast(e)
+    // A time chip in the page opens the panel itself; closing first would make the panel flicker.
+    if (isTimerChip(target)) e.preventDefault()
     // A press on the header button is not "outside": the button toggles the panel itself. Radix checks this
     // too, but only after calling us, so without this line the flag below would be set and focus lost.
-    if (triggerRef.current?.contains(outsideTarget(e))) e.preventDefault()
+    if (triggerRef.current?.contains(target)) e.preventDefault()
     if (!e.defaultPrevented) closedByOutsideClick.current = true
   }
   // Reopened during the closing animation, Radix never fires onCloseAutoFocus, so the flag would linger.
@@ -121,6 +124,10 @@ export function TimerPanel() {
 function keepOpenForToast(e: Event): void {
   const target = outsideTarget(e)
   if (target instanceof Element && target.closest('[data-sonner-toaster]')) e.preventDefault()
+}
+
+function isTimerChip(target: Node | null): boolean {
+  return target instanceof Element && target.closest('[data-timer-chip]') !== null
 }
 
 function outsideTarget(e: Event): Node | null {
