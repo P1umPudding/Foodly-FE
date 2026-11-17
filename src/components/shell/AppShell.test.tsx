@@ -157,8 +157,10 @@ describe('AppShell on the desktop', () => {
     expect(width()).toContain('w-62')
     setViewport(800)
     expect(width()).toContain('w-16')
+    screen.getByRole('button', { name: 'Seitenleiste ausklappen' })
     setViewport(1280)
     expect(width()).toContain('w-62')
+    screen.getByRole('button', { name: 'Seitenleiste einklappen' })
     expect(localStorage.getItem('foodly:sidebar-collapsed')).toBeNull()
   })
 

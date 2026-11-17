@@ -139,8 +139,9 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 ## 3. Struktur und Navigation
 
 - **Desktop/Tablet (ab 761 px):** linke Seitenleiste (`bg-sidebar`): oben „Neues Rezept“ (primary), dann die Ziele,
-  dann „Kategorien“ (Punkt, Name, Anzahl), unten Profil (Avatar). Einklappbar auf 64 px mit Tooltips. Unter 1024 px startet sie eingeklappt; eine selbst gewählte Einstellung (pro Gerät gemerkt) hat Vorrang (#222). Kopfzeile:
-  Titel oder Breadcrumb, Seitenaktionen, Timer-Knopf.
+  dann „Kategorien“ (Punkt, Name, Anzahl), unten Profil (Avatar). Einklappbar auf 64 px mit Tooltips. Unter 1024 px
+  startet sie eingeklappt; eine selbst gewählte Einstellung (pro Gerät gemerkt) hat Vorrang (#222). Kopfzeile: Titel
+  oder Breadcrumb, Seitenaktionen, Timer-Knopf.
 - **Handy (bis 760 px):** Tab-Leiste unten (Icon + Label), Kopfzeile mit Titel, Aktionen, Timer-Knopf und ganz
   rechts dem **Avatar → Profil** (auf Hauptseiten; Unterseiten haben stattdessen links den Zurück-Pfeil).
   Der Avatar (Handy) bzw. der Profil-Eintrag unten in der Seitenleiste führt zur Profilseite `/profile` (#245):
