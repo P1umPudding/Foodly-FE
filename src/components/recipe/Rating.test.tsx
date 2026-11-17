@@ -130,6 +130,33 @@ describe('Rating', () => {
     expect(screen.getByRole('button', { name: 'Bewertung 4,0 von 5' })).toBeTruthy()
   })
 
+  it('shows one star and the value on the trigger, and a click opens the popover', async () => {
+    render(
+      <Rating
+        recipe={recipe({
+          rating: [
+            { user: 1, rating: 4 },
+            { user: 2, rating: 5 },
+          ],
+          editors: [2],
+        })}
+      />,
+    )
+    const trigger = screen.getByRole('button', { name: /^Bewertung .* von 5$/ })
+    // One meter (StarMeter draws its base and fill as two SVGs), not the five-star bar.
+    expect(within(trigger).getAllByLabelText(/von 5$/)).toHaveLength(1)
+    expect(trigger.textContent).toMatch(/^\d,\d$/)
+    fireEvent.click(trigger)
+    expect(await screen.findByRole('dialog', { name: 'Bewertung' })).toBeTruthy()
+  })
+
+  it('shows one empty star and „Bewerten“ while unrated', () => {
+    render(<Rating recipe={recipe()} />)
+    const trigger = screen.getByRole('button', { name: 'Bewerten' })
+    expect(within(trigger).getAllByLabelText('0,0 von 5')).toHaveLength(1)
+    expect(trigger.textContent).toBe('Bewerten')
+  })
+
   it('shows a failed write inline', async () => {
     vi.mocked(foodly.setMyRating).mockRejectedValue(new Error('kaputt'))
     open(recipe())
@@ -180,9 +207,11 @@ describe('Rating', () => {
         ],
       }),
     )
-    expect(await screen.findByText('4,5')).toBeTruthy()
-    expect(screen.getByText('4,0')).toBeTruthy()
-    expect(screen.getByText('5,0')).toBeTruthy()
+    // The trigger shows the average too; check the popover's own rows.
+    const panel = await screen.findByRole('dialog')
+    expect(within(panel).getByText('4,5')).toBeTruthy()
+    expect(within(panel).getByText('4,0')).toBeTruthy()
+    expect(within(panel).getByText('5,0')).toBeTruthy()
     expect(document.body.textContent).not.toMatch(/\d\.\d/)
   })
 
