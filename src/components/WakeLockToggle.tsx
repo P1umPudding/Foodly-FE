@@ -1,8 +1,7 @@
-import { Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
-import { TriggerButton } from './TriggerButton'
+import { CompactToggle } from './CompactToggle'
 import { useWakeLock } from '../hooks/useWakeLock'
 
-const ICON = 'size-5'
+const ICON = 'size-4'
 
 function MugIcon({ steam }: { steam: boolean }) {
   return (
@@ -23,30 +22,19 @@ function MugIcon({ steam }: { steam: boolean }) {
   )
 }
 
-// Lives in the recipe detail control row (Koch-Modus), next to „Abhaken“.
+// Lives in the recipe detail action row, next to „Abhaken“.
 export function WakeLockToggle() {
   const { enabled, supported, toggle } = useWakeLock()
   if (!supported) return null
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <TriggerButton
-          variant="ghost"
-          size="sm"
-          onClick={toggle}
-          aria-pressed={enabled}
-          aria-label={enabled ? 'Bildschirm anlassen: an' : 'Bildschirm anlassen: aus'}
-          className={cn(
-            'gap-1.5 rounded-md transition-colors phone:h-10',
-            enabled ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground',
-          )}
-        >
-          <MugIcon steam={enabled} />
-          <span className="text-lg">Wachhalten</span>
-        </TriggerButton>
-      </TooltipTrigger>
-      <TooltipContent>{enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}</TooltipContent>
-    </Tooltip>
+    <CompactToggle
+      pressed={enabled}
+      onClick={toggle}
+      label="Bildschirm anlassen"
+      tooltip={enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}
+    >
+      <MugIcon steam={enabled} />
+    </CompactToggle>
   )
 }

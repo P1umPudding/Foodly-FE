@@ -146,12 +146,21 @@ describe('RecipeDetail head layout', () => {
     expect(classesOf(title)).toContain('text-[32px]')
   })
 
+  it('gives a long, two-line title without a photo its own line height (no overlap)', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ name: 'Hähnchen-Curry mit Reis und Koriander nach Omas Rezept' }) })
+    const title = await screen.findByRole('heading', { level: 1, name: /Hähnchen-Curry/ })
+    // text-[32px] brings no line height; without its own the lines overlapped (body's 20 px). jsdom can't lay out,
+    // so the class stands in for the screenshot check.
+    expect(classesOf(title)).toContain('text-[32px]')
+    expect(classesOf(title)).toContain('leading-[1.15]')
+  })
+
   it('with a photo the title uses the 26 px token', async () => {
     renderDetail('/recipes/5', { 5: recipe({ mainImage: ref(3) }) })
     expect(classesOf(await heading())).toContain('text-2xl')
   })
 
-  it('shows notes as a plain list and leaves out empty parts', async () => {
+  it('shows notes as a bulleted list and leaves out empty parts', async () => {
     renderDetail('/recipes/5', { 5: recipe({ notes: ['Warm servieren', 'Mit Sirup'] }) })
     await heading()
 
@@ -162,6 +171,7 @@ describe('RecipeDetail head layout', () => {
         .map((li) => li.textContent),
     ).toEqual(['Warm servieren', 'Mit Sirup'])
     expect(list.querySelector('svg')).toBeNull()
+    expect(classesOf(list)).toContain('list-disc')
     // No time and no other people: neither part leaves an empty element behind.
     expect(screen.queryByText(/^(von|mit)/)).toBeNull()
   })

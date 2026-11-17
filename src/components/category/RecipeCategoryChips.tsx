@@ -13,7 +13,6 @@ import { categoryPageHref } from '../shell/nav'
 import { ResponsivePanel } from '../ResponsivePanel'
 import { TriggerButton } from '../TriggerButton'
 import { FOCUS_RING } from '../focusRing'
-import { CategoryMark } from './CategoryMark'
 import { CategoryAssignPanel } from './CategoryAssignPanel'
 import type { Recipe, RecipeId, UserCategory, UserCategoryId } from '../../api/protocol'
 
@@ -117,7 +116,7 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
 
   // Always rendered, also while loading, so the title doesn't jump down once the categories arrive.
   return (
-    <div className="mb-2 flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5">
       {cats.map((c) => (
         <Link
           key={c.id}
@@ -125,10 +124,10 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
           {...categoryColorVars(c)}
           className={cn(
             FOCUS_RING,
-            'inline-flex items-center gap-1.5 rounded-sm bg-cat-soft py-0.5 pr-2 pl-0.5 text-xs font-medium text-cat-ink focus-visible:ring-ring/50 phone:min-h-10 phone:pl-1.5',
+            'inline-flex h-5.5 items-center rounded-sm bg-cat-soft px-2 text-xs font-semibold whitespace-nowrap text-cat-ink focus-visible:ring-ring/50 phone:h-auto phone:min-h-10',
           )}
         >
-          <CategoryMark category={c} size="sm" />
+          {/* Mockup: no symbol slot, the name alone, until categories can carry a symbol (B11). */}
           {c.name}
         </Link>
       ))}
@@ -141,10 +140,11 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
             size="xs2"
             // With its text showing, the text is the name (label in name, WCAG 2.5.3).
             aria-label={showText ? undefined : 'Kategorien ändern'}
-            // min-h-6 lines it up with the chips; phones get the 40 px tap target.
-            className="min-h-6 gap-1 border-dashed phone:min-h-10"
+            // Mockup `.add-cat`: 22 px like the chips, dashed in the stronger border. buttonVariants' own dark:
+            // border/background would survive the merge, hence the dark: overrides. Phones get the 40 px tap target.
+            className="h-5.5 gap-1 rounded-sm border-dashed border-border-strong bg-transparent px-[7px] text-xs font-medium text-muted-foreground shadow-none phone:h-auto phone:min-h-10 dark:border-border-strong dark:bg-transparent"
           >
-            <Plus aria-hidden className="size-4" />
+            <Plus aria-hidden className="size-3" />
             {showText && 'Zu Kategorie hinzufügen'}
           </TriggerButton>
         }
