@@ -1,13 +1,16 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Card, CardContent, Input } from '@postxl/ui-components'
 import { ClipboardPaste, Plus } from 'lucide-react'
 import { TriggerButton } from '../TriggerButton'
 import { COL_HEAD } from './EditorSidebar'
 import { INGREDIENT_COLUMNS, IngredientRow } from './IngredientRow'
+import { IngredientLineButton } from './IngredientLineButton'
+import { IngredientSheet } from './IngredientSheet'
 import { PasteIngredientsDialog } from './PasteIngredientsDialog'
 import { RowMenu } from './RowMenu'
 import { StepRow } from './StepRow'
-import { appendIngredients, move, newIngredient, newStep } from '../../editor/draft'
+import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { appendIngredients, isBlank, move, newIngredient, newStep } from '../../editor/draft'
 import type { DraftIngredient, DraftSection } from '../../editor/draft'
 
 // One card per section (mockup `.ed-sec`): the name as the card's heading with ⋯ beside it, ingredients as a table,
@@ -45,6 +48,39 @@ export function SectionEditor({
       ...section,
       ingredients: section.ingredients.map((line) => (line.key === key ? { ...line, ...patch } : line)),
     })
+  const moveIngredient = (key: number, delta: -1 | 1) =>
+    onChange({ ...section, ingredients: move(section.ingredients, key, delta) })
+  const removeIngredient = (key: number) =>
+    onChange({ ...section, ingredients: section.ingredients.filter((r) => r.key !== key) })
+
+  // Phone (#217): reading rows, one ingredient at a time in IngredientSheet.
+  const isDesktop = useIsDesktop()
+  const [editing, setEditing] = useState<{ key: number; isNew: boolean } | null>(null)
+  // Crossing to the desktop drops the sheet; it must not come back when crossing back.
+  if (isDesktop && editing !== null) setEditing(null)
+  const editedIndex = editing ? section.ingredients.findIndex((line) => line.key === editing.key) : -1
+  const edited = editedIndex === -1 ? null : section.ingredients[editedIndex]
+  // Keeps the sheet's content while it animates out after „Entfernen“.
+  const [shown, setShown] = useState<DraftIngredient | null>(null)
+  if (edited && edited !== shown) setShown(edited)
+  const rowButtons = useRef(new Map<number, HTMLButtonElement>())
+  const lastEdited = useRef<number | null>(null)
+  const closed = useRef<number | null>(null)
+  const openSheet = (key: number, isNew = false) => {
+    closed.current = null
+    lastEdited.current = key
+    setEditing({ key, isNew })
+  }
+  // A row left blank goes when its sheet closes. Not in the close handler itself: the blur that commits the picker has
+  // just called onChange, and RecipeEditor builds each change from its render-time draft, so a second call in the same
+  // event would undo the first. Not on close-autofocus either: that also fires when the breakpoint unmounts the sheet.
+  useEffect(() => {
+    if (editing !== null || closed.current === null) return
+    const key = closed.current
+    closed.current = null
+    const line = section.ingredients.find((l) => l.key === key)
+    if (line && isBlank(line)) onChange({ ...section, ingredients: section.ingredients.filter((l) => l.key !== key) })
+  }, [editing, section, onChange])
 
   return (
     <Card className="py-0">
@@ -72,30 +108,69 @@ export function SectionEditor({
           />
         </div>
 
-        {section.ingredients.length > 0 && (
-          <div className={`${INGREDIENT_COLUMNS} text-xs font-medium text-subtle-foreground phone:hidden`}>
+        {isDesktop && section.ingredients.length > 0 && (
+          <div className={`${INGREDIENT_COLUMNS} text-xs font-medium text-subtle-foreground`}>
             <span>Menge</span>
             <span>Einheit</span>
             <span>Zutat</span>
             <span>Zusatz</span>
           </div>
         )}
-        {section.ingredients.map((line, i) => (
-          <IngredientRow
-            key={line.key}
-            line={line}
-            index={i}
-            onChange={(patch) => patchIngredient(line.key, patch)}
-            onUp={() => onChange({ ...section, ingredients: move(section.ingredients, line.key, -1) })}
-            onDown={() => onChange({ ...section, ingredients: move(section.ingredients, line.key, 1) })}
-            onRemove={() =>
-              onChange({ ...section, ingredients: section.ingredients.filter((r) => r.key !== line.key) })
-            }
-            onRemovedFocus={() => addIngredient.current?.focus()}
-            canMoveUp={i > 0}
-            canMoveDown={i < section.ingredients.length - 1}
+        {isDesktop &&
+          section.ingredients.map((line, i) => (
+            <IngredientRow
+              key={line.key}
+              line={line}
+              index={i}
+              onChange={(patch) => patchIngredient(line.key, patch)}
+              onUp={() => moveIngredient(line.key, -1)}
+              onDown={() => moveIngredient(line.key, 1)}
+              onRemove={() => removeIngredient(line.key)}
+              onRemovedFocus={() => addIngredient.current?.focus()}
+              canMoveUp={i > 0}
+              canMoveDown={i < section.ingredients.length - 1}
+            />
+          ))}
+        {!isDesktop && section.ingredients.length > 0 && (
+          <div className="mb-1 border-t">
+            {section.ingredients.map((line) => (
+              <IngredientLineButton
+                key={line.key}
+                ref={(el) => {
+                  if (el) rowButtons.current.set(line.key, el)
+                  else rowButtons.current.delete(line.key)
+                }}
+                line={line}
+                onOpen={() => openSheet(line.key)}
+              />
+            ))}
+          </div>
+        )}
+        {!isDesktop && shown && (
+          <IngredientSheet
+            line={edited ?? shown}
+            open={edited !== null}
+            focusAmount={editing?.isNew ?? false}
+            canMoveUp={editedIndex > 0}
+            canMoveDown={editedIndex !== -1 && editedIndex < section.ingredients.length - 1}
+            onChange={(patch) => patchIngredient(shown.key, patch)}
+            onUp={() => moveIngredient(shown.key, -1)}
+            onDown={() => moveIngredient(shown.key, 1)}
+            onRemove={() => {
+              setEditing(null)
+              removeIngredient(shown.key)
+            }}
+            onClose={() => {
+              closed.current = shown.key
+              setEditing(null)
+            }}
+            onCloseAutoFocus={(e) => {
+              e.preventDefault()
+              const row = lastEdited.current === null ? undefined : rowButtons.current.get(lastEdited.current)
+              ;(row ?? addIngredient.current)?.focus()
+            }}
           />
-        ))}
+        )}
         {/* mockup `.ed-adds` */}
         <div className="flex gap-1 self-start">
           <TriggerButton
@@ -104,7 +179,11 @@ export function SectionEditor({
             size="sm"
             aria-label="Zutat hinzufügen"
             className={ADD_BUTTON}
-            onClick={() => onChange({ ...section, ingredients: [...section.ingredients, newIngredient()] })}
+            onClick={() => {
+              const row = newIngredient()
+              onChange({ ...section, ingredients: [...section.ingredients, row] })
+              if (!isDesktop) openSheet(row.key, true)
+            }}
           >
             <Plus className="size-4" />
             Zutat
