@@ -96,5 +96,7 @@ describe('RecipeDetail control row', () => {
     fireEvent.click(toggle)
     expect(toggle.getAttribute('aria-pressed')).toBe('true')
     expect(toggle.classList.contains('aria-pressed:border-foreground')).toBe(true)
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-pressed')).toBe('false')
   })
 })

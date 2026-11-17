@@ -144,7 +144,7 @@ describe('RecipeDetail head layout', () => {
     expect(screen.queryByRole('heading', { name: 'Fotos' })).toBeNull()
     expect(classesOf(header())).toContain('max-w-[720px]')
     expect(classesOf(title)).toContain('text-[32px]')
-    // The size token brings no line height; without its own a two-line title overlapped itself.
+    // text-[32px] brings no line height; without its own a two-line title overlapped itself.
     expect(classesOf(title)).toContain('leading-[1.15]')
   })
 

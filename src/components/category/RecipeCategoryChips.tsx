@@ -116,7 +116,7 @@ export function RecipeCategoryChips({ recipe }: { recipe: Recipe }) {
 
   // Always rendered, also while loading, so the title doesn't jump down once the categories arrive.
   return (
-    <div className="mb-2 flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5">
       {cats.map((c) => (
         <Link
           key={c.id}

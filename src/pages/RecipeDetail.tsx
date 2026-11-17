@@ -281,7 +281,7 @@ export function RecipeDetail() {
             <div>
               <RecipeCategoryChips key={recipe.id} recipe={recipe} />
               {/* 26 px matches the text-2xl token; the 32 px of the photo-less head, the 650 weight, line height and
-                  tracking are spec values without a token. The size tokens bring no line height, so without it a
+                  tracking are spec values without a token. The arbitrary 32 px brings no line height, so without one a
                   two-line title overlapped itself (body's 20 px). */}
               <h1
                 // Leading after the size: tailwind-merge drops a line height that precedes a font size.
@@ -335,7 +335,7 @@ export function RecipeDetail() {
                     pressed={checkable}
                     onClick={() => setCheckable(!checkable)}
                     label="Zutaten abhaken"
-                    tooltip="Zutaten abhaken"
+                    tooltip="Zutaten beim Kochen abhaken"
                   >
                     <ListChecks className="size-4" />
                   </CompactToggle>
