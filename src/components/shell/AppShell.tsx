@@ -7,7 +7,7 @@ import { Button, Toaster, Tooltip, TooltipContent, TooltipTrigger, buttonVariant
 import { ChevronLeft, Plus } from 'lucide-react'
 import { TimerPanel } from '../../timers/TimerPanel'
 import { TimerPanelProvider } from '../../timers/TimerPanelContext'
-import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { useIsDesktop, useIsWideDesktop } from '../../hooks/useIsDesktop'
 import { NAV_DESTINATIONS, SHELL_NAV_STATE, isCategoryPage, routeTitle } from './nav'
 import { useHasAppHistory } from '../../hooks/useHasAppHistory'
 import { PageHeaderContext } from './PageHeader'
@@ -39,7 +39,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { activeCategory, hrefFor } = useNavState()
   const categoryName = useCategories().list.find((c) => c.id === activeCategory)?.name
   const subpage = subpageOf(pathname)
-  const [collapsed, setCollapsed] = useState(loadSidebarCollapsed)
+  const [savedChoice, setSavedChoice] = useState(loadSidebarCollapsed)
+  const isWide = useIsWideDesktop()
+  const collapsed = savedChoice ?? !isWide
   const sidebar = SIDEBAR_WIDTH[collapsed ? 'collapsed' : 'expanded']
   const onMainPage = NAV_DESTINATIONS.some((d) => d.path === pathname)
 
@@ -58,7 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const headerSlot = useMemo(() => ({ actionsTarget, setCrumbName }), [actionsTarget, setCrumbName])
 
   const setSidebarCollapsed = (next: boolean) => {
-    setCollapsed(next)
+    setSavedChoice(next)
     saveSidebarCollapsed(next)
   }
 

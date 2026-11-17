@@ -136,6 +136,59 @@ describe('AppShell on the desktop', () => {
     expect(localStorage.getItem('foodly:sidebar-collapsed')).toBe('0')
   })
 
+  it('starts collapsed below 1024 px and open from 1024 px while nothing is saved (#222)', () => {
+    for (const [width, expected] of [
+      [800, 'w-16'],
+      [1023, 'w-16'],
+      [1024, 'w-62'],
+      [1280, 'w-62'],
+    ] as const) {
+      setViewport(width)
+      const { unmount } = renderAt('/recipes')
+      expect(sidebar().className.split(/\s+/)).toContain(expected)
+      unmount()
+    }
+  })
+
+  it('follows the breakpoint on resize without saving anything (#222)', () => {
+    setViewport(1280)
+    renderAt('/recipes')
+    const width = () => sidebar().className.split(/\s+/)
+    expect(width()).toContain('w-62')
+    setViewport(800)
+    expect(width()).toContain('w-16')
+    setViewport(1280)
+    expect(width()).toContain('w-62')
+    expect(localStorage.getItem('foodly:sidebar-collapsed')).toBeNull()
+  })
+
+  it('keeps a choice made at 800 px after a reload and on every width (#222)', () => {
+    setViewport(800)
+    const { unmount } = renderAt('/recipes')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste ausklappen' }))
+    expect(localStorage.getItem('foodly:sidebar-collapsed')).toBe('0')
+
+    unmount()
+    renderAt('/recipes')
+    const width = () => sidebar().className.split(/\s+/)
+    expect(width()).toContain('w-62')
+    setViewport(1280)
+    expect(width()).toContain('w-62')
+    setViewport(800)
+    expect(width()).toContain('w-62')
+  })
+
+  it('keeps a saved "collapsed" on wide screens too (#222)', () => {
+    localStorage.setItem('foodly:sidebar-collapsed', '1')
+    setViewport(1280)
+    renderAt('/recipes')
+    const width = () => sidebar().className.split(/\s+/)
+    expect(width()).toContain('w-16')
+    setViewport(800)
+    setViewport(1280)
+    expect(width()).toContain('w-16')
+  })
+
   it('leads to the start page from the wordmark', () => {
     renderAt('/recipes/1')
     const wordmark = within(sidebar()).getByRole('link', { name: 'Foodly' })
