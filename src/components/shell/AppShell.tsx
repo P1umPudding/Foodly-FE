@@ -22,16 +22,18 @@ import { Sidebar, loadSidebarCollapsed, saveSidebarCollapsed } from './Sidebar'
 import { TabBar } from './TabBar'
 
 // Sidebar width and the matching --shell-left, kept side by side. Fixed page bars offset themselves by
-// --shell-left / --shell-bottom so the sidebar or tab bar never covers them (none today since the editor's footer
-// moved into the header, #231).
+// --shell-left / var(--shell-bottom,0px) so the sidebar or tab bar never covers them (none today since the editor's
+// footer moved into the header, #231).
 const SIDEBAR_WIDTH = {
   expanded: { width: 'w-62', shellVar: '[--shell-left:15.5rem]' },
   collapsed: { width: 'w-16', shellVar: '[--shell-left:4rem]' },
 }
 // --site-nav-h: header height, which the list's group headers stick under; the desktop 60 px is the :root default.
-const PHONE_SHELL_VAR = '[--shell-bottom:4rem] [--site-nav-h:3.5rem]'
+const PHONE_SHELL_VAR = '[--site-nav-h:3.5rem]'
+const TAB_BAR_SHELL_VAR = '[--shell-bottom:4rem]'
 // sonner applies mobileOffset only up to 600 px, so the offset has to follow our breakpoint instead.
 const PHONE_TOAST_OFFSET = { bottom: '5rem' }
+const EDITOR_PHONE_TOAST_OFFSET = { bottom: 'calc(1rem + env(safe-area-inset-bottom))' }
 
 export function AppShell({ children }: { children: ReactNode }) {
   const isDesktop = useIsDesktop()
@@ -42,6 +44,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(loadSidebarCollapsed)
   const sidebar = SIDEBAR_WIDTH[collapsed ? 'collapsed' : 'expanded']
   const onMainPage = NAV_DESTINATIONS.some((d) => d.path === pathname)
+  // The editor takes the whole phone screen: no tab bar there (#218), so the page gets the bottom edge.
+  const tabBar = !isDesktop && subpage !== 'editor'
+  const phoneToastOffset = tabBar ? PHONE_TOAST_OFFSET : EDITOR_PHONE_TOAST_OFFSET
 
   // The page's crumb name, stamped with the path it was set on: on a switch between two recipes the old name must not
   // show (or be remembered) for the new one until that page reports its own.
@@ -72,12 +77,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           className={cn(
             'flex min-h-screen bg-background text-foreground',
             isDesktop ? sidebar.shellVar : PHONE_SHELL_VAR,
+            tabBar && TAB_BAR_SHELL_VAR,
           )}
         >
           {isDesktop && (
             <Sidebar collapsed={collapsed} onCollapsedChange={setSidebarCollapsed} widthClass={sidebar.width} />
           )}
-          <div className={cn('flex min-w-0 flex-1 flex-col', !isDesktop && 'pb-16')}>
+          <div className={cn('flex min-w-0 flex-1 flex-col', tabBar && 'pb-16')}>
             {/* `site-header`: hook for the theme view-transition rule in styles.css. */}
             <header
               className={cn(
@@ -119,7 +125,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </header>
             <main className="flex-1">{children}</main>
           </div>
-          {!isDesktop && <TabBar />}
+          {tabBar && <TabBar />}
           {/* Moving or resizing this button? The phone bottom padding of RecipeList's and CategoryPage's wrappers
             and of Home must still clear its top edge (#74). */}
           {!isDesktop && (pathname === '/recipes' || pathname === '/' || isCategoryPage(pathname)) && (
@@ -133,7 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             </Button>
           )}
-          <Toaster offset={isDesktop ? undefined : PHONE_TOAST_OFFSET} mobileOffset={PHONE_TOAST_OFFSET} />
+          <Toaster offset={isDesktop ? undefined : phoneToastOffset} mobileOffset={phoneToastOffset} />
         </div>
       </PageHeaderContext.Provider>
     </TimerPanelProvider>
