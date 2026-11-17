@@ -70,7 +70,7 @@ describe('RecipeDetail rating', () => {
 })
 
 describe('RecipeDetail control row', () => {
-  it('gives „Abhaken“ a 40 px tap target on phones, desktop size unchanged', async () => {
+  it('gives „Abhaken“ a 40 px tap target on phones, 30 px on desktop', async () => {
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe([]))
 
     render(
@@ -79,7 +79,24 @@ describe('RecipeDetail control row', () => {
       </TooltipProvider>,
     )
     const toggle = await screen.findByRole('button', { name: 'Zutaten abhaken' })
-    expect(toggle.classList.contains('h-8')).toBe(true)
-    expect(toggle.classList.contains('phone:h-10')).toBe(true)
+    expect(toggle.classList.contains('size-7.5')).toBe(true)
+    expect(toggle.classList.contains('phone:size-10')).toBe(true)
+  })
+
+  it('switches „Abhaken“ via aria-pressed, which carries the on-state look', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe([]))
+
+    render(
+      <TooltipProvider>
+        <RecipeDetail />
+      </TooltipProvider>,
+    )
+    const toggle = await screen.findByRole('button', { name: 'Zutaten abhaken' })
+    expect(toggle.getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-pressed')).toBe('true')
+    expect(toggle.classList.contains('aria-pressed:border-foreground')).toBe(true)
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-pressed')).toBe('false')
   })
 })

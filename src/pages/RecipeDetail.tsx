@@ -7,7 +7,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Toggle,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -28,6 +27,7 @@ import { TagChips } from '../components/recipe/TagChips'
 import { SectionBlock } from '../components/recipe/SectionBlock'
 import { PortionScaler } from '../components/recipe/PortionScaler'
 import { WakeLockToggle } from '../components/WakeLockToggle'
+import { CompactToggle } from '../components/CompactToggle'
 import { RecipeHero, RecipeImages } from '../components/recipe/RecipeImages'
 import { DeleteRecipeDialog } from '../components/recipe/DeleteRecipeDialog'
 import { HeaderActions, HeaderCrumbName } from '../components/shell/PageHeader'
@@ -280,13 +280,21 @@ export function RecipeDetail() {
             )}
             <div>
               <RecipeCategoryChips key={recipe.id} recipe={recipe} />
-              {/* 26 px matches the text-2xl token; the 32 px of the photo-less head and the 650 weight are spec
-                  values without a token. */}
-              <h1 className={cn('font-[650] text-foreground', hasPhoto ? 'text-2xl' : 'text-[32px]')}>
+              {/* 26 px matches the text-2xl token; the 32 px of the photo-less head, the 650 weight, line height and
+                  tracking are spec values without a token. The arbitrary 32 px brings no line height, so without one a
+                  two-line title overlapped itself (body's 20 px). */}
+              <h1
+                // Leading after the size: tailwind-merge drops a line height that precedes a font size.
+                className={cn(
+                  'mt-2.5 mb-2 font-[650] tracking-[-0.025em] text-foreground',
+                  hasPhoto ? 'text-2xl' : 'text-[32px]',
+                  'leading-[1.15]',
+                )}
+              >
                 <TagText value={recipe.name} size="lg" />
               </h1>
 
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
                 <Rating recipe={ratedRecipe?.id === recipe.id ? ratedRecipe : recipe} onChange={setRatedRecipe} />
                 {recipe.time && (
                   <span className="inline-flex items-center gap-1.5">
@@ -304,7 +312,7 @@ export function RecipeDetail() {
               )}
 
               {recipe.notes.length > 0 && (
-                <ul className="mt-4 space-y-1 text-base text-muted-foreground">
+                <ul className="mt-4 list-disc space-y-1 pl-[18px] text-base text-muted-foreground marker:text-subtle-foreground">
                   {recipe.notes.map((note, i) => (
                     <li key={i}>
                       <TagText value={note} />
@@ -313,33 +321,30 @@ export function RecipeDetail() {
                 </ul>
               )}
 
-              <div className="mt-5 flex flex-wrap items-center gap-2">
+              {/* One row on desktop. A phone can't fit stepper, size text, both 40 px toggles and „Kochen“ in 358 px,
+                  so there the toggles move to a second row and the stepper shares the first with „Kochen“. */}
+              <div className="mt-5 flex flex-wrap items-center gap-3">
                 <PortionScaler
                   factor={factor}
                   onChange={setFactor}
                   sizeNumber={recipe.sizeNumber}
                   sizeText={recipe.sizeText}
                 />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Toggle
-                      pressed={checkable}
-                      onPressedChange={setCheckable}
-                      aria-label="Zutaten abhaken"
-                      size="sm"
-                      className="gap-1.5 rounded-md text-muted-foreground data-[state=on]:text-primary phone:h-10"
-                    >
-                      <ListChecks className="size-5" />
-                      <span>Abhaken</span>
-                    </Toggle>
-                  </TooltipTrigger>
-                  <TooltipContent>Zutaten abhaken</TooltipContent>
-                </Tooltip>
-                <WakeLockToggle />
+                <div className="flex items-center gap-2 phone:order-last phone:basis-full">
+                  <CompactToggle
+                    pressed={checkable}
+                    onClick={() => setCheckable(!checkable)}
+                    label="Zutaten abhaken"
+                    tooltip="Zutaten beim Kochen abhaken"
+                  >
+                    <ListChecks className="size-4" />
+                  </CompactToggle>
+                  <WakeLockToggle />
+                </div>
                 {hasSteps && (
                   <Link
                     to={cookHref(recipe.id, factor, recipe.sizeNumber)}
-                    className={cn(buttonVariants(), 'ml-auto gap-1.5 phone:h-10')}
+                    className={cn(buttonVariants(), 'ml-auto shrink-0 gap-1.5 phone:h-10')}
                   >
                     <ChefHat className="size-4" />
                     Kochen
@@ -366,7 +371,7 @@ export function RecipeDetail() {
           <RecipeImages images={allImages} onOpen={setLightboxIndex} />
 
           {recipe.source && (
-            <footer className="mt-16 text-[0.95rem] text-foreground/75">
+            <footer className="mt-7 text-sm text-muted-foreground">
               Quelle:{' '}
               {isUrl(recipe.source) ? (
                 <a href={recipe.source} target="_blank" rel="noopener noreferrer" className="underline">
