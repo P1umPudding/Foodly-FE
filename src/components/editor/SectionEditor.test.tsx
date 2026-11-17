@@ -360,6 +360,7 @@ describe('SectionEditor on the phone', () => {
     const row = screen.getByRole('button', { name: 'ca. 800 g Zwiebel gehackt' })
     expect(within(row).getByText('ca. 800 g')).toBeTruthy()
     expect(within(row).getByText('gehackt')).toBeTruthy()
+    expect(within(screen.getByRole('list', { name: 'Zutaten' })).getAllByRole('listitem')).toHaveLength(3)
     expect(screen.queryByRole('textbox', { name: 'Menge' })).toBeNull()
     expect(screen.queryByRole('combobox')).toBeNull()
     expect(screen.queryByRole('button', { name: /^Zutat \d+: Aktionen/ })).toBeNull()
@@ -450,6 +451,7 @@ describe('SectionEditor on the phone', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(last(onChange).ingredients).toHaveLength(4)
     expect(last(onChange).ingredients[3]).toMatchObject({ amount: '2', ingredient: null, text: '' })
+    expect(screen.getByRole('button', { name: '2 Ohne Zutat' })).toBeTruthy()
   })
 
   it('drops the blank row a new section starts with when its sheet closes', async () => {

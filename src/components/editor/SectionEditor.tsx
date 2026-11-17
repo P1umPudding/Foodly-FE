@@ -133,19 +133,21 @@ export function SectionEditor({
             />
           ))}
         {!isDesktop && section.ingredients.length > 0 && (
-          <div className="mb-1 border-t">
+          // A list, so screen readers announce each row's position (desktop names it in „Zutat N: Aktionen“).
+          <ul aria-label="Zutaten" className="mb-1 border-t">
             {section.ingredients.map((line) => (
-              <IngredientLineButton
-                key={line.key}
-                ref={(el) => {
-                  if (el) rowButtons.current.set(line.key, el)
-                  else rowButtons.current.delete(line.key)
-                }}
-                line={line}
-                onOpen={() => openSheet(line.key)}
-              />
+              <li key={line.key}>
+                <IngredientLineButton
+                  ref={(el) => {
+                    if (el) rowButtons.current.set(line.key, el)
+                    else rowButtons.current.delete(line.key)
+                  }}
+                  line={line}
+                  onOpen={() => openSheet(line.key)}
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
         {!isDesktop && shown && (
           <IngredientSheet
