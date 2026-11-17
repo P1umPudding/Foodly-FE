@@ -127,7 +127,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           {tabBar && <TabBar />}
           {/* Moving or resizing this button? The phone bottom padding of RecipeList's and CategoryPage's wrappers
-            and of Home must still clear its top edge (#74). */}
+            and of Home must still clear its top edge (#74). It never shows in the editor, so it can assume the tab bar. */}
           {!isDesktop && (pathname === '/recipes' || pathname === '/' || isCategoryPage(pathname)) && (
             <Button
               asChild

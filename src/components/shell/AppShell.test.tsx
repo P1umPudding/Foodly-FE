@@ -456,6 +456,17 @@ it('keeps the page mounted when crossing the breakpoint', () => {
   sidebar()
 })
 
+it('drops the tab bar in the editor when crossing to the phone and keeps the page (#218)', () => {
+  renderAt('/recipes/5/edit')
+  sidebar()
+  setViewport(375)
+  screen.getByText('editor page')
+  expect(screen.queryByRole('navigation', { name: 'Hauptnavigation' })).toBeNull()
+  setViewport(1024)
+  sidebar()
+  mainNav()
+})
+
 describe('Timer button in the header', () => {
   const openTimers = () => fireEvent.click(screen.getByRole('button', { name: 'Timer' }))
 
