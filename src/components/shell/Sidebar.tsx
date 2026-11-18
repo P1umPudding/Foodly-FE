@@ -18,12 +18,14 @@ import { Brand } from './BrandMark'
 
 const COLLAPSED_KEY = 'foodly:sidebar-collapsed'
 
-// A layout preference of this device, so deliberately not keyed per user like the list state.
-export function loadSidebarCollapsed(): boolean {
+// A layout preference of this device, so deliberately not keyed per user like the list state. null means the user
+// hasn't toggled yet: then the width picks the start state (collapsed below 1024 px), and only the toggle saves one.
+export function loadSidebarCollapsed(): boolean | null {
   try {
-    return localStorage.getItem(COLLAPSED_KEY) === '1'
+    const saved = localStorage.getItem(COLLAPSED_KEY)
+    return saved === '1' ? true : saved === '0' ? false : null
   } catch {
-    return false
+    return null
   }
 }
 
