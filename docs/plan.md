@@ -310,6 +310,10 @@ ein Import erzeugt einen Rezept-Entwurf, den man im Editier-Formular nachbessert
   Weg ist, die strukturierten Daten zu parsen, die solche Seiten einbetten
   (`schema.org/Recipe` als JSON-LD), per Rezept-URL.
 - **Rechtliches/ToS** der Plattformen vorab klären.
+- **Stand 2026-11-18 (Daniel):** URL-Import liest den eingebetteten `schema.org/Recipe`-Block (JSON-LD) aus, geprüft bei
+  Chefkoch und EatSmarter. Foto-Import per OCR mit **PaddleOCR** im Backend (keine KI-API, keine laufenden Kosten),
+  Prüf-Ansicht im FE. Beides liefert nur einen Entwurf für den Editor. Backend-Issue
+  [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28), Details: `backend-questions.md` (B17).
 
 ### Rezepte abfotografieren (analog → digital)
 
