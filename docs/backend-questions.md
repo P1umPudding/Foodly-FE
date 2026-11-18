@@ -36,6 +36,7 @@ Kolja) · `später` (nicht blockierend).
 | B15 | Sortierung nach `created_at`/`updated_at` | offen     | **ja: #250** (Start „Zuletzt bearbeitet“, Daniel 13.11.) | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
 | B16 | Trefferzahlen/Facetten in der Suche      | offen       | nein (FE ohne Zahlen)   | [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17) |
 | B17 | Rezept-Import (URL + Foto)               | offen       | nein (nach der Alpha)   | [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28) |
+| B18 | Standard-Kategorie „Favoriten“           | offen       | ja: FE #289             | [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29) |
 | G1  | `createdAt` / `updatedAt` an Recipe     | FE-Arbeit   | –                       | –             |
 | G2  | `UserRating` DB-only                    | gelöst      | –                       | –             |
 | G3  | Tag-Icons (`GET /tags/{id}/icon`)       | gelöst      | –                       | –             |
@@ -312,6 +313,11 @@ Backend-Umbau der Zugriffsabfrage.
   als eigener Dienst, keine KI-API, keine laufenden Kosten; Daniel, 2026-11-18). Gemeinsamer Zutaten-Zerleger, beim
   Foto zusätzlich `lines` für eine Prüf-Ansicht im FE. → [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28)
 
+- **B18 Standard-Kategorie „Favoriten“** (Daniel, 2026-11-18): Das Backend legt sie bei der Registrierung an
+  (`order 0`, `#e11d48`, leer), als normale Kategorie (umbenennen/löschen erlaubt, kommt nicht zurück). Migration für
+  bestehende Nutzer ohne Kategorien. FE braucht keinen Code, nur Prüfung nach dem Merge (FE #289).
+  → [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29)
+
 ## Gelöst / Frontend muss nachziehen
 
 - **G1 Timestamps:** `createdAt`/`updatedAt` liefert das Backend an Preview und
@@ -356,3 +362,4 @@ Angelegt 2026-10-29:
 Angelegt 2026-11-18:
 
 - B17 → [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28)
+- B18 → [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29)
