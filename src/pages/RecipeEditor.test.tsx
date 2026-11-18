@@ -144,6 +144,10 @@ describe('RecipeEditor · edit', () => {
 
     await waitFor(() => screen.getByText('Kein Zugriff'))
     expect(screen.queryByLabelText('Titel')).toBeNull()
+    // No tab bar on the phone editor: the page itself keeps clear of the bottom edge (#218).
+    expect(screen.getByText('Kein Zugriff').closest('.max-w-3xl')!.className.split(/\s+/)).toContain(
+      'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]',
+    )
   })
 
   it('surfaces a load failure', async () => {
@@ -152,6 +156,37 @@ describe('RecipeEditor · edit', () => {
     view()
 
     await waitFor(() => screen.getByText('Rezept nicht gefunden'))
+    expect(screen.getByText('Rezept nicht gefunden').closest('.max-w-3xl')!.className.split(/\s+/)).toContain(
+      'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]',
+    )
+  })
+
+  it('orders the phone flow images first, notes and source last, with safe-area room below (#218)', async () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
+    view()
+
+    await waitFor(() => screen.getByLabelText('Titel'))
+    // jsdom can't lay out `order`, so the classes stand in for the phone order; DOM order stays main → side.
+    const block = (name: string) => screen.getByRole('heading', { name }).closest('section')!.className.split(/\s+/)
+    expect(block('Bilder')).toContain('phone:order-first')
+    expect(block('Notizen')).toContain('phone:order-last')
+    expect(screen.getByLabelText('Quelle').closest('section')!.className.split(/\s+/)).toContain('phone:order-last')
+    expect(screen.getByRole('heading', { level: 1 }).parentElement!.className.split(/\s+/)).toContain(
+      'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]',
+    )
+  })
+
+  it('keeps the phone order and safe-area room in the loading skeleton (#218)', () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockReturnValue(new Promise(() => {}))
+    view()
+
+    const skeleton = screen.getByTestId('editor-skeleton')
+    expect(skeleton.lastElementChild!.className.split(/\s+/)).toContain('phone:order-first')
+    expect(skeleton.parentElement!.className.split(/\s+/)).toContain(
+      'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]',
+    )
   })
 
   it('shows a loaded Zusatz and saves an edit to it', async () => {

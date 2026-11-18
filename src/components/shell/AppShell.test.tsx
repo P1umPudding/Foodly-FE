@@ -51,6 +51,7 @@ function renderAt(entry: string) {
                 <Route path="/" element={<p>start page</p>} />
                 <Route path="/recipes" element={<Counter />} />
                 <Route path="/recipes/new" element={<p>editor page</p>} />
+                <Route path="/recipes/:id/edit" element={<p>editor page</p>} />
                 <Route path="/recipes/:id" element={<p>detail page</p>} />
                 <Route path="/categories" element={<p>categories page</p>} />
                 <Route path="/categories/:id" element={<p>category page</p>} />
@@ -74,6 +75,12 @@ beforeEach(() => {
 afterEach(() => setViewport(1024))
 
 describe('AppShell on the desktop', () => {
+  it('keeps the sidebar in the editor (#218)', () => {
+    renderAt('/recipes/5/edit')
+    sidebar()
+    mainNav()
+  })
+
   it('keeps the 60 px default header height (no phone override on the shell root)', () => {
     renderAt('/recipes')
     const header = screen.getByRole('banner')
@@ -401,6 +408,31 @@ describe('AppShell on the phone', () => {
     expect(screen.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
   })
 
+  it.each(['/recipes/new', '/recipes/5/edit'])(
+    'shows no tab bar and no "+" button in the editor (%s, #218)',
+    (path) => {
+      renderAt(path)
+      screen.getByText('editor page')
+      expect(screen.queryByRole('navigation', { name: 'Hauptnavigation' })).toBeNull()
+      expect(screen.queryByRole('link', { name: 'Neues Rezept' })).toBeNull()
+      // The page reaches the bottom edge: no tab-bar padding, no tab-bar inset for fixed bars.
+      expect(screen.getByRole('main').parentElement!.className.split(/\s+/)).not.toContain('pb-16')
+      const shell = screen.getByRole('banner').closest('.min-h-screen')!.className.split(/\s+/)
+      expect(shell).toContain('[--site-nav-h:3.5rem]')
+      expect(shell).not.toContain('[--shell-bottom:4rem]')
+    },
+  )
+
+  it('keeps the tab bar, its padding and inset on the list (#218)', () => {
+    renderAt('/recipes')
+    mainNav()
+    screen.getByRole('link', { name: 'Neues Rezept' })
+    expect(screen.getByRole('main').parentElement!.className.split(/\s+/)).toContain('pb-16')
+    expect(screen.getByRole('banner').closest('.min-h-screen')!.className.split(/\s+/)).toContain(
+      '[--shell-bottom:4rem]',
+    )
+  })
+
   it('has no "+" button and no avatar on sub-pages', () => {
     renderAt('/recipes/5')
     screen.getByText('detail page')
@@ -422,6 +454,17 @@ it('keeps the page mounted when crossing the breakpoint', () => {
   setViewport(1024)
   screen.getByRole('button', { name: 'count 1' })
   sidebar()
+})
+
+it('drops the tab bar in the editor when crossing to the phone and keeps the page (#218)', () => {
+  renderAt('/recipes/5/edit')
+  sidebar()
+  setViewport(375)
+  screen.getByText('editor page')
+  expect(screen.queryByRole('navigation', { name: 'Hauptnavigation' })).toBeNull()
+  setViewport(1024)
+  sidebar()
+  mainNav()
 })
 
 describe('Timer button in the header', () => {
