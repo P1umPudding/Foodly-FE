@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -10,6 +11,7 @@ vi.mock('../../catalog/CatalogProvider', () => ({
     byId: { 1: { id: 1, name: 'Zwiebel' }, 2: { id: 2, name: 'Salz' }, 3: { id: 3, name: 'Olivenöl' } },
     status: 'ready',
   }),
+  useTags: () => ({ byId: {} }),
 }))
 
 const section: DraftSection = {
@@ -301,5 +303,269 @@ describe('SectionEditor: Mehrere einfügen', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
     expect(onChange).not.toHaveBeenCalled()
+  })
+})
+
+describe('SectionEditor on the phone', () => {
+  afterEach(() => setViewport(1024))
+
+  const phone: DraftSection = {
+    ...section,
+    ingredients: [
+      { key: 30, ingredient: 1, text: 'gehackt', amount: 'ca. 800', unit: 'g' },
+      { key: 31, ingredient: null, text: 'Salz', amount: '', unit: '' },
+      { key: 32, ingredient: 3, text: '', amount: '2', unit: 'EL' },
+    ],
+  }
+
+  // Controlled like RecipeEditor, so the rows and the sheet follow each change.
+  function Harness({ initial, onChange }: { initial: DraftSection; onChange: (next: DraftSection) => void }) {
+    const [value, setValue] = useState(initial)
+    return (
+      <SectionEditor
+        section={value}
+        index={0}
+        total={1}
+        onChange={(next) => {
+          onChange(next)
+          setValue(next)
+        }}
+        onUp={vi.fn()}
+        onDown={vi.fn()}
+        onRemove={vi.fn()}
+      />
+    )
+  }
+
+  function setupPhone(initial = phone) {
+    setViewport(600)
+    const onChange = vi.fn()
+    render(
+      <TooltipProvider>
+        <Harness initial={initial} onChange={onChange} />
+      </TooltipProvider>,
+    )
+    return onChange
+  }
+
+  const last = (onChange: ReturnType<typeof vi.fn>) => onChange.mock.lastCall?.[0] as DraftSection
+  const openRow = async (name: RegExp) => {
+    fireEvent.click(screen.getByRole('button', { name }))
+    return screen.findByRole('dialog', { name: 'Zutat bearbeiten' })
+  }
+
+  it('shows each ingredient as one reading row without fields', () => {
+    setupPhone()
+
+    const row = screen.getByRole('button', { name: 'ca. 800 g Zwiebel gehackt' })
+    expect(within(row).getByText('ca. 800 g')).toBeTruthy()
+    expect(within(row).getByText('gehackt')).toBeTruthy()
+    expect(within(screen.getByRole('list', { name: 'Zutaten' })).getAllByRole('listitem')).toHaveLength(3)
+    expect(screen.queryByRole('textbox', { name: 'Menge' })).toBeNull()
+    expect(screen.queryByRole('combobox')).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Zutat \d+: Aktionen/ })).toBeNull()
+    expect(screen.queryByText('Einheit')).toBeNull()
+  })
+
+  it('opens the sheet with the four fields on a tap', async () => {
+    setupPhone()
+
+    const sheet = await openRow(/Zwiebel/)
+    expect((within(sheet).getByRole('textbox', { name: 'Menge' }) as HTMLInputElement).value).toBe('ca. 800')
+    expect((within(sheet).getByRole('combobox', { name: 'Einheit' }) as HTMLInputElement).value).toBe('g')
+    expect((within(sheet).getByRole('combobox', { name: 'Zutat' }) as HTMLInputElement).value).toBe('Zwiebel')
+    expect((within(sheet).getByRole('textbox', { name: 'Zusatz' }) as HTMLInputElement).value).toBe('gehackt')
+    expect(within(sheet).getByRole('button', { name: 'g', pressed: true })).toBeTruthy()
+  })
+
+  it('puts a change straight into the draft and the row', async () => {
+    const onChange = setupPhone()
+
+    const sheet = await openRow(/Zwiebel/)
+    fireEvent.change(within(sheet).getByRole('textbox', { name: 'Menge' }), { target: { value: '1' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'kg' }))
+
+    expect(last(onChange).ingredients[0]).toEqual({
+      key: 30,
+      ingredient: 1,
+      text: 'gehackt',
+      amount: '1',
+      unit: 'kg',
+    })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Fertig' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.getByRole('button', { name: '1 kg Zwiebel gehackt' })).toBeTruthy()
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: /Zwiebel/ })))
+  })
+
+  it('moves the row up and down from the sheet and stays on it', async () => {
+    const onChange = setupPhone()
+
+    const sheet = await openRow(/Salz/)
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Nach oben' }))
+    expect(last(onChange).ingredients.map((l) => l.key)).toEqual([31, 30, 32])
+    expect(within(sheet).getByRole('button', { name: 'Nach oben' })).toHaveProperty('disabled', true)
+
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Nach unten' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Nach unten' }))
+    expect(last(onChange).ingredients.map((l) => l.key)).toEqual([30, 32, 31])
+    expect(within(sheet).getByRole('button', { name: 'Nach unten' })).toHaveProperty('disabled', true)
+    expect((within(sheet).getByRole('combobox', { name: 'Zutat' }) as HTMLInputElement).value).toBe('Salz')
+  })
+
+  it('removes the row from the sheet', async () => {
+    const onChange = setupPhone()
+
+    const sheet = await openRow(/Salz/)
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Entfernen' }))
+
+    expect(last(onChange).ingredients.map((l) => l.key)).toEqual([30, 32])
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.queryByRole('button', { name: /Salz/ })).toBeNull()
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Zutat hinzufügen' })))
+  })
+
+  it('opens the sheet for a new row on „Zutat hinzufügen“ and drops it when closed blank', async () => {
+    const onChange = setupPhone()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zutat hinzufügen' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Zutat bearbeiten' })
+    expect(last(onChange).ingredients).toHaveLength(4)
+    expect(screen.getByRole('button', { name: 'Neue Zutat', hidden: true })).toBeTruthy()
+    await waitFor(() => expect(document.activeElement).toBe(within(sheet).getByRole('textbox', { name: 'Menge' })))
+
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Fertig' }))
+    await waitFor(() => expect(last(onChange).ingredients).toHaveLength(3))
+    expect(screen.queryByRole('button', { name: 'Neue Zutat' })).toBeNull()
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Zutat hinzufügen' })))
+  })
+
+  it('keeps a new row with only an amount', async () => {
+    const onChange = setupPhone()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zutat hinzufügen' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Zutat bearbeiten' })
+    fireEvent.change(within(sheet).getByRole('textbox', { name: 'Menge' }), { target: { value: '2' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Fertig' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(last(onChange).ingredients).toHaveLength(4)
+    expect(last(onChange).ingredients[3]).toMatchObject({ amount: '2', ingredient: null, text: '' })
+    expect(screen.getByRole('button', { name: '2 Ohne Zutat' })).toBeTruthy()
+  })
+
+  it('drops the blank row a new section starts with when its sheet closes', async () => {
+    const onChange = setupPhone({
+      ...phone,
+      ingredients: [{ key: 40, ingredient: null, text: '', amount: '', unit: '' }],
+    })
+
+    const sheet = await openRow(/Neue Zutat/)
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Fertig' }))
+
+    await waitFor(() => expect(last(onChange).ingredients).toEqual([]))
+  })
+
+  it('commits a typed name when the sheet closes', async () => {
+    const onChange = setupPhone()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zutat hinzufügen' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Zutat bearbeiten' })
+    const name = within(sheet).getByRole('combobox', { name: 'Zutat' })
+    name.focus()
+    fireEvent.change(name, { target: { value: 'Pfeffer' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Fertig' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(last(onChange).ingredients[3]).toMatchObject({ ingredient: null, text: 'Pfeffer' })
+    expect(screen.getByRole('button', { name: 'Pfeffer' })).toBeTruthy()
+  })
+
+  it('commits a typed name when the sheet is closed by a tap next to it', async () => {
+    const onChange = setupPhone()
+
+    const sheet = await openRow(/Salz/)
+    const name = within(sheet).getByRole('combobox', { name: 'Zutat' })
+    name.focus()
+    fireEvent.change(name, { target: { value: 'Pfeffer' } })
+    // Radix registers its outside-pointer listener a tick after mounting.
+    await new Promise((r) => setTimeout(r, 10))
+    fireEvent.pointerDown(document.body)
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(last(onChange).ingredients[1]).toMatchObject({ key: 31, ingredient: null, text: 'Pfeffer' })
+  })
+
+  it('disables the Zusatz of a free-text row, with its hint', async () => {
+    setupPhone()
+
+    const sheet = await openRow(/Salz/)
+    const extra = within(sheet).getByRole('textbox', { name: 'Zusatz' })
+    expect(extra).toHaveProperty('disabled', true)
+    expect(extra.getAttribute('aria-describedby')).toBeTruthy()
+    expect(within(sheet).getByText('Zusatz nur bei Zutaten aus dem Katalog')).toBeTruthy()
+  })
+
+  it('clears the unit when the active chip is tapped again', async () => {
+    const onChange = setupPhone()
+
+    const sheet = await openRow(/Zwiebel/)
+    fireEvent.click(within(sheet).getByRole('button', { name: 'g', pressed: true }))
+
+    expect(last(onChange).ingredients[0]).toMatchObject({ key: 30, unit: '' })
+    expect(within(sheet).queryByRole('button', { pressed: true })).toBeNull()
+  })
+
+  it('sets a unit from a chip on a row without one', async () => {
+    const onChange = setupPhone()
+
+    const sheet = await openRow(/Salz/)
+    expect(within(sheet).queryByRole('button', { pressed: true })).toBeNull()
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Prise' }))
+
+    expect(last(onChange).ingredients[1]).toMatchObject({ key: 31, unit: 'Prise' })
+    expect(within(sheet).getByRole('button', { name: 'Prise', pressed: true })).toBeTruthy()
+  })
+
+  it('keeps the sheet open on Escape in an open suggestion list, then drops typed text on Escape', async () => {
+    setupPhone()
+
+    const sheet = await openRow(/Salz/)
+    const name = within(sheet).getByRole('combobox', { name: 'Zutat' })
+    name.focus()
+    fireEvent.change(name, { target: { value: 'Zwie' } })
+    expect(name.getAttribute('aria-expanded')).toBe('true')
+    fireEvent.keyDown(name, { key: 'Escape' })
+    expect(screen.getByRole('dialog')).toBeTruthy()
+
+    fireEvent.keyDown(name, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.getByRole('button', { name: 'Salz' })).toBeTruthy()
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Salz' })))
+  })
+
+  it('drops the sheet when the window widens and does not bring it back', async () => {
+    setupPhone()
+
+    await openRow(/Salz/)
+    setViewport(1024)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.getAllByRole('textbox', { name: 'Menge' })).toHaveLength(3)
+
+    setViewport(600)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('button', { name: /Salz/ })).toBeTruthy()
+  })
+
+  it('keeps the table with fields on the desktop', () => {
+    setViewport(1024)
+    render(
+      <TooltipProvider>
+        <Harness initial={phone} onChange={vi.fn()} />
+      </TooltipProvider>,
+    )
+
+    expect(screen.getAllByRole('textbox', { name: 'Menge' })).toHaveLength(3)
+    expect(screen.queryByRole('button', { name: /Zwiebel/ })).toBeNull()
   })
 })

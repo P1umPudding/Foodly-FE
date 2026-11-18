@@ -17,12 +17,15 @@ export function IngredientPicker({
   onPick,
   onText,
   className,
+  field,
 }: {
   value: IngredientId | null
   text: string
   onPick: (id: IngredientId) => void
   onText: (text: string) => void
   className?: string
+  // Passed on to the input, e.g. a caption's htmlFor and a hint in the phone sheet.
+  field?: { id?: string; describedBy?: string; className?: string }
 }) {
   const { byId } = useIngredients()
   const [typed, setTyped] = useState<string | null>(null)
@@ -59,6 +62,9 @@ export function IngredientPicker({
       label="Zutat"
       placeholder="Zutat"
       className={className}
+      id={field?.id}
+      describedBy={field?.describedBy}
+      inputClassName={field?.className}
       icon={<Search className="size-4" />}
       value={typed ?? stored}
       onValueChange={setTyped}

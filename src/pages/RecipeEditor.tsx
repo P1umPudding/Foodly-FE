@@ -22,6 +22,9 @@ import { Page } from '../components/shell/Page'
 import { TriggerButton } from '../components/TriggerButton'
 import type { RecipeId } from '../api/protocol'
 
+// No tab bar in the phone editor (#218): every state of the page keeps its own room above the bottom edge.
+const SAFE_BOTTOM = 'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]'
+
 export function RecipeEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -183,7 +186,7 @@ export function RecipeEditor() {
 
   if (status === 'error') {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-10">
+      <div className={`mx-auto max-w-3xl px-6 py-10 ${SAFE_BOTTOM}`}>
         {heading}
         <Alert variant="destructive">
           <AlertTitle>Rezept nicht gefunden</AlertTitle>
@@ -200,7 +203,7 @@ export function RecipeEditor() {
 
   if (!editable) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-10">
+      <div className={`mx-auto max-w-3xl px-6 py-10 ${SAFE_BOTTOM}`}>
         {heading}
         <Alert variant="destructive">
           <AlertTitle>Kein Zugriff</AlertTitle>
@@ -217,7 +220,7 @@ export function RecipeEditor() {
 
   if (draft === null) {
     return (
-      <Page className="pb-10">
+      <Page className={`pb-10 ${SAFE_BOTTOM}`}>
         {heading}
         {/* The editor's two columns (design.md §5: a skeleton in the shape of the content). */}
         <div
@@ -238,7 +241,7 @@ export function RecipeEditor() {
   }
 
   return (
-    <Page className="pb-10">
+    <Page className={`pb-10 ${SAFE_BOTTOM}`}>
       {heading}
 
       {/* `contents`: the fieldset only disables its controls during Anlegen, it adds no box of its own. */}

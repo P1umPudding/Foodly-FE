@@ -6,12 +6,53 @@ import { RowMenu } from './RowMenu'
 import { SuggestInput } from './SuggestInput'
 import { UNITS } from '../../editor/units'
 import type { DraftIngredient } from '../../editor/draft'
+import type { IngredientId } from '../../api/protocol'
 
 // Columns of mockup `.ed-ing`/`.ed-ing-head`: Menge · Einheit · Zutat · Zusatz · ⋮. No grip column: drag & drop isn't
-// implemented. Shared with the header so both stay aligned, also with the wider touch menu (design.md §7). On the phone
-// a row takes two lines, Menge · Einheit · ⋮ over Zutat · Zusatz (the reading rows and edit sheet for phones are #217).
+// implemented. Shared with the header so both stay aligned, also with the wider touch menu (design.md §7). Desktop and
+// tablet only: the phone shows reading rows and edits in IngredientSheet (#217).
 export const INGREDIENT_COLUMNS =
   'grid grid-cols-[96px_90px_minmax(0,1fr)_minmax(0,0.7fr)_30px] items-center gap-1.5 touch:grid-cols-[96px_90px_minmax(0,1fr)_minmax(0,0.7fr)_40px]'
+
+export function UnitInput({
+  value,
+  onChange,
+  className,
+  field,
+}: {
+  value: string
+  onChange: (unit: string) => void
+  className?: string
+  field?: { id?: string; className?: string }
+}) {
+  const unit = value.trim().toLowerCase()
+  return (
+    <SuggestInput
+      label="Einheit"
+      placeholder="Einheit"
+      className={className}
+      id={field?.id}
+      inputClassName={field?.className}
+      icon={<ChevronDown className="size-4" />}
+      openOnClick
+      value={value}
+      onValueChange={onChange}
+      suggestions={UNITS.filter((u) => u.toLowerCase().startsWith(unit) && u.toLowerCase() !== unit).map((u) => ({
+        id: u,
+        label: u,
+      }))}
+      onSelect={onChange}
+    />
+  )
+}
+
+export function pickHandlers(line: DraftIngredient, onChange: (patch: Partial<DraftIngredient>) => void) {
+  return {
+    // Catalog swap keeps the Zusatz; a free-text name must not become the Zusatz of the picked ingredient.
+    onPick: (id: IngredientId) => onChange({ ingredient: id, text: line.ingredient !== null ? line.text : '' }),
+    onText: (text: string) => onChange({ ingredient: null, text }),
+  }
+}
 
 export function IngredientRow({
   line,
@@ -36,12 +77,9 @@ export function IngredientRow({
 }) {
   const isCatalog = line.ingredient !== null
   const zusatzHintId = useId()
-  const unit = line.unit.trim().toLowerCase()
 
   return (
-    <div
-      className={`${INGREDIENT_COLUMNS} phone:mb-2 phone:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px] phone:touch:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px]`}
-    >
+    <div className={INGREDIENT_COLUMNS}>
       {/* amount is a string on the wire: "1-2" and "½" are valid, and the prefix ("ca.") is typed in here too */}
       <Input
         aria-label="Menge"
@@ -50,30 +88,11 @@ export function IngredientRow({
         value={line.amount}
         onChange={(e) => onChange({ amount: e.target.value })}
       />
-      <SuggestInput
-        label="Einheit"
-        placeholder="Einheit"
-        icon={<ChevronDown className="size-4" />}
-        openOnClick
-        value={line.unit}
-        onValueChange={(value) => onChange({ unit: value })}
-        suggestions={UNITS.filter((u) => u.toLowerCase().startsWith(unit) && u.toLowerCase() !== unit).map((u) => ({
-          id: u,
-          label: u,
-        }))}
-        onSelect={(value) => onChange({ unit: value })}
-      />
-      <IngredientPicker
-        value={line.ingredient}
-        text={line.text}
-        // Catalog swap keeps the Zusatz; a free-text name must not become the Zusatz of the picked ingredient.
-        onPick={(id) => onChange({ ingredient: id, text: isCatalog ? line.text : '' })}
-        onText={(text) => onChange({ ingredient: null, text })}
-      />
+      <UnitInput value={line.unit} onChange={(unit) => onChange({ unit })} />
+      <IngredientPicker value={line.ingredient} text={line.text} {...pickHandlers(line, onChange)} />
       {/* Free text keeps its whole name in `text` (nothing is split), so there is no Zusatz to edit. */}
       <Input
         aria-label="Zusatz"
-        className="phone:col-span-2"
         disabled={!isCatalog}
         aria-describedby={isCatalog ? undefined : zusatzHintId}
         value={isCatalog ? line.text : ''}
@@ -85,7 +104,6 @@ export function IngredientRow({
         </span>
       )}
       <RowMenu
-        className="phone:col-start-3 phone:row-start-1"
         label={`Zutat ${index + 1}: Aktionen`}
         canMoveUp={canMoveUp}
         canMoveDown={canMoveDown}
