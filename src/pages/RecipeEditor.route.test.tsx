@@ -7,6 +7,7 @@ import { RecipeEditorRoute } from '../App'
 import { foodly } from '../api'
 import { allPendingSaves, resetPendingSaves } from '../api/pendingSaves'
 import type { Recipe } from '../api/protocol'
+import { lazyPageLoaded } from '../test/lazyRoutes'
 
 // The mode is read when the modules load, so pin REST before the imports run (vi.hoisted),
 // whatever the shell env or .env.local sets.
@@ -131,7 +132,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     return null
   }
 
-  function renderEditor(
+  async function renderEditor(
     entries: NonNullable<ComponentProps<typeof MemoryRouter>['initialEntries']> = ['/recipes/5/edit'],
   ) {
     visits.length = 0
@@ -149,6 +150,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
         </MemoryRouter>
       </TooltipProvider>,
     )
+    await lazyPageLoaded()
   }
 
   function HistoryBack() {
@@ -166,7 +168,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
   it('navigates only after the PUT landed, so the detail shows the new title', async () => {
     const { getRecipe, updateRecipe, puts } = server()
-    renderEditor()
+    await renderEditor()
     await openAndRename('Pasta neu')
 
     fireEvent.click(fertig()) // well within the 800 ms debounce
@@ -188,7 +190,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
   it('also waits for the follow-up save queued behind a running one', async () => {
     const { updateRecipe, puts } = server()
-    renderEditor()
+    await renderEditor()
     await openAndRename('Pasta 1')
     await waitFor(() => expect(updateRecipe).toHaveBeenCalledTimes(1), { timeout: 2000 }) // debounce fired
 
@@ -207,7 +209,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
   it('stays in the editor with a retry when the save fails, and Fertig again retries', async () => {
     const { puts } = server()
-    renderEditor()
+    await renderEditor()
     await openAndRename('Pasta neu')
 
     fertig().focus()
@@ -231,7 +233,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
   it('ignores repeated clicks while waiting', async () => {
     const { updateRecipe, puts } = server()
-    renderEditor()
+    await renderEditor()
     await openAndRename('Pasta neu')
 
     fireEvent.click(fertig())
@@ -249,7 +251,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
   it('navigates straight away without unsaved changes', async () => {
     const { updateRecipe } = server()
-    renderEditor()
+    await renderEditor()
     await waitFor(() => expect(titleInput().value).toBe('Pasta 5'))
 
     fireEvent.click(fertig())
@@ -261,7 +263,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
   // Detail "Zurück" walks back through history (#132): Fertig must not leave the editor behind the detail page.
   it('opened from the detail page, Fertig goes back to it after the save, so Back then reaches the list', async () => {
     const { puts } = server()
-    renderEditor(['/recipes', '/recipes/5', { pathname: '/recipes/5/edit', state: { fromDetail: true } }])
+    await renderEditor(['/recipes', '/recipes/5', { pathname: '/recipes/5/edit', state: { fromDetail: true } }])
     await openAndRename('Pasta neu')
 
     fireEvent.click(fertig())
@@ -276,7 +278,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
   it('opened another way, Fertig replaces the editor with the detail page', async () => {
     server()
-    renderEditor(['/recipes', '/recipes/5/edit'])
+    await renderEditor(['/recipes', '/recipes/5/edit'])
     await waitFor(() => expect(titleInput().value).toBe('Pasta 5'))
 
     fireEvent.click(fertig())
@@ -337,7 +339,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
   it('does not pull the user back when they left while Fertig was waiting', async () => {
     const { puts } = server()
-    renderEditor()
+    await renderEditor()
     await openAndRename('Pasta neu')
 
     fireEvent.click(fertig())
@@ -392,7 +394,7 @@ describe('RecipeEditorRoute · leaving another way', () => {
     return <p>Detail: {name ?? '…'}</p>
   }
 
-  function renderEditor(path = '/recipes/5/edit') {
+  async function renderEditor(path = '/recipes/5/edit') {
     render(
       <TooltipProvider>
         <MemoryRouter initialEntries={[path]}>
@@ -406,6 +408,7 @@ describe('RecipeEditorRoute · leaving another way', () => {
         </MemoryRouter>
       </TooltipProvider>,
     )
+    await lazyPageLoaded()
   }
 
   const titleInput = () => screen.getByLabelText('Titel') as HTMLInputElement
@@ -417,7 +420,7 @@ describe('RecipeEditorRoute · leaving another way', () => {
 
   it('holds the detail GET until the unmount PUT landed, so it shows the new title', async () => {
     const { puts, gets } = server()
-    renderEditor()
+    await renderEditor()
     await openAndRename('Pasta neu')
     const loadsBefore = gets.length // the editor's own load
 
@@ -435,7 +438,7 @@ describe('RecipeEditorRoute · leaving another way', () => {
 
   it('shows the server state after a failed unmount PUT', async () => {
     const { puts } = server()
-    renderEditor()
+    await renderEditor()
     await openAndRename('Pasta neu')
 
     fireEvent.click(screen.getByText('to detail'))
@@ -447,7 +450,7 @@ describe('RecipeEditorRoute · leaving another way', () => {
 
   it('reopening the editor while the save is pending loads the saved state, not the old one', async () => {
     const { puts } = server()
-    renderEditor()
+    await renderEditor()
     await openAndRename('Pasta neu')
 
     fireEvent.click(screen.getByText('to detail'))
@@ -464,7 +467,7 @@ describe('RecipeEditorRoute · leaving another way', () => {
 
   it('registers nothing when leaving a new, not yet created recipe', async () => {
     server()
-    renderEditor('/recipes/new')
+    await renderEditor('/recipes/new')
     fireEvent.change(titleInput(), { target: { value: 'Entwurf' } })
 
     fireEvent.click(screen.getByText('to detail'))
@@ -489,7 +492,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
     return { createRecipe, pending }
   }
 
-  function renderNew() {
+  async function renderNew() {
     render(
       <TooltipProvider>
         <MemoryRouter initialEntries={['/recipes/new']}>
@@ -503,6 +506,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
         </MemoryRouter>
       </TooltipProvider>,
     )
+    await lazyPageLoaded()
   }
 
   const titleInput = () => screen.getByLabelText('Titel') as HTMLInputElement
@@ -516,7 +520,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
 
   it('locks the form while creating, then swaps to the edit route', async () => {
     const { createRecipe, pending } = deferredCreate()
-    renderNew()
+    await renderNew()
     await startCreate()
 
     // Via the fieldset: the controls' own `disabled` stays false, only :disabled reflects the lock.
@@ -537,7 +541,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
   it('unlocks the form and reports the error by toast when creating fails', async () => {
     const { pending } = deferredCreate()
     const error = vi.spyOn(toast, 'error').mockImplementation(() => 0)
-    renderNew()
+    await renderNew()
     await startCreate()
 
     await act(async () => pending[0].reject(new Error('Anlegen fehlgeschlagen')))
@@ -550,7 +554,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
   it('does not pull the user back when they left while creating', async () => {
     const { createRecipe, pending } = deferredCreate()
     const error = vi.spyOn(toast, 'error').mockImplementation(() => 0)
-    renderNew()
+    await renderNew()
     await startCreate()
 
     fireEvent.click(screen.getByText('elsewhere'))
@@ -570,7 +574,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
   it('reports a failed create by toast when the user already left', async () => {
     const { pending } = deferredCreate()
     const error = vi.spyOn(toast, 'error').mockImplementation(() => 0)
-    renderNew()
+    await renderNew()
     await startCreate()
 
     fireEvent.click(screen.getByText('elsewhere'))
