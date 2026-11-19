@@ -1,0 +1,304 @@
+// Cook mode (/recipes/:id/cook): the recipe step by step, full screen without the shell (#209). The current step lives
+// only in state, so a reload starts at step 1 again; App keys the page on the id.
+import { useEffect, useState, type ReactNode } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Button, Progress, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
+import { Check, ChefHat, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { foodly } from '../api'
+import { useCurrentUserId, useTags } from '../catalog/CatalogProvider'
+import { CompactToggle } from '../components/CompactToggle'
+import { Skeleton } from '../components/Skeleton'
+import { EmptyState, ErrorState } from '../components/StateCard'
+import { TagText } from '../components/TagText'
+import { TriggerButton } from '../components/TriggerButton'
+import { MugIcon } from '../components/WakeLockToggle'
+import { StepText } from '../components/recipe/StepText'
+import { plainTagText } from '../components/tagTokens'
+import { sizeOnly } from '../cook/size'
+import { flattenSteps, nextStep, type CookStep } from '../cook/steps'
+import { canEdit } from '../editor/access'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useHasAppHistory } from '../hooks/useHasAppHistory'
+import { useRequest } from '../hooks/useRequest'
+import { useWakeLock } from '../hooks/useWakeLock'
+import { TimerPanel } from '../timers/TimerPanel'
+import { useTimerPanel } from '../timers/TimerPanelContext'
+
+// More steps than this and the dots give way to "x / y".
+const MAX_DOTS = 12
+
+export function CookMode() {
+  const { id } = useParams()
+  const recipeId = Number(id)
+  const { status, data: recipe, reload } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
+  const { byId: tags } = useTags()
+  const currentUserId = useCurrentUserId()
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const hasAppHistory = useHasAppHistory()
+  const timerPanel = useTimerPanel()
+  const wakeLock = useWakeLock(true)
+  const [index, setIndex] = useState(0)
+
+  const plainName = recipe ? plainTagText(recipe.name, tags) : ''
+  useDocumentTitle(recipe ? `Kochen: ${plainName} · Foodly` : 'Kochen · Foodly')
+
+  const steps = recipe ? flattenSteps(recipe.sections) : []
+  const stepCount = steps.length
+  const query = sizeOnly(searchParams).toString()
+  const detailHref = `/recipes/${id}${query ? `?${query}` : ''}`
+
+  // Back like the browser when an in-app entry lies behind (§3.4); otherwise to the recipe, replacing this entry so
+  // Back doesn't return to cook mode.
+  const close = () => {
+    if (hasAppHistory()) navigate(-1)
+    else navigate(detailHref, { replace: true })
+  }
+
+  const panelOpen = timerPanel?.open ?? false
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Radix handles Escape for open popovers, sheets and tooltips first and marks it handled.
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || panelOpen) return
+      if (isEditable(e.target)) return
+      if (e.key === 'Escape') close()
+      else if (e.key === 'ArrowLeft') setIndex((i) => Math.max(0, i - 1))
+      else if (e.key === 'ArrowRight') setIndex((i) => Math.min(stepCount - 1, i + 1))
+      else return
+      e.preventDefault()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  })
+
+  const closeButton = (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <TriggerButton variant="ghost" size="icon" aria-label="Koch-Modus beenden" onClick={close} className="-ml-2">
+          <X className="size-5" />
+        </TriggerButton>
+      </TooltipTrigger>
+      <TooltipContent>Koch-Modus beenden</TooltipContent>
+    </Tooltip>
+  )
+
+  if (status !== 'ready' || !recipe) {
+    return (
+      <CookFrame
+        header={
+          <CookHeader close={closeButton}>
+            {status === 'loading' ? (
+              <Skeleton className="h-5 w-48 max-w-full" />
+            ) : (
+              <h1 className="truncate font-semibold">Kochen</h1>
+            )}
+          </CookHeader>
+        }
+      >
+        {status === 'loading' ? (
+          <StepSkeleton />
+        ) : (
+          <ErrorState
+            title="Rezept konnte nicht geladen werden"
+            description="Vielleicht wurde es gelöscht, oder der Server ist gerade nicht erreichbar."
+            onRetry={reload}
+            extraAction={
+              <Button asChild variant="outline" size="sm">
+                <Link to={detailHref}>Zum Rezept</Link>
+              </Button>
+            }
+          />
+        )}
+      </CookFrame>
+    )
+  }
+
+  const title = (
+    <h1 className="truncate font-semibold">
+      <TagText value={recipe.name} />
+    </h1>
+  )
+
+  // Design spec: without steps the frame shows only ✕ and the title, no bar and no footer.
+  if (stepCount === 0) {
+    return (
+      <CookFrame header={<CookHeader close={closeButton}>{title}</CookHeader>}>
+        <EmptyState
+          icon={ChefHat}
+          title="Dieses Rezept hat noch keine Schritte."
+          action={
+            <>
+              <Button asChild variant="outline" size="sm">
+                <Link to={detailHref}>Zum Rezept</Link>
+              </Button>
+              {canEdit(recipe, currentUserId) && (
+                <Button asChild variant="outline" size="sm">
+                  <Link to={`/recipes/${recipe.id}/edit`}>Bearbeiten</Link>
+                </Button>
+              )}
+            </>
+          }
+        />
+      </CookFrame>
+    )
+  }
+
+  const step = steps[index]
+  const next = nextStep(steps, index)
+  const last = index === stepCount - 1
+
+  return (
+    <CookFrame
+      header={
+        <>
+          <CookHeader
+            close={closeButton}
+            actions={
+              wakeLock.supported && (
+                <CompactToggle
+                  pressed={wakeLock.enabled}
+                  onClick={wakeLock.toggle}
+                  label="Bildschirm anlassen"
+                  tooltip={wakeLock.enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}
+                >
+                  <MugIcon steam={wakeLock.enabled} />
+                </CompactToggle>
+              )
+            }
+          >
+            {title}
+            <p className="truncate text-xs text-muted-foreground tabular-nums">
+              {step.sectionName && (
+                <>
+                  <TagText value={step.sectionName} /> ·{' '}
+                </>
+              )}
+              Schritt {step.number} von {stepCount}
+            </p>
+          </CookHeader>
+          <div
+            role="progressbar"
+            aria-label="Fortschritt"
+            aria-valuemin={1}
+            aria-valuemax={stepCount}
+            aria-valuenow={step.number}
+          >
+            <Progress
+              value={step.number / stepCount}
+              className="mt-0 h-[3px] rounded-none [&>[data-testid=progress-bg]]:bg-border [&>[data-testid=progress-filled]]:bg-foreground"
+            />
+          </div>
+        </>
+      }
+      footer={
+        <footer className="sticky bottom-0 z-10 flex items-center justify-between gap-4 border-t bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-12 phone:w-12 phone:px-0"
+            disabled={index === 0}
+            onClick={() => setIndex((i) => Math.max(0, i - 1))}
+          >
+            <ChevronLeft aria-hidden />
+            <span className="phone:sr-only">Zurück</span>
+          </Button>
+          <StepDots steps={steps} index={index} />
+          {last ? (
+            <Button size="lg" className="h-12" onClick={close}>
+              <Check aria-hidden />
+              Fertig
+            </Button>
+          ) : (
+            <Button size="lg" className="h-12" onClick={() => setIndex((i) => Math.min(stepCount - 1, i + 1))}>
+              Weiter
+              <ChevronRight aria-hidden />
+            </Button>
+          )}
+        </footer>
+      }
+    >
+      <p className="text-sm font-semibold text-muted-foreground tabular-nums">Schritt {step.number}</p>
+      {/* The step size has no token in the text scale; the time chips scale with it (variant "cook"). */}
+      <p className="mt-2 mb-5 text-[30px] leading-[1.3] font-semibold tracking-[-0.02em] wrap-anywhere lg:text-[34px] phone:text-[26px]">
+        <StepText value={step.text} timerLabel={`${plainName} · Schritt ${step.number}`} variant="cook" />
+      </p>
+      {next && (
+        <div className="mt-10 text-[15px]">
+          <span className="block text-xs font-semibold text-muted-foreground">Danach</span>
+          <span className="text-muted-foreground">
+            {next.prefix && (
+              <>
+                <TagText value={next.prefix} /> ·{' '}
+              </>
+            )}
+            <TagText value={next.text} />
+          </span>
+        </div>
+      )}
+    </CookFrame>
+  )
+}
+
+function CookFrame({ header, footer, children }: { header: ReactNode; footer?: ReactNode; children: ReactNode }) {
+  return (
+    <div className="flex min-h-dvh flex-col bg-background text-foreground">
+      <div className="sticky top-0 z-10 bg-background">{header}</div>
+      <main className="mx-auto w-full max-w-[860px] flex-1 px-10 pt-[8vh] pb-10 lg:px-14 phone:px-5 phone:pt-7">
+        {children}
+      </main>
+      {footer}
+    </div>
+  )
+}
+
+function CookHeader({ close, actions, children }: { close: ReactNode; actions?: ReactNode; children: ReactNode }) {
+  return (
+    <header className="flex items-center gap-3 px-4 py-2.5">
+      {close}
+      <div className="min-w-0 flex-1">{children}</div>
+      {actions}
+      <TimerPanel />
+    </header>
+  )
+}
+
+function StepDots({ steps, index }: { steps: CookStep[]; index: number }) {
+  if (steps.length > MAX_DOTS) {
+    return (
+      <span className="text-sm tabular-nums">
+        {index + 1} / {steps.length}
+      </span>
+    )
+  }
+  // The header says "Schritt x von y" already; the dots are decoration.
+  return (
+    <div aria-hidden className="flex items-center gap-1.5" data-testid="step-dots">
+      {steps.map((s, i) => (
+        <span
+          key={s.number}
+          className={cn(
+            'h-2 rounded-full',
+            i === index ? 'w-[22px] rounded-sm bg-foreground' : 'w-2',
+            i < index ? 'bg-muted-foreground' : i > index && 'bg-border',
+          )}
+        />
+      ))}
+    </div>
+  )
+}
+
+function StepSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Schritt wird geladen" data-testid="cook-skeleton">
+      <Skeleton className="h-4 w-20" />
+      <Skeleton className="mt-3 h-9 w-full" />
+      <Skeleton className="mt-2 h-9 w-4/5" />
+      <Skeleton className="mt-10 h-4 w-1/2" />
+    </div>
+  )
+}
+
+function isEditable(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+}

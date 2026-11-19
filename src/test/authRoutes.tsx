@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
-import { RedirectIfSignedIn, RequireAuth } from '../components/shell/RequireAuth'
+import { RedirectIfSignedIn, RequireAuth, ShellLayout } from '../components/shell/RequireAuth'
 
 export function LocationProbe({ label }: { label: string }) {
   const { pathname, search } = useLocation()
@@ -26,7 +26,9 @@ export function renderAuthRoutes(path: Entry, pages: { login?: ReactNode; regist
             <Route path="/register" element={pages.register ?? <LocationProbe label="register" />} />
           </Route>
           <Route element={<RequireAuth />}>
-            <Route path="*" element={<LocationProbe label="app" />} />
+            <Route element={<ShellLayout />}>
+              <Route path="*" element={<LocationProbe label="app" />} />
+            </Route>
           </Route>
         </Routes>
       </MemoryRouter>

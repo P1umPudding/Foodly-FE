@@ -3,7 +3,7 @@ import { useWakeLock } from '../hooks/useWakeLock'
 
 const ICON = 'size-4'
 
-function MugIcon({ steam }: { steam: boolean }) {
+export function MugIcon({ steam }: { steam: boolean }) {
   return (
     <svg
       className={ICON}
