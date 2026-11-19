@@ -166,7 +166,9 @@ describe('AppShell on the desktop', () => {
     setViewport(800)
     expect(width()).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
     screen.getByRole('button', { name: 'Seitenleiste ausklappen' })
-    expect(sidebar().closest('.min-h-screen')!.className.split(/\s+/)).toContain('[--shell-left:calc(4rem+env(safe-area-inset-left))]')
+    expect(sidebar().closest('.min-h-screen')!.className.split(/\s+/)).toContain(
+      '[--shell-left:calc(4rem+env(safe-area-inset-left))]',
+    )
     setViewport(1280)
     expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
     screen.getByRole('button', { name: 'Seitenleiste einklappen' })
