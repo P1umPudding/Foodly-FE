@@ -181,13 +181,13 @@ export function Lightbox({
           </Button>
         )}
         {/* Max sizes only (as in the mockup): the <img> box stays the visible image, so a click beside it
-            reaches the stage and closes. 140 px = top bar 56 + thumbnail strip 84. */}
+            reaches the stage and closes. 140 px = top bar 56 + thumbnail strip 84, plus the safe-area insets the backdrop pads. */}
         <RecipeImage
           image={image}
           alt={imageName(image)}
           onClick={stop}
-          className="max-h-[calc(100dvh-140px)] max-w-full cursor-default rounded-md object-contain phone:rounded-none"
-          fallbackClassName="h-[calc(100dvh-140px)] w-full max-w-4xl cursor-default rounded-md bg-white/10 text-white/40 phone:max-w-none phone:rounded-none"
+          className="max-h-[calc(100dvh-140px-env(safe-area-inset-top)-env(safe-area-inset-bottom))] max-w-full cursor-default rounded-md object-contain phone:rounded-none"
+          fallbackClassName="h-[calc(100dvh-140px-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-4xl cursor-default rounded-md bg-white/10 text-white/40 phone:max-w-none phone:rounded-none"
         />
         {n > 1 && (
           <Button

@@ -1,6 +1,8 @@
 // How far the on-screen keyboard (or any browser chrome) covers the bottom of the layout viewport, as `--vv-inset`
-// on the element the returned ref is attached to (#220). iOS Safari overlays the keyboard instead of resizing the
-// page, so a sheet fixed to the bottom would slide under it; the sheet reads the variable to lift its footer.
+// on the element the returned ref is attached to (#220). iOS Safari, and Chrome on Android by default
+// (interactive-widget=resizes-visual), overlay the keyboard instead of resizing the page, so a sheet fixed to the
+// bottom would slide under it; the sheet reads the variable to lift itself. We don't opt into resizes-content
+// instead: it would also push the tab bar and "+" button up over every focused field in the app.
 // Setting a custom property from code is the sanctioned inline exception (CLAUDE.md): the value is continuous and
 // changes while the keyboard animates, so no Tailwind class can carry it.
 import { useCallback, useRef } from 'react'
@@ -10,7 +12,8 @@ export const VV_INSET_VAR = '--vv-inset'
 export function visualViewportInset(): number {
   const vv = window.visualViewport
   // Pinch-zoom shrinks the visual viewport too; that isn't a keyboard, so it mustn't lift anything.
-  if (!vv || vv.scale !== 1) return 0
+  // Tolerance: after zooming back out, Android may report a scale like 0.99999.
+  if (!vv || Math.abs(vv.scale - 1) > 0.01) return 0
   const layoutHeight = document.documentElement.clientHeight
   return Math.max(0, Math.round(layoutHeight - vv.height - vv.offsetTop))
 }

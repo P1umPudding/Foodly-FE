@@ -56,6 +56,13 @@ describe('useVisualViewportInset', () => {
     expect(inset(getByTestId('sheet'))).toBe('180px')
   })
 
+  it('treats a scale a hair off 1 as unzoomed', () => {
+    const { getByTestId } = render(<Sheet />)
+    vv.scale = 0.99999
+    resize(500)
+    expect(inset(getByTestId('sheet'))).toBe('300px')
+  })
+
   it('ignores pinch-zoom', () => {
     const { getByTestId } = render(<Sheet />)
     vv.scale = 2

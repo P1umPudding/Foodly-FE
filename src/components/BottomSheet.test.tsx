@@ -82,8 +82,8 @@ describe('BottomSheet', () => {
     const classes = renderSheet().className.split(' ')
     expect(classes).toContain('bottom-[var(--vv-inset,0px)]')
     expect(classes).not.toContain('bottom-0')
-    expect(classes).toContain('max-h-[calc(80dvh_-_var(--vv-inset,0px))]')
-    expect(classes).toContain('pb-[env(safe-area-inset-bottom)]')
+    expect(classes).toContain('max-h-[min(80dvh,calc(100dvh_-_var(--vv-inset,0px)_-_2rem))]')
+    expect(classes).toContain('pb-[max(0px,env(safe-area-inset-bottom)_-_var(--vv-inset,0px))]')
     expect(classes).not.toContain('max-h-[80vh]')
   })
 

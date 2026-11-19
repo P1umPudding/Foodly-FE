@@ -109,9 +109,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               className={cn(
                 // border-box: --site-nav-h includes the top inset, so the padding leaves the bar its full height.
                 'site-header sticky top-0 z-50 flex h-(--site-nav-h) items-center gap-3 border-b border-border/60 bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-md',
-                isDesktop
-                  ? 'px-8'
-                  : 'pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))]',
+                // The column around it already takes the side insets.
+                isDesktop ? 'px-8' : 'px-4',
               )}
             >
               {/* Not a heading: each page owns its single h1. On the phone, Start greets in its h1, so the

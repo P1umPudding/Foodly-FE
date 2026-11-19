@@ -54,5 +54,13 @@ describe('index.html', () => {
 
   it('registers no service worker (manifest only, #220)', () => {
     expect(indexHtml).not.toContain('serviceWorker')
+    const sources = import.meta.glob(['/src/**/*.{ts,tsx}', '!/src/manifest.test.ts'], {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    })
+    expect(Object.keys(sources).length).toBeGreaterThan(50)
+    const registering = Object.entries(sources).filter(([, code]) => String(code).includes('serviceWorker'))
+    expect(registering.map(([file]) => file)).toEqual([])
   })
 })
