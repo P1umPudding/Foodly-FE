@@ -108,9 +108,7 @@ describe('SharedWithYou', () => {
 
   it('ignores a photo on a recipe that is not shown', async () => {
     // Only the 3 shown recipes decide whether there is an image column.
-    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue(
-      page([recipe(1), recipe(2), recipe(3), recipe(4, 2, true)]),
-    )
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue(page([recipe(1), recipe(2), recipe(3), recipe(4, 2, true)]))
     renderSection()
     await waitFor(() => expect(rowLinks()).toHaveLength(3))
     expect(screen.queryAllByTestId('shared-thumb')).toHaveLength(0)
