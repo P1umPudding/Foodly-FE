@@ -10,8 +10,9 @@ import { HomeSection } from './HomeSection'
 import type { SectionState } from './HomeSections'
 
 // The strip bleeds to the screen edge (Home's phone:px-4); py-1 keeps the focus ring clear of the scroll clip.
+// relative: the tiles' sr-only counts are absolute and would otherwise escape the scroll clip and widen the page (#299).
 const LAYOUT =
-  'grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-2 phone:-mx-4 phone:-my-1 phone:flex phone:overflow-x-auto phone:px-4 phone:py-1 phone:[scrollbar-width:none] phone:[&::-webkit-scrollbar]:hidden'
+  'relative grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-2 phone:-mx-4 phone:-my-1 phone:flex phone:overflow-x-auto phone:px-4 phone:py-1 phone:[scrollbar-width:none] phone:[&::-webkit-scrollbar]:hidden'
 
 const recipeCount = (n: number) => `${n} ${n === 1 ? 'Rezept' : 'Rezepte'}`
 

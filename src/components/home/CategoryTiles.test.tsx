@@ -67,6 +67,23 @@ describe('CategoryTiles', () => {
     for (const el of [tile, mark]) expect(el?.className).not.toMatch(/(^|\s|:)border(-|\s|$)/)
   })
 
+  // jsdom has no layout, so pin the #299 cause: the absolute sr-only counts need a relative/sticky ancestor inside the
+  // scroll strip, or its overflow doesn't clip them and they widen the page.
+  it('keeps the screen-reader counts inside the scroll strip', () => {
+    catalog.categories.list = [
+      category(1, 'Favoriten', 0, [4]),
+      category(2, 'Backen', 1, [1, 2, 3]),
+      category(3, 'Brot', 2, []),
+    ]
+    renderTiles()
+    const strip = screen.getByRole('list')
+    expect(strip.className.split(' ')).toContain('phone:overflow-x-auto')
+    const counts = strip.querySelectorAll('.sr-only')
+    expect(counts).toHaveLength(3)
+    for (const count of counts)
+      expect(strip.contains(count.parentElement?.closest('.relative, .sticky') ?? null)).toBe(true)
+  })
+
   it('links "Verwalten" to the categories page', () => {
     catalog.categories.list = [category(1, 'Favoriten', 0, [])]
     renderTiles()
