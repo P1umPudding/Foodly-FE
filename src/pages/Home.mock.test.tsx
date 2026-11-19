@@ -95,3 +95,23 @@ describe('Start page, Zuletzt erstellt (mock mode)', () => {
     SLOW,
   )
 })
+
+describe('Start page, Geteilt mit dir (mock mode)', () => {
+  it(
+    'shows the 3 newest shares with their owners, newest first',
+    async () => {
+      await renderHome()
+      const section = await screen.findByRole('region', { name: 'Geteilt mit dir' }, WAIT)
+      // By myAccessSince: 14 (Jonas, Sept.), 11 (Mara, June 18), 9 (Jonas, June 4); 7 and 3 are older.
+      await within(section).findAllByText('von Jonas', {}, WAIT)
+      const links = within(section).getAllByRole('link')
+      expect(links.map((a) => a.getAttribute('href'))).toEqual(['/recipes/14', '/recipes/11', '/recipes/9'])
+      expect(links.map((a) => a.textContent)).toEqual([
+        'Asiatische Gemüsepfanne mit Reisvon Jonas',
+        'Rindergulaschvon Mara',
+        'American Pancakesvon Jonas',
+      ])
+    },
+    SLOW,
+  )
+})
