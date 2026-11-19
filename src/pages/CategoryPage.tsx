@@ -84,7 +84,7 @@ export function CategoryPage() {
       {catalog.status === 'ready' && !category && (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
           <h1 className="font-display text-2xl">Kategorie nicht gefunden</h1>
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className="touch:h-10">
             <Link to="/recipes">Zu den Rezepten</Link>
           </Button>
         </div>
@@ -154,7 +154,7 @@ function CategoryHead({ category }: { category: UserCategory }) {
                   variant="ghost"
                   size="icon"
                   aria-label="Weitere Aktionen"
-                  className="phone:size-10"
+                  className="phone:size-10 touch:size-10"
                 >
                   <MoreHorizontal aria-hidden className="size-4" />
                 </TriggerButton>
@@ -172,7 +172,7 @@ function CategoryHead({ category }: { category: UserCategory }) {
             }}
           >
             <DropdownMenuItem
-              className="gap-2"
+              className="gap-2 touch:min-h-10"
               onSelect={() => {
                 openingDialog.current = true
                 openDialog(moreTrigger.current)

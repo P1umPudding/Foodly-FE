@@ -133,6 +133,14 @@ describe('category dots and tags', () => {
     expect(screen.queryByText('Schnell')).toBeNull()
   })
 
+  // #219: 40 px on touch, the mouse height stays (jsdom applies no CSS, so check the tokens).
+  it('compact row is 34 px with a mouse and at least 40 px on touch', () => {
+    renderRow(base, { compact: true })
+    const classes = screen.getByRole('link').className.split(/\s+/)
+    expect(classes).toEqual(expect.arrayContaining(['min-h-[34px]', 'touch:min-h-10']))
+    expect(classes).not.toContain('min-h-10')
+  })
+
   it('no tags → no empty tag wrapper', () => {
     const { container } = renderRow(base, { compact: true })
     expect(container.querySelector('.max-lg\\:hidden')).toBeNull()

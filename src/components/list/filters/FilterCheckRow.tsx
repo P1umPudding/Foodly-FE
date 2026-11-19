@@ -27,7 +27,7 @@ export function FilterCheckRow({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 rounded-md px-1 phone:min-h-10',
+        'flex items-center gap-2 rounded-md px-1 phone:min-h-10 touch:min-h-10',
         filter && 'min-h-8 shrink-0 gap-[9px] px-2',
         busy ? 'cursor-wait opacity-60' : filter ? 'hover:bg-hover' : 'hover:bg-muted',
         className,
