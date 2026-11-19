@@ -43,7 +43,7 @@ gilt: nichts Neues im alten Stil bauen.
 | `bg-hover` | Hover-Fläche der Rezeptzeilen (Liste, Kompakt), der Filterknöpfe und des Links „Alle Filter zurücksetzen“ (Mockup `--hover`) |
 | `text-foreground` | Text, Titel, Icons in Aktionen |
 | `text-muted-foreground` | Sekundärtext (Untertitel, Beschreibungen) und Meta: Zähler („14 Rezepte“), Zeiten, selbst gerenderte Platzhalter |
-| `text-subtle-foreground` | nur Nicht-Text und großer Text (kein AA für kleinen Text, ≥ 3:1, Ausnahme siehe unten): Fortschrittsbalken eines pausierten Timers, Icons und Chevron der Filterknöpfe, Chevron der Gruppenköpfe, Rahmen des geöffneten Filterknopfs |
+| `text-subtle-foreground` | nur Nicht-Text und großer Text (kein AA für kleinen Text, ≥ 3:1, Ausnahme siehe unten): Fortschrittsbalken eines pausierten Timers, Icons und Chevron der Filterknöpfe, Chevron der Gruppenköpfe, Rahmen des geöffneten Filterknopfs. Kleiner Text nur in genau zwei Fällen, die der Owner per Mockup bestätigt hat: Kopf „Kategorien“ in der Seitenleiste (12 px / 600, #246) und das Datum auf Start (13 px / 500, #242). Jeder weitere Fall braucht einen design.md-PR |
 | `border-border` (Standard) / `border-border-strong` | Haarlinie (auch das ✕ im Filterknopf) / Hover- und Checkbox-Rand, aktiver Filterknopf |
 | `border-divider` | leise Trennlinie zwischen Listenzeilen und Abschnitten (Mockup `--divider`, schwächer als `border`); Rezeptzeilen haben seit V3 (#229) keine Trennlinie, sie sind flach mit Hover-Fläche |
 | `bg-sidebar`, `bg-sidebar-accent` | Seitenleiste, aktiver Navigationspunkt |
@@ -87,14 +87,15 @@ dem Shell-/Detail-Issue (Override von `--text-base` unter 761 px), weil die heut
 | `text-sm` | 13 | Sekundärtext, Labels, Toolbar |
 | `text-base` | 14 | Fließtext, Zeilentitel |
 | `text-lg font-semibold` | 15 | Abschnittstitel; Zutaten und Schritte im Detail |
-| `text-xl font-display` | 18 / 650 | Wortmarke Seitenleiste |
+| `Brand` (`src/components/shell/BrandMark.tsx`) | 17 / 700, Laufweite −0,02em | Wortmarke: Seitenleiste, Handy-Kopf auf Start, Login/Registrierung; nur dort (Mockup `.brand`, #246) |
 | `text-2xl font-display` | 26 / 650 | Seitentitel (genau einer pro Seite) |
 
 Zahlen, die sich vergleichen lassen (Zeiten, Mengen, Zähler), mit `tabular-nums`. Keine weiteren Größen; Ausnahmen sind
 der Koch-Modus (großer Schritttext, siehe Redesign-README) und die Kacheln (`RecipeTile`): Titel 17 px / 700
 (Handy `text-lg`), Name der Typo-Kachel 22 px / 750 (Handy 17 px), beide nur dort. Ebenso das „+N“ auf der letzten
 Galerie-Kachel im Rezept-Detail (`RecipeImages`): 20 px / 600, nur dort. Sheet- und Popover-Titel (`PanelHead`,
-Mockup `.sheet-h`): 16 px / 650, nur dort. Außerdem: Eingabefelder auf Touch 16 px (`pointer: coarse`, sonst zoomt
+Mockup `.sheet-h`): 16 px / 650, nur dort. Die Tab-Leiste (`TabBar`, Mockup `.tabbar a`): Label 11 px / 500, Icon 22 px;
+inaktiv `text-muted-foreground` (nicht das `subtle` des Mockups, wegen AA), aktiv `text-foreground`, nur dort (#246). Außerdem: Eingabefelder auf Touch 16 px (`pointer: coarse`, sonst zoomt
 iOS beim Fokus). Das regelt eine zentrale Regel in `styles.css`, keine Klassen pro Feld; sie gilt auch bei der geplanten Handy-Grundschrift 15 px. Felder mit `text-xl` und größer
 behalten ihre Größe.
 
