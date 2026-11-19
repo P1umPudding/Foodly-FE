@@ -131,7 +131,7 @@ export function Categories() {
   }, [editedGone])
 
   const newCategoryButton = (
-    <TriggerButton ref={newButton} variant="outline" size="sm" disabled={editorSaving} onClick={() => openEditor(null)}>
+    <TriggerButton ref={newButton} variant="outline" size="sm" className="touch:h-10" disabled={editorSaving} onClick={() => openEditor(null)}>
       <Plus aria-hidden className="size-4" />
       Neue Kategorie
     </TriggerButton>
@@ -192,6 +192,7 @@ export function Categories() {
                   variant="ghost"
                   size="icon"
                   aria-label="Schließen"
+                  className="touch:size-10"
                   onClick={() => {
                     setMoveFailed(false)
                     focusLastMoved()
@@ -212,7 +213,9 @@ export function Categories() {
                 <li key={c.id} className={cn(ROW, 'hover:bg-hover')}>
                   <CategoryMark category={c} size="md" />
                   <div className="flex min-w-0 flex-1 flex-col">
-                    <Link to={categoryPageHref(c.id)} className={cn('truncate rounded-sm font-medium', FOCUS_RING)}>
+                    {/* Touch: the padding grows the tap area to 40 px inside truncate's clip, the negative margins keep the
+                        row height; relative keeps the link above the count for hit-testing. */}
+                    <Link to={categoryPageHref(c.id)} className={cn('relative truncate rounded-sm font-medium touch:-my-2.5 touch:py-2.5', FOCUS_RING)}>
                       {c.name}
                     </Link>
                     <span className="text-xs text-muted-foreground tabular-nums">{recipeCount(c.recipes.length)}</span>
@@ -251,7 +254,7 @@ export function Categories() {
                       }}
                     >
                       <DropdownMenuItem
-                        className="gap-2"
+                        className="gap-2 touch:min-h-10"
                         disabled={editorSaving}
                         onSelect={() => {
                           menuHandsOffFocus.current = true
@@ -262,20 +265,20 @@ export function Categories() {
                         Bearbeiten
                       </DropdownMenuItem>
                       {i > 0 && (
-                        <DropdownMenuItem className="gap-2" onSelect={() => move(c, -1)}>
+                        <DropdownMenuItem className="gap-2 touch:min-h-10" onSelect={() => move(c, -1)}>
                           <ArrowUp aria-hidden className="size-4" />
                           Nach oben
                         </DropdownMenuItem>
                       )}
                       {i < ordered.length - 1 && (
-                        <DropdownMenuItem className="gap-2" onSelect={() => move(c, 1)}>
+                        <DropdownMenuItem className="gap-2 touch:min-h-10" onSelect={() => move(c, 1)}>
                           <ArrowDown aria-hidden className="size-4" />
                           Nach unten
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuItem
                         variant="destructive"
-                        className="gap-2"
+                        className="gap-2 touch:min-h-10"
                         disabled={editorSaving}
                         onSelect={() => openDelete(c)}
                       >
