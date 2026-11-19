@@ -14,7 +14,6 @@ import {
   TooltipTrigger,
   cn,
 } from '@postxl/ui-components'
-import { Skeleton } from '../components/Skeleton'
 import { ArrowDown, ArrowUp, Folder, MoreHorizontal, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useCategories } from '../catalog/CatalogProvider'
 import { useCategoryActions } from '../catalog/useCategoryActions'
@@ -24,7 +23,7 @@ import { DeleteCategoryDialog } from '../components/category/DeleteCategoryDialo
 import { EmptyState, ErrorState } from '../components/StateCard'
 import { TriggerButton } from '../components/TriggerButton'
 import { FOCUS_RING } from '../components/focusRing'
-import { ROW_DIVIDER } from '../components/rowDivider'
+import { CATEGORY_ROW, CategoryRowsSkeleton } from '../components/category/CategoryRowsSkeleton'
 import { Page } from '../components/shell/Page'
 import { categoryPageHref } from '../components/shell/nav'
 import { moveCategory } from '../lib/moveCategory'
@@ -35,9 +34,6 @@ import type { UserCategory, UserCategoryId } from '../api/protocol'
 type DialogState = { target: UserCategory; open: boolean; key: number }
 // The mockup edits inline: one card under the list, null target = a new category.
 type EditorState = { target: UserCategory | null; key: number }
-
-// Mockup `.pad-rows > .row` in a `.divided` card.
-const ROW = cn('flex items-center gap-3.5 rounded-sm px-3 py-2.5', ROW_DIVIDER)
 
 const recipeCount = (n: number) => `${n} ${n === 1 ? 'Rezept' : 'Rezepte'}`
 
@@ -162,16 +158,7 @@ export function Categories() {
           Kategorien sind deine persönlichen Sammlungen. Ein Rezept kann in mehreren sein, andere sehen sie nicht.
         </p>
 
-        {categories.status === 'loading' && (
-          <Card className="gap-0 p-1">
-            {[0, 1, 2].map((i) => (
-              <div key={i} data-testid="category-row-skeleton" className={ROW}>
-                <Skeleton className="size-8 rounded-md" />
-                <Skeleton className="h-4 flex-1" />
-              </div>
-            ))}
-          </Card>
-        )}
+        {categories.status === 'loading' && <CategoryRowsSkeleton />}
 
         {categories.status === 'error' && (
           <ErrorState
@@ -217,7 +204,7 @@ export function Categories() {
           <Card className="gap-0 p-1">
             <ul aria-label="Meine Kategorien">
               {ordered.map((c, i) => (
-                <li key={c.id} className={cn(ROW, 'hover:bg-hover')}>
+                <li key={c.id} className={cn(CATEGORY_ROW, 'hover:bg-hover')}>
                   <CategoryMark category={c} size="md" />
                   <div className="flex min-w-0 flex-1 flex-col">
                     {/* Touch: the padding grows the tap area to 40 px inside truncate's clip, the negative margins

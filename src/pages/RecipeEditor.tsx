@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Alert, AlertDescription, AlertTitle, Button, Spinner, toast } from '@postxl/ui-components'
-import { Skeleton } from '../components/Skeleton'
+import { EditorSkeleton } from '../components/editor/EditorSkeleton'
+import { SAFE_BOTTOM } from '../components/editor/layout'
 import { ErrorState } from '../components/StateCard'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { foodly } from '../api'
@@ -22,9 +23,6 @@ import { HeaderActions } from '../components/shell/PageHeader'
 import { Page } from '../components/shell/Page'
 import { TriggerButton } from '../components/TriggerButton'
 import type { RecipeId } from '../api/protocol'
-
-// No tab bar in the phone editor (#218): every state of the page keeps its own room above the bottom edge.
-const SAFE_BOTTOM = 'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]'
 
 export function RecipeEditor() {
   const { id } = useParams()
@@ -226,20 +224,7 @@ export function RecipeEditor() {
     return (
       <Page className={`pb-10 ${SAFE_BOTTOM}`}>
         {heading}
-        {/* The editor's two columns (design.md §5: a skeleton in the shape of the content). */}
-        <div
-          data-testid="editor-skeleton"
-          className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 phone:flex phone:flex-col phone:gap-5"
-        >
-          <div className="flex flex-col gap-[18px]">
-            <Skeleton className="h-72 w-full" />
-            <Skeleton className="h-56 w-full" />
-          </div>
-          <div className="flex flex-col gap-[22px] phone:order-first">
-            <Skeleton className="aspect-[4/3] w-full phone:aspect-video" />
-            <Skeleton className="h-16 w-full phone:hidden" />
-          </div>
-        </div>
+        <EditorSkeleton data-testid="editor-skeleton" />
       </Page>
     )
   }
