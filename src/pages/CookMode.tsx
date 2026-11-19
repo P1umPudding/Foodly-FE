@@ -1,6 +1,6 @@
 // Cook mode (/recipes/:id/cook): the recipe step by step, full screen without the shell (#209). The current step lives
 // only in state, so a reload starts at step 1 again; App keys the page on the id.
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Button, Progress, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
 import { Check, ChefHat, ChevronLeft, ChevronRight, X } from 'lucide-react'
@@ -39,6 +39,7 @@ export function CookMode() {
   const timerPanel = useTimerPanel()
   const wakeLock = useWakeLock(true)
   const [index, setIndex] = useState(0)
+  const primaryRef = useRef<HTMLButtonElement>(null)
 
   const plainName = recipe ? plainTagText(recipe.name, tags) : ''
   useDocumentTitle(recipe ? `Kochen: ${plainName} · Foodly` : 'Kochen · Foodly')
@@ -91,7 +92,10 @@ export function CookMode() {
         header={
           <CookHeader close={closeButton}>
             {status === 'loading' ? (
-              <Skeleton className="h-5 w-48 max-w-full" />
+              <>
+                <h1 className="sr-only">Kochen</h1>
+                <Skeleton className="h-5 w-48 max-w-full" />
+              </>
             ) : (
               <h1 className="truncate font-semibold">Kochen</h1>
             )}
@@ -106,6 +110,7 @@ export function CookMode() {
             description="Vielleicht wurde es gelöscht, oder der Server ist gerade nicht erreichbar."
             onRetry={reload}
             extraAction={
+              // replace: Back must not return to a cook mode that has nothing to show.
               <Button asChild variant="outline" size="sm">
                 <Link to={detailHref} replace>
                   Zum Rezept
@@ -190,6 +195,7 @@ export function CookMode() {
             aria-valuemax={stepCount}
             aria-valuenow={step.number}
           >
+            {/* The colours reach into postxl's Progress through its data-testids: it takes no bar or track classes. */}
             <Progress
               value={step.number / stepCount}
               className="mt-0 h-[3px] rounded-none [&>[data-testid=progress-bg]]:bg-border [&>[data-testid=progress-filled]]:bg-foreground"
@@ -204,14 +210,19 @@ export function CookMode() {
             size="lg"
             className="h-12 phone:w-12 phone:px-0"
             disabled={index === 0}
-            onClick={() => setIndex((i) => Math.max(0, i - 1))}
+            onClick={() => {
+              // Arriving at step 1 disables this button; focus would fall to the page, so it moves on to "Weiter".
+              if (index === 1) primaryRef.current?.focus()
+              setIndex((i) => Math.max(0, i - 1))
+            }}
           >
             <ChevronLeft aria-hidden />
             <span className="phone:sr-only">Zurück</span>
           </Button>
           <StepDots steps={steps} index={index} />
           {/* One button whose label changes, so keyboard focus stays on it when "Weiter" becomes "Fertig". */}
-          <Button
+          <TriggerButton
+            ref={primaryRef}
             size="lg"
             className="h-12"
             onClick={last ? close : () => setIndex((i) => Math.min(stepCount - 1, i + 1))}
@@ -227,18 +238,20 @@ export function CookMode() {
                 <ChevronRight aria-hidden />
               </>
             )}
-          </Button>
+          </TriggerButton>
         </footer>
       }
     >
-      {/* Announced on every step change: paging moves no focus. */}
-      <div aria-live="polite">
-        <h2 className="text-sm font-semibold text-muted-foreground tabular-nums">Schritt {step.number}</h2>
-        {/* The step size has no token in the text scale; the time chips scale with it (variant "cook"). */}
-        <p className="mt-2 mb-5 text-[30px] leading-[1.3] font-semibold tracking-[-0.02em] wrap-anywhere lg:text-[34px] phone:text-[26px]">
-          <StepText value={step.text} timerLabel={`${plainName} · Schritt ${step.number}`} variant="cook" />
-        </p>
-      </div>
+      {/* Paging moves no focus, so the new step is announced as one plain string (the visible text would be read in
+          fragments, chip labels included). */}
+      <p aria-live="polite" aria-atomic="true" className="sr-only">
+        {`Schritt ${step.number} von ${stepCount}: ${plainTagText(step.text, tags)}`}
+      </p>
+      <h2 className="text-sm font-semibold text-muted-foreground tabular-nums">Schritt {step.number}</h2>
+      {/* The step size has no token in the text scale; the time chips scale with it (variant "cook"). */}
+      <p className="mt-2 mb-5 text-[30px] leading-[1.3] font-semibold tracking-[-0.02em] wrap-anywhere lg:text-[34px] phone:text-[26px]">
+        <StepText value={step.text} timerLabel={`${plainName} · Schritt ${step.number}`} variant="cook" />
+      </p>
       {next && (
         <div className="mt-10 text-[15px]">
           <span className="block text-xs font-semibold text-muted-foreground">Danach</span>
@@ -306,7 +319,7 @@ function StepDots({ steps, index }: { steps: CookStep[]; index: number }) {
 
 function StepSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Schritt wird geladen" data-testid="cook-skeleton">
+    <div role="status" aria-label="Schritt wird geladen" data-testid="cook-skeleton">
       <Skeleton className="h-4 w-20" />
       <Skeleton className="mt-3 h-9 w-full" />
       <Skeleton className="mt-2 h-9 w-4/5" />

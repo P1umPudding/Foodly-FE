@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { Button, TooltipProvider, toast } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CookMode } from './CookMode'
@@ -52,7 +52,11 @@ const TWO_SECTIONS = [
 
 function Probe() {
   const { pathname, search } = useLocation()
-  return <p data-testid="location">{pathname + search}</p>
+  return (
+    <p data-testid="location" data-navigation={useNavigationType()}>
+      {pathname + search}
+    </p>
+  )
 }
 
 function TimerLabels() {
@@ -81,7 +85,7 @@ function renderCook(cookPath = '/recipes/5/cook', entries: string[] = []) {
 }
 
 const location = () => screen.getByTestId('location').textContent
-const subtitle = () => screen.getByText(/Schritt \d+ von \d+/).textContent
+const subtitle = () => screen.getByText(/Schritt \d+ von \d+$/).textContent
 const next = () => screen.getByRole('button', { name: /Weiter/ })
 const back = () => screen.getByRole('button', { name: 'Zurück' })
 
@@ -136,18 +140,30 @@ describe('CookMode', () => {
     expect(subtitle()).toContain('Schritt 4 von 5')
   })
 
-  it('ignores the keys while typing and with a modifier', async () => {
+  it('ignores the keys while typing', async () => {
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(TWO_SECTIONS))
     renderCook('/recipes/5/cook', ['/recipes/5'])
     await screen.findByText('Zwiebeln hacken')
     const input = document.createElement('input')
     document.body.appendChild(input)
-    fireEvent.keyDown(input, { key: 'ArrowRight' })
-    fireEvent.keyDown(input, { key: 'Escape' })
-    fireEvent.keyDown(document.body, { key: 'ArrowRight', altKey: true })
+    try {
+      fireEvent.keyDown(input, { key: 'ArrowRight' })
+      fireEvent.keyDown(input, { key: 'Escape' })
+      expect(subtitle()).toContain('Schritt 1 von 5')
+      expect(screen.queryByTestId('location')).toBeNull()
+    } finally {
+      input.remove()
+    }
+  })
+
+  it.each(['altKey', 'ctrlKey', 'metaKey', 'shiftKey'])('ignores the keys with %s', async (modifier) => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(TWO_SECTIONS))
+    renderCook('/recipes/5/cook', ['/recipes/5'])
+    await screen.findByText('Zwiebeln hacken')
+    fireEvent.keyDown(document.body, { key: 'ArrowRight', [modifier]: true })
+    fireEvent.keyDown(document.body, { key: 'Escape', [modifier]: true })
     expect(subtitle()).toContain('Schritt 1 von 5')
     expect(screen.queryByTestId('location')).toBeNull()
-    input.remove()
   })
 
   it('leaves Escape to the open timer panel', async () => {
@@ -171,6 +187,25 @@ describe('CookMode', () => {
     fireEvent.keyDown(document.body, { key: 'ArrowRight' })
     await act(async () => resolve(recipe(TWO_SECTIONS)))
     expect(subtitle()).toBe('Soße · Schritt 1 von 5')
+  })
+
+  it('moves focus to Weiter when Zurück reaches the first step', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(TWO_SECTIONS))
+    renderCook()
+    await screen.findByText('Zwiebeln hacken')
+    fireEvent.click(next())
+    back().focus()
+    fireEvent.click(back())
+    expect(document.activeElement).toBe(next())
+  })
+
+  it('announces the step as one string', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(TWO_SECTIONS))
+    renderCook()
+    await screen.findByText('Zwiebeln hacken')
+    fireEvent.click(next())
+    const live = document.querySelector('[aria-live="polite"]')
+    expect(live?.textContent).toBe('Schritt 2 von 5: Anbraten')
   })
 
   it('keeps focus on the primary button when Weiter turns into Fertig', async () => {
@@ -210,6 +245,8 @@ describe('CookMode', () => {
         await screen.findByText('Zwiebeln hacken')
         leave[way]()
         expect(location()).toBe('/recipes/5?servings=4')
+        // Replaces cook mode, so Back doesn't return to it.
+        expect(screen.getByTestId('location').dataset.navigation).toBe('REPLACE')
       },
     )
   })
