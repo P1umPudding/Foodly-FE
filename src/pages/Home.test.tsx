@@ -126,7 +126,7 @@ describe('Home', () => {
   })
 
   describe('Geteilt mit dir', () => {
-    it('sits in the side column, which only becomes a column from 1100 px and when both columns have content', async () => {
+    it('sits in the side column; the grid carries the responsive two-column classes', async () => {
       stubSharedOnly([14, 11])
       renderHome()
       const region = await screen.findByRole('region', { name: 'Geteilt mit dir' })
