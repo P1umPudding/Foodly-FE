@@ -75,7 +75,8 @@ describe('SharedWithYou', () => {
     await waitFor(() => expect(rowLinks()).toHaveLength(3))
     const links = rowLinks()
     expect(links.map((a) => a.getAttribute('href'))).toEqual(['/recipes/14', '/recipes/11', '/recipes/9'])
-    expect(links.map((a) => a.textContent)).toEqual(['Rezept 14von Mara', 'Rezept 11von Jonas', 'Rezept 9von Mara'])
+    expect(links.map((a) => within(a).getByText(/^Rezept/).textContent)).toEqual(['Rezept 14', 'Rezept 11', 'Rezept 9'])
+    expect(links.map((a) => within(a).getByText(/^von /).textContent)).toEqual(['von Mara', 'von Jonas', 'von Mara'])
   })
 
   it('renders no block without shared recipes', async () => {
@@ -96,7 +97,7 @@ describe('SharedWithYou', () => {
     const link = await within(await screen.findByRole('region', { name: 'Geteilt mit dir' })).findByRole('link', {
       name: /Rezept 5/,
     })
-    expect(link.textContent).toBe('Rezept 5')
+    expect(within(link).queryByText(/von/)).toBeNull()
   })
 
   it('has no image column when none of the shown recipes has a photo', async () => {

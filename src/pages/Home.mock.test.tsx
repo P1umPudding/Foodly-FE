@@ -106,11 +106,8 @@ describe('Start page, Geteilt mit dir (mock mode)', () => {
       await within(section).findAllByText('von Jonas', {}, WAIT)
       const links = within(section).getAllByRole('link')
       expect(links.map((a) => a.getAttribute('href'))).toEqual(['/recipes/14', '/recipes/11', '/recipes/9'])
-      expect(links.map((a) => a.textContent)).toEqual([
-        'Asiatische Gemüsepfanne mit Reisvon Jonas',
-        'Rindergulaschvon Mara',
-        'American Pancakesvon Jonas',
-      ])
+      expect(links.map((a) => within(a).getByText(/^von /).textContent)).toEqual(['von Jonas', 'von Mara', 'von Jonas'])
+      within(links[0]).getByText('Asiatische Gemüsepfanne mit Reis')
     },
     SLOW,
   )

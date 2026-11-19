@@ -43,10 +43,15 @@ export function SharedWithYou() {
       skeleton={
         <Card data-testid="shared-skeleton" className="gap-0 p-1">
           {Array.from({ length: SHOWN }, (_, i) => (
-            // The real row's height (two text lines), so nothing jumps; no thumbnail, photos are known only after loading.
-            <div key={i} className={`${ROW_DIVIDER} flex h-14 flex-col justify-center gap-2 px-3`}>
-              <Skeleton className="h-3 w-[60%] rounded-sm" />
-              <Skeleton className="h-2.5 w-[35%] rounded-sm" />
+            // Built like a real row (padding, a name line and a meta line), so nothing jumps; no thumbnail, photos are
+            // known only after loading.
+            <div key={i} className={`${ROW_DIVIDER} px-3 py-2.5`}>
+              <div className="flex h-6 items-center">
+                <Skeleton className="h-3 w-[60%] rounded-sm" />
+              </div>
+              <div className="mt-0.5 flex h-5 items-center">
+                <Skeleton className="h-2.5 w-[35%] rounded-sm" />
+              </div>
             </div>
           ))}
         </Card>
@@ -88,8 +93,11 @@ function SharedRow({ recipe, showImage }: { recipe: Recipe; showImage: boolean }
           <span className="block truncate font-medium">
             <TagText value={recipe.name} />
           </span>
-          {/* Left out while the name is unknown, as in RecipeRow / RecipeTile. */}
-          {owner && <span className="mt-0.5 block truncate text-sm text-muted-foreground">von {owner.name}</span>}
+          {/* Empty while the owner's name is still unknown (as in RecipeRow), but one line tall, so the row doesn't grow
+              when it arrives. */}
+          <span className="mt-0.5 block h-lh truncate text-sm text-muted-foreground">
+            {owner && `von ${owner.name}`}
+          </span>
         </div>
       </Link>
     </li>

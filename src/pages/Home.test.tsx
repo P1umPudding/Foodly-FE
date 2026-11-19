@@ -131,6 +131,7 @@ describe('Home', () => {
       renderHome()
       const region = await screen.findByRole('region', { name: 'Geteilt mit dir' })
       expect(sideColumn().contains(region)).toBe(true)
+      // jsdom can't evaluate `:has` / `:empty`, so this only guards the classes; the screenshots check the selectors.
       const grid = sideColumn().parentElement!
       expect(grid).toBe(mainColumn().parentElement)
       expect(grid.className.split(/\s+/)).toEqual(
