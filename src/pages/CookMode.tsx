@@ -211,7 +211,7 @@ export function CookMode() {
         </>
       }
       footer={
-        <footer className="sticky bottom-0 z-10 flex items-center justify-between gap-4 border-t bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <footer className="sticky bottom-0 z-10 flex items-center justify-between gap-4 border-t bg-background p-4 pr-[calc(1rem+env(safe-area-inset-right))] pb-[calc(1rem+env(safe-area-inset-bottom))] pl-[calc(1rem+env(safe-area-inset-left))]">
           <TriggerButton
             ref={backRef}
             variant="outline"
@@ -287,7 +287,8 @@ function CookFrame({ header, footer, children }: { header: ReactNode; footer?: R
 
 function CookHeader({ close, actions, children }: { close: ReactNode; actions?: ReactNode; children: ReactNode }) {
   return (
-    <header className="flex items-center gap-3 px-4 py-2.5">
+    // viewport-fit=cover (#220): header and footer keep their content clear of notch and home indicator.
+    <header className="flex items-center gap-3 px-4 py-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] pr-[calc(1rem+env(safe-area-inset-right))] pl-[calc(1rem+env(safe-area-inset-left))]">
       {close}
       <div className="min-w-0 flex-1">{children}</div>
       {actions}
