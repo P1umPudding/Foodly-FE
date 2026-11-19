@@ -43,6 +43,16 @@ export function withSize(params: URLSearchParams, factor: number, sizeNumber: nu
   return next
 }
 
+// Only the size of `params`: cook mode leaves for the detail page with the size and nothing else.
+export function sizeOnly(params: URLSearchParams): URLSearchParams {
+  const next = new URLSearchParams()
+  for (const key of [SERVINGS, FACTOR]) {
+    const value = params.get(key)
+    if (value !== null) next.set(key, value)
+  }
+  return next
+}
+
 // The cook-mode link keeps the size. A portions recipe names its servings even at the default (AC3), unless that
 // default is fractional (old data, e.g. 2.5): no whole count stands for it, and a missing param is factor 1 anyway.
 export function cookHref(recipeId: number, factor: number, sizeNumber: number | null): string {
