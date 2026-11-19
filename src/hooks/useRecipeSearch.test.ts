@@ -239,12 +239,12 @@ describe('useRecipeSearch', () => {
   })
 
   it('drops responses that land after unmount', async () => {
-    let resolvePage1!: (res: PaginatedRecipes) => void
-    let resolvePage2!: (res: PaginatedRecipes) => void
+    let resolveSecondMount!: (res: PaginatedRecipes) => void
+    let resolveLoadMore!: (res: PaginatedRecipes) => void
     vi.spyOn(foodly, 'searchRecipes')
       .mockResolvedValueOnce({ items: [rec(1)], cursor: 2 })
-      .mockReturnValueOnce(new Promise((r) => (resolvePage2 = r)))
-      .mockReturnValueOnce(new Promise((r) => (resolvePage1 = r)))
+      .mockReturnValueOnce(new Promise((r) => (resolveLoadMore = r)))
+      .mockReturnValueOnce(new Promise((r) => (resolveSecondMount = r)))
 
     const first = renderHook(() => useRecipeSearch({ sort: { field: 'name', order: 'asc' } }))
     await waitFor(() => expect(first.result.current.status).toBe('ready'))
@@ -253,10 +253,11 @@ describe('useRecipeSearch', () => {
     const second = renderHook(() => useRecipeSearch({ sort: { field: 'name', order: 'desc' } }))
     second.unmount()
 
-    // React 18 reads window.event for every setState, even on an unmounted component: none may happen.
+    // React 18 reads window.event to pick an update's priority, even on an unmounted component: none may happen.
+    // Follows React 18 internals; re-check on React 19.
     const event = vi.spyOn(window, 'event', 'get')
-    resolvePage1({ items: [rec(9)], cursor: null })
-    resolvePage2({ items: [rec(2)], cursor: null })
+    resolveSecondMount({ items: [rec(9)], cursor: null })
+    resolveLoadMore({ items: [rec(2)], cursor: null })
     await act(async () => {})
     expect(event).not.toHaveBeenCalled()
   })

@@ -31,7 +31,7 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
   const [loadingMore, setLoadingMore] = useState(false)
   const [loadMoreError, setLoadMoreError] = useState<Error | null>(null)
   const [nonce, setNonce] = useState(0)
-  // Bumped on every query-epoch change so stale loadMore responses are dropped.
+  // Bumped on every query change and on unmount so late responses are dropped.
   const epoch = useRef(0)
   // A page request is running. Two callers (the list's sentinel and its scroll restore) can call loadMore in the
   // same commit, before loadingMore reaches their closures; this keeps that to one request per page.
@@ -59,10 +59,9 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
         setError(toError(e))
         setStatus('error')
       })
-    // A response landing after unmount must not set state: React 18 still touches `window` for it, which throws once
-    // a test environment is torn down.
+    // No setState after unmount: React 18 still reads `window` for it, which throws once a test environment is torn down.
     return () => {
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- epoch is a counter, not a DOM ref: bumping its current value is the point
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- epoch is a counter we mean to bump at cleanup; the value it holds by then is irrelevant
       epoch.current++
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- query is tracked by value via key; callers pass a new object each render
