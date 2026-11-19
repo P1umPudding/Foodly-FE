@@ -262,7 +262,7 @@ export function RecipeList() {
           <ResultCount count={listReady ? visible.length : 0} more={!listReady || search.hasMore} />
           {facetActive && (
             // Mockup link-btn: quiet 12 px text with a hover fill (design.md keeps accent colour off links), hence the
-            // text-xs over the size's text-base. On phones the ::after widens the hit area to 40 px (design.md §7); the 7 px
+            // text-xs over the size's text-base. On phones and touch the ::after widens the hit area to 40 px (design.md §7); the 7 px
             // above and below fit into the header's mt-3/pb-3.
             <ResetLinkButton
               onClick={() => {
@@ -271,7 +271,7 @@ export function RecipeList() {
                 // Not on phones, where focusing the search would pop the keyboard over the list.
                 if (isDesktop) searchInputRef.current?.focus({ preventScroll: true })
               }}
-              className="relative phone:after:absolute phone:after:-inset-y-[7px] phone:after:inset-x-0"
+              className="relative phone:after:absolute phone:after:-inset-y-[7px] phone:after:inset-x-0 touch:after:absolute touch:after:-inset-y-[7px] touch:after:inset-x-0"
             >
               Alle Filter zurücksetzen
             </ResetLinkButton>

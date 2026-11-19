@@ -5,7 +5,7 @@ import { DETAIL_OPTIONS, LAYOUT_OPTIONS } from './listOptions'
 import { Segment } from './Segment'
 
 // 34 px segments make the 38 px track of the mockup toolbar, flush with the search and the sort button.
-const TOOLBAR_ITEM = 'h-[34px]'
+const TOOLBAR_ITEM = 'h-[34px] touch:h-10'
 
 export function ViewToggles({
   state,

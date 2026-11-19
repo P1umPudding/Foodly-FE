@@ -172,7 +172,7 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
           prefix="≤"
           suffix="min"
           // suffix is the wrapper's last child span → shrink just "min"
-          wrapperClassName="min-h-8 phone:min-h-10 w-28 shrink-0 [&>span:last-child]:text-xs [&>span:first-child]:text-base"
+          wrapperClassName="min-h-8 phone:min-h-10 touch:min-h-10 w-28 shrink-0 [&>span:last-child]:text-xs [&>span:first-child]:text-base"
           // dark:bg-transparent so the input area matches the wrapper (the lib leaves dark:bg-input/30 on the
           // input, which otherwise differs from prefix/suffix).
           className="bg-transparent text-right dark:bg-transparent"
@@ -193,7 +193,7 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
             // bg-sidebar-accent: the mockup's --active (pressed) fill. The fill alone is no 3:1 state cue, so the pressed
             // one also gets a stronger border and weight (postxl buttons are already 500).
             className={cn(
-              'phone:h-10',
+              'phone:h-10 touch:h-10',
               shown === m &&
                 'border-foreground/40 bg-sidebar-accent font-semibold hover:bg-sidebar-accent dark:border-foreground/40 dark:bg-sidebar-accent dark:hover:bg-sidebar-accent',
             )}
