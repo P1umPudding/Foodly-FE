@@ -5,7 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { foodly } from '../api'
 import { resetSessionEnd } from '../api/auth'
-import { RedirectIfSignedIn, RequireAuth } from '../components/shell/RequireAuth'
+import { RedirectIfSignedIn, RequireAuth, ShellLayout } from '../components/shell/RequireAuth'
 import { jsonResponse, seedSession } from '../test/auth'
 import { startAlarm, stopAlarm } from './alarm'
 import { TimerProvider, useTimers } from './TimerProvider'
@@ -158,7 +158,9 @@ describe('timers per signed-in user', () => {
             <Route path="/login" element={<p>login</p>} />
           </Route>
           <Route element={<RequireAuth />}>
-            <Route path="*" element={<TimerList />} />
+            <Route element={<ShellLayout />}>
+              <Route path="*" element={<TimerList />} />
+            </Route>
           </Route>
         </Routes>
       </MemoryRouter>,

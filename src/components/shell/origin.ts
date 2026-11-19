@@ -7,6 +7,12 @@ export type Origin = { label: string; href: string }
 
 const RECIPE_DETAIL = /^\/recipes\/(?!new$)[^/]+$/
 const RECIPE_EDIT = /^\/recipes\/([^/]+)\/edit$/
+const COOK_MODE = /^\/recipes\/[^/]+\/cook$/
+
+// Cook mode runs without the shell, so it is no subpage; the Toaster still needs to know it.
+export function isCookMode(pathname: string): boolean {
+  return COOK_MODE.test(pathname)
+}
 
 export type Subpage = 'detail' | 'category' | 'editor' | 'settings'
 

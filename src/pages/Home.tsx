@@ -1,5 +1,5 @@
-// The start page: greeting plus the sections (D2–D4). While no section has content it shows the
-// "nothing to show" card instead.
+// The start page: greeting plus the sections (D2–D4), from 1100 px with "Geteilt mit dir" in a side column as in the
+// mockup. While no section has content it shows the "nothing to show" card instead.
 import { useMe } from '../catalog/CatalogProvider'
 import { PageTitle } from '../components/PageTitle'
 import { Page } from '../components/shell/Page'
@@ -8,6 +8,7 @@ import { HomeSectionsProvider, NothingToShow } from '../components/home/HomeSect
 import { formatHomeDate, greeting } from '../components/home/greeting'
 import { RecentCreations } from '../components/home/RecentCreations'
 import { RecentlyViewed } from '../components/home/RecentlyViewed'
+import { SharedWithYou } from '../components/home/SharedWithYou'
 
 export function Home() {
   const me = useMe()
@@ -23,8 +24,17 @@ export function Home() {
         </div>
         {/* Sections, each a HomeSection. */}
         <CategoryTiles />
-        <RecentCreations />
-        <RecentlyViewed />
+        {/* An empty section renders nothing, so `:empty` means "this column has nothing to show": an empty column is
+            hidden (no stray gap), the grid with no section at all too, and two columns only when both have content. */}
+        <div className="grid gap-8 not-has-[section]:hidden min-[1100px]:not-has-[>:empty]:grid-cols-[minmax(0,1fr)_300px] min-[1100px]:not-has-[>:empty]:gap-x-10">
+          <div data-slot="home-main" className="flex min-w-0 flex-col gap-8 empty:hidden">
+            <RecentCreations />
+            <RecentlyViewed />
+          </div>
+          <div data-slot="home-side" className="min-w-0 empty:hidden">
+            <SharedWithYou />
+          </div>
+        </div>
         <NothingToShow />
       </Page>
     </HomeSectionsProvider>

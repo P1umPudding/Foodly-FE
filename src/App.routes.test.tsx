@@ -11,7 +11,10 @@ function Page({ name }: { name: string }) {
   return <p data-testid="page">{`${name} ${pathname}${search}`}</p>
 }
 
-vi.mock('./components/shell/AppShell', () => ({ AppShell: ({ children }: { children: ReactNode }) => <>{children}</> }))
+// A marker instead of the real shell: cook mode must render without it.
+vi.mock('./components/shell/AppShell', () => ({
+  AppShell: ({ children }: { children: ReactNode }) => <nav aria-label="Shell">{children}</nav>,
+}))
 vi.mock('./catalog/CatalogProvider', () => ({
   CatalogProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
@@ -23,6 +26,7 @@ vi.mock('./pages/RecipeDetail', () => ({ RecipeDetail: () => <Page name="detail"
 vi.mock('./pages/Categories', () => ({ Categories: () => <Page name="categories" /> }))
 vi.mock('./pages/Profile', () => ({ Profile: () => <Page name="profile" /> }))
 vi.mock('./pages/NotFound', () => ({ NotFound: () => <Page name="404" /> }))
+vi.mock('./pages/CookMode', () => ({ CookMode: () => <Page name="cook" /> }))
 
 const at = (path: string) => {
   render(
@@ -38,6 +42,7 @@ afterEach(() => localStorage.clear())
 describe('App routes', () => {
   it.each([
     ['/recipes/5', 'login /login?next=%2Frecipes%2F5'],
+    ['/recipes/5/cook', 'login /login?next=%2Frecipes%2F5%2Fcook'],
     ['/categories', 'login /login?next=%2Fcategories'],
     ['/profile', 'login /login?next=%2Fprofile'],
     ['/recipes', 'login /login?next=%2Frecipes'],
@@ -51,6 +56,7 @@ describe('App routes', () => {
 
   it.each([
     ['/recipes/5', 'detail /recipes/5'],
+    ['/recipes/5/cook?servings=4', 'cook /recipes/5/cook?servings=4'],
     ['/categories', 'categories /categories'],
     ['/profile', 'profile /profile'],
     ['/nowhere', '404 /nowhere'],
@@ -62,5 +68,17 @@ describe('App routes', () => {
   ])('with a session %s shows %s', (path, page) => {
     seedSession()
     expect(at(path)).toBe(page)
+  })
+
+  it('renders cook mode without the shell', () => {
+    seedSession()
+    at('/recipes/5/cook')
+    expect(screen.queryByRole('navigation', { name: 'Shell' })).toBeNull()
+  })
+
+  it('keeps the shell around the recipe page', () => {
+    seedSession()
+    at('/recipes/5')
+    expect(screen.getByRole('navigation', { name: 'Shell' })).toBeTruthy()
   })
 })

@@ -3,7 +3,7 @@
 // all rely on window scrolling.
 import { useCallback, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Button, Toaster, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
+import { Button, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
 import { ChevronLeft, Plus } from 'lucide-react'
 import { TimerPanel } from '../../timers/TimerPanel'
 import { TimerPanelProvider } from '../../timers/TimerPanelContext'
@@ -40,9 +40,6 @@ const SIDEBAR_WIDTH = {
 // the :root default.
 const PHONE_SHELL_VAR = '[--site-nav-h:calc(3.5rem+env(safe-area-inset-top))]'
 const TAB_BAR_SHELL_VAR = '[--shell-bottom:calc(4rem+env(safe-area-inset-bottom))]'
-// sonner applies mobileOffset only up to 600 px, so the offset has to follow our breakpoint instead.
-const PHONE_TOAST_OFFSET = { bottom: 'calc(5rem + env(safe-area-inset-bottom))' }
-const EDITOR_PHONE_TOAST_OFFSET = { bottom: 'calc(1rem + env(safe-area-inset-bottom))' }
 
 export function AppShell({ children }: { children: ReactNode }) {
   const isDesktop = useIsDesktop()
@@ -57,7 +54,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const onMainPage = NAV_DESTINATIONS.some((d) => d.path === pathname)
   // The editor takes the whole phone screen: no tab bar there (#218), so the page gets the bottom edge.
   const tabBar = !isDesktop && subpage !== 'editor'
-  const phoneToastOffset = tabBar ? PHONE_TOAST_OFFSET : EDITOR_PHONE_TOAST_OFFSET
 
   // The page's crumb name, stamped with the path it was set on: on a switch between two recipes the old name must not
   // show (or be remembered) for the new one until that page reports its own.
@@ -161,7 +157,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             </Button>
           )}
-          <Toaster offset={isDesktop ? undefined : phoneToastOffset} mobileOffset={phoneToastOffset} />
         </div>
       </PageHeaderContext.Provider>
     </TimerPanelProvider>
