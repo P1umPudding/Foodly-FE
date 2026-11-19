@@ -217,12 +217,8 @@ export function RecipeList() {
 
   return (
     // On phones the shell's bottom padding only clears the tab bar; the extra room lets the last card scroll past
-    // the fixed "+" button above it (safe-area inset ready for viewport-fit=cover).
-    <Page
-      wide
-      data-testid="recipe-list-page"
-      className="pt-0 pb-10 phone:pt-0 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]"
-    >
+    // the fixed "+" button above it (the shell padding already includes the safe-area inset).
+    <Page wide data-testid="recipe-list-page" className="pt-0 pb-10 phone:pt-0 phone:pb-24">
       {/* Not sticky (mockup): search, filters and count scroll away; only the site header and the category
           headers stick. */}
       <div data-testid="list-toolbar" className="pb-3 pt-6 phone:pt-3">

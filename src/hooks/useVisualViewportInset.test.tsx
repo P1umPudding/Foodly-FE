@@ -22,9 +22,9 @@ afterEach(() => {
   Reflect.deleteProperty(document.documentElement, 'clientHeight')
 })
 
-function Sheet() {
-  const ref = useVisualViewportInset<HTMLDivElement>()
-  return <div ref={ref} data-testid="sheet" />
+function Sheet({ swapped = false }: { swapped?: boolean }) {
+  const ref = useVisualViewportInset<HTMLElement>()
+  return swapped ? <section ref={ref} data-testid="sheet" /> : <div ref={ref} data-testid="sheet" />
 }
 
 const inset = (el: HTMLElement) => el.style.getPropertyValue(VV_INSET_VAR)
@@ -70,6 +70,18 @@ describe('useVisualViewportInset', () => {
     expect(remove).not.toHaveBeenCalled()
     unmount()
     expect(remove.mock.calls.map((c) => c[0]).sort()).toEqual(['resize', 'scroll'])
+  })
+
+  // A sheet that closes and reopens hands the ref a new element: only that one may follow the keyboard.
+  it('moves its listeners to a new element', () => {
+    const { getByTestId, rerender } = render(<Sheet />)
+    const first = getByTestId('sheet')
+    rerender(<Sheet swapped />)
+    const second = getByTestId('sheet')
+    expect(second).not.toBe(first)
+    resize(600)
+    expect(inset(second)).toBe('200px')
+    expect(inset(first)).toBe('0px')
   })
 
   it('does nothing without visualViewport', () => {

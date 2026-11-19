@@ -98,7 +98,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             className={cn(
               'flex min-w-0 flex-1 flex-col',
               tabBar && 'pb-(--shell-bottom)',
-              isDesktop && 'pr-[env(safe-area-inset-right)]',
+              // Side insets in landscape: the sidebar takes the left one on the desktop layout.
+              isDesktop
+                ? 'pr-[env(safe-area-inset-right)]'
+                : 'pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]',
             )}
           >
             {/* `site-header`: hook for the theme view-transition rule in styles.css. */}

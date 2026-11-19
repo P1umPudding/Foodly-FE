@@ -24,11 +24,11 @@ export function BottomSheet({ title, description, scroll = true, className, chil
       // The lib's ✕ (16 px, "Close") can't be configured; it is always the first child, so hide it and
       // render our own. It keeps its data-test-id ("<id>-close") in the DOM, hidden. pt-0: the grip sits 8 px
       // below the edge as in the mockup, not below the lib's p-6.
-      // --vv-inset: the part the on-screen keyboard covers (#220). The bottom padding lifts the footer above it (or
-      // above the home indicator, whichever is taller), and the max height shrinks by it so the head stays visible
-      // on iOS, where dvh ignores the keyboard.
+      // --vv-inset: the part the on-screen keyboard covers (#220). The sheet sits on top of it and gives up that much
+      // height, so footer and head stay visible on iOS, where neither fixed bottom-0 nor dvh notice the keyboard.
+      // The var() fallback matters: unset, `bottom` would turn invalid and fall back to auto.
       className={cn(
-        'flex max-h-[calc(80dvh_-_var(--vv-inset,0px))] flex-col gap-0 rounded-t-lg px-0 pt-0 pb-[max(env(safe-area-inset-bottom),var(--vv-inset,0px))] [&>button:first-child]:hidden',
+        'bottom-[var(--vv-inset,0px)] flex max-h-[calc(80dvh_-_var(--vv-inset,0px))] flex-col gap-0 rounded-t-lg px-0 pt-0 pb-[env(safe-area-inset-bottom)] [&>button:first-child]:hidden',
         className,
       )}
     >

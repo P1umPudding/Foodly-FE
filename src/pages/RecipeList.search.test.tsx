@@ -401,7 +401,7 @@ describe('RecipeList (layout)', () => {
     // the FAB's top edge must stay below the last card when scrolled to the end (#74).
     const wrapper = screen.getByTestId('recipe-list-page')
     expect(wrapper.classList.contains('pb-10')).toBe(true)
-    expect(wrapper.classList.contains('phone:pb-[calc(6rem+env(safe-area-inset-bottom))]')).toBe(true)
+    expect(wrapper.classList.contains('phone:pb-24')).toBe(true)
   })
 })
 

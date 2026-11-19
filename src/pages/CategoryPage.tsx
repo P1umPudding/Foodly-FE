@@ -60,7 +60,7 @@ export function CategoryPage() {
 
   return (
     // On phones the extra bottom room lets the last card scroll past the fixed "+" button (as on /recipes, #74).
-    <Page className="pb-10 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <Page className="pb-10 phone:pb-24">
       {/* Every state has the page's one h1; until the category is known it can only be generic. */}
       {catalog.status !== 'ready' && <h1 className="sr-only">Kategorie</h1>}
       {catalog.status === 'loading' && (

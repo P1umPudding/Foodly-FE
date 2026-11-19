@@ -97,7 +97,8 @@ There's no server code and no secrets in the repo.
   (`size.ts`) and ticked ingredients in memory (`checkedIngredients.ts`).
 - `src/hooks/` — `useRequest` (run a request, track loading/ready/error),
   `useRecipeSearch` (cursor-paginated recipe search, infinite scroll),
-  `useWakeLock`, `useVisualViewportInset` (on-screen keyboard height as `--vv-inset`, for `BottomSheet`). `useSocketStatus` belongs to the future live editing: `ConnectionDot`
+  `useWakeLock`, `useVisualViewportInset` (on-screen keyboard height as
+  `--vv-inset`, for `BottomSheet`). `useSocketStatus` belongs to the future live editing: `ConnectionDot`
   (not rendered in the shell today) shows connected whenever the mock responder
   is installed (mock mode only; it sets the socket to open) and does **not** reflect REST/backend health.
 - `src/components/` — shared UI, plus `editor/`, `home/`, `list/`, `recipe/`, `shell/`

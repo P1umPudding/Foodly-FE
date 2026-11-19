@@ -135,7 +135,8 @@ export function Lightbox({
       aria-modal="true"
       aria-label="Fotos"
       onClick={onClose}
-      className="fixed inset-0 z-[100] flex cursor-zoom-out flex-col bg-[oklch(0.12_0_0)] text-white"
+      // The backdrop fills the whole screen, the controls stay clear of notch and home indicator (viewport-fit=cover).
+      className="fixed inset-0 z-[100] flex cursor-zoom-out flex-col bg-[oklch(0.12_0_0)] pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-white"
     >
       <div className="flex h-14 shrink-0 items-center justify-between pl-5 pr-3">
         <span onClick={stop} aria-live="polite" className="cursor-default text-sm tabular-nums text-white/75">
