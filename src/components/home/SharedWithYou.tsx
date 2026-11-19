@@ -41,15 +41,15 @@ export function SharedWithYou() {
       onRetry={reload}
       errorMessage={error?.message}
       skeleton={
-        <Card data-testid="shared-skeleton" className="gap-0 p-1">
+        <Card data-testid="shared-skeleton" className="p-1">
           {Array.from({ length: SHOWN }, (_, i) => (
-            // Built like a real row (padding, a name line and a meta line), so nothing jumps; no thumbnail, photos are
-            // known only after loading.
+            // Built like a real row (padding, a body line and a text-sm meta line, each h-lh of its text size), so
+            // nothing jumps; no thumbnail, photos are known only after loading.
             <div key={i} className={`${ROW_DIVIDER} px-3 py-2.5`}>
-              <div className="flex h-6 items-center">
+              <div data-testid="shared-skeleton-line" className="flex h-lh items-center">
                 <Skeleton className="h-3 w-[60%] rounded-sm" />
               </div>
-              <div className="mt-0.5 flex h-5 items-center">
+              <div data-testid="shared-skeleton-line" className="mt-0.5 flex h-lh items-center text-sm">
                 <Skeleton className="h-2.5 w-[35%] rounded-sm" />
               </div>
             </div>
@@ -57,7 +57,7 @@ export function SharedWithYou() {
         </Card>
       }
     >
-      <Card className="gap-0 p-1">
+      <Card className="p-1">
         <ul aria-label="Geteilte Rezepte">
           {recipes.map((r) => (
             <SharedRow key={r.id} recipe={r} showImage={showImages} />
@@ -70,7 +70,7 @@ export function SharedWithYou() {
 
 function SharedRow({ recipe, showImage }: { recipe: Recipe; showImage: boolean }) {
   const owner = useUser(recipe.owner)
-  const noPhoto = <UtensilsCrossed className="size-4 text-muted-foreground/40" />
+  const noPhoto = <UtensilsCrossed className="size-[18px] text-muted-foreground/40" />
   return (
     <li className={ROW_DIVIDER}>
       <Link

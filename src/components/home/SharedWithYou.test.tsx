@@ -40,7 +40,7 @@ function recipe(id: RecipeId, owner: UserId = 2, withPhoto = false): Recipe {
 const page = (items: Recipe[]) => ({ items, cursor: null })
 
 function renderSection() {
-  render(
+  return render(
     <MemoryRouter>
       <SharedWithYou />
     </MemoryRouter>,
@@ -81,11 +81,7 @@ describe('SharedWithYou', () => {
 
   it('renders no block without shared recipes', async () => {
     const search = vi.spyOn(foodly, 'searchRecipes').mockResolvedValue(page([]))
-    const { container } = render(
-      <MemoryRouter>
-        <SharedWithYou />
-      </MemoryRouter>,
-    )
+    const { container } = renderSection()
     await waitFor(() => expect(search).toHaveBeenCalled())
     await waitFor(() => expect(container.innerHTML).toBe(''))
     expect(screen.queryByRole('region', { name: 'Geteilt mit dir' })).toBeNull()
@@ -127,6 +123,11 @@ describe('SharedWithYou', () => {
     renderSection()
     expect(region().getAttribute('aria-busy')).toBe('true')
     within(region()).getByTestId('shared-skeleton')
+    // Same line heights as a real row (body name line, text-sm meta line), so the card doesn't jump on load.
+    const lines = within(region()).getAllByTestId('shared-skeleton-line')
+    expect(lines).toHaveLength(6)
+    expect(lines.every((l) => l.className.split(/\s+/).includes('h-lh'))).toBe(true)
+    expect(lines.filter((l) => l.className.split(/\s+/).includes('text-sm'))).toHaveLength(3)
   })
 
   it('shows an error with retry, and retrying loads again', async () => {
