@@ -19,6 +19,7 @@ export function AuthCard({ title, children, footer }: { title: string; children:
 
 export function AuthLink({ to, children }: { to: string; children: ReactNode }) {
   return (
+    // Touch: vertical padding on the inline link widens the tap area to 40 px without moving the line.
     <Link to={to} className="font-medium text-foreground underline underline-offset-4 touch:py-2.5">
       {children}
     </Link>

@@ -66,7 +66,7 @@ describe('inactive / active', () => {
     const frame = trigger.closest('[data-slot=filter-button]')!
     expect(frame).toBe(clear.parentElement)
     expect(frame.className.split(/\s+/)).toEqual(
-      expect.arrayContaining(['border', 'border-border-strong', 'h-[30px]', 'phone:h-10', 'touch:h-10']),
+      expect.arrayContaining(['border', 'border-border-strong', 'h-[30px]', 'phone:h-10', 'touch:h-[42px]']),
     )
     expect(clear.className.split(/\s+/)).toEqual(expect.arrayContaining(['border-l', 'phone:w-10', 'touch:w-10']))
   })

@@ -221,7 +221,8 @@ export function Categories() {
                   <CategoryMark category={c} size="md" />
                   <div className="flex min-w-0 flex-1 flex-col">
                     {/* Touch: the padding grows the tap area to 40 px inside truncate's clip, the negative margins keep the
-                        row height; relative keeps the link above the count for hit-testing. */}
+                        row height; relative keeps the link above the count for hit-testing, so on touch a tap on the count opens
+                        the category too. */}
                     <Link
                       to={categoryPageHref(c.id)}
                       className={cn('relative truncate rounded-sm font-medium touch:-my-2.5 touch:py-2.5', FOCUS_RING)}

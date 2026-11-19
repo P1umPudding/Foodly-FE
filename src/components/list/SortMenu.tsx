@@ -61,7 +61,7 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
                 onSelect={keepOpen}
                 className={cn(
                   NO_DOT,
-                  'h-[34px] gap-2.5 rounded-md touch:h-10 pr-2.5 text-base text-muted-foreground focus:bg-hover focus:text-muted-foreground',
+                  'h-[34px] touch:h-10 gap-2.5 rounded-md pr-2.5 text-base text-muted-foreground focus:bg-hover focus:text-muted-foreground',
                   selected && 'font-medium text-foreground focus:text-foreground',
                 )}
               >
@@ -94,7 +94,7 @@ export function SortMenu({ state, set }: { state: ListState; set: (patch: Partia
                 className={cn(
                   NO_DOT,
                   SEG_ITEM,
-                  'h-8 flex-1 justify-center px-1.5 touch:h-10 py-0 focus:text-foreground focus-visible:z-10 focus-visible:ring-[3px] focus-visible:ring-ring/50',
+                  'h-8 touch:h-10 flex-1 justify-center px-1.5 py-0 focus:text-foreground focus-visible:z-10 focus-visible:ring-[3px] focus-visible:ring-ring/50',
                   selected ? cn(SEG_ITEM_ON, 'focus:bg-card') : 'focus:bg-transparent',
                 )}
               >

@@ -59,7 +59,8 @@ export function FilterButton({
     <div
       data-slot="filter-button"
       className={cn(
-        'inline-flex h-[30px] items-stretch overflow-hidden rounded-md border bg-card phone:h-10 touch:h-10', // 30 px: mockup .fbtn
+        // 30 px: mockup .fbtn. Touch: 42 px so the trigger and ✕ inside the 1 px border are 40 px (design.md §7).
+        'inline-flex h-[30px] items-stretch overflow-hidden rounded-md border bg-card phone:h-10 touch:h-[42px]',
         active && 'border-border-strong',
         'has-[[data-state=open]]:border-subtle-foreground',
       )}
