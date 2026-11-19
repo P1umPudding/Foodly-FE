@@ -84,7 +84,7 @@ export function Sidebar({
         {!collapsed && (
           <Link
             to="/"
-            className={cn('-ml-1 flex items-center rounded-md px-1 focus-visible:ring-sidebar-ring', FOCUS_RING)}
+            className={cn('-ml-1 flex items-center rounded-md px-1 focus-visible:ring-sidebar-ring touch:min-h-10', FOCUS_RING)}
           >
             <Brand />
           </Link>
@@ -97,7 +97,7 @@ export function Sidebar({
               aria-label={toggleLabel}
               aria-expanded={!collapsed}
               onClick={() => onCollapsedChange(!collapsed)}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground touch:size-10"
             >
               <ToggleIcon className="size-4" />
             </TriggerButton>
@@ -107,7 +107,7 @@ export function Sidebar({
       </div>
 
       <WithTip collapsed={collapsed} label="Neues Rezept">
-        <Button asChild className={cn('mb-3 w-full gap-1.5', collapsed && 'px-0')}>
+        <Button asChild className={cn('mb-3 w-full gap-1.5 touch:h-10', collapsed && 'px-0')}>
           <Link to="/recipes/new" aria-label={collapsed ? 'Neues Rezept' : undefined}>
             <Plus className="size-4" />
             {!collapsed && 'Neues Rezept'}
@@ -167,7 +167,7 @@ export function Sidebar({
                     aria-label="Kategorien verwalten"
                     className={cn(
                       buttonVariants({ variant: 'ghost', size: 'icon' }),
-                      'size-7 text-muted-foreground hover:text-foreground',
+                      'size-7 text-muted-foreground hover:text-foreground touch:size-10',
                     )}
                   >
                     <Settings aria-hidden className="size-3.5" />

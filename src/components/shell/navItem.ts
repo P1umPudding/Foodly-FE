@@ -4,7 +4,7 @@ import { buttonVariants, cn } from '@postxl/ui-components'
 export function navItemClass(active: boolean, collapsed: boolean) {
   return cn(
     buttonVariants({ variant: 'ghost' }),
-    'h-9 w-full gap-2.5 px-2.5 font-medium',
+    'h-9 w-full gap-2.5 px-2.5 font-medium touch:h-10',
     collapsed ? 'justify-center px-0' : 'justify-start',
     active
       ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'

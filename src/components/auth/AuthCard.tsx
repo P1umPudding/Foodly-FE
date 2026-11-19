@@ -19,7 +19,7 @@ export function AuthCard({ title, children, footer }: { title: string; children:
 
 export function AuthLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    <Link to={to} className="font-medium text-foreground underline underline-offset-4">
+    <Link to={to} className="font-medium text-foreground underline underline-offset-4 touch:py-2.5">
       {children}
     </Link>
   )
