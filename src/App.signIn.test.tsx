@@ -36,7 +36,9 @@ it('a signed-out visit to /recipes/5 ends on /recipes/5 after signing in', async
     </MemoryRouter>,
   )
   // The login page loads lazily (#221).
-  fireEvent.change(await screen.findByLabelText('E-Mail', {}, { timeout: 3000 }), { target: { value: 'user1@example.com' } })
+  fireEvent.change(await screen.findByLabelText('E-Mail', {}, { timeout: 3000 }), {
+    target: { value: 'user1@example.com' },
+  })
   fireEvent.change(screen.getByLabelText('Passwort'), { target: { value: 'password123' } })
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }))
