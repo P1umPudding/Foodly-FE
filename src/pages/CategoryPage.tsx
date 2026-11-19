@@ -11,11 +11,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@postxl/ui-components'
-import { Skeleton } from '../components/Skeleton'
 import { EyeOff, FolderOpen, MoreHorizontal, Pencil, Search } from 'lucide-react'
 import { useCategories, useCurrentUserId } from '../catalog/CatalogProvider'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
 import { CategoryMark } from '../components/category/CategoryMark'
+import { CategoryPageSkeleton } from '../components/category/CategoryPageSkeleton'
 import { ListSkeleton, LoadMoreSkeleton } from '../components/list/ListSkeleton'
 import { DesktopListOptions } from '../components/list/DesktopListOptions'
 import { MobileListOptions } from '../components/list/MobileListOptions'
@@ -63,14 +63,7 @@ export function CategoryPage() {
     <Page className="pb-10 phone:pb-24">
       {/* Every state has the page's one h1; until the category is known it can only be generic. */}
       {catalog.status !== 'ready' && <h1 className="sr-only">Kategorie</h1>}
-      {catalog.status === 'loading' && (
-        <>
-          <Skeleton data-testid="category-head-skeleton" className="h-24 w-full rounded-lg phone:h-20" />
-          <div className="pt-6">
-            <ListSkeleton detail="detailed" count={4} />
-          </div>
-        </>
-      )}
+      {catalog.status === 'loading' && <CategoryPageSkeleton headTestId="category-head-skeleton" />}
 
       {catalog.status === 'error' && (
         <ErrorState

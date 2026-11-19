@@ -27,6 +27,10 @@ export default defineConfig(({ mode }) => {
       proxy: { '/api': { target: 'http://localhost:8080', changeOrigin: true } },
     },
     preview: previewServer,
+    // The entry chunk is ~700 kB minified even with the rare routes split off (#221): most of it is
+    // @postxl/ui-components and react-dom, which every first page needs (#309). The limit sits just above today's size,
+    // so a growing entry still warns.
+    build: { chunkSizeWarningLimit: 710 },
     test: {
       environment: 'jsdom',
       globals: true,

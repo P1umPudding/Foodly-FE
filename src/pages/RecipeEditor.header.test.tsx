@@ -10,6 +10,7 @@ import { TimerProvider } from '../timers/TimerProvider'
 import { foodly } from '../api'
 import { resetPendingSaves } from '../api/pendingSaves'
 import type { Recipe } from '../api/protocol'
+import { lazyPageLoaded } from '../test/lazyRoutes'
 
 vi.hoisted(() => vi.stubEnv('VITE_MOCK', ''))
 
@@ -45,7 +46,7 @@ const recipe: Recipe = {
   sections: [{ id: 1, name: null, ingredients: [], steps: ['Kochen.'] }],
 }
 
-function renderAt(path: string) {
+async function renderAt(path: string) {
   render(
     <ThemeProvider>
       <TooltipProvider>
@@ -62,6 +63,7 @@ function renderAt(path: string) {
       </TooltipProvider>
     </ThemeProvider>,
   )
+  await lazyPageLoaded()
 }
 
 const header = () => within(screen.getByRole('banner'))
@@ -80,7 +82,7 @@ afterAll(() => vi.unstubAllEnvs())
 describe('RecipeEditor in the shell header', () => {
   it('edit: "Fertig" and the save status are in the header, no footer hint in the page', async () => {
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe)
-    renderAt('/recipes/5/edit')
+    await renderAt('/recipes/5/edit')
 
     await waitFor(() => expect(header().getByRole('button', { name: 'Fertig' })).toBeTruthy())
     expect(header().getByText('Gespeichert')).toBeTruthy()
@@ -89,8 +91,8 @@ describe('RecipeEditor in the shell header', () => {
     expect(screen.queryByText(/automatisch gesichert/i)).toBeNull()
   })
 
-  it('new: "Anlegen" is in the header, without a save status or a separate "Verwerfen"', () => {
-    renderAt('/recipes/new')
+  it('new: "Anlegen" is in the header, without a save status or a separate "Verwerfen"', async () => {
+    await renderAt('/recipes/new')
 
     expect(header().getByRole('button', { name: 'Anlegen' })).toBeTruthy()
     expect(header().getByText('Neues Rezept')).toBeTruthy()
@@ -103,7 +105,7 @@ describe('RecipeEditor in the shell header', () => {
   it('a failed save shows "Nicht gespeichert" with its retry in the header', async () => {
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe)
     vi.spyOn(foodly, 'updateRecipe').mockRejectedValue(new Error('offline'))
-    renderAt('/recipes/5/edit')
+    await renderAt('/recipes/5/edit')
 
     await waitFor(() => expect(screen.getByLabelText('Titel')).toBeTruthy())
     fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'X' } })
@@ -114,7 +116,7 @@ describe('RecipeEditor in the shell header', () => {
 
   it('an invalid portion count shows "Portionen prüfen" in the header and holds "Fertig"', async () => {
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe)
-    renderAt('/recipes/5/edit')
+    await renderAt('/recipes/5/edit')
 
     await waitFor(() => expect(screen.getByLabelText('Anzahl')).toBeTruthy())
     fireEvent.change(screen.getByLabelText('Anzahl'), { target: { value: '0' } })
@@ -127,7 +129,7 @@ describe('RecipeEditor in the shell header', () => {
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe)
     let finish: (v: { id: number; hash: string; name: null }) => void = () => {}
     vi.spyOn(foodly, 'uploadImage').mockImplementation(() => new Promise((r) => (finish = r)))
-    renderAt('/recipes/5/edit')
+    await renderAt('/recipes/5/edit')
 
     await waitFor(() => expect(screen.getByLabelText('Titel')).toBeTruthy())
     const file = new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })
@@ -144,7 +146,7 @@ describe('RecipeEditor in the shell header', () => {
   it('holds "Anlegen" while photos are uploading', async () => {
     let finish: (v: { id: number; hash: string; name: null }) => void = () => {}
     vi.spyOn(foodly, 'uploadImage').mockImplementation(() => new Promise((r) => (finish = r)))
-    renderAt('/recipes/new')
+    await renderAt('/recipes/new')
 
     fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Neu' } })
     const file = new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })
@@ -157,9 +159,9 @@ describe('RecipeEditor in the shell header', () => {
     expect(header().getByRole('button', { name: 'Anlegen' }).getAttribute('aria-disabled')).toBe('false')
   })
 
-  it('nothing in the header while the recipe loads', () => {
+  it('nothing in the header while the recipe loads', async () => {
     vi.spyOn(foodly, 'getRecipe').mockReturnValue(new Promise(() => {}))
-    renderAt('/recipes/5/edit')
+    await renderAt('/recipes/5/edit')
 
     expect(screen.getByTestId('editor-skeleton')).toBeTruthy()
     expect(header().queryByRole('button', { name: 'Fertig' })).toBeNull()
