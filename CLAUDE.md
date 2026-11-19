@@ -97,7 +97,7 @@ There's no server code and no secrets in the repo.
   (`size.ts`) and ticked ingredients in memory (`checkedIngredients.ts`).
 - `src/hooks/` — `useRequest` (run a request, track loading/ready/error),
   `useRecipeSearch` (cursor-paginated recipe search, infinite scroll),
-  `useWakeLock`. `useSocketStatus` belongs to the future live editing: `ConnectionDot`
+  `useWakeLock`, `useVisualViewportInset` (on-screen keyboard height as `--vv-inset`, for `BottomSheet`). `useSocketStatus` belongs to the future live editing: `ConnectionDot`
   (not rendered in the shell today) shows connected whenever the mock responder
   is installed (mock mode only; it sets the socket to open) and does **not** reflect REST/backend health.
 - `src/components/` — shared UI, plus `editor/`, `home/`, `list/`, `recipe/`, `shell/`
@@ -246,9 +246,11 @@ restating its name and signature. Don't do that.
   (`@theme { --text-* }`) drives sizing via tokens, so the component `size`
   props already render at the right proportions.
 - **Tailwind first — for essentially everything. No inline styles (`style={{…}}`),
-  and CSS is the rare exception, not a peer option.** (Sole inline exception: the one
+  and CSS is the rare exception, not a peer option.** (Inline exceptions: the one
   category-colour helper sets `--cat-*` custom properties, see
-  `docs/decisions/0002-category-colors.md`.) Tailwind covers almost every
+  `docs/decisions/0002-category-colors.md`; and `useVisualViewportInset` sets the
+  keyboard inset `--vv-inset` on `BottomSheet`, a value that changes while the
+  keyboard animates.) Tailwind covers almost every
   case, *including one-off custom values* via arbitrary-value utilities:
   `w-[37.35px]`, `text-[13px]`, `gap-[3px]`, `bg-[#f59e0b]`, `grid-cols-[1fr_1.5fr]`,
   `translate-x-[2px]`, … — any property, any value. So **a custom number is never a
