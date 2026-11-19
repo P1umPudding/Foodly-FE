@@ -237,4 +237,27 @@ describe('useRecipeSearch', () => {
     await waitFor(() => expect(result.current.recipes.map((r) => r.id)).toEqual([1, 2, 3]))
     expect(spy).toHaveBeenNthCalledWith(3, expect.anything(), 3)
   })
+
+  it('drops responses that land after unmount', async () => {
+    let resolvePage1!: (res: PaginatedRecipes) => void
+    let resolvePage2!: (res: PaginatedRecipes) => void
+    vi.spyOn(foodly, 'searchRecipes')
+      .mockResolvedValueOnce({ items: [rec(1)], cursor: 2 })
+      .mockReturnValueOnce(new Promise((r) => (resolvePage2 = r)))
+      .mockReturnValueOnce(new Promise((r) => (resolvePage1 = r)))
+
+    const first = renderHook(() => useRecipeSearch({ sort: { field: 'name', order: 'asc' } }))
+    await waitFor(() => expect(first.result.current.status).toBe('ready'))
+    act(() => first.result.current.loadMore())
+    first.unmount()
+    const second = renderHook(() => useRecipeSearch({ sort: { field: 'name', order: 'desc' } }))
+    second.unmount()
+
+    // React 18 reads window.event for every setState, even on an unmounted component: none may happen.
+    const event = vi.spyOn(window, 'event', 'get')
+    resolvePage1({ items: [rec(9)], cursor: null })
+    resolvePage2({ items: [rec(2)], cursor: null })
+    await act(async () => {})
+    expect(event).not.toHaveBeenCalled()
+  })
 })

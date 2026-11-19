@@ -59,6 +59,12 @@ export function useRecipeSearch(query: RecipeSearchQuery): RecipeSearchResult {
         setError(toError(e))
         setStatus('error')
       })
+    // A response landing after unmount must not set state: React 18 still touches `window` for it, which throws once
+    // a test environment is torn down.
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- epoch is a counter, not a DOM ref: bumping its current value is the point
+      epoch.current++
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- query is tracked by value via key; callers pass a new object each render
   }, [key, nonce])
 
