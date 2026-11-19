@@ -56,9 +56,10 @@ class RouteErrorBoundary extends Component<BoundaryProps, BoundaryState> {
 
 // The status sits next to the skeleton, not around it: the auth skeleton brings its own <main>, and a live region
 // should only announce the one sentence.
-// The page's own h1 arrives with its chunk; until then `title` keeps one heading for screen readers.
-function RouteFallback({ title, children }: { title: string; children: ReactNode }) {
-  return (
+// The page's own h1 arrives with its chunk; until then `title` keeps one heading for screen readers. Outside the
+// shell nothing else provides the main landmark, so `bare` brings one (the skeleton inside is aria-hidden).
+function RouteFallback({ title, bare, children }: { title: string; bare: boolean; children: ReactNode }) {
+  const content = (
     <>
       <h1 className="sr-only">{title}</h1>
       <span role="status" className="sr-only">
@@ -69,6 +70,7 @@ function RouteFallback({ title, children }: { title: string; children: ReactNode
       </div>
     </>
   )
+  return bare ? <main className="contents">{content}</main> : content
 }
 
 export function LazyRoute({
@@ -88,7 +90,15 @@ export function LazyRoute({
   const { pathname } = useLocation()
   return (
     <RouteErrorBoundary resetKey={pathname} exit={exit} bare={bare}>
-      <Suspense fallback={<RouteFallback title={title}>{fallback}</RouteFallback>}>{children}</Suspense>
+      <Suspense
+        fallback={
+          <RouteFallback title={title} bare={bare}>
+            {fallback}
+          </RouteFallback>
+        }
+      >
+        {children}
+      </Suspense>
     </RouteErrorBoundary>
   )
 }

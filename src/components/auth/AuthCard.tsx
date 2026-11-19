@@ -5,11 +5,12 @@ import { PageTitle } from '../PageTitle'
 import { Skeleton } from '../Skeleton'
 import { Brand } from '../shell/BrandMark'
 
-function AuthFrame({ children }: { children: ReactNode }) {
+// The skeleton renders as a div: while the page loads, the lazy route's fallback provides the main landmark.
+function AuthFrame({ as: Frame = 'main', children }: { as?: 'main' | 'div'; children: ReactNode }) {
   return (
-    <main className="min-h-screen bg-background pt-[12vh] pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] pb-8 text-foreground">
+    <Frame className="min-h-screen bg-background pt-[12vh] pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] pb-8 text-foreground">
       <div className="mx-auto w-full max-w-sm rounded-lg border bg-card p-6">{children}</div>
-    </main>
+    </Frame>
   )
 }
 
@@ -27,7 +28,7 @@ export function AuthCard({ title, children, footer }: { title: string; children:
 // The sign-in card while its page loads (lazy route): brand, title, two fields, the button.
 export function AuthCardSkeleton() {
   return (
-    <AuthFrame>
+    <AuthFrame as="div">
       <Brand className="mb-4 flex" />
       <Skeleton className="mb-6 h-7 w-32" />
       <div className="flex flex-col gap-4">

@@ -99,7 +99,8 @@ werden hier nicht wiederholt.
   steckt einzeln in `LazyRoute` (`src/components/RouteErrorBoundary.tsx`), damit Shell und Tab-Leiste stehen bleiben:
   Fallback ist ein Skelett in Seitenform aus dem Einstieg (nie aus der Seite selbst importieren), ein gescheiterter
   Chunk zeigt `ErrorState`, „Erneut versuchen“ lädt die Seite neu (React.lazy merkt sich den Fehler). Neue seltene
-  Seiten genauso einhängen; Tests warten auf lazy Seiten mit `await findBy…`.
+  Seiten genauso einhängen; Tests warten auf lazy Seiten mit `await findBy…` oder `lazyPageLoaded()`
+  (`src/test/lazyRoutes.ts`), nie darauf, dass ein früherer Test die Seite schon geladen hat.
 - Kein Data Router (`createBrowserRouter`) → kein `useBlocker`; Verlassen-Schutz via
   `beforeunload` + Flush bei Unmount. Lesezugriffe (`getRecipe`, `searchRecipes`) warten auf den
   noch laufenden Unmount-Save (`src/api/pendingSaves.ts`, max. 10 s); Requests deshalb in Effects
