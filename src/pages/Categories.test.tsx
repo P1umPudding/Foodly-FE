@@ -91,6 +91,19 @@ describe('Categories page states', () => {
     expect(button.className.split(' ')).toEqual(expect.arrayContaining(expected))
   })
 
+  // #219: touch grows „Neue Kategorie“ and the name link to 40 px. The link keeps truncate, so its tap area comes
+  // from padding inside the clip, never from an ::after the clip would cut off.
+  it('gives „Neue Kategorie“ and the category link a 40 px tap area on touch', () => {
+    catalog.categories.list = [
+      { id: 3, user: 1, name: 'Suppen', recipes: [7], order: 0, color: '#16a34a', colorLight: null, colorDark: null },
+    ]
+    renderPage()
+    expect(screen.getByRole('button', { name: 'Neue Kategorie' }).className.split(' ')).toContain('touch:h-10')
+    const link = screen.getByRole('link', { name: 'Suppen' })
+    expect(link.className.split(' ')).toEqual(expect.arrayContaining(['truncate', 'touch:py-2.5', 'touch:-my-2.5']))
+    expect(link.className).not.toContain('after:')
+  })
+
   it('has no back button of its own (the shell header has it)', () => {
     renderPage()
     expect(screen.queryByRole('link', { name: /Zurück/ })).toBeNull()

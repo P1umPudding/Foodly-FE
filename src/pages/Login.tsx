@@ -134,7 +134,7 @@ export function Login() {
             <AlertDescription>{failure}</AlertDescription>
           </Alert>
         )}
-        <Button type="submit" className="w-full" disabled={busy}>
+        <Button type="submit" className="w-full touch:h-10" disabled={busy}>
           {busy && <Spinner className="size-4" />}
           Anmelden
         </Button>

@@ -37,6 +37,9 @@ it('is as wide as its content and 38 px high like the toolbar', () => {
   const classes = trigger().className.split(/\s+/)
   // jsdom applies no CSS: check the tokens. sm's gap-1.5 / px-2.5 are the mockup button's 6 px and 10 px.
   expect(classes).toEqual(expect.arrayContaining(['h-[38px]', 'gap-1.5', 'text-base']))
+  // #219: 40 px on touch only.
+  expect(classes).toContain('touch:h-10')
+  expect(classes).not.toContain('h-10')
   // No invisible sizers reserving the widest criterion any more: the label is the only text.
   expect(trigger().querySelector('.invisible')).toBeNull()
   expect(trigger().textContent).toBe('Name')
