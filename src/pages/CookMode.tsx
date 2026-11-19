@@ -40,6 +40,7 @@ export function CookMode() {
   const wakeLock = useWakeLock(true)
   const [index, setIndex] = useState(0)
   const primaryRef = useRef<HTMLButtonElement>(null)
+  const backRef = useRef<HTMLButtonElement>(null)
 
   const plainName = recipe ? plainTagText(recipe.name, tags) : ''
   useDocumentTitle(recipe ? `Kochen: ${plainName} · Foodly` : 'Kochen · Foodly')
@@ -56,6 +57,12 @@ export function CookMode() {
     else navigate(detailHref, { replace: true })
   }
 
+  const goBack = () => {
+    // Arriving at step 1 disables "Zurück"; focus on it would fall to the page, so it moves on to "Weiter".
+    if (index === 1 && document.activeElement === backRef.current) primaryRef.current?.focus()
+    setIndex((i) => Math.max(0, i - 1))
+  }
+
   const panelOpen = timerPanel?.open ?? false
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -66,7 +73,7 @@ export function CookMode() {
       if (e.key === 'Escape') close()
       // No steps yet (loading, error): paging now would leave the index outside the list once they arrive.
       else if (stepCount === 0) return
-      else if (e.key === 'ArrowLeft') setIndex((i) => Math.max(0, i - 1))
+      else if (e.key === 'ArrowLeft') goBack()
       else if (e.key === 'ArrowRight') setIndex((i) => Math.min(stepCount - 1, i + 1))
       else return
       e.preventDefault()
@@ -205,20 +212,17 @@ export function CookMode() {
       }
       footer={
         <footer className="sticky bottom-0 z-10 flex items-center justify-between gap-4 border-t bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          <Button
+          <TriggerButton
+            ref={backRef}
             variant="outline"
             size="lg"
             className="h-12 phone:w-12 phone:px-0"
             disabled={index === 0}
-            onClick={() => {
-              // Arriving at step 1 disables this button; focus would fall to the page, so it moves on to "Weiter".
-              if (index === 1) primaryRef.current?.focus()
-              setIndex((i) => Math.max(0, i - 1))
-            }}
+            onClick={goBack}
           >
             <ChevronLeft aria-hidden />
             <span className="phone:sr-only">Zurück</span>
-          </Button>
+          </TriggerButton>
           <StepDots steps={steps} index={index} />
           {/* One button whose label changes, so keyboard focus stays on it when "Weiter" becomes "Fertig". */}
           <TriggerButton
@@ -244,7 +248,7 @@ export function CookMode() {
     >
       {/* Paging moves no focus, so the new step is announced as one plain string (the visible text would be read in
           fragments, chip labels included). */}
-      <p aria-live="polite" aria-atomic="true" className="sr-only">
+      <p aria-live="polite" aria-atomic="true" className="sr-only" data-testid="step-announcement">
         {`Schritt ${step.number} von ${stepCount}: ${plainTagText(step.text, tags)}`}
       </p>
       <h2 className="text-sm font-semibold text-muted-foreground tabular-nums">Schritt {step.number}</h2>
@@ -319,7 +323,8 @@ function StepDots({ steps, index }: { steps: CookStep[]; index: number }) {
 
 function StepSkeleton() {
   return (
-    <div role="status" aria-label="Schritt wird geladen" data-testid="cook-skeleton">
+    <div role="status" data-testid="cook-skeleton">
+      <span className="sr-only">Schritt wird geladen</span>
       <Skeleton className="h-4 w-20" />
       <Skeleton className="mt-3 h-9 w-full" />
       <Skeleton className="mt-2 h-9 w-4/5" />

@@ -199,13 +199,23 @@ describe('CookMode', () => {
     expect(document.activeElement).toBe(next())
   })
 
+  it('moves focus to Weiter when ← reaches the first step from a focused Zurück', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(TWO_SECTIONS))
+    renderCook()
+    await screen.findByText('Zwiebeln hacken')
+    fireEvent.click(next())
+    back().focus()
+    fireEvent.keyDown(back(), { key: 'ArrowLeft' })
+    expect(subtitle()).toContain('Schritt 1 von 5')
+    expect(document.activeElement).toBe(next())
+  })
+
   it('announces the step as one string', async () => {
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(TWO_SECTIONS))
     renderCook()
     await screen.findByText('Zwiebeln hacken')
     fireEvent.click(next())
-    const live = document.querySelector('[aria-live="polite"]')
-    expect(live?.textContent).toBe('Schritt 2 von 5: Anbraten')
+    expect(screen.getByTestId('step-announcement').textContent).toBe('Schritt 2 von 5: Anbraten')
   })
 
   it('keeps focus on the primary button when Weiter turns into Fertig', async () => {
