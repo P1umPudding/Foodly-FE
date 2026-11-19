@@ -8,6 +8,7 @@ import {
   stepFactor,
   stepServings,
   withSize,
+  sizeOnly,
 } from './size'
 
 const params = (query: string) => new URLSearchParams(query)
@@ -136,5 +137,13 @@ describe('steppers', () => {
     expect(stepServings(2, 1, 2.5)).toBe(2.5)
     expect(stepServings(1, -1, 0.5)).toBe(0.5)
     expect(stepServings(0.5, 1, 0.5)).toBe(1)
+  })
+})
+
+describe('sizeOnly', () => {
+  it('keeps servings and factor and drops everything else', () => {
+    expect(sizeOnly(new URLSearchParams('servings=4&foo=1')).toString()).toBe('servings=4')
+    expect(sizeOnly(new URLSearchParams('factor=0.5&q=x')).toString()).toBe('factor=0.5')
+    expect(sizeOnly(new URLSearchParams('foo=1')).toString()).toBe('')
   })
 })

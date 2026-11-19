@@ -29,6 +29,9 @@ function recipe(over: Partial<Recipe> = {}): Recipe {
     owner: 1,
     editors: [],
     viewers: [],
+    createdAt: null,
+    updatedAt: null,
+    myAccessSince: null,
     rating: [],
     name: 'Pasta',
     tags: [],
@@ -114,9 +117,9 @@ describe('RecipeEditor · edit', () => {
 
     await waitFor(() => expect((screen.getByLabelText('Titel') as HTMLInputElement).value).toBe('Pasta'))
     const file = new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })
-    fireEvent.change(screen.getByLabelText('Bild hochladen'), { target: { files: [file] } })
+    fireEvent.change(screen.getByLabelText('Fotos hinzufügen'), { target: { files: [file] } })
 
-    await waitFor(() => expect(screen.getByAltText('Hauptbild')).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Hauptbild' })).toBeTruthy())
     await waitFor(() => expect(update).toHaveBeenCalledTimes(1), { timeout: 3000 })
     expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ mainImage: 77, images: [] }))
   })
@@ -141,14 +144,64 @@ describe('RecipeEditor · edit', () => {
 
     await waitFor(() => screen.getByText('Kein Zugriff'))
     expect(screen.queryByLabelText('Titel')).toBeNull()
+    // No tab bar on the phone editor: the page itself keeps clear of the bottom edge (#218).
+    expect(screen.getByText('Kein Zugriff').closest('.max-w-3xl')!.className.split(/\s+/)).toContain(
+      'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]',
+    )
   })
 
-  it('surfaces a load failure', async () => {
+  it('surfaces a load failure as the neutral error card, without the raw message', async () => {
     params = { id: '5' }
-    vi.spyOn(foodly, 'getRecipe').mockRejectedValue(new Error('weg'))
+    vi.spyOn(foodly, 'getRecipe').mockRejectedValue(new Error('recipe 5 not found'))
     view()
 
-    await waitFor(() => screen.getByText('Rezept nicht gefunden'))
+    await waitFor(() => screen.getByText('Rezept konnte nicht geladen werden'))
+    expect(screen.getByRole('button', { name: 'Erneut versuchen' })).toBeTruthy()
+    expect(screen.getByText('Zur Liste')).toBeTruthy()
+    expect(screen.queryByText(/not found/)).toBeNull()
+    expect(screen.getByText('Rezept konnte nicht geladen werden').closest('.pb-10')!.className.split(/\s+/)).toContain(
+      'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]',
+    )
+  })
+
+  it('retries a failed load and then shows the editor', async () => {
+    params = { id: '5' }
+    const get = vi.spyOn(foodly, 'getRecipe').mockRejectedValueOnce(new Error('weg')).mockResolvedValue(recipe())
+    view()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Erneut versuchen' }))
+    expect(screen.getByTestId('editor-skeleton')).toBeTruthy()
+    await waitFor(() => expect((screen.getByLabelText('Titel') as HTMLInputElement).value).toBe('Pasta'))
+    expect(get).toHaveBeenCalledTimes(2)
+    expect(screen.queryByText('Kein Zugriff')).toBeNull()
+  })
+
+  it('orders the phone flow images first, notes and source last, with safe-area room below (#218)', async () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
+    view()
+
+    await waitFor(() => screen.getByLabelText('Titel'))
+    // jsdom can't lay out `order`, so the classes stand in for the phone order; DOM order stays main → side.
+    const block = (name: string) => screen.getByRole('heading', { name }).closest('section')!.className.split(/\s+/)
+    expect(block('Bilder')).toContain('phone:order-first')
+    expect(block('Notizen')).toContain('phone:order-last')
+    expect(screen.getByLabelText('Quelle').closest('section')!.className.split(/\s+/)).toContain('phone:order-last')
+    expect(screen.getByRole('heading', { level: 1 }).parentElement!.className.split(/\s+/)).toContain(
+      'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]',
+    )
+  })
+
+  it('keeps the phone order and safe-area room in the loading skeleton (#218)', () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockReturnValue(new Promise(() => {}))
+    view()
+
+    const skeleton = screen.getByTestId('editor-skeleton')
+    expect(skeleton.lastElementChild!.className.split(/\s+/)).toContain('phone:order-first')
+    expect(skeleton.parentElement!.className.split(/\s+/)).toContain(
+      'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]',
+    )
   })
 
   it('shows a loaded Zusatz and saves an edit to it', async () => {
@@ -196,6 +249,32 @@ describe('RecipeEditor · edit', () => {
     fireEvent.click(screen.getByRole('button', { name: /abschnitt hinzufügen/i }))
 
     expect(screen.getAllByLabelText('Abschnittsname')).toHaveLength(2)
+    expect(screen.getByText(/Ein Abschnitt ohne Namen ist der Normalfall/)).toBeTruthy()
+    // The timer hint sits in the first section only.
+    expect(screen.getAllByText(/werden im Rezept zu Timern/)).toHaveLength(1)
+  })
+
+  it('moves a section down via its ⋯ menu and puts focus on "Abschnitt hinzufügen" after removing one', async () => {
+    params = { id: '5' }
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe())
+    vi.spyOn(foodly, 'updateRecipe').mockResolvedValue(recipe())
+    view()
+
+    await waitFor(() => expect((screen.getByLabelText('Titel') as HTMLInputElement).value).toBe('Pasta'))
+    fireEvent.click(screen.getByRole('button', { name: /abschnitt hinzufügen/i }))
+    fireEvent.change(screen.getAllByLabelText('Abschnittsname')[1], { target: { value: 'Teig' } })
+
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Abschnitt 1: Aktionen' }), { key: 'Enter' })
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Nach unten' }))
+    expect((screen.getAllByLabelText('Abschnittsname')[0] as HTMLInputElement).value).toBe('Teig')
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Abschnitt 2: Aktionen' }), { key: 'Enter' })
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Entfernen' }))
+    expect(screen.getAllByLabelText('Abschnittsname')).toHaveLength(1)
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: /abschnitt hinzufügen/i })),
+    )
   })
 })
 

@@ -15,19 +15,49 @@ function renderSheet(props: { scroll?: boolean; onOpenChange?: (open: boolean) =
 }
 
 describe('BottomSheet', () => {
-  it('labels the close button "Schließen" and gives it the 40 px size class', () => {
+  it('puts the title left-aligned and the ✕ in one header row', () => {
     const sheet = renderSheet()
+    const title = within(sheet).getByRole('heading', { name: 'Titel' })
     const close = within(sheet).getByRole('button', { name: 'Schließen' })
-    expect(close.className).toContain('size-10')
-    expect(close.className).not.toContain('size-9')
+    expect(title.closest('.text-center')).toBeNull()
+    expect(title.className).toContain('text-left')
+    expect(title.parentElement?.contains(close)).toBe(true)
+    expect(close.className).not.toContain('absolute')
+  })
+
+  // The lib's SheetTitle brings text-lg/font-semibold; ours must win the merge.
+  it('sets the title at 16/650', () => {
+    const title = within(renderSheet()).getByRole('heading', { name: 'Titel' })
+    expect(title.className).toContain('text-[16px]')
+    expect(title.className).toContain('font-[650]')
+    expect(title.className).not.toContain('text-lg')
+    expect(title.className).not.toContain('font-semibold')
+  })
+
+  it('sizes the ✕ 30 px, 40 px on touch', () => {
+    const close = within(renderSheet()).getByRole('button', { name: 'Schließen' })
+    expect(close.className.split(' ')).toEqual(expect.arrayContaining(['size-7.5', 'touch:size-10']))
   })
 
   // The lib's own ✕ is hidden by a first-child selector (no CSS in tests, so check the structure it relies on).
-  it('keeps the lib close button first, so the selector hides it and not ours', () => {
+  // Ours sits inside the header row, not among the direct children, so the selector can't reach it.
+  it('keeps the lib close button first, followed by the grip', () => {
     const sheet = renderSheet()
     expect(sheet.firstElementChild?.tagName).toBe('BUTTON')
     expect(sheet.firstElementChild?.textContent).toBe('Close')
-    expect(sheet.children[1].getAttribute('aria-label')).toBe('Schließen')
+    expect(sheet.children[1].getAttribute('aria-hidden')).toBe('true')
+    expect(within(sheet).getByRole('button', { name: 'Schließen' }).parentElement).not.toBe(sheet)
+  })
+
+  // A long word (a category name) must wrap, not push the ✕ out of the row.
+  it('gives the title the wrap classes', () => {
+    const title = within(renderSheet()).getByRole('heading', { name: 'Titel' })
+    expect(title.className.split(' ')).toEqual(expect.arrayContaining(['min-w-0', 'break-words']))
+  })
+
+  // The lib's p-6 would push the grip 24 px further down than the mockup's 8 px.
+  it('drops the lib top padding', () => {
+    expect(renderSheet().className.split(' ')).toContain('pt-0')
   })
 
   it('closes from "Schließen"', () => {
@@ -45,5 +75,29 @@ describe('BottomSheet', () => {
   it('leaves the layout to the caller without scroll', () => {
     const sheet = renderSheet({ scroll: false })
     expect(screen.getByText('Inhalt').parentElement).toBe(sheet)
+  })
+
+  // #220: dvh, not vh (iOS's vh is the largest viewport); the keyboard inset lifts the footer and caps the height.
+  it('keeps its footer and head clear of the keyboard and the home indicator', () => {
+    const classes = renderSheet().className.split(' ')
+    expect(classes).toContain('bottom-[var(--vv-inset,0px)]')
+    expect(classes).not.toContain('bottom-0')
+    expect(classes).toContain('max-h-[min(80dvh,calc(var(--vv-height,100dvh)_-_2rem))]')
+    expect(classes).toContain('pb-[max(0px,env(safe-area-inset-bottom)_-_var(--vv-inset,0px))]')
+    expect(classes).not.toContain('max-h-[80vh]')
+  })
+
+  it('sets the keyboard inset on the sheet itself', () => {
+    const vv = Object.assign(new EventTarget(), { height: 500, offsetTop: 0, scale: 1 })
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: vv })
+    Object.defineProperty(document.documentElement, 'clientHeight', { configurable: true, value: 800 })
+    try {
+      const sheet = renderSheet()
+      expect(sheet.style.getPropertyValue('--vv-inset')).toBe('300px')
+      expect(sheet.style.getPropertyValue('--vv-height')).toBe('500px')
+    } finally {
+      Reflect.deleteProperty(window, 'visualViewport')
+      Reflect.deleteProperty(document.documentElement, 'clientHeight')
+    }
   })
 })

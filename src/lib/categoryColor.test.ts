@@ -185,14 +185,21 @@ describe('categoryColorVars', () => {
 })
 
 describe('SUGGESTED_COLORS', () => {
-  it('holds 12 distinct colours spread evenly by hue', () => {
+  it('holds 12 distinct colours whose hues never count as similar', () => {
     expect(SUGGESTED_COLORS).toHaveLength(12)
     expect(new Set(SUGGESTED_COLORS).size).toBe(12)
     SUGGESTED_COLORS.forEach((hex, i) => {
       expect(hex).toMatch(/^#[0-9a-f]{6}$/)
-      const next = SUGGESTED_COLORS[(i + 1) % 12]
-      expect(Math.abs(hueDistance(hex, next) - 30)).toBeLessThan(3)
+      SUGGESTED_COLORS.slice(i + 1).forEach((other) => expect(hueDistance(hex, other)).toBeGreaterThanOrEqual(20))
     })
+  })
+
+  it('ends with a grey that renders as a neutral category', () => {
+    const grey = SUGGESTED_COLORS[11]
+    expect(grey).toBe('#78716c')
+    expect(categoryColors({ color: grey, colorLight: null, colorDark: null })).toEqual(
+      categoryColors({ color: '#808080', colorLight: null, colorDark: null }),
+    )
   })
 })
 
@@ -219,7 +226,7 @@ describe('similarCategory', () => {
     expect(similarCategory(SUGGESTED_COLORS[0], [hit])).toBe(hit)
   })
 
-  it('returns null for a colour 30° away', () => {
+  it('returns null for the neighbouring suggestion', () => {
     expect(similarCategory(SUGGESTED_COLORS[1], [named(1, SUGGESTED_COLORS[0])])).toBeNull()
   })
 
@@ -247,7 +254,7 @@ describe('firstFreeColor', () => {
     expect(firstFreeColor([named(1, SUGGESTED_COLORS[0])])).toBe(SUGGESTED_COLORS[1])
   })
 
-  it('falls back to the first suggestion when all are taken', () => {
-    expect(firstFreeColor(SUGGESTED_COLORS.map((c, i) => named(i, c)))).toBe(SUGGESTED_COLORS[0])
+  it('ends on the neutral grey when every hue is taken', () => {
+    expect(firstFreeColor(SUGGESTED_COLORS.map((c, i) => named(i, c)))).toBe('#78716c')
   })
 })

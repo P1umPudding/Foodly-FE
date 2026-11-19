@@ -1,5 +1,5 @@
 // Loading placeholders of the recipe list and the category page, in the shape of the chosen view.
-import { Skeleton } from '@postxl/ui-components'
+import { Skeleton } from '../Skeleton'
 import type { DetailView } from '../../list/state'
 import { TILE_META_TEXT, TILE_TITLE_TEXT } from '../recipe/RecipeTile'
 import { GroupIndent, TileGrid } from './RecipeListView'
@@ -27,17 +27,19 @@ export function ListSkeleton({
   count,
   testId,
   oneRow = false,
+  denseTiles = false,
 }: {
   detail: DetailView
   count: number
   testId?: string
   oneRow?: boolean
+  denseTiles?: boolean
 }) {
   const items = Array.from({ length: count }, (_, i) => i)
   if (detail === 'tiles') {
     return (
       <div data-testid={testId}>
-        <TileGrid oneRow={oneRow}>
+        <TileGrid oneRow={oneRow} dense={denseTiles}>
           {items.map((i) => (
             <TileSkeleton key={i} />
           ))}
@@ -45,30 +47,56 @@ export function ListSkeleton({
       </div>
     )
   }
+  // Same pitch as the flat rows (34 / 60 px without photo; compact 40 on touch), so nothing jumps; inside, text bars in
+  // the shape of a row (mockup #/states): name and meta line, compact only the name. No thumbnail, unlike the mockup:
+  // whether the list shows photos is only known once recipes have loaded.
   const compact = detail === 'compact'
   return (
-    <div data-testid={testId} className={compact ? 'space-y-0.5' : 'space-y-3'}>
+    <div data-testid={testId} className={compact ? 'space-y-0.5' : 'space-y-1'}>
       {items.map((i) => (
-        <Skeleton
+        <div
           key={i}
           data-testid="row-skeleton"
-          className={`w-full ${compact ? 'h-8 rounded-md' : 'h-18 rounded-lg'}`}
-        />
+          className={`flex w-full flex-col justify-center gap-2 px-3 ${compact ? 'h-8 touch:h-[38px]' : 'h-14'}`}
+        >
+          <Skeleton className={`w-[55%] rounded-sm ${compact ? 'h-2.5' : 'h-3'}`} />
+          {!compact && <Skeleton className="h-2.5 w-[30%] rounded-sm" />}
+        </div>
       ))}
     </div>
   )
 }
 
-export function LoadMoreSkeleton({ detail, grouped }: { detail: DetailView; grouped: boolean }) {
+export function LoadMoreSkeleton({
+  detail,
+  grouped,
+  denseTiles = false,
+}: {
+  detail: DetailView
+  grouped: boolean
+  denseTiles?: boolean
+}) {
   if (detail !== 'tiles') {
     return (
-      <div className="pt-3">
+      <div className="pt-1">
         <ListSkeleton detail={detail} count={1} testId="list-more-skeleton" />
       </div>
     )
   }
-  // One row, as many tiles as the grid has columns (the max-w-6xl column fits at most 4).
-  const tiles = <ListSkeleton detail="tiles" count={4} testId="list-more-skeleton" oneRow />
+  // One row, as many tiles as the grid has columns (the max-w-6xl column fits at most 4, the dense grid 5).
+  const tiles = (
+    <ListSkeleton
+      detail="tiles"
+      count={denseTiles ? 5 : 4}
+      denseTiles={denseTiles}
+      testId="list-more-skeleton"
+      oneRow
+    />
+  )
   // Grouped: indented like a group's grid, so the skeleton columns match the tiles above.
-  return <div className="pt-7 phone:pt-5">{grouped ? <GroupIndent lineless>{tiles}</GroupIndent> : tiles}</div>
+  return (
+    <div className={`${denseTiles ? 'pt-6' : 'pt-7'} phone:pt-5`}>
+      {grouped ? <GroupIndent lineless>{tiles}</GroupIndent> : tiles}
+    </div>
+  )
 }

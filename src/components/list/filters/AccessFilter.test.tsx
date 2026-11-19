@@ -187,3 +187,17 @@ describe('AccessFilter', () => {
     })
   })
 })
+
+describe('AccessFilter wording (mockup #236)', () => {
+  it('names the shared option „Geteilt (nur lesen)“', () => {
+    setup()
+    expect(collabRadio(/^Geteilt \(nur lesen\)$/)).toBeTruthy()
+  })
+
+  it('marks the checked option in fg/500, the rest muted', () => {
+    setup('owner')
+    const label = (r: HTMLElement) => r.parentElement!.querySelector('label')!.className
+    expect(label(roleRadio(/Besitzer/))).toContain('font-medium')
+    expect(label(roleRadio(/Alle/))).toContain('text-muted-foreground')
+  })
+})

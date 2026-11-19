@@ -1,10 +1,11 @@
-// Load states and the back link, against a stand-in catalog. The full flows run in mock mode: Categories.mock.test.tsx.
+// Load states and the page's own controls, against a stand-in catalog. The full flows run in mock mode: Categories.mock.test.tsx.
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { TooltipProvider } from '@postxl/ui-components'
+import { TooltipProvider, buttonVariants } from '@postxl/ui-components'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Categories } from './Categories'
 import type { UserCategory } from '../api/protocol'
+import { redTokens } from '../test/redTokens'
 
 const catalog = vi.hoisted(() => ({
   categories: { list: [] as UserCategory[], status: 'ready', error: null as Error | null, retry: vi.fn() },
@@ -29,7 +30,6 @@ function renderPage() {
       <MemoryRouter initialEntries={['/categories']}>
         <Routes>
           <Route path="/categories" element={<Categories />} />
-          <Route path="/recipes" element={<p>Rezeptliste</p>} />
         </Routes>
       </MemoryRouter>
     </TooltipProvider>,
@@ -52,15 +52,17 @@ describe('Categories page states', () => {
     catalog.categories.status = 'error'
     catalog.categories.error = new Error('Server weg')
     renderPage()
-    expect(screen.getByText('Konnte Kategorien nicht laden')).toBeTruthy()
+    expect(screen.getByText('Kategorien konnten nicht geladen werden')).toBeTruthy()
     expect(screen.getByText('Server weg')).toBeTruthy()
+    expect(redTokens(screen.getByRole('alert'))).toEqual([])
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
     expect(catalog.categories.retry).toHaveBeenCalled()
   })
 
   it('invites to create the first category when there is none', () => {
     renderPage()
-    expect(screen.getByText('Noch keine Kategorien. Leg eine an und sammle darin Rezepte.')).toBeTruthy()
+    expect(screen.getByText('Noch keine Kategorien')).toBeTruthy()
+    expect(screen.getByText('Leg eine an und sammle darin Rezepte.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Neue Kategorie' }))
     expect(screen.getByRole('heading', { name: 'Neue Kategorie' })).toBeTruthy()
   })
@@ -73,12 +75,39 @@ describe('Categories page states', () => {
     expect(screen.getByText('1 Rezept')).toBeTruthy()
   })
 
-  it('goes back to the recipe list without app history', () => {
+  // #243: the mockup's `btn sm` — outline, small. Every own token of that variant, so a wrong size fails too (gap-*
+  // is merged away by the button's gap-1.5).
+  it('makes „Neue Kategorie“ a small outline button', () => {
+    catalog.categories.list = [
+      { id: 3, user: 1, name: 'Suppen', recipes: [7], order: 0, color: '#16a34a', colorLight: null, colorDark: null },
+    ]
     renderPage()
-    const back = screen.getByRole('link', { name: '← Zurück' })
-    expect(back.getAttribute('href')).toBe('/recipes')
-    fireEvent.click(back)
-    expect(screen.getByText('Rezeptliste')).toBeTruthy()
+    const expected = buttonVariants({ variant: 'outline', size: 'sm' })
+      .split(' ')
+      .filter((c) => c && !c.startsWith('gap-'))
+    const defaultSize = buttonVariants({ variant: 'outline' }).split(' ')
+    expect(expected.some((c) => !defaultSize.includes(c))).toBe(true)
+    const button = screen.getByRole('button', { name: 'Neue Kategorie' })
+    expect(button.className.split(' ')).toEqual(expect.arrayContaining(expected))
+  })
+
+  // #219: touch grows „Neue Kategorie“ and the name link to 40 px. The link keeps truncate, so its tap area comes
+  // from padding inside the clip, never from an ::after the clip would cut off.
+  it('gives „Neue Kategorie“ and the category link a 40 px tap area on touch', () => {
+    catalog.categories.list = [
+      { id: 3, user: 1, name: 'Suppen', recipes: [7], order: 0, color: '#16a34a', colorLight: null, colorDark: null },
+    ]
+    renderPage()
+    expect(screen.getByRole('button', { name: 'Neue Kategorie' }).className.split(' ')).toContain('touch:h-10')
+    const link = screen.getByRole('link', { name: 'Suppen' })
+    expect(link.className.split(' ')).toEqual(expect.arrayContaining(['truncate', 'touch:py-2.5', 'touch:-my-2.5']))
+    expect(link.className).not.toContain('after:')
+  })
+
+  it('has no back button of its own (the shell header has it)', () => {
+    renderPage()
+    expect(screen.queryByRole('link', { name: /Zurück/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Zurück/ })).toBeNull()
   })
 
   describe('move items', () => {

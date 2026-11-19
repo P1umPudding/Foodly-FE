@@ -76,10 +76,15 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-star: var(--star);
+  --color-skel: var(--skel);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-divider: var(--divider);
+  --color-hover: var(--hover);
+  --color-tag: var(--tag-bg);
+  --color-seg: var(--seg-bg);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -121,6 +126,7 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+  --shadow-seg: var(--seg-shadow);
 }
 
 /* Compact TEXT SCALE — Tailwind's text tokens are redefined smaller than the
@@ -143,15 +149,26 @@
   --text-2xl--line-height: 32px;
 }
 
+/* Skeleton shimmer (mockup base.css .skel): the gradient is twice as wide as the box and slides across it. */
+@theme {
+  --animate-shimmer: shimmer 1.4s linear infinite;
+  @keyframes shimmer {
+    to {
+      background-position: -200% 0;
+    }
+  }
+}
+
 /* Themed document defaults. Preflight already reset margins. */
 @layer base {
   :root {
     /* Headings use the body face; weight and tracking set them apart
        (see .font-display). Kept as its own token so it stays swappable. */
     --font-display: var(--font-sans);
-    /* Height of the sticky site nav — single source for everything that sticks
-       just beneath it (the list's sticky header, category headers, filter rail). */
-    --site-nav-h: 3.75rem;
+    /* Height of the sticky site header incl. the top safe-area inset (desktop; AppShell
+       sets the phone value on the shell root) — the list's category headers stick right
+       beneath it. */
+    --site-nav-h: calc(3.75rem + env(safe-area-inset-top));
   }
   html {
     -webkit-text-size-adjust: 100%;
@@ -222,8 +239,8 @@ div:has(> input[data-slot='input']):focus-within {
 }
 
 /* iOS Safari zooms on focus into fields under 16px, and page zoom stays allowed (index.html), so on touch fields get
-   16px: one central rule (docs/design.md §2 Schrift), not per-field classes. Fields already larger (PortionScaler's
-   text-xl) keep their size; only bare, unprefixed text-xl/2xl/3xl opt out. UNLAYERED because postxl's text-*
+   16px: one central rule (docs/design.md §2 Schrift), not per-field classes. Fields already larger keep their size;
+   only bare, unprefixed text-xl/2xl/3xl opt out. UNLAYERED because postxl's text-*
    utilities live in @layer utilities and would beat a layered rule. */
 @media (pointer: coarse) {
   :is(input, textarea, [contenteditable]):not(.text-xl, .text-2xl, .text-3xl) {
@@ -278,9 +295,11 @@ div:has(> input[data-slot='input']):focus-within {
   z-index: 0;
 }
 
-/* While a theme view-transition runs, the sticky header's backdrop-filter
-   renders incorrectly inside the snapshot — drop it for that moment. */
-html[data-theme-anim] .site-header {
+/* While a theme view-transition runs, the backdrop-filter of the sticky header
+   and the phone tab bar renders incorrectly inside the snapshot — drop it for
+   that moment. */
+html[data-theme-anim] .site-header,
+html[data-theme-anim] .tab-bar {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }

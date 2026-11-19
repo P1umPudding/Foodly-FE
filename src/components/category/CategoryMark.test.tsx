@@ -49,6 +49,9 @@ describe('CategoryMark', () => {
     expect(mark.getAttribute('aria-hidden')).toBe('true')
     expect(mark.hasAttribute('data-cat')).toBe(true)
     expect(mark.style.getPropertyValue('--cat-soft-l')).not.toBe('')
-    expect(mark.className).toContain('size-7')
+    // Mockup `.cat-mark`: 32 px, radius 6, initial 14 px / 700 (#243).
+    expect(mark.className.split(' ')).toEqual(
+      expect.arrayContaining(['size-8', 'rounded-md', 'text-base/none', 'font-bold']),
+    )
   })
 })

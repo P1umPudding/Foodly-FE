@@ -47,3 +47,10 @@ Backend hat `color` sowie optional `colorLight`/`colorDark`.
   fangen die Farbvorschläge und die Warnung beim Anlegen ab.
 - `CLAUDE.md` und `docs/architecture.md` nennen die Inline-Ausnahme für `--cat-*`.
 - Ein Theme-Wechsel braucht kein JS, denn beide Varianten stehen schon am Element.
+
+## Nachtrag 2026-11-16 (#244)
+
+Die Farbvorschläge sind jetzt die zwölf Werte des Mockups (`docs/design/redesign/app.js`,
+`S.categories`): elf Farbtöne mit mindestens 20° Abstand plus Grau `#78716c`. Grau
+ergibt eine neutrale Kategorie. Weil Grau nie als „ähnlich“ gilt, landet eine neue
+Kategorie (auch die Schnellanlage am Rezept) auf Grau, wenn alle Farbtöne vergeben sind.

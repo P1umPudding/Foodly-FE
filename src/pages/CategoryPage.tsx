@@ -7,23 +7,25 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Skeleton,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@postxl/ui-components'
-import { EllipsisVertical, FolderOpen, Pencil, SearchX } from 'lucide-react'
+import { Skeleton } from '../components/Skeleton'
+import { EyeOff, FolderOpen, MoreHorizontal, Pencil, Search } from 'lucide-react'
 import { useCategories, useCurrentUserId } from '../catalog/CatalogProvider'
 import { CategoryEditDialog } from '../components/category/CategoryEditDialog'
 import { CategoryMark } from '../components/category/CategoryMark'
 import { ListSkeleton, LoadMoreSkeleton } from '../components/list/ListSkeleton'
+import { DesktopListOptions } from '../components/list/DesktopListOptions'
 import { MobileListOptions } from '../components/list/MobileListOptions'
 import { RecipeListView } from '../components/list/RecipeListView'
 import { ResultCount } from '../components/list/ResultCount'
 import { SearchInput } from '../components/list/SearchInput'
-import { SortMenu } from '../components/list/SortMenu'
-import { ViewToggles } from '../components/list/ViewToggles'
-import { RetryAlert } from '../components/RetryAlert'
+import { EmptyState, ErrorState } from '../components/StateCard'
+import { PageTitle } from '../components/PageTitle'
+import { Page } from '../components/shell/Page'
+import { HeaderActions } from '../components/shell/PageHeader'
 import { TriggerButton } from '../components/TriggerButton'
 import { isShellNavState, parseCategoryId } from '../components/shell/nav'
 import { categoryColorVars } from '../lib/categoryColor'
@@ -58,12 +60,12 @@ export function CategoryPage() {
 
   return (
     // On phones the extra bottom room lets the last card scroll past the fixed "+" button (as on /recipes, #74).
-    <div className="mx-auto max-w-6xl px-6 pt-6 pb-10 phone:px-4 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <Page className="pb-10 phone:pb-24">
       {/* Every state has the page's one h1; until the category is known it can only be generic. */}
       {catalog.status !== 'ready' && <h1 className="sr-only">Kategorie</h1>}
       {catalog.status === 'loading' && (
         <>
-          <Skeleton data-testid="category-head-skeleton" className="h-24 w-full rounded-lg" />
+          <Skeleton data-testid="category-head-skeleton" className="h-24 w-full rounded-lg phone:h-20" />
           <div className="pt-6">
             <ListSkeleton detail="detailed" count={4} />
           </div>
@@ -71,14 +73,18 @@ export function CategoryPage() {
       )}
 
       {catalog.status === 'error' && (
-        <RetryAlert title="Konnte Kategorien nicht laden" message={catalog.error?.message} onRetry={catalog.retry} />
+        <ErrorState
+          title="Kategorien konnten nicht geladen werden"
+          description={catalog.error?.message}
+          onRetry={catalog.retry}
+        />
       )}
 
       {/* Also when the catalog drops the category while the page is open (deleted through it). */}
       {catalog.status === 'ready' && !category && (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
           <h1 className="font-display text-2xl">Kategorie nicht gefunden</h1>
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className="touch:h-10">
             <Link to="/recipes">Zu den Rezepten</Link>
           </Button>
         </div>
@@ -90,7 +96,7 @@ export function CategoryPage() {
           <CategoryRecipes category={category} allCategories={catalog.list} />
         </>
       )}
-    </div>
+    </Page>
   )
 }
 
@@ -99,46 +105,85 @@ function CategoryHead({ category }: { category: UserCategory }) {
   // `key` is new per opening: the dialog starts from scratch every time, even when reopened mid-animation.
   const [dialog, setDialog] = useState<{ open: boolean; key: number } | null>(null)
   const openings = useRef(0)
-  const trigger = useRef<HTMLButtonElement>(null)
-  const openDialog = () => setDialog({ open: true, key: ++openings.current })
+  // Where focus goes once the dialog closes: the button or the header ⋯ that opened it.
+  const returnFocus = useRef<HTMLButtonElement | null>(null)
+  const moreTrigger = useRef<HTMLButtonElement>(null)
+  const openingDialog = useRef(false)
+  const openDialog = (opener: HTMLButtonElement | null) => {
+    returnFocus.current = opener
+    setDialog({ open: true, key: ++openings.current })
+  }
 
   return (
-    <div
-      {...categoryColorVars(category)}
-      className="flex items-center gap-4 rounded-lg border border-cat-line bg-cat-soft p-5 phone:gap-3 phone:p-4"
-    >
-      <CategoryMark category={category} size="xl" />
+    <div {...categoryColorVars(category)} className="flex items-center gap-4 rounded-lg bg-cat-soft p-5 phone:p-4">
+      {/* The mark's own soft fill would vanish on the tinted head: it sits on the card surface, in both themes. The 24 px
+          initial (mockup) has no step in the text scale. */}
+      <CategoryMark
+        category={category}
+        size="xl"
+        className="size-14 rounded-lg bg-card text-[24px]/none font-bold phone:size-12"
+      />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <h1 className="font-display text-2xl break-words text-cat-ink">{category.name}</h1>
-        <p className="text-sm text-cat-ink">{recipeCount(category.recipes.length)} · nur für dich sichtbar</p>
+        <PageTitle className="text-cat-ink">{category.name}</PageTitle>
+        {/* Faded only in dark mode: in light, opacity .75 drops this small text below AA (design.md). */}
+        <p className="text-sm text-cat-ink tabular-nums dark:opacity-75">
+          {recipeCount(category.recipes.length)} · nur für dich sichtbar
+        </p>
       </div>
-      {isDesktop ? (
-        <TriggerButton ref={trigger} variant="outline" onClick={openDialog} className="gap-1.5">
+      {isDesktop && (
+        <TriggerButton
+          variant="outline"
+          size="sm"
+          onClick={(e) => openDialog(e.currentTarget)}
+          className="gap-1.5 touch:h-10"
+        >
           <Pencil aria-hidden className="size-4" />
           Bearbeiten
         </TriggerButton>
-      ) : (
-        // Not modal: a modal menu opening a modal dialog can leave pointer-events: none on the body.
+      )}
+      <HeaderActions>
+        {/* Not modal: a modal menu opening a modal dialog can leave pointer-events: none on the body. */}
         <DropdownMenu modal={false}>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <TriggerButton ref={trigger} variant="ghost" size="icon" aria-label={`Aktionen für „${category.name}“`}>
-                  <EllipsisVertical aria-hidden className="size-4" />
+            {/* Menu trigger outside: postxl's DropdownMenuTrigger doesn't forward refs, so it can't sit under
+                TooltipTrigger asChild. */}
+            <DropdownMenuTrigger asChild>
+              <TooltipTrigger asChild>
+                <TriggerButton
+                  ref={moreTrigger}
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Weitere Aktionen"
+                  className="phone:size-10 touch:size-10"
+                >
+                  <MoreHorizontal aria-hidden className="size-4" />
                 </TriggerButton>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent>Aktionen</TooltipContent>
+              </TooltipTrigger>
+            </DropdownMenuTrigger>
+            <TooltipContent>Weitere Aktionen</TooltipContent>
           </Tooltip>
-          {/* The dialog decides where focus goes once it closes. */}
-          <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-            <DropdownMenuItem className="gap-2" onSelect={openDialog}>
+          {/* Opened via "Bearbeiten", the dialog decides where focus goes once it closes; a plain close (Escape,
+              click outside) returns it to ⋯. */}
+          <DropdownMenuContent
+            align="end"
+            onCloseAutoFocus={(e) => {
+              if (openingDialog.current) e.preventDefault()
+              openingDialog.current = false
+            }}
+          >
+            <DropdownMenuItem
+              className="gap-2 touch:min-h-10"
+              onSelect={() => {
+                openingDialog.current = true
+                openDialog(moreTrigger.current)
+              }}
+            >
               <Pencil aria-hidden className="size-4" />
               Bearbeiten
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )}
+      </HeaderActions>
       {dialog && (
         <CategoryEditDialog
           key={dialog.key}
@@ -147,7 +192,7 @@ function CategoryHead({ category }: { category: UserCategory }) {
           category={category}
           onCloseAutoFocus={(e) => {
             e.preventDefault()
-            trigger.current?.focus()
+            returnFocus.current?.focus()
           }}
         />
       )}
@@ -191,20 +236,18 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
   return (
     <>
       <div className="pt-6 pb-3">
-        <div className="flex items-center gap-4 phone:gap-3">
+        <div className="flex items-center gap-2 phone:gap-3">
           <SearchInput
             value={state.search}
             onChange={setSearch}
-            placeholder="Suchen…"
+            placeholder="Rezept suchen"
             label={`In „${category.name}“ suchen`}
             clearLabel="Suche leeren"
             className="min-w-0 flex-1"
+            inputClassName="h-[38px]"
           />
           {isDesktop ? (
-            <div className="flex items-center gap-4">
-              <SortMenu state={state} set={set} />
-              <ViewToggles state={state} set={set} showLayout={false} />
-            </div>
+            <DesktopListOptions state={state} set={set} showLayout={false} />
           ) : (
             <MobileListOptions state={state} set={set} showLayout={false} />
           )}
@@ -218,7 +261,11 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
         {search.status === 'loading' && <ListSkeleton detail={state.detail} count={4} />}
 
         {search.status === 'error' && (
-          <RetryAlert title="Konnte Rezepte nicht laden" message={search.error?.message} onRetry={search.reload} />
+          <ErrorState
+            title="Rezepte konnten nicht geladen werden"
+            description={search.error?.message}
+            onRetry={search.reload}
+          />
         )}
 
         {pending && visible.length === 0 && !loadMoreFailed && (
@@ -226,28 +273,38 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
         )}
 
         {/* The head counts every recipe in the category; one the user may no longer view is not "nothing in it". */}
-        {allLoaded && visible.length === 0 && !searching && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <FolderOpen className="size-5 text-muted-foreground/40" />
-            <p className="max-w-sm text-muted-foreground">
-              {category.recipes.length === 0
-                ? `Noch nichts in „${category.name}“. Öffne ein Rezept und füg es über „+“ hinzu.`
-                : 'Keine Rezepte, die du sehen kannst.'}
-            </p>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/recipes">Zu den Rezepten</Link>
-            </Button>
-          </div>
-        )}
+        {allLoaded &&
+          visible.length === 0 &&
+          !searching &&
+          (category.recipes.length === 0 ? (
+            <EmptyState
+              icon={FolderOpen}
+              title={`Noch nichts in „${category.name}“`}
+              description="Öffne ein Rezept und füg es über „+“ hinzu."
+            />
+          ) : (
+            <EmptyState
+              icon={EyeOff}
+              title="Keine Rezepte, die du sehen kannst"
+              action={
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/recipes">Zu den Rezepten</Link>
+                </Button>
+              }
+            />
+          ))}
 
         {allLoaded && visible.length === 0 && searching && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <SearchX className="size-5 text-muted-foreground/40" />
-            <p className="text-muted-foreground">Keine Treffer.</p>
-            <Button variant="outline" size="sm" onClick={() => setSearch('')}>
-              Suche leeren
-            </Button>
-          </div>
+          <EmptyState
+            icon={Search}
+            title={`Nichts gefunden für „${state.search.trim()}“`}
+            description="Prüf die Schreibweise oder such nach etwas anderem."
+            action={
+              <Button variant="outline" size="sm" onClick={() => setSearch('')}>
+                Suche leeren
+              </Button>
+            }
+          />
         )}
 
         {ready && visible.length > 0 && (
@@ -267,9 +324,10 @@ function CategoryRecipes({ category, allCategories }: { category: UserCategory; 
         )}
         {loadMoreFailed && !search.loadingMore && (
           <div className="pt-3">
-            <RetryAlert
-              title="Weitere Rezepte konnten nicht geladen werden."
-              message={search.loadMoreError?.message}
+            <ErrorState
+              compact
+              title="Weitere Rezepte konnten nicht geladen werden"
+              description={search.loadMoreError?.message}
               onRetry={search.retryLoadMore}
             />
           </div>

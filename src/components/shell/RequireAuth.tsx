@@ -1,6 +1,7 @@
 // Route guards. Signed-out users never reach the shell or the catalogs (no /users/me, /tags, … without a
 // session); /login and /register sit outside both. In mock mode foodly.auth is always signed in, so
-// nothing is guarded and /login forwards to the list.
+// nothing is guarded and /login forwards to the list. Signed-in routes pick their frame below the guard:
+// ShellLayout (sidebar / tab bar) or BareLayout (cook mode), both under the same timers, catalogs and toasts.
 import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import { foodly } from '../../api'
 import { CatalogProvider } from '../../catalog/CatalogProvider'
@@ -9,6 +10,7 @@ import { safeNext } from '../../lib/safeNext'
 import { TimerProvider } from '../../timers/TimerProvider'
 import type { LoginState } from '../auth/loginState'
 import { AppShell } from './AppShell'
+import { AppToaster } from './AppToaster'
 
 export function RequireAuth() {
   const session = useAuthSession()
@@ -23,15 +25,24 @@ export function RequireAuth() {
     return <Navigate to={`/login?${next.toString()}`} replace state={state} />
   }
   // Keyed on the user, so a sign-in as someone else (e.g. in another tab) reloads `me` and the catalogs and
-  // swaps in that user's timers; the previous user's alarm ends with their provider.
+  // swaps in that user's timers; the previous user's alarm ends with their provider. One Toaster for both
+  // frames: sonner starts empty on mount, so a running alarm toast would vanish on the way into cook mode.
   return (
     <TimerProvider key={session.userId} userId={session.userId}>
       <CatalogProvider key={session.userId}>
-        <AppShell>
-          <Outlet />
-        </AppShell>
+        <Outlet />
+        <AppToaster />
       </CatalogProvider>
     </TimerProvider>
+  )
+}
+
+// Here rather than in AppShell.tsx, so tests that mock the AppShell module keep a working layout route.
+export function ShellLayout() {
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
   )
 }
 

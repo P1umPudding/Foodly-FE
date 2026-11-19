@@ -3,25 +3,29 @@
 // below it and a 64 px icon rail (docs/design/redesign §1.6).
 import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Button, Skeleton, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
+import { Button, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
+import { Skeleton } from '../Skeleton'
 import { PanelLeftClose, PanelLeftOpen, Plus, Settings } from 'lucide-react'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { categoryColorVars } from '../../lib/categoryColor'
 import { SHELL_NAV_STATE, NAV_DESTINATIONS, categoryPageHref, currentFor, isCategoryPage } from './nav'
 import { navItemClass } from './navItem'
-import { ProfileMenu } from './ProfileMenu'
+import { ProfileLink } from './ProfileLink'
 import { TriggerButton } from '../TriggerButton'
 import { FOCUS_RING } from '../focusRing'
 import { useNavState } from './useNavState'
+import { Brand } from './BrandMark'
 
 const COLLAPSED_KEY = 'foodly:sidebar-collapsed'
 
-// A layout preference of this device, so deliberately not keyed per user like the list state.
-export function loadSidebarCollapsed(): boolean {
+// A layout preference of this device, so deliberately not keyed per user like the list state. null means the user
+// hasn't toggled yet: then the width picks the start state (collapsed below 1024 px), and only the toggle saves one.
+export function loadSidebarCollapsed(): boolean | null {
   try {
-    return localStorage.getItem(COLLAPSED_KEY) === '1'
+    const saved = localStorage.getItem(COLLAPSED_KEY)
+    return saved === '1' ? true : saved === '0' ? false : null
   } catch {
-    return false
+    return null
   }
 }
 
@@ -72,7 +76,7 @@ export function Sidebar({
     <aside
       aria-label="Seitenleiste"
       className={cn(
-        'sticky top-0 flex h-screen shrink-0 flex-col gap-0.5 border-r border-sidebar-border bg-sidebar px-3 py-4 text-sidebar-foreground',
+        'sticky top-0 flex h-screen shrink-0 flex-col gap-0.5 border-r border-sidebar-border bg-sidebar pt-4 pr-3 pb-[max(1rem,env(safe-area-inset-bottom))] pl-[calc(0.75rem+env(safe-area-inset-left))] text-sidebar-foreground',
         widthClass,
       )}
     >
@@ -80,9 +84,12 @@ export function Sidebar({
         {!collapsed && (
           <Link
             to="/"
-            className={cn('-ml-1 rounded-md px-1 font-display text-xl focus-visible:ring-sidebar-ring', FOCUS_RING)}
+            className={cn(
+              '-ml-1 flex items-center rounded-md px-1 focus-visible:ring-sidebar-ring touch:min-h-10',
+              FOCUS_RING,
+            )}
           >
-            Foodly
+            <Brand />
           </Link>
         )}
         <Tooltip>
@@ -93,7 +100,7 @@ export function Sidebar({
               aria-label={toggleLabel}
               aria-expanded={!collapsed}
               onClick={() => onCollapsedChange(!collapsed)}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground touch:size-10"
             >
               <ToggleIcon className="size-4" />
             </TriggerButton>
@@ -103,7 +110,7 @@ export function Sidebar({
       </div>
 
       <WithTip collapsed={collapsed} label="Neues Rezept">
-        <Button asChild className={cn('mb-3 w-full gap-1.5', collapsed && 'px-0')}>
+        <Button asChild className={cn('mb-3 w-full gap-1.5 touch:h-10', collapsed && 'px-0')}>
           <Link to="/recipes/new" aria-label={collapsed ? 'Neues Rezept' : undefined}>
             <Plus className="size-4" />
             {!collapsed && 'Neues Rezept'}
@@ -138,10 +145,22 @@ export function Sidebar({
 
       {categories.status !== 'error' && (categories.status === 'loading' || ordered.length > 0) && (
         // Own scroll area, so a long category list never pushes the profile row off the screen.
-        <nav aria-label="Kategorien" className="mt-4 flex min-h-0 flex-col gap-0.5 overflow-y-auto">
-          {!collapsed && (
+        <nav
+          aria-label="Kategorien"
+          className={cn('flex min-h-0 flex-col gap-0.5 overflow-y-auto', collapsed ? 'mt-0' : 'mt-4.5')}
+        >
+          {collapsed ? (
+            // Mockup `.side-c`: a short rule stands in for the heading in the icon rail.
+            <div
+              aria-hidden
+              data-testid="category-divider"
+              className="mx-auto mt-3.5 mb-2 h-px w-6 shrink-0 bg-sidebar-border"
+            />
+          ) : (
             <div className="flex items-center justify-between pb-1.5 pl-2.5">
-              <h2 className="text-xs font-semibold text-muted-foreground">Kategorien</h2>
+              {/* Subtle although this is small text (design.md: subtle is below AA there): #246 names it explicitly, as
+                  in the mockup. */}
+              <h2 className="text-xs font-semibold text-subtle-foreground">Kategorien</h2>
               <Tooltip>
                 <TooltipTrigger asChild>
                   {/* A Link styled via buttonVariants, not <Button asChild>: the postxl Button would drop the
@@ -151,7 +170,7 @@ export function Sidebar({
                     aria-label="Kategorien verwalten"
                     className={cn(
                       buttonVariants({ variant: 'ghost', size: 'icon' }),
-                      'size-7 text-muted-foreground hover:text-foreground',
+                      'size-7 text-muted-foreground hover:text-foreground touch:size-10',
                     )}
                   >
                     <Settings aria-hidden className="size-3.5" />
@@ -169,7 +188,8 @@ export function Sidebar({
                 const active = highlightedCategory === c.id
                 const count = c.recipes.length
                 return (
-                  <WithTip key={c.id} collapsed={collapsed} label={`${c.name} (${count})`}>
+                  // The tooltip shows the name only (mockup); the aria-label keeps the count for screen readers.
+                  <WithTip key={c.id} collapsed={collapsed} label={c.name}>
                     <Link
                       to={categoryPageHref(c.id)}
                       state={SHELL_NAV_STATE}
@@ -180,7 +200,10 @@ export function Sidebar({
                       <span
                         aria-hidden
                         {...categoryColorVars(c)}
-                        className="size-2.5 shrink-0 rounded-full bg-cat-dot"
+                        className={cn(
+                          'shrink-0 rounded-full bg-cat-dot',
+                          collapsed ? 'size-2.5' : 'mr-[3px] ml-1 size-2',
+                        )}
                       />
                       {!collapsed && (
                         <>
@@ -196,7 +219,7 @@ export function Sidebar({
       )}
 
       <div className="mt-auto pt-3">
-        <ProfileMenu variant={collapsed ? 'icon' : 'row'} />
+        <ProfileLink variant={collapsed ? 'icon' : 'row'} />
       </div>
     </aside>
   )

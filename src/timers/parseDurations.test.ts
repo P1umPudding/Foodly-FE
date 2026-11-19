@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseDurations } from './parseDurations'
+import { parseDurations, shortDurationLabel } from './parseDurations'
 
 const MIN = 60_000
 const HOUR = 60 * MIN
@@ -115,5 +115,55 @@ describe('parseDurations', () => {
       10 * MIN,
       5 * MIN,
     ])
+  })
+})
+
+describe('shortDurationLabel', () => {
+  // [label as parseDurations emits it, chip text]
+  const CASES: Array<[string, string]> = [
+    ['30 Minuten', '30 Min.'],
+    ['1 Minute', '1 Min.'],
+    ['ca. 5 Min.', 'ca. 5 Min.'],
+    ['25 min', '25 Min.'],
+    ['10min', '10 Min.'],
+    ['1 Stunde', '1 Std.'],
+    ['2 Std', '2 Std.'],
+    ['2 h', '2 Std.'],
+    ['30 Sekunden', '30 Sek.'],
+    ['45 s', '45 Sek.'],
+    ['ca. 50 Minuten', 'ca. 50 Min.'],
+    ['Etwa 30 Minuten', 'Etwa 30 Min.'],
+    ['gut 2 Stunden', 'gut 2 Std.'],
+    ['5–6 Minuten', '5–6 Min.'],
+    ['5 bis 6 Minuten', '5 bis 6 Min.'],
+    ['zwei bis drei Minuten', '2 bis 3 Min.'],
+    ['1 Stunde 30 Minuten', '1 Std. 30 Min.'],
+    ['1 Std. und 30 Min.', '1 Std. 30 Min.'],
+    ['1½ Stunden', '1½ Std.'],
+    ['1 1/2 Stunden', '1 1/2 Std.'],
+    ['1,5 Std.', '1,5 Std.'],
+    ['eine Stunde', '1 Std.'],
+    ['Eine Stunde', '1 Std.'],
+    ['eine halbe Stunde', '30 Min.'],
+    ['einer halben Stunde', '30 Min.'],
+    ['eine Viertelstunde', '15 Min.'],
+    ['Dreiviertelstunde', '45 Min.'],
+    ['ca. eine halbe Stunde', 'ca. 30 Min.'],
+    ['ca.  5 min', 'ca. 5 Min.'],
+  ]
+
+  it.each(CASES)('%s → %s', (label, short) => {
+    expect(shortDurationLabel(label)).toBe(short)
+  })
+
+  it('shortens every label the parser finds', () => {
+    const labels = parseDurations('ca. 45 Minuten backen, dann 1 Std. und 30 Min. ruhen').map((m) => m.label)
+    expect(labels.map(shortDurationLabel)).toEqual(['ca. 45 Min.', '1 Std. 30 Min.'])
+  })
+
+  it('leaves text it would not parse as a whole unchanged', () => {
+    expect(shortDurationLabel('Salz')).toBe('Salz')
+    expect(shortDurationLabel('x 5 min')).toBe('x 5 min')
+    expect(shortDurationLabel('5 min Pause')).toBe('5 min Pause')
   })
 })

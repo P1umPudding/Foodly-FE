@@ -1,62 +1,92 @@
-import { useState } from 'react'
-import { Button, Input, cn } from '@postxl/ui-components'
-import { DurationPicker } from '../components/DurationPicker'
-import type { Duration } from '../components/DurationPicker'
+import { useId, useRef, useState } from 'react'
+import type { FormEvent } from 'react'
+import { Play } from 'lucide-react'
+import { Button, Input } from '@postxl/ui-components'
 import { useTimers } from './TimerProvider'
+import { formatDurationInput, parseDurationInput } from './parseDurationInput'
 
 const QUICK_MINUTES = [5, 10, 15, 30]
-const DEFAULT: Duration = { h: 0, m: 5, s: 0 }
-
-function totalMs({ h, m, s }: Duration): number {
-  return (h * 3600 + m * 60 + s) * 1000
-}
+const DEFAULT = formatDurationInput(5 * 60)
 
 export function TimerForm() {
   const { add } = useTimers()
   const [label, setLabel] = useState('')
-  const [duration, setDuration] = useState<Duration>(DEFAULT)
+  const [duration, setDuration] = useState(DEFAULT)
+  const [invalid, setInvalid] = useState(false)
+  const durationRef = useRef<HTMLInputElement>(null)
+  const headingId = useId()
+  const errorId = useId()
 
-  const ms = totalMs(duration)
+  const changeDuration = (text: string) => {
+    setDuration(text)
+    setInvalid(false)
+  }
 
-  const start = () => {
-    if (ms === 0) return
-    add({ label: label.trim(), durationMs: ms })
+  const start = (e: FormEvent) => {
+    e.preventDefault()
+    const seconds = parseDurationInput(duration)
+    if (seconds === null) {
+      setInvalid(true)
+      // Focus plus aria-describedby reads the error once; a role="alert" on top would read it twice.
+      durationRef.current?.focus()
+      return
+    }
+    add({ label: label.trim(), durationMs: seconds * 1000 })
     setLabel('')
     setDuration(DEFAULT)
   }
 
   return (
-    <div className="space-y-3">
+    <form onSubmit={start} aria-labelledby={headingId} noValidate>
+      <div id={headingId} className="mb-2 text-xs font-semibold text-muted-foreground">
+        Neuer Timer
+      </div>
       <Input
         value={label}
         onChange={(e) => setLabel(e.target.value)}
         placeholder="Name (optional)"
         aria-label="Timer-Name"
+        autoComplete="off"
+        className="mb-2 phone:h-10 touch:h-10"
       />
 
-      <div className="flex flex-wrap gap-1.5">
-        {QUICK_MINUTES.map((min) => {
-          const active = duration.h === 0 && duration.m === min && duration.s === 0
-          return (
-            <Button
-              key={min}
-              type="button"
-              variant={active ? 'default' : 'outline'}
-              size="xs"
-              onClick={() => setDuration({ h: 0, m: min, s: 0 })}
-              className={cn('rounded-md', active && 'pointer-events-none')}
-            >
-              {min} min
-            </Button>
-          )
-        })}
+      <div className="mb-2 grid grid-cols-4 gap-1.5">
+        {QUICK_MINUTES.map((min) => (
+          <Button
+            key={min}
+            type="button"
+            variant="outline"
+            size="smLow"
+            onClick={() => changeDuration(formatDurationInput(min * 60))}
+            className="phone:h-10 touch:h-10"
+          >
+            {min} min
+          </Button>
+        ))}
       </div>
 
-      <DurationPicker value={duration} onChange={setDuration} />
-
-      <Button type="button" onClick={start} disabled={ms === 0} className="w-full">
-        Timer starten
-      </Button>
-    </div>
+      <div className="flex gap-2">
+        <Input
+          ref={durationRef}
+          value={duration}
+          onChange={(e) => changeDuration(e.target.value)}
+          placeholder="0:12:00"
+          autoComplete="off"
+          aria-label="Dauer"
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid ? errorId : undefined}
+          className="flex-1 tabular-nums phone:h-10 touch:h-10"
+        />
+        <Button type="submit" className="phone:h-10 touch:h-10">
+          <Play />
+          Starten
+        </Button>
+      </div>
+      {invalid && (
+        <p id={errorId} className="mt-1 text-xs text-destructive">
+          Ungültige Dauer, z. B. 12 oder 0:12:00
+        </p>
+      )}
+    </form>
   )
 }

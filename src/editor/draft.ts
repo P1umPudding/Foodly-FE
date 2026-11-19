@@ -7,14 +7,14 @@
 //    leaving the UI to infer it from nulls;
 //  - text fields are '' rather than null, so inputs stay controlled.
 
+import { joinAmount, splitAmount } from './amount'
 import type { CreateRecipe, ImageRef, IngredientId, Recipe, TagId } from '../api/protocol'
 
 export type DraftIngredient = {
   key: number
   ingredient: IngredientId | null // catalog hit …
   text: string // … or free text; at least one must be set to survive the save
-  amount: string
-  amountPrefix: string
+  amount: string // prefix included ("ca. 800"), split again on save
   unit: string
 }
 
@@ -53,7 +53,7 @@ let counter = 0
 const nextKey = () => ++counter
 
 export function newIngredient(): DraftIngredient {
-  return { key: nextKey(), ingredient: null, text: '', amount: '', amountPrefix: '', unit: '' }
+  return { key: nextKey(), ingredient: null, text: '', amount: '', unit: '' }
 }
 
 export function newStep(): DraftStep {
@@ -108,8 +108,7 @@ export function toDraft(recipe: Recipe): Draft {
         key: nextKey(),
         ingredient: line.ingredient?.id ?? null,
         text: line.text ?? '',
-        amount: line.amount ?? '',
-        amountPrefix: line.amountPrefix ?? '',
+        amount: joinAmount(line.amountPrefix ?? '', line.amount ?? ''),
         unit: line.unit ?? '',
       })),
     })),
@@ -145,13 +144,16 @@ export function toCreateRecipe(draft: Draft): CreateRecipe {
       // trailing row is normal while typing, so drop it instead of failing.
       ingredients: section.ingredients
         .filter((line) => line.ingredient !== null || line.text.trim() !== '')
-        .map((line) => ({
-          ingredient: line.ingredient,
-          text: orNull(line.text),
-          amount: orNull(line.amount),
-          amountPrefix: orNull(line.amountPrefix),
-          unit: orNull(line.unit),
-        })),
+        .map((line) => {
+          const { amountPrefix, amount } = splitAmount(line.amount)
+          return {
+            ingredient: line.ingredient,
+            text: orNull(line.text),
+            amount: orNull(amount),
+            amountPrefix: orNull(amountPrefix),
+            unit: orNull(line.unit),
+          }
+        }),
     })),
   }
 }
@@ -163,4 +165,34 @@ export function move<T extends { key: number }>(rows: T[], key: number, delta: -
   const next = [...rows]
   ;[next[from], next[to]] = [next[to], next[from]]
   return next
+}
+
+export const isBlank = (line: DraftIngredient) =>
+  line.ingredient === null && [line.text, line.amount, line.unit].every((v) => v.trim() === '')
+
+// The phone's reading row (#217), split like `ingredientParts` for the detail page. `amount` already carries the prefix
+// ("ca. 800"), so it is not joined with one again. On a catalog row `text` is the Zusatz, on a free-text row the name.
+export function draftLineParts(
+  line: DraftIngredient,
+  byId: Record<IngredientId, { name: string } | undefined>,
+): { quantity: string; name: string; extra: string } {
+  const quantity = [line.amount, line.unit]
+    .map((part) => part.trim())
+    .filter((part) => part !== '')
+    .join(' ')
+  if (line.ingredient === null) return { quantity, name: line.text.trim(), extra: '' }
+  return { quantity, name: byId[line.ingredient]?.name ?? '', extra: line.text.trim() }
+}
+
+// "Mehrere einfügen": the empty placeholder row a new section starts with is replaced, not left above the pasted rows.
+export function appendIngredients(rows: DraftIngredient[], added: Omit<DraftIngredient, 'key'>[]): DraftIngredient[] {
+  let end = rows.length
+  while (end > 0 && isBlank(rows[end - 1])) end--
+  return [...rows.slice(0, end), ...added.map((line) => ({ ...newIngredient(), ...line }))]
+}
+
+// Applied to the current draft per finished upload, so a batch of uploads (or an edit made meanwhile) never works
+// from a stale copy: the first image becomes the main one while there is none.
+export function addImage<T extends Pick<Draft, 'mainImage' | 'images'>>(draft: T, image: ImageRef): T {
+  return draft.mainImage === null ? { ...draft, mainImage: image } : { ...draft, images: [...draft.images, image] }
 }

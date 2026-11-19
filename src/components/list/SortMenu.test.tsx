@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { SortMenu } from './SortMenu'
 import { DEFAULT_STATE, type ListState } from '../../list/state'
 
@@ -32,36 +32,98 @@ it('shows the criterion and the direction on the button', () => {
   expect(trigger().getAttribute('aria-label')).toBe('Sortieren: Name, A → Z')
 })
 
-it('keeps the 8-px gap between icon, label and chevron', () => {
+it('is as wide as its content and 38 px high like the toolbar', () => {
   render(<Harness />)
-  // jsdom applies no CSS: the un-merged buttonVariants this trigger used to get let base gap-2 beat sm's gap-1.5.
-  expect(trigger().classList.contains('gap-2')).toBe(true)
-  expect(trigger().classList.contains('gap-1.5')).toBe(false)
+  const classes = trigger().className.split(/\s+/)
+  // jsdom applies no CSS: check the tokens. sm's gap-1.5 / px-2.5 are the mockup button's 6 px and 10 px.
+  expect(classes).toEqual(expect.arrayContaining(['h-[38px]', 'gap-1.5', 'text-base']))
+  // #219: 40 px on touch only.
+  expect(classes).toContain('touch:h-10')
+  expect(classes).not.toContain('h-10')
+  // No invisible sizers reserving the widest criterion any more: the label is the only text.
+  expect(trigger().querySelector('.invisible')).toBeNull()
+  expect(trigger().textContent).toBe('Name')
 })
 
-it('sets sortKey work and sortDir desc via "Arbeitszeit" + "Längste zuerst"', async () => {
-  const onSet = vi.fn()
-  render(<Harness onSet={onSet} />)
-
-  fireEvent.click(within(await openMenu()).getByRole('menuitemradio', { name: 'Arbeitszeit' }))
-  fireEvent.click(within(await openMenu()).getByRole('menuitemradio', { name: 'Längste zuerst' }))
-
-  expect(onSet).toHaveBeenLastCalledWith(expect.objectContaining({ sortKey: 'work', sortDir: 'desc' }))
-  expect(trigger().getAttribute('aria-label')).toBe('Sortieren: Arbeitszeit, Längste zuerst')
-})
-
-it('names both radio groups', async () => {
-  render(<Harness />)
-  const menu = await openMenu()
-  within(menu).getByRole('group', { name: 'Sortieren nach' })
-  within(menu).getByRole('group', { name: 'Richtung' })
-})
-
-it('marks the current criterion and direction as checked', async () => {
+it('lists the criteria without group headings, the current one with a check', async () => {
   render(<Harness initial={{ ...DEFAULT_STATE, sortKey: 'overall', sortDir: 'desc' }} />)
   const menu = await openMenu()
-  expect(within(menu).getByRole('menuitemradio', { name: 'Gesamtzeit' }).getAttribute('aria-checked')).toBe('true')
-  expect(within(menu).getByRole('menuitemradio', { name: 'Längste zuerst' }).getAttribute('aria-checked')).toBe('true')
+  expect(within(menu).queryByText('Sortieren nach')).toBeNull()
+  expect(within(menu).queryByText('Richtung')).toBeNull()
+
+  const criteria = within(within(menu).getByRole('group', { name: 'Sortieren nach' })).getAllByRole('menuitemradio')
+  expect(criteria.map((c) => c.textContent)).toEqual(['Name', 'Arbeitszeit', 'Gesamtzeit', 'Bewertung'])
+  const checked = criteria.filter((c) => c.getAttribute('aria-checked') === 'true')
+  expect(checked.map((c) => c.textContent)).toEqual(['Gesamtzeit'])
+  expect(within(menu).getAllByTestId('sort-check')).toHaveLength(1)
+  expect(within(checked[0]).getByTestId('sort-check')).toBeTruthy()
+  expect(checked[0].className.split(/\s+/)).toEqual(expect.arrayContaining(['font-medium', 'text-foreground']))
+  expect(criteria[0].className.split(/\s+/)).toContain('text-muted-foreground')
+})
+
+it('starts "Bewertung" best first and "Name" A → Z, whatever the direction was', async () => {
+  const onSet = vi.fn()
+  render(<Harness onSet={onSet} />)
+  const menu = await openMenu()
+
+  fireEvent.click(within(menu).getByRole('menuitemradio', { name: 'Bewertung' }))
+  expect(onSet).toHaveBeenLastCalledWith(expect.objectContaining({ sortKey: 'rating', sortDir: 'desc' }))
+  fireEvent.click(within(menu).getByRole('menuitemradio', { name: 'Name' }))
+  expect(onSet).toHaveBeenLastCalledWith(expect.objectContaining({ sortKey: 'name', sortDir: 'asc' }))
+})
+
+it('resets the direction when the current criterion is picked again', async () => {
+  const onSet = vi.fn()
+  render(<Harness onSet={onSet} initial={{ ...DEFAULT_STATE, sortKey: 'rating', sortDir: 'asc' }} />)
+  fireEvent.click(within(await openMenu()).getByRole('menuitemradio', { name: 'Bewertung' }))
+  expect(onSet).toHaveBeenLastCalledWith(expect.objectContaining({ sortKey: 'rating', sortDir: 'desc' }))
+})
+
+it('stays open after a pick so the direction can follow', async () => {
+  const onSet = vi.fn()
+  render(<Harness onSet={onSet} />)
+  const menu = await openMenu()
+
+  fireEvent.click(within(menu).getByRole('menuitemradio', { name: 'Arbeitszeit' }))
+  expect(screen.getByRole('menu')).toBe(menu)
+  fireEvent.click(within(menu).getByRole('menuitemradio', { name: 'Längste zuerst' }))
+  expect(screen.getByRole('menu')).toBe(menu)
+
+  expect(onSet).toHaveBeenLastCalledWith(expect.objectContaining({ sortKey: 'work', sortDir: 'desc' }))
+  // The open (modal) menu hides the rest of the page from the accessibility tree.
+  expect(screen.getByRole('button', { name: /^Sortieren:/, hidden: true }).getAttribute('aria-label')).toBe(
+    'Sortieren: Arbeitszeit, Längste zuerst',
+  )
+})
+
+it('draws the direction as a segment, the current one raised', async () => {
+  render(<Harness initial={{ ...DEFAULT_STATE, sortDir: 'desc' }} />)
+  const menu = await openMenu()
+  const group = within(menu).getByRole('group', { name: 'Richtung' })
+  expect(group.className.split(/\s+/)).toEqual(expect.arrayContaining(['bg-seg', 'p-0.5', 'rounded-lg']))
+  const on = within(group).getByRole('menuitemradio', { name: 'Z → A' })
+  expect(on.getAttribute('aria-checked')).toBe('true')
+  expect(on.className.split(/\s+/)).toEqual(expect.arrayContaining(['bg-card', 'shadow-seg']))
+  // Keyboard focus shows as a ring on both segments (a fill would vanish on the track or the raised segment). The
+  // focus-visible ring-ring/50 pair is what styles.css raises to the full --ring token (#77).
+  for (const item of within(group).getAllByRole('menuitemradio')) {
+    expect(item.className.split(/\s+/)).toEqual(
+      expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-ring/50']),
+    )
+  }
+})
+
+it('reaches the direction by keyboard from the criteria', async () => {
+  render(<Harness />)
+  const menu = await openMenu()
+  // Opening by keyboard focuses the first criterion; four steps down pass the other three.
+  const items = within(menu).getAllByRole('menuitemradio')
+  // Radix moves the roving focus in a timeout, so wait for each step.
+  for (let i = 1; i <= 4; i++) {
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })
+    await waitFor(() => expect(document.activeElement).toBe(items[i]))
+  }
+  expect(document.activeElement).toBe(within(menu).getByRole('menuitemradio', { name: 'A → Z' }))
 })
 
 it.each([

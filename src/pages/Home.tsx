@@ -1,26 +1,42 @@
-// The start page: greeting plus the sections (D2–D4). While no section has content it shows the
-// "nothing to show" card instead.
+// The start page: greeting plus the sections (D2–D4), from 1100 px with "Geteilt mit dir" in a side column as in the
+// mockup. While no section has content it shows the "nothing to show" card instead.
 import { useMe } from '../catalog/CatalogProvider'
+import { PageTitle } from '../components/PageTitle'
+import { Page } from '../components/shell/Page'
 import { CategoryTiles } from '../components/home/CategoryTiles'
 import { HomeSectionsProvider, NothingToShow } from '../components/home/HomeSections'
 import { formatHomeDate, greeting } from '../components/home/greeting'
+import { RecentCreations } from '../components/home/RecentCreations'
 import { RecentlyViewed } from '../components/home/RecentlyViewed'
+import { SharedWithYou } from '../components/home/SharedWithYou'
 
 export function Home() {
   const me = useMe()
   return (
     <HomeSectionsProvider>
       {/* Phone bottom padding clears the shell's "+" button (#74), as on the list. */}
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-10 phone:px-4 phone:py-6 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]">
-        <div className="flex flex-col gap-1">
-          <p className="text-muted-foreground">{formatHomeDate(new Date())}</p>
-          <h1 className="font-display text-4xl text-foreground">{greeting(me?.name)}</h1>
+      <Page className="flex flex-col gap-8 pb-10 phone:pb-24">
+        <div className="mt-2 flex flex-col phone:mt-0">
+          {/* Subtle although this is small text (design.md: subtle is below AA there): #242 names it explicitly, as
+              in the mockup. */}
+          <p className="text-sm/[1.5] font-medium text-subtle-foreground">{formatHomeDate(new Date())}</p>
+          <PageTitle>{greeting(me?.name)}</PageTitle>
         </div>
-        {/* Sections, each a HomeSection (D3 follows). */}
+        {/* Sections, each a HomeSection. */}
         <CategoryTiles />
-        <RecentlyViewed />
+        {/* An empty section renders nothing, so `:empty` means "this column has nothing to show": an empty column is
+            hidden (no stray gap), the grid with no section at all too, and two columns only when both have content. */}
+        <div className="grid gap-8 not-has-[section]:hidden min-[1100px]:not-has-[>:empty]:grid-cols-[minmax(0,1fr)_300px] min-[1100px]:not-has-[>:empty]:gap-x-10">
+          <div data-slot="home-main" className="flex min-w-0 flex-col gap-8 empty:hidden">
+            <RecentCreations />
+            <RecentlyViewed />
+          </div>
+          <div data-slot="home-side" className="min-w-0 empty:hidden">
+            <SharedWithYou />
+          </div>
+        </div>
         <NothingToShow />
-      </div>
+      </Page>
     </HomeSectionsProvider>
   )
 }

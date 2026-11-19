@@ -43,12 +43,30 @@ async function signIn(path: string, mail = 'kim@example.com', pw = 'password123'
 }
 
 describe('Login', () => {
+  // #219: the submit button and the „Registrieren“ link get 40 px on touch; the mouse height stays.
+  it('gives the submit button and the switch link a 40 px tap area on touch only', () => {
+    renderAuthRoutes('/login', { login: <Login /> })
+    const submit = screen.getByRole('button', { name: 'Anmelden' }).className.split(/\s+/)
+    expect(submit).toContain('touch:h-10')
+    expect(submit).not.toContain('h-10')
+    expect(screen.getByRole('link', { name: 'Registrieren' }).className.split(/\s+/)).toEqual(
+      expect.arrayContaining(['touch:inline-block', 'touch:py-2.5', 'touch:-my-2.5']),
+    )
+  })
+
   it('sets the page title and restores the previous one on leaving', () => {
     document.title = 'Foodly'
     const { unmount } = renderAuthRoutes('/login', { login: <Login /> })
     expect(document.title).toBe('Anmelden · Foodly')
     unmount()
     expect(document.title).toBe('Foodly')
+  })
+
+  it('shows the brand above the title, as in the shell (#246)', () => {
+    renderAuthRoutes('/login', { login: <Login /> })
+    expect(screen.getByText('Foodly').className.split(/\s+/)).toEqual(
+      expect.arrayContaining(['text-[17px]', 'font-bold']),
+    )
   })
 
   it('goes to next after signing in', async () => {

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { X } from 'lucide-react'
+import { PANEL_TITLE, PanelCloseButton, PanelHead } from '../components/PanelHead'
 import { ResponsivePanel } from '../components/ResponsivePanel'
 import { useTimers } from './TimerProvider'
 import { useTimerPanel } from './TimerPanelContext'
@@ -22,10 +24,13 @@ export function TimerPanel() {
   // clicked elsewhere: that click owns the focus now.
   const closedByOutsideClick = useRef(false)
   const onInteractOutside = (e: Event) => {
+    const target = outsideTarget(e)
     keepOpenForToast(e)
+    // A time chip in the page opens the panel itself; closing first would make the panel flicker.
+    if (isTimerChip(target)) e.preventDefault()
     // A press on the header button is not "outside": the button toggles the panel itself. Radix checks this
     // too, but only after calling us, so without this line the flag below would be set and focus lost.
-    if (triggerRef.current?.contains(outsideTarget(e))) e.preventDefault()
+    if (triggerRef.current?.contains(target)) e.preventDefault()
     if (!e.defaultPrevented) closedByOutsideClick.current = true
   }
   // Reopened during the closing animation, Radix never fires onCloseAutoFocus, so the flag would linger.
@@ -52,25 +57,25 @@ export function TimerPanel() {
     return a.remainingMs - b.remainingMs
   })
 
-  // Creation menu is stationary at the top; only the timer list below it scrolls,
-  // so a long list never pushes the form down. The list region takes the leftover
-  // height (flex-1 + min-h-0) and scrolls within it.
+  // Running timers first, then the form (mockup order); the whole body scrolls, so a long list pushes the form
+  // down rather than squeezing it.
   const body = (
     <>
-      <div className="px-4 pb-4">
+      {ordered.length === 0 ? (
+        <p className="text-muted-foreground">Kein Timer läuft.</p>
+      ) : (
+        <div>
+          {ordered.map((t) => (
+            <TimerRow key={t.id} timer={t} />
+          ))}
+        </div>
+      )}
+      <div className="mt-[18px]">
         <TimerForm />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-        {ordered.length === 0 ? (
-          <p className="text-muted-foreground">Kein Timer läuft.</p>
-        ) : (
-          <div className="space-y-2">
-            {ordered.map((t) => (
-              <TimerRow key={t.id} timer={t} />
-            ))}
-          </div>
-        )}
-      </div>
+      <p className="mt-2.5 text-xs text-muted-foreground">
+        Timer laufen weiter, wenn du die Seite wechselst. Zeitangaben in Rezeptschritten starten direkt einen Timer.
+      </p>
     </>
   )
 
@@ -87,16 +92,28 @@ export function TimerPanel() {
       popover={{
         'aria-label': 'Timer',
         align: 'end',
-        className: 'flex max-h-[min(36rem,80vh)] w-80 flex-col px-0 pb-0',
+        className: 'flex max-h-[min(36rem,80vh)] w-90 flex-col p-0',
       }}
-      sheet={{ title: 'Timer', description: 'Küchen-Timer verwalten', scroll: false, __e2e_test_id__: 'timer-sheet' }}
+      sheet={{ title: 'Timer', description: 'Küchen-Timer verwalten', __e2e_test_id__: 'timer-sheet' }}
     >
-      {(variant) => (
-        <>
-          {variant === 'popover' && <div className="px-4 pb-3 font-semibold">Timer</div>}
-          {body}
-        </>
-      )}
+      {(variant) =>
+        variant === 'popover' ? (
+          <>
+            {/* The phone sheet brings this head itself (BottomSheet). */}
+            <PanelHead
+              title={<h2 className={PANEL_TITLE}>Timer</h2>}
+              close={
+                <PanelCloseButton onClick={() => setOpen(false)}>
+                  <X />
+                </PanelCloseButton>
+              }
+            />
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-1.5 pb-4">{body}</div>
+          </>
+        ) : (
+          body
+        )
+      }
     </ResponsivePanel>
   )
 }
@@ -107,6 +124,10 @@ export function TimerPanel() {
 function keepOpenForToast(e: Event): void {
   const target = outsideTarget(e)
   if (target instanceof Element && target.closest('[data-sonner-toaster]')) e.preventDefault()
+}
+
+function isTimerChip(target: Node | null): boolean {
+  return target instanceof Element && target.closest('[data-timer-chip]') !== null
 }
 
 function outsideTarget(e: Event): Node | null {

@@ -124,3 +124,48 @@ export function parseDurations(text: string): DurationMatch[] {
   }
   return matches
 }
+
+const SHORT_UNIT: Record<number, string> = { [HOUR]: 'Std.', [MINUTE]: 'Min.', [SECOND]: 'Sek.' }
+
+// Private sticky copies: parseDurations relies on the shared lastIndex of FIRST/NEXT.
+const FIRST_AT = new RegExp(FIRST.source, 'yiu')
+const NEXT_AT = new RegExp(NEXT.source, 'yiu')
+
+// One quantity as matched (prefix and range included), with number words as digits and the unit abbreviated.
+function shortQuantity(text: string, groups: string[]): string {
+  const [, , , , unit, special] = groups
+  if (special !== undefined) {
+    return `${text.slice(0, -special.length)}${quantity(groups).ms / MINUTE} Min.`
+  }
+  const amount = text
+    .slice(0, -unit.length)
+    .trimEnd()
+    .split(/([\s–—-]+)/)
+    .map((tok) => NUMBER_WORDS[tok.toLowerCase()] ?? tok)
+    .join('')
+  return `${amount} ${SHORT_UNIT[unitMs(unit)]}`
+}
+
+// The chip text for a label from parseDurations: "ca. 30 Minuten" → "ca. 30 Min.", "1 Stunde und 30 Minuten" →
+// "1 Std. 30 Min.". Walks the label with the parser's own patterns, so anything it would not match as a whole comes
+// back unchanged.
+export function shortDurationLabel(label: string): string {
+  FIRST_AT.lastIndex = 0
+  const m = FIRST_AT.exec(label)
+  if (!m) return label
+  const parts = [shortQuantity(m[0], m.slice(1))]
+  let lastUnit = quantity(m.slice(1)).unitMs
+  let end = m[0].length
+  for (;;) {
+    NEXT_AT.lastIndex = end
+    const n = NEXT_AT.exec(label)
+    if (!n) break
+    const part = quantity(n.slice(1))
+    if (part.unitMs >= lastUnit) break
+    parts.push(shortQuantity(n[0].replace(/^(?:\s+und)?\s+/iu, ''), n.slice(1)))
+    lastUnit = part.unitMs
+    end += n[0].length
+  }
+  // The label is the source text: flatten its line breaks and double spaces for the chip.
+  return end === label.length ? parts.join(' ').replace(/\s+/g, ' ') : label
+}

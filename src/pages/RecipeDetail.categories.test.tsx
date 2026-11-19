@@ -280,7 +280,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
     async () => {
       await renderDetail(3)
       expect(screen.queryByRole('link', { name: 'Bearbeiten' })).toBeNull()
-      expect(screen.queryByRole('button', { name: /Löschen/ })).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Weitere Aktionen' })).toBeNull()
       await waitFor(() => expect(chipNames()).toEqual(['Schnelle Küche']), WAIT)
       const save = vi.spyOn(api.foodly, 'setCategoryRecipes')
       const panel = await openPanel()
@@ -334,7 +334,7 @@ describe('RecipeDetail · Kategorie-Chips', () => {
       vi.spyOn(api.foodly, 'listCategories').mockRejectedValue(new Error('offline'))
       await renderDetail(8)
       const panel = await openPanel()
-      expect(within(panel).getByText('Kategorien nicht geladen')).toBeTruthy()
+      expect(within(panel).getByText('Kategorien konnten nicht geladen werden')).toBeTruthy()
       expect(within(panel).getByRole('button', { name: 'Erneut versuchen' })).toBeTruthy()
       expect(within(panel).queryByRole('textbox')).toBeNull()
     },

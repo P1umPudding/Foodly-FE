@@ -21,6 +21,9 @@ const recipe: Recipe = {
   owner: 1,
   editors: [],
   viewers: [],
+  createdAt: null,
+  updatedAt: null,
+  myAccessSince: null,
   name: 'Linsensuppe',
   tags: [],
   source: null,
@@ -99,7 +102,8 @@ it('updates the sidebar count after deleting a recipe (REST)', async () => {
   await favouritesCount('2')
   await screen.findByRole('heading', { name: 'Linsensuppe' })
 
-  fireEvent.click(screen.getByRole('button', { name: 'Löschen' }))
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Weitere Aktionen' }), { key: 'Enter' })
+  fireEvent.click(await screen.findByRole('menuitem', { name: 'Löschen' }))
   const dialog = within(await screen.findByRole('alertdialog'))
   fireEvent.click(dialog.getByRole('button', { name: 'Löschen' }))
 

@@ -14,7 +14,7 @@ const ROLE_META: Record<Exclude<RoleFilter, 'any'>, Meta> = {
 
 const COLLAB_META: Record<Exclude<CollabFilter, 'any'>, Meta> = {
   private: { Icon: Lock, label: 'Privat', desc: 'Nur private Rezepte' },
-  shared: { Icon: Share2, label: 'Geteilt', desc: 'Nur geteilte Rezepte (nur lesen)' },
+  shared: { Icon: Share2, label: 'Geteilt (nur lesen)', desc: 'Nur geteilte Rezepte (nur lesen)' },
   collaborative: { Icon: Users, label: 'Kollaborativ', desc: 'Nur kollaborativ bearbeitete Rezepte' },
 }
 
@@ -30,7 +30,7 @@ export function AccessFilter({
   set: (patch: Partial<ListState>) => void
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col">
       <AccessGroup
         title="Meine Rolle"
         value={role}
@@ -78,8 +78,9 @@ function AccessGroup<V extends string>({
   const arrowKeyDown = useRef(false)
   const anyGreyed = (Object.keys(meta) as V[]).some(isGreyed)
   return (
-    <div className="flex flex-col gap-1.5">
-      <span id={titleId} className="text-sm text-muted-foreground">
+    <div className="flex flex-col">
+      {/* 12/600 like the mockup's .fp-sub, muted rather than subtle (no AA for small text, docs/design.md §2). */}
+      <span id={titleId} className="px-2 pt-2 pb-0.5 text-xs font-semibold text-muted-foreground">
         {title}
       </span>
       <RadioGroup
@@ -104,17 +105,18 @@ function AccessGroup<V extends string>({
           if (arrowKeyDown.current && next !== 'any' && isGreyed(next)) return
           onChange(next)
         }}
-        className="gap-0.5"
+        className="gap-0"
       >
         {options.map((option) => {
           const id = `${baseId}-${option}`
           const reasonId = `${id}-reason`
           const m = option === 'any' ? null : meta[option as V]
           const greyed = option !== 'any' && isGreyed(option as V)
+          const checked = option === value
           // Faded content, not the item: the radio's focus ring stays at full strength (#95).
           const content = (
             <span className={cn('flex min-w-0 items-center gap-2', greyed && 'opacity-40')}>
-              {m ? <m.Icon className="size-3.5 shrink-0" /> : <span aria-hidden className="size-3.5 shrink-0" />}
+              {m && <m.Icon className="size-3.5 shrink-0 text-subtle-foreground" />}
               <span className="truncate">{m ? m.label : 'Alle'}</span>
             </span>
           )
@@ -122,15 +124,24 @@ function AccessGroup<V extends string>({
             <div
               key={option}
               className={cn(
-                'flex items-center gap-2 rounded-md px-1 phone:min-h-10',
-                greyed ? 'hover:bg-muted/40' : 'hover:bg-muted',
+                'flex min-h-8 items-center gap-[9px] rounded-md px-2 phone:min-h-10 touch:min-h-10',
+                greyed ? 'hover:bg-hover/40' : 'hover:bg-hover',
               )}
             >
-              <RadioGroupItem value={option} id={id} aria-describedby={greyed ? reasonId : undefined} />
+              {/* Mockup .radio: a 5-px fg ring when checked, which reads as filled; postxl's dot is hidden. */}
+              <RadioGroupItem
+                value={option}
+                id={id}
+                aria-describedby={greyed ? reasonId : undefined}
+                className="size-4 border-[1.5px] border-border-strong shadow-none dark:bg-transparent data-[state=checked]:border-[5px] data-[state=checked]:border-foreground [&_[data-slot=radio-group-indicator]]:hidden"
+              />
               {/* Overrides postxl Label's text-base/leading-none/font-medium, like FilterCheckRow. */}
               <Label
                 htmlFor={id}
-                className="min-w-0 flex-1 cursor-pointer self-stretch py-1 text-sm leading-snug font-normal"
+                className={cn(
+                  'min-w-0 flex-1 cursor-pointer self-stretch py-1 text-sm leading-snug font-normal phone:text-lg',
+                  checked ? 'font-medium text-foreground' : 'text-muted-foreground',
+                )}
               >
                 {m ? (
                   // Trigger on a span: postxl Label can't take a ref, and the Radix item would lose its data-state.

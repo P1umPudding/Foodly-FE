@@ -28,6 +28,9 @@ function rec(id: number, name: string): Recipe {
     owner: 1,
     editors: [],
     viewers: [],
+    createdAt: null,
+    updatedAt: null,
+    myAccessSince: null,
     name,
     tags: [],
     source: null,
@@ -97,7 +100,7 @@ describe('RecipeList while the categories load', () => {
     const view = list('/recipes?cat=3&group=0')
 
     await screen.findByTestId('list-categories-skeleton')
-    expect(screen.queryByText(/Keine Treffer/)).toBeNull()
+    expect(screen.queryByText(/Keine Rezepte gefunden|Nichts gefunden/)).toBeNull()
     expect(screen.queryByText('Pancakes')).toBeNull()
     // No chip without a name yet.
     expect(screen.queryByText('#3')).toBeNull()
@@ -154,7 +157,7 @@ describe('RecipeList when the categories fail', () => {
     catalog.categories = { list: [], status: 'error', error: new Error('Serverfehler'), retry }
     list('/recipes?cat=3&group=1')
 
-    await screen.findByText('Konnte Kategorien nicht laden')
+    await screen.findByText('Kategorien konnten nicht geladen werden')
     screen.getByText('Serverfehler')
     await screen.findByText('Pancakes')
     screen.getByText('Suppe')
@@ -174,7 +177,7 @@ describe('RecipeList when the categories fail', () => {
     catalog.categories = { list: [], status: 'error', error: new Error('Serverfehler'), retry: () => {} }
     list('/recipes?cat=3&group=0')
 
-    await waitFor(() => screen.getByText('Noch keine Rezepte.'))
-    expect(screen.queryByText(/Keine Treffer/)).toBeNull()
+    await waitFor(() => screen.getByText('Noch keine Rezepte'))
+    expect(screen.queryByText(/Keine Rezepte gefunden|Nichts gefunden/)).toBeNull()
   })
 })

@@ -1,13 +1,15 @@
 // Frame of the sign-in pages: grey page, card in the upper third so the phone keyboard doesn't cover it.
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { PageTitle } from '../PageTitle'
+import { Brand } from '../shell/BrandMark'
 
 export function AuthCard({ title, children, footer }: { title: string; children: ReactNode; footer: ReactNode }) {
   return (
-    <main className="min-h-screen bg-background px-4 pt-[12vh] pb-8 text-foreground">
+    <main className="min-h-screen bg-background pt-[12vh] pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] pb-8 text-foreground">
       <div className="mx-auto w-full max-w-sm rounded-lg border bg-card p-6">
-        <p className="text-sm font-medium text-muted-foreground">Foodly</p>
-        <h1 className="font-display mt-1 mb-6 text-2xl text-foreground">{title}</h1>
+        <Brand className="mb-4 flex" />
+        <PageTitle className="mb-6">{title}</PageTitle>
         {children}
         <p className="mt-6 text-center text-sm text-muted-foreground">{footer}</p>
       </div>
@@ -17,7 +19,13 @@ export function AuthCard({ title, children, footer }: { title: string; children:
 
 export function AuthLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    <Link to={to} className="font-medium text-foreground underline underline-offset-4">
+    // Touch: inline-block so the padding adds to the 20 px line height (40 px tap area; on a plain inline link it would
+    // add to the smaller font box); the negative margins keep the line where it was. relative: in a field's error note
+    // the padding reaches into the (positioned) input box, which would otherwise take those taps.
+    <Link
+      to={to}
+      className="font-medium text-foreground underline underline-offset-4 touch:relative touch:-my-2.5 touch:inline-block touch:py-2.5"
+    >
       {children}
     </Link>
   )

@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { emptyDraft, move, newIngredient, sizeNumberError, toCreateRecipe, toDraft } from './draft'
+import {
+  addImage,
+  appendIngredients,
+  draftLineParts,
+  emptyDraft,
+  move,
+  newIngredient,
+  sizeNumberError,
+  toCreateRecipe,
+  toDraft,
+} from './draft'
 import type { Recipe } from '../api/protocol'
 import { ref } from '../test/images'
 
@@ -9,6 +19,9 @@ function recipe(over: Partial<Recipe> = {}): Recipe {
     owner: 1,
     editors: [],
     viewers: [],
+    createdAt: null,
+    updatedAt: null,
+    myAccessSince: null,
     rating: [],
     name: 'Pasta',
     tags: ['Vegan'],
@@ -27,7 +40,7 @@ function recipe(over: Partial<Recipe> = {}): Recipe {
         name: 'Sugo',
         ingredients: [
           { id: 100, ingredient: { id: 5, name: 'Zwiebel' }, text: null, amount: '1', amountPrefix: null, unit: null },
-          { id: 101, ingredient: null, text: 'Salz', amount: null, amountPrefix: 'ca.', unit: 'Prise' },
+          { id: 101, ingredient: null, text: 'Salz', amount: '1', amountPrefix: 'ca.', unit: 'Prise' },
         ],
         steps: ['Hacken.', 'Braten.'],
       },
@@ -95,12 +108,30 @@ describe('toCreateRecipe', () => {
           name: 'Sugo',
           ingredients: [
             { ingredient: 5, text: null, amount: '1', amountPrefix: null, unit: null },
-            { ingredient: null, text: 'Salz', amount: null, amountPrefix: 'ca.', unit: 'Prise' },
+            { ingredient: null, text: 'Salz', amount: '1', amountPrefix: 'ca.', unit: 'Prise' },
           ],
           steps: ['Hacken.', 'Braten.'],
         },
       ],
     })
+  })
+
+  it('shows prefix and amount in one field and splits them again on save', () => {
+    const draft = toDraft(recipe())
+    expect(draft.sections[0].ingredients[1].amount).toBe('ca. 1')
+
+    draft.sections[0].ingredients[1].amount = 'etwa 200'
+    expect(toCreateRecipe(draft).sections[0].ingredients[1]).toMatchObject({ amountPrefix: 'etwa', amount: '200' })
+  })
+
+  // Accepted drift of the README §3.3 rule: a legacy prefix without any number becomes the amount.
+  it('saves a legacy prefix without an amount as the amount', () => {
+    const legacy = recipe()
+    legacy.sections[0].ingredients[1] = { ...legacy.sections[0].ingredients[1], amount: null, amountPrefix: 'ca.' }
+
+    const wire = toCreateRecipe(toDraft(legacy))
+
+    expect(wire.sections[0].ingredients[1]).toMatchObject({ amount: 'ca.', amountPrefix: null })
   })
 
   it('keeps the Zusatz of a catalog ingredient through draft and save', () => {
@@ -181,5 +212,75 @@ describe('sizeNumberError', () => {
 
   it('ignores the number in text mode', () => {
     expect(sizeNumberError({ sizeMode: 'text', sizeNumber: 0 })).toBeNull()
+  })
+})
+
+describe('addImage', () => {
+  it('makes the image the main one while there is none', () => {
+    expect(addImage({ mainImage: null, images: [ref(2)] }, ref(5))).toEqual({ mainImage: ref(5), images: [ref(2)] })
+  })
+
+  it('appends to the gallery once there is a main image', () => {
+    expect(addImage({ mainImage: ref(1), images: [ref(2)] }, ref(5))).toEqual({
+      mainImage: ref(1),
+      images: [ref(2), ref(5)],
+    })
+  })
+})
+
+describe('appendIngredients', () => {
+  const pasted = [
+    { ingredient: 4, text: 'nach Geschmack', amount: '', unit: '' },
+    { ingredient: null, text: 'Hackfleisch', amount: '500', unit: 'g' },
+  ]
+
+  it('replaces trailing empty rows and appends with fresh keys', () => {
+    const filled = { ...newIngredient(), text: 'Zwiebel' }
+    const rows = appendIngredients([filled, newIngredient(), { ...newIngredient(), text: ' ' }], pasted)
+    expect(rows.map(({ key: _key, ...rest }) => rest)).toEqual([
+      { ingredient: null, text: 'Zwiebel', amount: '', unit: '' },
+      ...pasted,
+    ])
+    expect(rows[0]).toBe(filled)
+    expect(new Set(rows.map((r) => r.key)).size).toBe(3)
+  })
+
+  it('keeps an empty row between filled ones', () => {
+    const gap = newIngredient()
+    const rows = appendIngredients(
+      [{ ...newIngredient(), amount: '1' }, gap, { ...newIngredient(), unit: 'g' }],
+      pasted,
+    )
+    expect(rows).toHaveLength(5)
+    expect(rows[1]).toBe(gap)
+  })
+})
+
+describe('draftLineParts', () => {
+  const byId = { 1: { name: 'Tomaten' } }
+  const line = (over: Partial<ReturnType<typeof newIngredient>>) => ({ ...newIngredient(), ...over })
+
+  it('splits a catalog row into quantity, name and Zusatz', () => {
+    expect(draftLineParts(line({ ingredient: 1, amount: 'ca. 800', unit: 'g', text: 'gehackt' }), byId)).toEqual({
+      quantity: 'ca. 800 g',
+      name: 'Tomaten',
+      extra: 'gehackt',
+    })
+  })
+
+  it('takes the whole free text as the name', () => {
+    expect(draftLineParts(line({ text: ' Salz nach Geschmack ' }), byId)).toEqual({
+      quantity: '',
+      name: 'Salz nach Geschmack',
+      extra: '',
+    })
+  })
+
+  it('keeps an amount without a name', () => {
+    expect(draftLineParts(line({ amount: '2', unit: ' ' }), byId)).toEqual({ quantity: '2', name: '', extra: '' })
+  })
+
+  it('is empty for a blank row', () => {
+    expect(draftLineParts(line({}), byId)).toEqual({ quantity: '', name: '', extra: '' })
   })
 })

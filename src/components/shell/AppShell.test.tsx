@@ -51,9 +51,11 @@ function renderAt(entry: string) {
                 <Route path="/" element={<p>start page</p>} />
                 <Route path="/recipes" element={<Counter />} />
                 <Route path="/recipes/new" element={<p>editor page</p>} />
+                <Route path="/recipes/:id/edit" element={<p>editor page</p>} />
                 <Route path="/recipes/:id" element={<p>detail page</p>} />
                 <Route path="/categories" element={<p>categories page</p>} />
                 <Route path="/categories/:id" element={<p>category page</p>} />
+                <Route path="/profile" element={<p>profile page</p>} />
               </Routes>
             </AppShell>
           </MemoryRouter>
@@ -73,6 +75,19 @@ beforeEach(() => {
 afterEach(() => setViewport(1024))
 
 describe('AppShell on the desktop', () => {
+  it('keeps the sidebar in the editor (#218)', () => {
+    renderAt('/recipes/5/edit')
+    sidebar()
+    mainNav()
+  })
+
+  it('keeps the 60 px default header height (no phone override on the shell root)', () => {
+    renderAt('/recipes')
+    const header = screen.getByRole('banner')
+    expect(header.className).toContain('h-(--site-nav-h)')
+    expect(header.closest('.min-h-screen')!.className).not.toContain('--site-nav-h')
+  })
+
   it('shows the sidebar with the destinations, "Neues Rezept" and the categories', () => {
     renderAt('/recipes')
     const side = within(sidebar())
@@ -87,7 +102,7 @@ describe('AppShell on the desktop', () => {
     side.getByText('3')
     // phone-only pieces are absent
     expect(screen.getAllByRole('navigation', { name: 'Hauptnavigation' })).toHaveLength(1)
-    expect(screen.queryByRole('button', { name: 'Profil & Einstellungen' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Profil & Einstellungen' })).toBeNull()
   })
 
   it('marks Start current on / only', () => {
@@ -97,6 +112,17 @@ describe('AppShell on the desktop', () => {
     expect(nav.getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBe('page')
     expect(nav.getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBeNull()
     within(screen.getByRole('banner')).getByText('Start')
+  })
+
+  it('is 248 px wide expanded and 64 px collapsed (#246)', () => {
+    renderAt('/recipes')
+    // The shell's --shell-left (overlay inset) has to move with the sidebar width.
+    const shell = () => sidebar().closest('.min-h-screen')!.className.split(/\s+/)
+    expect(sidebar().className.split(/\s+/)).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
+    expect(shell()).toContain('[--shell-left:calc(15.5rem+env(safe-area-inset-left))]')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    expect(sidebar().className.split(/\s+/)).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
+    expect(shell()).toContain('[--shell-left:calc(4rem+env(safe-area-inset-left))]')
   })
 
   it('collapses to icons, remembers it, and expands again', () => {
@@ -117,6 +143,67 @@ describe('AppShell on the desktop', () => {
     expect(localStorage.getItem('foodly:sidebar-collapsed')).toBe('0')
   })
 
+  it('starts collapsed below 1024 px and open from 1024 px while nothing is saved (#222)', () => {
+    for (const [width, expected] of [
+      [761, 'w-[calc(4rem+env(safe-area-inset-left))]'],
+      [800, 'w-[calc(4rem+env(safe-area-inset-left))]'],
+      [1023, 'w-[calc(4rem+env(safe-area-inset-left))]'],
+      [1024, 'w-[calc(15.5rem+env(safe-area-inset-left))]'],
+      [1280, 'w-[calc(15.5rem+env(safe-area-inset-left))]'],
+    ] as const) {
+      setViewport(width)
+      const { unmount } = renderAt('/recipes')
+      expect(sidebar().className.split(/\s+/)).toContain(expected)
+      unmount()
+    }
+  })
+
+  it('follows the breakpoint on resize without saving anything (#222)', () => {
+    setViewport(1280)
+    renderAt('/recipes')
+    const width = () => sidebar().className.split(/\s+/)
+    expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
+    setViewport(800)
+    expect(width()).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
+    screen.getByRole('button', { name: 'Seitenleiste ausklappen' })
+    expect(sidebar().closest('.min-h-screen')!.className.split(/\s+/)).toContain(
+      '[--shell-left:calc(4rem+env(safe-area-inset-left))]',
+    )
+    setViewport(1280)
+    expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
+    screen.getByRole('button', { name: 'Seitenleiste einklappen' })
+    expect(localStorage.getItem('foodly:sidebar-collapsed')).toBeNull()
+  })
+
+  it('keeps a choice made at 800 px after a reload and on every width (#222)', () => {
+    setViewport(800)
+    const { unmount } = renderAt('/recipes')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste ausklappen' }))
+    expect(localStorage.getItem('foodly:sidebar-collapsed')).toBe('0')
+
+    unmount()
+    renderAt('/recipes')
+    const width = () => sidebar().className.split(/\s+/)
+    expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
+    screen.getByRole('button', { name: 'Seitenleiste einklappen' })
+    setViewport(1280)
+    expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
+    setViewport(800)
+    expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
+  })
+
+  it('keeps a saved "collapsed" on wide screens too (#222)', () => {
+    localStorage.setItem('foodly:sidebar-collapsed', '1')
+    setViewport(1280)
+    renderAt('/recipes')
+    const width = () => sidebar().className.split(/\s+/)
+    expect(width()).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
+    setViewport(800)
+    expect(width()).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
+    setViewport(1280)
+    expect(width()).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
+  })
+
   it('leads to the start page from the wordmark', () => {
     renderAt('/recipes/1')
     const wordmark = within(sidebar()).getByRole('link', { name: 'Foodly' })
@@ -130,6 +217,13 @@ describe('AppShell on the desktop', () => {
     const classes = within(sidebar()).getByRole('link', { name: 'Foodly' }).className.split(/\s+/)
     expect(classes).toEqual(expect.arrayContaining(['focus-visible:ring-[3px]', 'focus-visible:ring-sidebar-ring']))
     expect(classes).not.toContain('focus-visible:ring-2')
+  })
+
+  it('sets the wordmark at the mockup 17/700, not .font-display (#246)', () => {
+    renderAt('/recipes')
+    const classes = within(sidebar()).getByText('Foodly').className.split(/\s+/)
+    expect(classes).toEqual(expect.arrayContaining(['text-[17px]', 'font-bold']))
+    expect(classes).not.toContain('font-display')
   })
 
   it('highlights the single shown category instead of "Rezepte"', () => {
@@ -202,14 +296,43 @@ describe('AppShell on the desktop', () => {
     screen.getByText('editor page')
   })
 
-  it('opens the profile menu with the name and the theme choice', async () => {
+  it('leads to the profile page from the name at the bottom', () => {
     renderAt('/recipes')
-    fireEvent.keyDown(within(sidebar()).getByRole('button', { name: 'Kolja – Profil & Einstellungen' }), {
-      key: 'Enter',
-    })
-    const menu = await screen.findByRole('menu')
-    within(menu).getByText('Kolja')
-    within(menu).getByRole('menuitem', { name: /Theme/ })
+    const row = within(sidebar()).getByRole('link', { name: 'Kolja – Profil & Einstellungen' })
+    expect(row.getAttribute('href')).toBe('/profile')
+    expect(row.getAttribute('aria-current')).toBeNull()
+    within(row).getByText('Kolja')
+    fireEvent.click(row)
+    screen.getByText('profile page')
+  })
+
+  it('leads to the profile page from the avatar in the collapsed sidebar', () => {
+    renderAt('/recipes')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    fireEvent.click(within(sidebar()).getByRole('link', { name: 'Profil & Einstellungen' }))
+    screen.getByText('profile page')
+  })
+
+  it('marks the profile entry current on /profile and on /categories, not on a category page', () => {
+    const profileRow = () => within(sidebar()).getByRole('link', { name: 'Kolja – Profil & Einstellungen' })
+    const { unmount } = renderAt('/profile')
+    expect(profileRow().getAttribute('aria-current')).toBe('page')
+    expect(within(mainNav()).getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBeNull()
+    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBeNull()
+    unmount()
+    const second = renderAt('/categories')
+    expect(profileRow().getAttribute('aria-current')).toBe('location')
+    second.unmount()
+    renderAt('/categories/2')
+    expect(profileRow().getAttribute('aria-current')).toBeNull()
+  })
+
+  it('marks the profile avatar current in the collapsed sidebar', () => {
+    renderAt('/profile')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    const avatar = within(sidebar()).getByRole('link', { name: 'Profil & Einstellungen' })
+    expect(avatar.getAttribute('aria-current')).toBe('page')
+    expect(avatar.className).toContain('bg-sidebar-accent')
   })
 
   it('leads to the categories page from the gear next to "Kategorien"', () => {
@@ -221,39 +344,99 @@ describe('AppShell on the desktop', () => {
     expect(screen.getByRole('banner').textContent).toContain('Kategorien')
   })
 
+  it('shows only the category name in the collapsed tooltip, keeping the count in the aria-label (#246)', async () => {
+    renderAt('/recipes')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    const link = within(sidebar()).getByRole('link', { name: 'Favoriten (3)' })
+    act(() => link.focus())
+    // Not via getByText: Radix renders the tooltip label twice.
+    expect((await screen.findByRole('tooltip')).textContent).toBe('Favoriten')
+  })
+
+  it('replaces the "Kategorien" heading with a divider only when collapsed, also while loading (#246)', () => {
+    const { unmount } = renderAt('/recipes')
+    expect(within(sidebar()).queryByTestId('category-divider')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    within(sidebar()).getByTestId('category-divider')
+    expect(within(sidebar()).queryByRole('heading', { name: 'Kategorien' })).toBeNull()
+    unmount()
+    catalog.categories = { status: 'loading', list: [] }
+    renderAt('/recipes')
+    within(sidebar()).getByTestId('category-divider')
+  })
+
+  it('sets the "Kategorien" heading in subtle (#246)', () => {
+    renderAt('/recipes')
+    expect(within(sidebar()).getByRole('heading', { name: 'Kategorien' }).className.split(/\s+/)).toContain(
+      'text-subtle-foreground',
+    )
+  })
+
   it('has no gear in the collapsed sidebar', () => {
     renderAt('/recipes')
     fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
     expect(within(sidebar()).queryByRole('link', { name: 'Kategorien verwalten' })).toBeNull()
-  })
-
-  it('leads to the categories page from the profile menu', async () => {
-    renderAt('/recipes')
-    fireEvent.keyDown(within(sidebar()).getByRole('button', { name: 'Kolja – Profil & Einstellungen' }), {
-      key: 'Enter',
-    })
-    const item = await screen.findByRole('menuitem', { name: 'Kategorien' })
-    expect(item.getAttribute('href')).toBe('/categories')
-    fireEvent.click(item)
-    screen.getByText('categories page')
   })
 })
 
 describe('AppShell on the phone', () => {
   beforeEach(() => setViewport(375))
 
-  it('leads to the categories page from the avatar menu', async () => {
+  it('has a 56 px header below the top inset (the offset the category headers stick at)', () => {
     renderAt('/recipes')
-    fireEvent.keyDown(screen.getByRole('button', { name: 'Profil & Einstellungen' }), { key: 'Enter' })
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'Kategorien' }))
-    screen.getByText('categories page')
+    const header = screen.getByRole('banner')
+    expect(header.className).toContain('h-(--site-nav-h)')
+    expect(header.className.split(/\s+/)).toContain('pt-[env(safe-area-inset-top)]')
+    expect(header.closest('.min-h-screen')!.className).toContain('[--site-nav-h:calc(3.5rem+env(safe-area-inset-top))]')
+  })
+
+  it('has a 52 px "+" with the mockup shadow', () => {
+    renderAt('/recipes')
+    const fab = screen.getByRole('link', { name: 'Neues Rezept' })
+    expect(fab.className).toContain('size-13')
+    expect(fab.className).toContain('shadow-[0_6px_20px_rgb(0_0_0/0.22)]')
+    expect(fab.className).not.toContain('size-14')
+    expect(fab.className).not.toContain('shadow-lg')
+  })
+
+  it('has a 28 px avatar pulled to the header edge (#246)', () => {
+    renderAt('/recipes')
+    const link = screen.getByRole('link', { name: 'Profil & Einstellungen' })
+    expect(link.className.split(/\s+/)).toEqual(expect.arrayContaining(['-mr-1.5', 'size-10']))
+    expect(link.firstElementChild!.className.split(/\s+/)).toContain('size-7')
+  })
+
+  it('has a translucent, blurred tab bar with 22 px icons and 11 px labels (#246)', () => {
+    renderAt('/recipes')
+    const nav = mainNav()
+    expect(nav.className.split(/\s+/)).toEqual(
+      expect.arrayContaining(['tab-bar', 'bg-sidebar/92', 'backdrop-blur-[14px]']),
+    )
+    const tab = within(nav).getByRole('link', { name: 'Rezepte' })
+    expect(tab.className.split(/\s+/)).toEqual(expect.arrayContaining(['text-[11px]', 'gap-[3px]']))
+    expect(tab.querySelector('svg')!.getAttribute('class')!.split(/\s+/)).toContain('size-5.5')
+  })
+
+  it('leads to the profile page from the avatar', () => {
+    renderAt('/recipes')
+    const avatar = screen.getByRole('link', { name: 'Profil & Einstellungen' })
+    expect(avatar.getAttribute('href')).toBe('/profile')
+    fireEvent.click(avatar)
+    screen.getByText('profile page')
+  })
+
+  it('has no avatar and no active tab on /profile', () => {
+    renderAt('/profile')
+    expect(screen.queryByRole('link', { name: 'Profil & Einstellungen' })).toBeNull()
+    expect(within(mainNav()).getByRole('link', { name: 'Start' }).getAttribute('aria-current')).toBeNull()
+    expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBeNull()
   })
 
   it('shows tab bar, "+" button and avatar on the list; "+" opens the editor', () => {
     renderAt('/recipes')
     expect(screen.queryByRole('complementary', { name: 'Seitenleiste' })).toBeNull()
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('page')
-    screen.getByRole('button', { name: 'Profil & Einstellungen' })
+    screen.getByRole('link', { name: 'Profil & Einstellungen' })
     fireEvent.click(screen.getByRole('link', { name: 'Neues Rezept' }))
     screen.getByText('editor page')
   })
@@ -265,7 +448,7 @@ describe('AppShell on the phone', () => {
     const banner = within(screen.getByRole('banner'))
     banner.getByText('Foodly')
     expect(banner.queryByText('Start')).toBeNull()
-    banner.getByRole('button', { name: 'Profil & Einstellungen' })
+    banner.getByRole('link', { name: 'Profil & Einstellungen' })
     expect(screen.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
   })
 
@@ -287,6 +470,41 @@ describe('AppShell on the phone', () => {
     expect(screen.getByRole('link', { name: 'Neues Rezept' }).getAttribute('href')).toBe('/recipes/new')
   })
 
+  it.each(['/recipes/new', '/recipes/5/edit'])(
+    'shows no tab bar and no "+" button in the editor (%s, #218)',
+    (path) => {
+      renderAt(path)
+      screen.getByText('editor page')
+      expect(screen.queryByRole('navigation', { name: 'Hauptnavigation' })).toBeNull()
+      expect(screen.queryByRole('link', { name: 'Neues Rezept' })).toBeNull()
+      // The page reaches the bottom edge: no tab-bar padding, no tab-bar inset for fixed bars.
+      expect(screen.getByRole('main').parentElement!.className.split(/\s+/)).not.toContain('pb-(--shell-bottom)')
+      const shell = screen.getByRole('banner').closest('.min-h-screen')!.className.split(/\s+/)
+      expect(shell).toContain('[--site-nav-h:calc(3.5rem+env(safe-area-inset-top))]')
+      expect(shell).not.toContain('[--shell-bottom:calc(4rem+env(safe-area-inset-bottom))]')
+    },
+  )
+
+  // #220: with viewport-fit=cover the home indicator would sit on the labels and the "+".
+  it('lifts the tab bar labels and the "+" above the bottom inset', () => {
+    renderAt('/recipes')
+    const bar = mainNav().className.split(/\s+/)
+    expect(bar).toContain('h-[calc(4rem+env(safe-area-inset-bottom))]')
+    expect(bar).toContain('pb-[env(safe-area-inset-bottom)]')
+    const fab = screen.getByRole('link', { name: 'Neues Rezept' }).className.split(/\s+/)
+    expect(fab).toContain('bottom-[calc(5rem+env(safe-area-inset-bottom))]')
+  })
+
+  it('keeps the tab bar, its padding and inset on the list (#218)', () => {
+    renderAt('/recipes')
+    mainNav()
+    screen.getByRole('link', { name: 'Neues Rezept' })
+    expect(screen.getByRole('main').parentElement!.className.split(/\s+/)).toContain('pb-(--shell-bottom)')
+    expect(screen.getByRole('banner').closest('.min-h-screen')!.className.split(/\s+/)).toContain(
+      '[--shell-bottom:calc(4rem+env(safe-area-inset-bottom))]',
+    )
+  })
+
   it('has no "+" button and no avatar on sub-pages', () => {
     renderAt('/recipes/5')
     screen.getByText('detail page')
@@ -294,13 +512,7 @@ describe('AppShell on the phone', () => {
     expect(within(mainNav()).getByRole('link', { name: 'Rezepte' }).getAttribute('aria-current')).toBe('location')
     mainNav()
     expect(screen.queryByRole('link', { name: 'Neues Rezept' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Profil & Einstellungen' })).toBeNull()
-  })
-
-  it('opens the profile menu from the avatar', async () => {
-    renderAt('/recipes')
-    fireEvent.keyDown(screen.getByRole('button', { name: 'Profil & Einstellungen' }), { key: 'Enter' })
-    within(await screen.findByRole('menu')).getByText('Kolja')
+    expect(screen.queryByRole('link', { name: 'Profil & Einstellungen' })).toBeNull()
   })
 })
 
@@ -314,6 +526,17 @@ it('keeps the page mounted when crossing the breakpoint', () => {
   setViewport(1024)
   screen.getByRole('button', { name: 'count 1' })
   sidebar()
+})
+
+it('drops the tab bar in the editor when crossing to the phone and keeps the page (#218)', () => {
+  renderAt('/recipes/5/edit')
+  sidebar()
+  setViewport(375)
+  screen.getByText('editor page')
+  expect(screen.queryByRole('navigation', { name: 'Hauptnavigation' })).toBeNull()
+  setViewport(1024)
+  sidebar()
+  mainNav()
 })
 
 describe('Timer button in the header', () => {
@@ -416,12 +639,32 @@ describe('Timer button in the header', () => {
     expect(screen.getByRole('button', { name: 'Timer' }).getAttribute('aria-expanded')).toBe('false')
   })
 
+  it('closes the desktop popover from its ✕ and returns focus to the header button', async () => {
+    const panel = await openPopover()
+    expect(within(panel).getByRole('heading', { name: 'Timer' })).toBeTruthy()
+    fireEvent.click(within(panel).getByRole('button', { name: 'Schließen' }))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Timer' })))
+  })
+
+  it('lists a started timer above the form and removes it with ✕', async () => {
+    const panel = await openPopover()
+    fireEvent.click(within(panel).getByRole('button', { name: 'Starten' }))
+    const bar = within(panel).getByRole('progressbar', { name: 'Fortschritt Timer' })
+    const form = within(panel).getByRole('form', { name: 'Neuer Timer' })
+    expect(bar.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+    fireEvent.click(within(panel).getByRole('button', { name: 'Entfernen' }))
+    within(panel).getByText('Kein Timer läuft.')
+    expect(within(panel).queryByRole('progressbar')).toBeNull()
+  })
+
   it('shows the countdown of a started timer', async () => {
     renderAt('/recipes')
     openTimers()
     const panel = await screen.findByRole('dialog', { name: 'Timer' })
     fireEvent.click(within(panel).getByRole('button', { name: '10 min' }))
-    fireEvent.click(within(panel).getByRole('button', { name: 'Timer starten' }))
+    fireEvent.click(within(panel).getByRole('button', { name: 'Starten' }))
     expect(screen.getByRole('button', { name: 'Timer' }).textContent).toBe('10:00')
   })
 })

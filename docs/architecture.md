@@ -110,12 +110,24 @@ werden hier nicht wiederholt.
   „Start“ vor „Rezepte“); ab 761 px (`useIsDesktop`) Seitenleiste
   (einklappbar, Kategorien, Profil), darunter Tab-Leiste + „+“-FAB + Avatar. Das Fenster
   bleibt der Scroll-Container; feste Seitenleisten nutzen `--shell-left`/`--shell-bottom`.
+  Kopfzeile (#228): Unterseiten (Rezept, Kategorie, Editor) zeigen Zurück-Pfeil und Brotkrume
+  „<Herkunft> / <Name>“. Seiten legen ihre Aktionen per `HeaderActions` (Portal) in die Kopfzeile
+  und melden den Namen per `HeaderCrumbName` (`PageHeader.tsx`, ohne Router-Import); Dialoge
+  bleiben im Seitenbaum. Die Herkunft merkt sich `useOrigin` je History-Eintrag (sessionStorage).
+  Seiteninhalt in `Page` (max. 1080 px, Liste `wide` 1280 px).
   Groups-Routen erst nach B12 + Backend #13.
+- Koch-Modus (#209): `/recipes/:id/cook` (`CookMode`, per `key` auf die id) liegt hinter `RequireAuth`, aber
+  ohne `AppShell`. Unter `RequireAuth` wählt jede Route ihren Rahmen per Layout-Route: `ShellLayout`
+  (`AppShell`) für alle anderen Seiten, `BareLayout` (nur `TimerPanelProvider`) für den Koch-Modus. Timer,
+  Kataloge und der eine `Toaster` (`AppToaster`, Abstand je nach Route) hängen an `RequireAuth`, damit
+  laufende Timer und ein offener Alarm-Toast den Wechsel Detail ↔ Koch-Modus überstehen. Der aktuelle
+  Schritt steht nicht in der URL; ✕/„Fertig“/Esc gehen mit Verlauf zurück, sonst zu `/recipes/:id` mit
+  dem Größen-Parameter.
 - Anmeldung (#142): `/login` und `/register` liegen **außerhalb** von `AppShell` und
   `CatalogProvider` (hinter `RedirectIfSignedIn`); alle anderen Routen inkl. 404 hängen an
   `RequireAuth` (`src/components/shell/RequireAuth.tsx`), der ohne Sitzung synchron mit
-  `replace` auf `/login?next=<pfad+query+hash>` umleitet und `CatalogProvider` mit
-  `key={userId}` rendert. `next` nur app-intern (`src/lib/safeNext.ts`). Nach dem
+  `replace` auf `/login?next=<pfad+query+hash>` umleitet und `TimerProvider` und `CatalogProvider` mit
+  `key={userId}` rendert (die Shell kommt erst darunter, siehe Koch-Modus). `next` nur app-intern (`src/lib/safeNext.ts`). Nach dem
   Anmelden leitet `RedirectIfSignedIn` weiter, nicht die Seite. Im Mock-Modus ist immer
   jemand angemeldet: nichts geschützt, `/login` → `/recipes`.
 - Sitzungsende (#143): Wie die Sitzung in diesem Tab endete, steht in
@@ -167,5 +179,5 @@ Begründete Einzelausnahme: `eslint-disable-next-line <regel> -- <grund>`.
 - Auth/Token-Handling: Backend fertig (B7, PR #20); FE baut es in #141–#143
   (Spec `superpowers/specs/2026-11-08-auth-login-design.md`). Sitzung und
   Token-Refresh liegen seit #141 in `src/api/auth.ts`; Anmelden, Registrieren und
-  Routen-Schutz seit #142 (§5), Abmelden im Profil-Menü und Hinweis bei
+  Routen-Schutz seit #142 (§5), Abmelden (heute auf der Profilseite, #245) und Hinweis bei
   abgelaufener Sitzung seit #143.

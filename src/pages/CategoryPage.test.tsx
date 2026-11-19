@@ -74,6 +74,24 @@ describe('CategoryPage', () => {
     expect(screen.getByRole('link', { name: 'Zu den Rezepten' })).toBeTruthy()
   })
 
+  it('draws its tinted head and mark without a border, the mark showing the initial', () => {
+    catalog.categories = { status: 'ready', list: [CATEGORY] }
+    render(page())
+    const head = screen.getByRole('heading', { level: 1 }).closest('[data-cat]')
+    const mark = head?.querySelector('span[data-cat]')
+    expect(mark?.textContent).toBe('F')
+    // Only their own classes: the outline "Bearbeiten" inside the head keeps its border.
+    for (const el of [head, mark]) expect(el?.className).not.toMatch(/(^|\s|:)border(-|\s|$)/)
+  })
+
+  it('asks for a recipe in its search, like the list', () => {
+    catalog.categories = { status: 'ready', list: [CATEGORY] }
+    render(page())
+    expect(screen.getByRole('textbox', { name: 'In „Favoriten“ suchen' }).getAttribute('placeholder')).toBe(
+      'Rezept suchen',
+    )
+  })
+
   it('has a generic h1 while the categories load', () => {
     catalog.categories = { status: 'loading', list: [] }
     render(page())
@@ -84,7 +102,8 @@ describe('CategoryPage', () => {
   it('does not call a category empty when only its recipes are out of sight', () => {
     catalog.categories = { status: 'ready', list: [{ ...CATEGORY, recipes: [7] }] }
     render(page())
-    expect(screen.getByText('Keine Rezepte, die du sehen kannst.')).toBeTruthy()
+    expect(screen.getByText('Keine Rezepte, die du sehen kannst')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Zu den Rezepten' }).getAttribute('href')).toBe('/recipes')
     expect(screen.queryByText(/Noch nichts in/)).toBeNull()
   })
 

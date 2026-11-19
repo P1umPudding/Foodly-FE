@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mockData, mockRequest, CURRENT_USER_ID } from './index'
 import type { CreateRecipe, ImageRef, Recipe } from '../api/protocol'
 
@@ -134,5 +134,48 @@ describe('mock seed data', () => {
     for (const r of mockData.recipes) {
       for (const image of [r.mainImage, ...r.images]) if (image !== null) expect(typeof image).toBe('object')
     }
+  })
+})
+
+describe('mock write timestamps', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('stamps a created recipe with now, in the backend format', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-13T09:30:15.123Z'))
+
+    const created = (await mockRequest('recipes.create', { input })) as Recipe
+
+    expect(created.createdAt).toBe('2026-11-13T09:30:15.123+00:00')
+    expect(created.updatedAt).toBe('2026-11-13T09:30:15.123+00:00')
+    expect(created.myAccessSince).toBe('2026-11-13T09:30:15.123+00:00')
+  })
+
+  it('keeps createdAt and myAccessSince on update and bumps updatedAt', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-13T09:00:00Z'))
+    const created = (await mockRequest('recipes.create', { input })) as Recipe
+
+    vi.setSystemTime(new Date('2026-11-13T10:00:00Z'))
+    const updated = (await mockRequest('recipes.update', { id: created.id, input })) as Recipe
+
+    expect(updated.createdAt).toBe('2026-11-13T09:00:00.000+00:00')
+    expect(updated.myAccessSince).toBe('2026-11-13T09:00:00.000+00:00')
+    expect(updated.updatedAt).toBe('2026-11-13T10:00:00.000+00:00')
+  })
+
+  it('stamps a copy as new instead of inheriting the original timestamps', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-13T11:00:00Z'))
+    const original = mockData.recipes.find((r) => r.owner !== CURRENT_USER_ID)
+    if (!original) throw new Error('fixture has no foreign recipe')
+
+    const copy = (await mockRequest('recipes.copy', { id: original.id })) as Recipe
+
+    expect(copy.createdAt).toBe('2026-11-13T11:00:00.000+00:00')
+    expect(copy.updatedAt).toBe('2026-11-13T11:00:00.000+00:00')
+    expect(copy.myAccessSince).toBe('2026-11-13T11:00:00.000+00:00')
   })
 })

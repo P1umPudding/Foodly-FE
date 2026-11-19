@@ -1,8 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type FocusEvent, type MouseEvent } from 'react'
-import { Button, NumberInput, Slider, ToggleGroup } from '@postxl/ui-components'
-import { X } from 'lucide-react'
+import { Button, NumberInput, Slider, cn } from '@postxl/ui-components'
 import type { ListState } from '../../../list/state'
-import { FocusToggleGroupItem } from '../FocusToggleGroupItem'
+import { FilterHint } from './FilterCheckRow'
 
 // Upper bound for the work-time slider and field (minutes). The knob's far-right position means "no limit"
 // (`null`); only the field (or the URL) can still set a real 180 — same knob position, the field shows the
@@ -12,12 +11,6 @@ const NO_LIMIT = 'Keine Grenze'
 const DURATION_PRESETS = [15, 30, 60] as const
 // Arrow keys on the knob commit per key in Radix; bursts are bundled so a run of key presses is one search.
 const KEY_COMMIT_MS = 400
-
-// Neutral "selected" emphasis — selection reads via fill + ring + weight, not a brand hue (colour stays
-// reserved for category/access meaning). Inset only at rest: a focused toggle draws its 3-px focus ring
-// outside, like the unselected ones (#95).
-const SELECTED_CHIP =
-  'bg-foreground/15 font-medium text-foreground ring-1 not-focus-visible:ring-inset ring-foreground/30'
 
 function clamp(v: number): number {
   return Math.min(DURATION_MAX, Math.max(0, v))
@@ -95,14 +88,13 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
     if (shown === null) thumb?.setAttribute('aria-valuetext', NO_LIMIT)
     else thumb?.removeAttribute('aria-valuetext')
   }, [shown])
-  const presetActive = (DURATION_PRESETS as readonly number[]).includes(shown ?? -1)
-  // The field commits on blur, except into the knob: typing, then dragging is one edit. Presets and Zurücksetzen
-  // keep focus in the field on press (preventDefault) — some browsers (Safari) never focus a clicked button, so
-  // the blur would otherwise commit the half-finished value right before the click commits its own.
+  // The field commits on blur, except into the knob: typing, then dragging is one edit. Presets keep focus in the
+  // field on press (preventDefault) — some browsers (Safari) never focus a clicked button, so the blur would
+  // otherwise commit the half-finished value right before the click commits its own.
   const onFieldBlur = (e: FocusEvent<HTMLInputElement>) => {
     if (!(e.relatedTarget instanceof Node && sliderBoxRef.current?.contains(e.relatedTarget))) flush()
   }
-  // Only while the field has focus: preventDefault also skips Radix's roving-focus update for the presets.
+  // Only while the field has focus.
   const keepFocus = (e: MouseEvent) => {
     if (document.activeElement === fieldRef.current) e.preventDefault()
   }
@@ -118,7 +110,7 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col px-1.5 pt-1.5">
       <div className="flex items-center gap-3">
         {/* px gives the knob's hover ring room — a scrolling parent also clips horizontally, which would
             otherwise cut the ring at the ends. Needs ≥ half-thumb (8px) + ring (4px).
@@ -158,7 +150,7 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
               clearTimeout(keyTimer.current)
               keyTimer.current = setTimeout(flush, KEY_COMMIT_MS)
             }}
-            className="w-full [&_[data-slot=slider-thumb]]:border-muted-foreground [&_[data-slot=slider-thumb]]:ring-muted-foreground/40"
+            className="w-full [&_[data-slot=slider-thumb]]:border-muted-foreground [&_[data-slot=slider-thumb]]:ring-muted-foreground/40 [&_[data-slot=slider-track]]:h-1 [&_[data-slot=slider-track]]:bg-divider"
           />
         </div>
         <NumberInput
@@ -175,58 +167,42 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
           min={0}
           max={DURATION_MAX}
           showSpinButtons={false}
-          placeholder={NO_LIMIT}
-          // Without a limit the field reads just "Keine Grenze", not "≤ Keine Grenze min".
-          prefix={shown === null ? undefined : '≤'}
-          suffix={shown === null ? undefined : 'min'}
+          // "≤ – min" without a limit (mockup); the slider's value text still says "Keine Grenze".
+          placeholder="–"
+          prefix="≤"
+          suffix="min"
           // suffix is the wrapper's last child span → shrink just "min"
-          wrapperClassName="min-h-8 phone:min-h-10 w-28 shrink-0 [&>span:last-child]:text-xs [&>span:first-child]:text-base"
+          wrapperClassName="min-h-8 phone:min-h-10 touch:min-h-10 w-28 shrink-0 [&>span:last-child]:text-xs [&>span:first-child]:text-base"
           // dark:bg-transparent so the input area matches the wrapper (the lib leaves dark:bg-input/30 on the
-          // input, which otherwise differs from prefix/suffix). text-xs placeholder: "Keine Grenze" at the input's
-          // 14/16 px barely fits w-28.
-          className="bg-transparent text-right placeholder:text-xs dark:bg-transparent"
+          // input, which otherwise differs from prefix/suffix).
+          className="bg-transparent text-right dark:bg-transparent"
         />
       </div>
-      {/* Selection is JS-driven so typing 60 lights ≤ 60. */}
-      <ToggleGroup
-        type="single"
-        className="w-full"
-        value={presetActive ? String(shown) : ''}
-        onValueChange={(v) => commit(v === '' ? null : Number(v))}
-      >
+      {/* Selection is JS-driven so typing 60 lights „60 min“; pressing the lit one again clears the limit. */}
+      <div className="mt-2.5 grid grid-cols-3 gap-1.5">
         {DURATION_PRESETS.map((m) => (
-          <FocusToggleGroupItem
-            onMouseDown={keepFocus}
+          <Button
             key={m}
-            value={String(m)}
+            type="button"
+            variant="outline"
+            size="sm"
+            onMouseDown={keepFocus}
+            aria-pressed={shown === m}
             aria-label={`≤ ${m} Minuten`}
-            className={`h-7 flex-1 px-1.5 text-xs phone:h-10 ${shown === m ? SELECTED_CHIP : ''}`}
+            onClick={() => commit(shown === m ? null : m)}
+            // bg-sidebar-accent: the mockup's --active (pressed) fill. The fill alone is no 3:1 state cue, so the pressed
+            // one also gets a stronger border and weight (postxl buttons are already 500).
+            className={cn(
+              'phone:h-10 touch:h-10',
+              shown === m &&
+                'border-foreground/40 bg-sidebar-accent font-semibold hover:bg-sidebar-accent dark:border-foreground/40 dark:bg-sidebar-accent dark:hover:bg-sidebar-accent',
+            )}
           >
-            ≤ {m} Min
-          </FocusToggleGroupItem>
+            {m} min
+          </Button>
         ))}
-      </ToggleGroup>
-      {/* A same-height placeholder while there is no limit, so the filter doesn't jump when it appears. */}
-      {shown === null ? (
-        <span aria-hidden className="h-7 phone:h-10" />
-      ) : (
-        <Button
-          type="button"
-          variant="ghost"
-          onMouseDown={keepFocus}
-          size="sm"
-          // The button disappears with the limit; hand focus to the field so keyboard users aren't dropped on <body>.
-          // Keyboard activation only (detail 0): on a tap, focusing the field would pop up the phone keyboard.
-          onClick={(e) => {
-            commit(null)
-            if (e.detail === 0) fieldRef.current?.focus()
-          }}
-          className="h-7 gap-1 self-end px-2 text-muted-foreground hover:text-foreground phone:h-10"
-        >
-          <X className="h-3.5 w-3.5" />
-          Zurücksetzen
-        </Button>
-      )}
+      </div>
+      <FilterHint>Zählt die Arbeitszeit. Rezepte ohne Angabe fallen raus.</FilterHint>
     </div>
   )
 }

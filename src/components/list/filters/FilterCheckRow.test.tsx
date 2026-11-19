@@ -30,3 +30,20 @@ describe('FilterCheckRow', () => {
     expect(box.disabled).toBe(false)
   })
 })
+
+describe('FilterCheckRow look="filter"', () => {
+  it('shows the checked row in fg/500, an unchecked one muted', () => {
+    render(
+      <>
+        <FilterCheckRow look="filter" checked onToggle={() => {}}>
+          An
+        </FilterCheckRow>
+        <FilterCheckRow look="filter" checked={false} onToggle={() => {}}>
+          Aus
+        </FilterCheckRow>
+      </>,
+    )
+    expect(screen.getByText('An').className).toContain('font-medium')
+    expect(screen.getByText('Aus').className).toContain('text-muted-foreground')
+  })
+})

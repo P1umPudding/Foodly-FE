@@ -126,7 +126,7 @@ Werkzeughaft, ruhig, dicht. Orientiert an Linear und Things. Die Liste steht im 
   ohne Kasten als einfache Liste unter den Infos. Die Galerie zeigt nur **eine Reihe** (Desktop 4, Handy 3), die letzte Kachel trägt „+N“ und öffnet die Lightbox ab dort.
   Hauptbild und Galerie öffnen per Klick eine **Lightbox**
   (dunkel, Bild eingepasst, „2 / 4“, Pfeile links/rechts, Vorschaubilder unten, Esc/Pfeiltasten; Handy: wischen,
-  keine Pfeil-Knöpfe). Entspricht dem heutigen `Lightbox.tsx`.
+  keine Pfeil-Knöpfe). Entspricht dem heutigen `Lightbox.tsx` (seit #248).
   Kopfzeile: Teilen, Kopie erstellen, „Bearbeiten“ (Desktop). Handy nur Icons: Teilen + Stift; wer nur ansehen darf,
   bekommt statt des Stifts „Kopie erstellen“. Kein „…“-Menü, solange es nur eine Aktion verstecken würde. Portionen-Rezept:
   Stepper über die Anzahl. Rezept mit fester Größe (z. B. „26 cm Springform“, `sizeNumber = null`): Stepper über den
@@ -276,8 +276,8 @@ Trennlinien-Fehler behoben (siehe Radien/Trennlinien oben). Gilt auch für alle 
   Foodly. `colorLight`/`colorDark` bleiben optionaler Override ohne eigene Eingabe im UI.
 - ~~Reihenfolge der Umsetzung~~ **entschieden**, siehe Abschnitt 4.
 - ~~Profil auf dem Handy~~ **entschieden:** Avatar oben rechts (Abschnitt 1.6).
-  Erste Ausbaustufe (R3): Avatar öffnet ein `DropdownMenu` (Name, Theme, Wake-Lock) statt einer eigenen Profilseite.
-  Die Profilseite im Mockup kommt, sobald es mehr Einstellungen gibt (z. B. Kategorien verwalten).
+  Erste Ausbaustufe (R3) war ein `DropdownMenu`; seit #245 führt der Avatar zur Profilseite `/profile` wie im
+  Mockup (Darstellung, Kategorien, Abmelden; Wake-Lock bleibt auf der Rezeptseite).
 - Farb-Overrides: siehe ADR `docs/decisions/0002-category-colors.md` (Override ersetzt nur `dot`, Util liefert Hex).
 - **B11:** Kategorie-Symbol als Tag-Referenz (Backend, später; bis dahin Anfangsbuchstabe).
 - **Backend-Abhängigkeiten** (Lead-Review): B1 Bilder (#9) offen, deshalb ist die Ohne-Foto-Variante das

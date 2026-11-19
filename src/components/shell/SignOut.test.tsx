@@ -1,4 +1,4 @@
-// Abmelden from the profile menu, end to end through the guard: logout request, cleared session,
+// Abmelden from the profile page, end to end through the guard: logout request, cleared session,
 // /login, and a fresh catalog for the next user.
 import { act, fireEvent, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
@@ -8,18 +8,18 @@ import { resetSessionEnd } from '../../api/auth'
 import { Login } from '../../pages/Login'
 import { jsonResponse, jwt, seedSession, storedSession } from '../../test/auth'
 import { renderAuthRoutes } from '../../test/authRoutes'
-import { ProfileMenu } from './ProfileMenu'
+import { Profile } from '../../pages/Profile'
 
 vi.mock('./AppShell', () => ({
   AppShell: ({ children }: { children: ReactNode }) => (
     <>
-      <ProfileMenu variant="row" />
+      <Profile />
       {children}
     </>
   ),
 }))
 // useTheme needs a ThemeProvider, which the route tree doesn't have.
-vi.mock('../ThemeMenu', () => ({ ThemeSubmenu: () => null }))
+vi.mock('../ThemeMenu', () => ({ ThemeSegment: () => null }))
 
 const kim = { id: 1, name: 'Kim', profilePicture: null }
 const lee = { id: 2, name: 'Lee', profilePicture: null }
@@ -41,11 +41,10 @@ function spyFetch() {
   })
 }
 
-async function signOutFromMenu(name: string) {
-  fireEvent.keyDown(await screen.findByRole('button', { name: `${name} – Profil & Einstellungen` }), { key: 'Enter' })
-  await screen.findByRole('menu')
+async function signOutAs(name: string) {
+  await screen.findByRole('heading', { name })
   act(() => {
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Abmelden' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Abmelden' }))
   })
 }
 
@@ -61,7 +60,7 @@ describe('Abmelden', () => {
     spyCatalogs()
     const fetchSpy = spyFetch()
     renderAuthRoutes('/recipes/5')
-    await signOutFromMenu('Kim')
+    await signOutAs('Kim')
 
     expect(screen.getByTestId('location').textContent).toBe('login /login')
     expect(storedSession()).toBeNull()
@@ -76,7 +75,7 @@ describe('Abmelden', () => {
     const me = spyCatalogs()
     spyFetch()
     renderAuthRoutes('/recipes/5', { login: <Login /> })
-    await signOutFromMenu('Kim')
+    await signOutAs('Kim')
 
     fireEvent.change(screen.getByLabelText('E-Mail'), { target: { value: 'lee@example.com' } })
     fireEvent.change(screen.getByLabelText('Passwort'), { target: { value: 'password123' } })
@@ -84,7 +83,7 @@ describe('Abmelden', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }))
     })
 
-    expect(await screen.findByRole('button', { name: 'Lee – Profil & Einstellungen' })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'Lee' })).toBeTruthy()
     expect(me).toHaveBeenCalledTimes(2)
     expect(storedSession()?.userId).toBe(2)
   })

@@ -35,7 +35,10 @@ beforeEach(() => {
   vi.spyOn(foodly, 'searchRecipes').mockImplementation(() => new Promise<never>(() => {}))
 })
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  sessionStorage.clear()
+})
 
 describe('RecipeList controls on desktop', () => {
   it('focuses the search when the page opens, without scrolling', () => {
@@ -44,6 +47,30 @@ describe('RecipeList controls on desktop', () => {
     // No jest-dom here, so no toHaveFocus(): compare the active element instead.
     expect(document.activeElement).toBe(searchField())
     expect(focus).toHaveBeenCalledWith({ preventScroll: true })
+  })
+
+  it('lets search, filters and count scroll away with the list (only the site and category headers stick)', () => {
+    renderList()
+    expect(screen.getByTestId('list-toolbar').className).not.toMatch(/\bsticky\b/)
+    expect(document.documentElement.style.getPropertyValue('--list-sticky-top')).toBe('')
+  })
+
+  it('leaves the search unfocused when returning to a scrolled list (it is scrolled out of view)', () => {
+    sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'group=0', y: 800 }))
+    renderList()
+    expect(document.activeElement).not.toBe(searchField())
+  })
+
+  it('still focuses the search when the saved position belongs to another list', () => {
+    sessionStorage.setItem('recipeList:scroll', JSON.stringify({ list: 'cat=3&group=0', y: 800 }))
+    renderList()
+    expect(document.activeElement).toBe(searchField())
+  })
+
+  it('asks for a recipe and shows a magnifier in the search', () => {
+    renderList()
+    expect(searchField().getAttribute('placeholder')).toBe('Rezept suchen')
+    expect(searchRow().querySelector('svg.lucide-search')).toBeTruthy()
   })
 
   it('has the sort menu and the view toggles, but no direction button or criterion picker', () => {
@@ -59,7 +86,18 @@ describe('RecipeList controls on desktop', () => {
     ).toEqual(['Sortieren: Name, A → Z'])
     expect(screen.queryByRole('button', { name: /Sortierrichtung/ })).toBeNull()
     expect(screen.queryByRole('combobox', { name: 'Sortierkriterium' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Sortieren & Ansicht' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Sortieren und Ansicht' })).toBeNull()
+  })
+
+  it('lines the search, sort button and segments up at 38 px, with a divider before the view', () => {
+    renderList()
+    // jsdom applies no CSS: check the tokens (segments: 34 px inside the 2 px track).
+    expect(searchField().className.split(/\s+/)).toContain('h-[38px]')
+    expect(screen.getByRole('button', { name: /^Sortieren:/ }).className.split(/\s+/)).toContain('h-[38px]')
+    expect(screen.getByRole('radio', { name: 'Kompakt' }).className.split(/\s+/)).toContain('h-[34px]')
+    const divider = within(searchRow()).getByTestId('sort-view-divider')
+    expect(divider.previousElementSibling).toBe(screen.getByRole('button', { name: /^Sortieren:/ }))
+    expect(divider.nextElementSibling?.contains(screen.getByRole('group', { name: 'Ansicht' }))).toBe(true)
   })
 })
 
@@ -75,7 +113,7 @@ describe('RecipeList controls on the phone', () => {
 
   it('puts sort and view behind one button next to the search', () => {
     renderList()
-    screen.getByRole('button', { name: 'Sortieren & Ansicht' })
+    screen.getByRole('button', { name: 'Sortieren und Ansicht' })
     expect(screen.queryByRole('button', { name: /^Sortieren:/ })).toBeNull()
     expect(screen.queryByRole('group', { name: 'Ansicht' })).toBeNull()
   })
@@ -84,7 +122,7 @@ describe('RecipeList controls on the phone', () => {
     renderList()
     await waitFor(() => expect(screen.getAllByTestId('row-skeleton')).toHaveLength(4))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Sortieren & Ansicht' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sortieren und Ansicht' }))
     const sheet = screen.getByRole('dialog', { name: 'Sortieren & Ansicht' })
     fireEvent.click(within(sheet).getByRole('radio', { name: 'Kacheln' }))
 

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Alert, AlertDescription, AlertTitle, Button, Skeleton, Spinner, toast } from '@postxl/ui-components'
+import { Alert, AlertDescription, AlertTitle, Button, Spinner, toast } from '@postxl/ui-components'
+import { Skeleton } from '../components/Skeleton'
+import { ErrorState } from '../components/StateCard'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { foodly } from '../api'
 import { errorMessage } from '../lib/errorMessage'
@@ -9,14 +11,20 @@ import { useRequest } from '../hooks/useRequest'
 import { useHasAppHistory } from '../hooks/useHasAppHistory'
 import { useCurrentUserId, useRefreshCategories } from '../catalog/CatalogProvider'
 import { canEdit } from '../editor/access'
-import { emptyDraft, move, newSection, sizeNumberError, toCreateRecipe, toDraft } from '../editor/draft'
+import { addImage, emptyDraft, move, newSection, sizeNumberError, toCreateRecipe, toDraft } from '../editor/draft'
 import type { Draft } from '../editor/draft'
 import { useAutosave } from '../editor/useAutosave'
 import { BasicsCard } from '../components/editor/BasicsCard'
-import { ImageManager } from '../components/editor/ImageManager'
+import { EditorSidebar } from '../components/editor/EditorSidebar'
 import { SectionEditor } from '../components/editor/SectionEditor'
 import { SaveStatusIndicator } from '../components/editor/SaveStatus'
+import { HeaderActions } from '../components/shell/PageHeader'
+import { Page } from '../components/shell/Page'
+import { TriggerButton } from '../components/TriggerButton'
 import type { RecipeId } from '../api/protocol'
+
+// No tab bar in the phone editor (#218): every state of the page keeps its own room above the bottom edge.
+const SAFE_BOTTOM = 'phone:pb-[calc(2.5rem+env(safe-area-inset-bottom))]'
 
 export function RecipeEditor() {
   const { id } = useParams()
@@ -33,11 +41,13 @@ export function RecipeEditor() {
   const {
     status,
     data: loaded,
-    error,
+    reload,
   } = useRequest(() => (isNew ? Promise.resolve(null) : foodly.getRecipe(Number(id))), [id])
 
   const [draft, setDraft] = useState<Draft | null>(isNew ? emptyDraft() : null)
   const loadedDraft = useRef<Draft | null>(null)
+  // Focus target after a section's "Entfernen": its menu trigger is gone.
+  const addSection = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (!loaded) return
     const next = toDraft(loaded)
@@ -108,8 +118,8 @@ export function RecipeEditor() {
     }
   }, [])
 
-  // "Zurück" on the detail page walks back through history, so Fertig must not leave the editor behind the detail:
-  // otherwise Zurück -> editor -> Fertig -> detail -> Zurück would loop and never reach the list. `fromDetail` is
+  // The header's back arrow on the detail page walks back through history, so Fertig must not leave the editor behind
+  // the detail: otherwise Zurück -> editor -> Fertig -> detail -> Zurück would loop and never reach the list. `fromDetail` is
   // set only by RecipeDetail's Bearbeiten link, so the entry right behind this one is that detail page.
   const openedFromDetail = (location.state as { fromDetail?: unknown } | null)?.fromDetail === true
   const hasAppHistory = useHasAppHistory()
@@ -118,13 +128,15 @@ export function RecipeEditor() {
     else navigate(`/recipes/${recipeId}`, { replace: true })
   }
 
+  const [uploading, setUploading] = useState(false)
+
   // "Fertig" waits for the save: the detail page re-fetches on mount, and a GET
   // that overtakes a still-running PUT would show the old recipe.
   const [finishing, setFinishing] = useState(false)
   const finishingRef = useRef(false)
   const finish = async () => {
     // aria-disabled (not disabled) keeps focus on the button, so clicks still arrive: drop repeats here.
-    if (finishingRef.current || sizeError !== null) return
+    if (finishingRef.current || sizeError !== null || uploading) return
     finishingRef.current = true
     setFinishing(true)
     try {
@@ -146,15 +158,13 @@ export function RecipeEditor() {
   // via the sidebar or Back: the recipe is created anyway, without pulling them back into the editor.
   const [creating, setCreating] = useState(false)
   const creatingRef = useRef(false)
-  const [createError, setCreateError] = useState<string | null>(null)
-  const cannotCreate = draft === null || draft.name.trim() === '' || sizeError !== null
+  const cannotCreate = draft === null || draft.name.trim() === '' || sizeError !== null || uploading
 
   const create = async () => {
     // aria-disabled keeps the button focusable, so Enter/Space still arrive here: guard everything again.
     if (!draft || creatingRef.current || cannotCreate) return
     creatingRef.current = true
     setCreating(true)
-    setCreateError(null)
     try {
       const created = await foodly.createRecipe(toCreateRecipe(draft))
       // A new recipe can't be given a category yet, so this changes nothing today; keeps the sidebar right once it can.
@@ -162,8 +172,7 @@ export function RecipeEditor() {
       setRecipeId(created.id)
       if (alive.current) navigate(`/recipes/${created.id}/edit`, { replace: true })
     } catch (e) {
-      if (alive.current) setCreateError(errorMessage(e, 'Rezept konnte nicht angelegt werden'))
-      else toast.error('Rezept konnte nicht angelegt werden.')
+      toast.error(`Rezept konnte nicht angelegt werden: ${errorMessage(e, 'unbekannter Fehler')}`)
     } finally {
       creatingRef.current = false
       if (alive.current) setCreating(false)
@@ -176,26 +185,29 @@ export function RecipeEditor() {
 
   const patch = (p: Partial<Draft>) => setDraft((d) => (d === null ? d : { ...d, ...p }))
 
+  // REST errors carry no status, so "not found" and "server unreachable" look the same: the detail page's neutral
+  // card, no raw backend message.
   if (status === 'error') {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-10">
+      <Page className={`pb-10 ${SAFE_BOTTOM}`}>
         {heading}
-        <Alert variant="destructive">
-          <AlertTitle>Rezept nicht gefunden</AlertTitle>
-          <AlertDescription className="flex flex-col gap-2">
-            <span>{error?.message}</span>
+        <ErrorState
+          title="Rezept konnte nicht geladen werden"
+          description="Vielleicht wurde es gelöscht, oder der Server ist gerade nicht erreichbar."
+          onRetry={reload}
+          extraAction={
             <Button asChild variant="outline" size="sm">
               <Link to="/recipes">Zur Liste</Link>
             </Button>
-          </AlertDescription>
-        </Alert>
-      </div>
+          }
+        />
+      </Page>
     )
   }
 
   if (!editable) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-10">
+      <div className={`mx-auto max-w-3xl px-6 py-10 ${SAFE_BOTTOM}`}>
         {heading}
         <Alert variant="destructive">
           <AlertTitle>Kein Zugriff</AlertTitle>
@@ -212,111 +224,125 @@ export function RecipeEditor() {
 
   if (draft === null) {
     return (
-      <div className="mx-auto flex max-w-3xl flex-col gap-4 px-6 py-10">
+      <Page className={`pb-10 ${SAFE_BOTTOM}`}>
         {heading}
-        <Skeleton className="h-40 w-full" />
-      </div>
+        {/* The editor's two columns (design.md §5: a skeleton in the shape of the content). */}
+        <div
+          data-testid="editor-skeleton"
+          className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 phone:flex phone:flex-col phone:gap-5"
+        >
+          <div className="flex flex-col gap-[18px]">
+            <Skeleton className="h-72 w-full" />
+            <Skeleton className="h-56 w-full" />
+          </div>
+          <div className="flex flex-col gap-[22px] phone:order-first">
+            <Skeleton className="aspect-[4/3] w-full phone:aspect-video" />
+            <Skeleton className="h-16 w-full phone:hidden" />
+          </div>
+        </div>
+      </Page>
     )
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10 pb-28">
+    <Page className={`pb-10 ${SAFE_BOTTOM}`}>
       {heading}
 
       {/* `contents`: the fieldset only disables its controls during Anlegen, it adds no box of its own. */}
       <fieldset disabled={creating} className="contents">
-        <div className="flex flex-col gap-4">
-          <BasicsCard draft={draft} onChange={patch} />
+        {/* Desktop: main column + side column (mockup `.editor`). Phone: both columns dissolve into one flow, ordered
+            by the side column's blocks (images first, notes/source/hint last). DOM order stays main → side. */}
+        <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 phone:flex phone:flex-col phone:gap-5">
+          <div className="flex flex-col gap-[18px] phone:contents">
+            <BasicsCard draft={draft} onChange={patch} />
 
-          {draft.sections.map((section, i) => (
-            <SectionEditor
-              key={section.key}
-              section={section}
-              index={i}
-              total={draft.sections.length}
-              onChange={(next) => patch({ sections: draft.sections.map((s) => (s.key === section.key ? next : s)) })}
-              onUp={() => patch({ sections: move(draft.sections, section.key, -1) })}
-              onDown={() => patch({ sections: move(draft.sections, section.key, 1) })}
-              onRemove={() => patch({ sections: draft.sections.filter((s) => s.key !== section.key) })}
+            {draft.sections.map((section, i) => (
+              <SectionEditor
+                key={section.key}
+                section={section}
+                index={i}
+                total={draft.sections.length}
+                onChange={(next) => patch({ sections: draft.sections.map((s) => (s.key === section.key ? next : s)) })}
+                onUp={() => patch({ sections: move(draft.sections, section.key, -1) })}
+                onDown={() => patch({ sections: move(draft.sections, section.key, 1) })}
+                onRemove={() => patch({ sections: draft.sections.filter((s) => s.key !== section.key) })}
+                onRemovedFocus={() => addSection.current?.focus()}
+                showTimerHint={i === 0}
+              />
+            ))}
+
+            <div className="flex flex-col gap-1.5">
+              <TriggerButton
+                ref={addSection}
+                variant="outline"
+                className="w-full gap-1.5 border-dashed text-muted-foreground touch:h-10"
+                onClick={() => patch({ sections: [...draft.sections, newSection()] })}
+              >
+                <Plus className="size-4" />
+                Abschnitt hinzufügen
+              </TriggerButton>
+              <p className="text-xs text-muted-foreground">
+                Abschnitte nur, wenn das Rezept Teile hat (z. B. Soße und Pasta). Ein Abschnitt ohne Namen ist der
+                Normalfall.
+              </p>
+            </div>
+          </div>
+
+          {/* top: header (60 px) + the page's top padding. */}
+          <div className="sticky top-[84px] flex flex-col gap-[22px] phone:contents">
+            <EditorSidebar
+              draft={draft}
+              onChange={patch}
+              onAddImage={(image) => setDraft((d) => (d === null ? d : addImage(d, image)))}
+              onUploadingChange={setUploading}
+              uploadDisabled={finishing}
             />
-          ))}
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="self-start gap-1.5"
-            onClick={() => patch({ sections: [...draft.sections, newSection()] })}
-          >
-            <Plus className="h-4 w-4" />
-            Abschnitt hinzufügen
-          </Button>
-
-          <ImageManager mainImage={draft.mainImage} images={draft.images} onChange={patch} />
+          </div>
         </div>
       </fieldset>
 
-      <div className="fixed right-0 bottom-[var(--shell-bottom,0px)] left-[var(--shell-left,0px)] border-t border-border bg-card">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-6 py-3">
-          {isNew ? (
-            <>
-              <Button asChild variant="ghost">
-                <Link
-                  to="/recipes"
-                  aria-disabled={creating || undefined}
-                  tabIndex={creating ? -1 : undefined}
-                  onClick={(e) => {
-                    if (creatingRef.current) e.preventDefault()
-                  }}
-                  className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
-                >
-                  Verwerfen
-                </Link>
-              </Button>
-              <div className="flex items-center gap-3">
-                {createError && <span className="text-destructive">{createError}</span>}
-                <Button
-                  onClick={() => void create()}
-                  aria-disabled={creating || cannotCreate}
-                  aria-busy={creating}
-                  className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
-                >
-                  {creating && <Spinner className="size-4" />}
-                  Anlegen
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center gap-3">
-                {/* A save of the last valid draft still running, or failed with its retry, stays visible next to the hint. */}
-                {(sizeError === null || saveStatus.state === 'saving' || saveStatus.state === 'error') && (
-                  <SaveStatusIndicator status={saveStatus} onRetry={retry} />
-                )}
-                {/* Polite, not an alert: it flips while typing; the field's own error text waits for blur. Mounted
-                    with the footer, since screen readers often skip a live region that appears together with its
-                    text. (Old data invalid on load is the exception; there the field shows its error at once.) */}
-                <span role="status" className="flex items-center gap-2 text-destructive">
-                  {sizeError !== null && (
-                    <>
-                      <AlertTriangle className="h-4 w-4" />
-                      {saveStatus.state === 'error' ? 'Portionen prüfen' : 'Nicht gespeichert – Portionen prüfen'}
-                    </>
-                  )}
-                </span>
-              </div>
-              <Button
-                onClick={() => void finish()}
-                aria-disabled={finishing || sizeError !== null}
-                aria-busy={finishing}
-                className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
-              >
-                {finishing && <Spinner className="size-4" />}
-                Fertig
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+      <HeaderActions>
+        {isNew ? (
+          <Button
+            onClick={() => void create()}
+            aria-disabled={creating || cannotCreate}
+            aria-busy={creating}
+            className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50 touch:h-10"
+          >
+            {creating && <Spinner className="size-4" />}
+            Anlegen
+          </Button>
+        ) : (
+          <>
+            {/* A save of the last valid draft still running, or failed with its retry, stays visible next to the hint. */}
+            {(sizeError === null || saveStatus.state === 'saving' || saveStatus.state === 'error') && (
+              <SaveStatusIndicator status={saveStatus} onRetry={retry} />
+            )}
+            {/* Polite, not an alert: it flips while typing; the field's own error text waits for blur. Always mounted
+                (the header slot is too), since screen readers often skip a live region that appears together with its
+                text. (Old data invalid on load is the exception; there the field shows its error at once.) */}
+            <span role="status" className="flex items-center gap-1.5 text-sm text-destructive">
+              {sizeError !== null && (
+                <>
+                  <AlertTriangle className="size-4 shrink-0" />
+                  <span className="phone:sr-only">
+                    {saveStatus.state === 'error' ? 'Portionen prüfen' : 'Nicht gespeichert – Portionen prüfen'}
+                  </span>
+                </>
+              )}
+            </span>
+            <Button
+              onClick={() => void finish()}
+              aria-disabled={finishing || sizeError !== null || uploading}
+              aria-busy={finishing}
+              className="gap-1.5 aria-disabled:pointer-events-none aria-disabled:opacity-50 touch:h-10"
+            >
+              {finishing && <Spinner className="size-4" />}
+              Fertig
+            </Button>
+          </>
+        )}
+      </HeaderActions>
+    </Page>
   )
 }

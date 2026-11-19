@@ -33,8 +33,10 @@ Kolja) · `später` (nicht blockierend).
 | B12 | Gruppen ↔ Rezepte-Modell                | Entscheidung | nein                   | –             |
 | B13 | Verwaiste Bilder (GC)                   | später      | nein                    | –             |
 | B14 | Doku-Drift (Status-Codes, Pagination)   | später      | nein                    | –             |
-| B15 | Sortierung nach `created_at`/`updated_at` | offen     | nein (Workaround FE)    | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
+| B15 | Sortierung nach `created_at`/`updated_at` | offen     | **ja: #250** (Start „Zuletzt bearbeitet“, Daniel 13.11.) | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
 | B16 | Trefferzahlen/Facetten in der Suche      | offen       | nein (FE ohne Zahlen)   | [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17) |
+| B17 | Rezept-Import (URL + Foto)               | offen       | nein (nach der Alpha)   | [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28) |
+| B18 | Standard-Kategorie „Favoriten“           | offen       | ja: FE #289             | [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29) |
 | G1  | `createdAt` / `updatedAt` an Recipe     | FE-Arbeit   | –                       | –             |
 | G2  | `UserRating` DB-only                    | gelöst      | –                       | –             |
 | G3  | Tag-Icons (`GET /tags/{id}/icon`)       | gelöst      | –                       | –             |
@@ -225,8 +227,8 @@ PR [#22](https://github.com/klassenserver7b/Foodly-backend/pull/22) „bulk user
 1. **Sortierfelder:** Unbekannte `sort.field` → 422 statt Fallback auf `id`; `worktime`/`totaltime` sind keine Aliase
    mehr. Das FE sendet mit U1 (#192) `workTime`/`totalTime`.
 2. **Datenschutz `GET /users?ids=`:** Jeder angemeldete Nutzer kann beliebige IDs (bis 100 pro Request, beliebig oft)
-   zu Name und Profilbild auflösen und so alle Nutzer durchzählen. Für die Alpha unkritisch, vor einem öffentlichen
-   Betrieb aber zu klären.
+   zu Name und Profilbild auflösen und so alle Nutzer durchzählen. **Entschieden (Daniel, 2026-11-16): bleibt so**,
+   weil man zum Teilen Personen auswählen muss und die Registrierung beschränkt ist. Kein Hinweis ans Backend.
 3. **`myAccessSince` / `accessSince`:** passt zu B6 und zum FE-Bedarf. Tie-Breaker `id` ist jetzt immer gesetzt.
 4. **Doku:** Filter-Arrays sind UND (B16), Statuscodes 201 → 200 (B14 erledigt), Zeitstempel als `+00:00`, `page`
    max. 10.000, Kategorie-Rezepte max. 500, `reorder` max. 100, Filter-Arrays max. 100 bzw. 10 (alles 422). Für das
@@ -288,6 +290,9 @@ Backend-Umbau der Zugriffsabfrage.
   „Your recent creations" sortiert bis dahin clientseitig hinter einem Helper
   (`recentCreations`). Vorschlag: `created_at` / `updated_at` als Sortfelder, plus
   `id` als Tie-Breaker. → [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16)
+  **Stand 2026-11-16:** Der Backend-Maintainer will #16 und #17 erst mit Axum 0.9 (HTTP `QUERY`) umsetzen
+  (Kommentar vom 09.11.; Axum aktuell 0.8.9). #16 braucht `QUERY` nicht (nur zwei Sortierfelder). Damit hängt
+  FE #250. Offen: Backend bitten, #16 vorzuziehen, oder #250 vorerst clientseitig sortieren.
 - **B9 `tagId = name`:** Umbenennen bricht Referenzen. Erst relevant, wenn Tags
   editierbar werden (dann stabile `id` + `label`). Backend dokumentiert das schon.
 - **B10 Schritt-Timer:** Doku `03_Data_Models` beschreibt `Step { id, text }`, API
@@ -302,6 +307,16 @@ Backend-Umbau der Zugriffsabfrage.
 - **B14 Doku-Drift:** `POST /recipes` antwortet 200 statt dokumentiert 201;
   `GET /categories` ist paginiert, Doku zeigt flaches `{ data }`; `/tags`
   liefert `{ data }`, Doku-Konvention sagt „flat array". Nur Doku angleichen.
+
+- **B17 Rezept-Import:** Entwurf (nichts gespeichert) im `CreateRecipe`-Format aus einer Rezept-URL
+  (`schema.org/Recipe` JSON-LD, geprüft 2026-11-18 bei Chefkoch und EatSmarter) und aus Fotos (OCR mit PaddleOCR
+  als eigener Dienst, keine KI-API, keine laufenden Kosten; Daniel, 2026-11-18). Gemeinsamer Zutaten-Zerleger, beim
+  Foto zusätzlich `lines` für eine Prüf-Ansicht im FE. → [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28)
+
+- **B18 Standard-Kategorie „Favoriten“** (Daniel, 2026-11-18): Das Backend legt sie bei der Registrierung an
+  (`order 0`, `#e11d48`, leer), als normale Kategorie (umbenennen/löschen erlaubt, kommt nicht zurück). Migration für
+  bestehende Nutzer ohne Kategorien. FE braucht keinen Code, nur Prüfung nach dem Merge (FE #289).
+  → [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29)
 
 ## Gelöst / Frontend muss nachziehen
 
@@ -343,3 +358,8 @@ Angelegt 2026-10-28:
 Angelegt 2026-10-29:
 
 - B16 → [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17)
+
+Angelegt 2026-11-18:
+
+- B17 → [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28)
+- B18 → [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29)

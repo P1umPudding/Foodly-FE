@@ -1,12 +1,13 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Link, MemoryRouter, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
-import { TooltipProvider } from '@postxl/ui-components'
+import { TooltipProvider, buttonVariants } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
 import { foodly } from '../api'
 import { TimerProvider } from '../timers/TimerProvider'
 import type { Recipe, User } from '../api/protocol'
 import { ref } from '../test/images'
+import { redTokens } from '../test/redTokens'
 
 // The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
 vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
@@ -27,6 +28,9 @@ function recipe(over: Partial<Recipe> = {}): Recipe {
     owner: 1,
     editors: [],
     viewers: [],
+    createdAt: null,
+    updatedAt: null,
+    myAccessSince: null,
     rating: [],
     name: 'Pancakes',
     tags: [],
@@ -103,14 +107,31 @@ describe('RecipeDetail head layout', () => {
     expect(within(dialog).getByText(/1\s*\/\s*2/)).toBeTruthy()
   })
 
-  it('gallery tiles open the lightbox after the hero', async () => {
+  it('gallery tiles open the lightbox at their own image, the main image included', async () => {
     Element.prototype.scrollTo ??= vi.fn()
     renderDetail('/recipes/5', { 5: recipe({ mainImage: ref(3), images: [ref(4), ref(5)] }) })
     await heading()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Bild 5' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Foto 3 groß ansehen' }))
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText(/3\s*\/\s*3/)).toBeTruthy()
+  })
+
+  it('the gallery sits below the sections and above the source', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ mainImage: ref(3), images: [ref(4)], source: 'Oma' }) })
+    await heading()
+
+    const fotos = screen.getByRole('heading', { name: 'Fotos' })
+    const follows = (a: Node, b: Node) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(follows(screen.getByText('Zutaten'), fotos)).toBe(true)
+    expect(follows(fotos, screen.getByText(/Quelle:/))).toBe(true)
+  })
+
+  it('a single image is only the hero: no gallery', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ mainImage: ref(3) }) })
+    await heading()
+
+    expect(screen.queryByRole('heading', { name: 'Fotos' })).toBeNull()
   })
 
   it('without a photo: no image, no placeholder, no gallery, a narrower head and a larger title', async () => {
@@ -120,8 +141,18 @@ describe('RecipeDetail head layout', () => {
     expect(container.querySelector('img')).toBeNull()
     expect(screen.queryByTestId('image-fallback')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Foto groß ansehen' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Fotos' })).toBeNull()
     expect(classesOf(header())).toContain('max-w-[720px]')
     expect(classesOf(title)).toContain('text-[32px]')
+  })
+
+  it('gives a long, two-line title without a photo its own line height (no overlap)', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ name: 'Hähnchen-Curry mit Reis und Koriander nach Omas Rezept' }) })
+    const title = await screen.findByRole('heading', { level: 1, name: /Hähnchen-Curry/ })
+    // text-[32px] brings no line height; without its own the lines overlapped (body's 20 px). jsdom can't lay out,
+    // so the class stands in for the screenshot check.
+    expect(classesOf(title)).toContain('text-[32px]')
+    expect(classesOf(title)).toContain('leading-[1.15]')
   })
 
   it('with a photo the title uses the 26 px token', async () => {
@@ -129,7 +160,7 @@ describe('RecipeDetail head layout', () => {
     expect(classesOf(await heading())).toContain('text-2xl')
   })
 
-  it('shows notes as a plain list and leaves out empty parts', async () => {
+  it('shows notes as a bulleted list and leaves out empty parts', async () => {
     renderDetail('/recipes/5', { 5: recipe({ notes: ['Warm servieren', 'Mit Sirup'] }) })
     await heading()
 
@@ -140,8 +171,16 @@ describe('RecipeDetail head layout', () => {
         .map((li) => li.textContent),
     ).toEqual(['Warm servieren', 'Mit Sirup'])
     expect(list.querySelector('svg')).toBeNull()
+    expect(classesOf(list)).toContain('list-disc')
     // No time and no other people: neither part leaves an empty element behind.
     expect(screen.queryByText(/^(von|mit)/)).toBeNull()
+  })
+
+  it('shows all tags as chips in the head', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ tags: ['Vegan', 'Scharf', 'Schnell'] }) })
+    await screen.findByRole('heading', { level: 1, name: 'Pancakes' })
+    for (const tag of ['Vegan', 'Scharf', 'Schnell'])
+      expect(screen.getByText(tag).parentElement!.className).toContain('bg-tag')
   })
 
   it('has no inline styles in the head', async () => {
@@ -300,7 +339,23 @@ describe('RecipeDetail actions', () => {
     expect(classesOf(screen.getByRole('button', { name: 'Kopie erstellen' }))).toContain('phone:hidden')
     const pencil = screen.getByRole('link', { name: 'Bearbeiten' })
     expect(classesOf(pencil)).toContain('phone:size-10')
-    expect(screen.queryByRole('button', { name: 'Löschen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Weitere Aktionen' })).toBeNull()
+  })
+
+  // #228: one primary action per screen. Owner + steps = every action present.
+  it('has exactly one primary button („Kochen“); „Bearbeiten“ is outline', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ owner: 1 }) })
+    await heading()
+
+    const primary = [...document.querySelectorAll('a, button')].filter((el) => classesOf(el).includes('bg-primary'))
+    expect(primary.map((el) => el.textContent?.trim())).toEqual(['Kochen'])
+    const edit = screen.getByRole('link', { name: 'Bearbeiten' })
+    // The outline variant's own tokens (gap-2 is merged away by the link's gap-1.5).
+    const outline = buttonVariants({ variant: 'outline' })
+      .split(' ')
+      .filter((c) => !c.startsWith('gap-') && !/^(h|px|py)-/.test(c) && !c.startsWith('has-'))
+    expect(classesOf(edit)).toEqual(expect.arrayContaining(outline))
+    expect(screen.getByRole('button', { name: 'Weitere Aktionen' })).toBeTruthy()
   })
 
   it('never says „Duplizieren“', async () => {
@@ -320,8 +375,45 @@ describe('RecipeDetail states', () => {
     expect(screen.queryByTestId('detail-skeleton')).toBeNull()
   })
 
-  it('shows the error', async () => {
+  it('shows a neutral error card with retry and "Zur Liste", without the raw message', async () => {
     renderDetail('/recipes/9', {})
-    expect(await screen.findByText('Rezept nicht gefunden')).toBeTruthy()
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('Rezept konnte nicht geladen werden')
+    expect(alert.textContent).not.toContain('not found')
+    expect(redTokens(alert)).toEqual([])
+    expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual(['Rezept'])
+    expect(within(alert).getByRole('link', { name: 'Zur Liste' }).getAttribute('href')).toBe('/recipes')
+    const calls = vi.mocked(foodly.getRecipe).mock.calls.length
+    fireEvent.click(within(alert).getByRole('button', { name: 'Erneut versuchen' }))
+    await waitFor(() => expect(vi.mocked(foodly.getRecipe).mock.calls.length).toBe(calls + 1))
+  })
+})
+
+describe('RecipeDetail sections', () => {
+  const teig = { id: 1, name: 'Teig', steps: ['Rühren', 'Ruhen lassen'], ingredients: [] }
+  const sosse = { id: 2, name: 'Soße', steps: ['Aufkochen'], ingredients: [] }
+
+  it('shows no section title for a single named section', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ sections: [teig] }) })
+    await screen.findByRole('heading', { level: 1, name: 'Pancakes' })
+    expect(screen.queryByRole('heading', { name: 'Teig' })).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Zubereitung' })).toBeTruthy()
+  })
+
+  it('shows every section title once there are two, and numbers steps across them', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ sections: [teig, sosse] }) })
+    await screen.findByRole('heading', { level: 1, name: 'Pancakes' })
+    expect(screen.getByRole('heading', { level: 2, name: 'Teig' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 2, name: 'Soße' })).toBeTruthy()
+    expect(screen.getAllByRole('heading', { name: 'Zubereitung' })).toHaveLength(2)
+
+    const sosseSection = screen.getByRole('heading', { name: 'Soße' }).closest('section')!
+    expect(within(within(sosseSection).getByRole('listitem')).getByText('3')).toBeTruthy()
+  })
+
+  it('gives an unnamed section no title next to a named one', async () => {
+    renderDetail('/recipes/5', { 5: recipe({ sections: [{ ...teig, name: null }, sosse] }) })
+    await screen.findByRole('heading', { level: 1, name: 'Pancakes' })
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Zubereitung', 'Soße'])
   })
 })

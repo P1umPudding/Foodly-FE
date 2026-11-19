@@ -1,7 +1,7 @@
 import { cn } from '@postxl/ui-components'
 import { RecipeImage } from './RecipeImage'
 import { TriggerButton } from '../TriggerButton'
-import { imageName } from '../../api/assets'
+import { useIsDesktop } from '../../hooks/useIsDesktop'
 import type { ImageRef } from '../../api/protocol'
 
 // Images get a muted backdrop so transparent PNGs don't show the page through them.
@@ -40,28 +40,61 @@ export function RecipeHero({
   )
 }
 
-// The other images below the head, every one as a square tile. A stopgap until the one-row gallery (R3);
-// `onOpen` gets the index within `images`.
+// The gallery below the sections: all images in viewer order (the main image too), in one row of square tiles.
+// `onOpen` gets the index within `images`, i.e. the lightbox index. A single image is already the hero, so no gallery.
 export function RecipeImages({ images, onOpen }: { images: ImageRef[]; onOpen: (index: number) => void }) {
-  if (images.length === 0) return null
+  const slots = useIsDesktop() ? 4 : 3
+  if (images.length < 2) return null
+
+  const visible = images.slice(0, slots)
+  // The last tile still shows its own image under "+N", so it counts among the ones the number stands for.
+  const more = images.length > slots ? images.length - slots + 1 : 0
 
   return (
-    <div className="mt-6 grid grid-cols-4 gap-2 phone:grid-cols-3">
-      {images.map((image, i) => (
-        <TriggerButton
-          key={`${image.id}-${i}`}
-          variant="bare"
-          onClick={() => onOpen(i)}
-          // The image itself is decorative (alt=""), so the button carries the name.
-          aria-label={imageName(image)}
-          className={cn(
-            'relative aspect-square cursor-zoom-in overflow-hidden rounded-lg focus-visible:ring-ring',
-            BACKDROP,
-          )}
-        >
-          <RecipeImage image={image} alt="" className="h-full w-full object-cover" fallbackClassName="h-full w-full" />
-        </TriggerButton>
-      ))}
+    <div className="mt-8">
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2 className="text-lg font-semibold">Fotos</h2>
+        {/* Muted, not the mockup's subtle: subtle misses AA for small text (docs/design.md §2). */}
+        <span className="text-sm tabular-nums text-muted-foreground">
+          {images.length}
+          <span className="sr-only"> Fotos insgesamt</span>
+        </span>
+      </div>
+      <div className="grid grid-cols-4 gap-2 phone:grid-cols-3">
+        {visible.map((image, i) => {
+          const isMore = more > 0 && i === visible.length - 1
+          return (
+            <TriggerButton
+              key={`${image.id}-${i}`}
+              variant="bare"
+              onClick={() => onOpen(i)}
+              // The image itself is decorative (alt=""), so the button carries the name.
+              aria-label={isMore ? `Alle ${images.length} Fotos ansehen` : `Foto ${i + 1} groß ansehen`}
+              className={cn(
+                'relative aspect-square cursor-zoom-in overflow-hidden rounded-lg focus-visible:ring-ring',
+                BACKDROP,
+              )}
+            >
+              <RecipeImage
+                image={image}
+                alt=""
+                className="h-full w-full object-cover"
+                fallbackClassName="h-full w-full"
+              />
+              {isMore && (
+                // Same dark scrim in light and dark mode, like the lightbox, so raw black/white rather than tokens. 20 px is a
+                // mockup exception to the type scale (docs/design.md §2, Schrift).
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 grid place-items-center bg-black/50 text-[20px] font-semibold tabular-nums text-white"
+                >
+                  +{more}
+                </span>
+              )}
+            </TriggerButton>
+          )
+        })}
+      </div>
     </div>
   )
 }
