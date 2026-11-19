@@ -1,6 +1,6 @@
 import { act, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { VV_INSET_VAR, useVisualViewportInset } from './useVisualViewportInset'
+import { VV_HEIGHT_VAR, VV_INSET_VAR, useVisualViewportInset } from './useVisualViewportInset'
 
 // jsdom has neither a visualViewport nor a layout: stand both in.
 class FakeVisualViewport extends EventTarget {
@@ -28,6 +28,7 @@ function Sheet({ swapped = false }: { swapped?: boolean }) {
 }
 
 const inset = (el: HTMLElement) => el.style.getPropertyValue(VV_INSET_VAR)
+const visibleHeight = (el: HTMLElement) => el.style.getPropertyValue(VV_HEIGHT_VAR)
 
 function resize(height: number, offsetTop = 0) {
   act(() => {
@@ -54,6 +55,8 @@ describe('useVisualViewportInset', () => {
     const { getByTestId } = render(<Sheet />)
     resize(500, 120)
     expect(inset(getByTestId('sheet'))).toBe('180px')
+    // The sheet may only be as tall as what is visible, not layout minus inset (620 px would reach above the view).
+    expect(visibleHeight(getByTestId('sheet'))).toBe('500px')
   })
 
   it('treats a scale a hair off 1 as unzoomed', () => {
@@ -68,6 +71,7 @@ describe('useVisualViewportInset', () => {
     vv.scale = 2
     resize(400)
     expect(inset(getByTestId('sheet'))).toBe('0px')
+    expect(visibleHeight(getByTestId('sheet'))).toBe('800px')
   })
 
   it('keeps its listeners across re-renders and removes them on unmount', () => {

@@ -26,11 +26,11 @@ export function BottomSheet({ title, description, scroll = true, className, chil
       // below the edge as in the mockup, not below the lib's p-6.
       // --vv-inset: the part the on-screen keyboard covers (#220). The sheet sits on top of it, so the footer stays
       // visible where neither fixed bottom-0 nor dvh notice the keyboard. Height: 80 % as usual, but never more than
-      // what is left above the keyboard (minus 2 rem, so the head isn't flush with the top). The home indicator lies
+      // the visible area above the keyboard, --vv-height (minus 2 rem, so the head isn't flush with the top). The home indicator lies
       // under the keyboard then, so its padding gives way. The var() fallbacks matter: unset, `bottom` would turn
       // invalid and fall back to auto.
       className={cn(
-        'bottom-[var(--vv-inset,0px)] flex max-h-[min(80dvh,calc(100dvh_-_var(--vv-inset,0px)_-_2rem))] flex-col gap-0 rounded-t-lg px-0 pt-0 pb-[max(0px,env(safe-area-inset-bottom)_-_var(--vv-inset,0px))] [&>button:first-child]:hidden',
+        'bottom-[var(--vv-inset,0px)] flex max-h-[min(80dvh,calc(var(--vv-height,100dvh)_-_2rem))] flex-col gap-0 rounded-t-lg px-0 pt-0 pb-[max(0px,env(safe-area-inset-bottom)_-_var(--vv-inset,0px))] [&>button:first-child]:hidden',
         className,
       )}
     >

@@ -250,7 +250,7 @@ restating its name and signature. Don't do that.
   and CSS is the rare exception, not a peer option.** (Inline exceptions: the one
   category-colour helper sets `--cat-*` custom properties, see
   `docs/decisions/0002-category-colors.md`; and `useVisualViewportInset` sets the
-  keyboard inset `--vv-inset` on `BottomSheet`, a value that changes while the
+  keyboard inset `--vv-inset` and `--vv-height` on `BottomSheet`, values that change while the
   keyboard animates.) Tailwind covers almost every
   case, *including one-off custom values* via arbitrary-value utilities:
   `w-[37.35px]`, `text-[13px]`, `gap-[3px]`, `bg-[#f59e0b]`, `grid-cols-[1fr_1.5fr]`,

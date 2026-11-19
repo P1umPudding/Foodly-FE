@@ -82,7 +82,7 @@ describe('BottomSheet', () => {
     const classes = renderSheet().className.split(' ')
     expect(classes).toContain('bottom-[var(--vv-inset,0px)]')
     expect(classes).not.toContain('bottom-0')
-    expect(classes).toContain('max-h-[min(80dvh,calc(100dvh_-_var(--vv-inset,0px)_-_2rem))]')
+    expect(classes).toContain('max-h-[min(80dvh,calc(var(--vv-height,100dvh)_-_2rem))]')
     expect(classes).toContain('pb-[max(0px,env(safe-area-inset-bottom)_-_var(--vv-inset,0px))]')
     expect(classes).not.toContain('max-h-[80vh]')
   })
@@ -92,7 +92,9 @@ describe('BottomSheet', () => {
     Object.defineProperty(window, 'visualViewport', { configurable: true, value: vv })
     Object.defineProperty(document.documentElement, 'clientHeight', { configurable: true, value: 800 })
     try {
-      expect(renderSheet().style.getPropertyValue('--vv-inset')).toBe('300px')
+      const sheet = renderSheet()
+      expect(sheet.style.getPropertyValue('--vv-inset')).toBe('300px')
+      expect(sheet.style.getPropertyValue('--vv-height')).toBe('500px')
     } finally {
       Reflect.deleteProperty(window, 'visualViewport')
       Reflect.deleteProperty(document.documentElement, 'clientHeight')
