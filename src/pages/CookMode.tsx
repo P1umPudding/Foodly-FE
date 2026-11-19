@@ -58,10 +58,13 @@ export function CookMode() {
   const panelOpen = timerPanel?.open ?? false
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      // Radix handles Escape for open popovers, sheets and tooltips first and marks it handled.
+      // Radix handles Escape for its open layers first and marks it handled: an open popover, sheet or tooltip
+      // (hovered ✕) closes on the first Esc, cook mode on the next.
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || panelOpen) return
       if (isEditable(e.target)) return
       if (e.key === 'Escape') close()
+      // No steps yet (loading, error): paging now would leave the index outside the list once they arrive.
+      else if (stepCount === 0) return
       else if (e.key === 'ArrowLeft') setIndex((i) => Math.max(0, i - 1))
       else if (e.key === 'ArrowRight') setIndex((i) => Math.min(stepCount - 1, i + 1))
       else return
@@ -104,7 +107,9 @@ export function CookMode() {
             onRetry={reload}
             extraAction={
               <Button asChild variant="outline" size="sm">
-                <Link to={detailHref}>Zum Rezept</Link>
+                <Link to={detailHref} replace>
+                  Zum Rezept
+                </Link>
               </Button>
             }
           />
@@ -129,7 +134,9 @@ export function CookMode() {
           action={
             <>
               <Button asChild variant="outline" size="sm">
-                <Link to={detailHref}>Zum Rezept</Link>
+                <Link to={detailHref} replace>
+                  Zum Rezept
+                </Link>
               </Button>
               {canEdit(recipe, currentUserId) && (
                 <Button asChild variant="outline" size="sm">
@@ -203,25 +210,35 @@ export function CookMode() {
             <span className="phone:sr-only">Zurück</span>
           </Button>
           <StepDots steps={steps} index={index} />
-          {last ? (
-            <Button size="lg" className="h-12" onClick={close}>
-              <Check aria-hidden />
-              Fertig
-            </Button>
-          ) : (
-            <Button size="lg" className="h-12" onClick={() => setIndex((i) => Math.min(stepCount - 1, i + 1))}>
-              Weiter
-              <ChevronRight aria-hidden />
-            </Button>
-          )}
+          {/* One button whose label changes, so keyboard focus stays on it when "Weiter" becomes "Fertig". */}
+          <Button
+            size="lg"
+            className="h-12"
+            onClick={last ? close : () => setIndex((i) => Math.min(stepCount - 1, i + 1))}
+          >
+            {last ? (
+              <>
+                <Check aria-hidden />
+                Fertig
+              </>
+            ) : (
+              <>
+                Weiter
+                <ChevronRight aria-hidden />
+              </>
+            )}
+          </Button>
         </footer>
       }
     >
-      <p className="text-sm font-semibold text-muted-foreground tabular-nums">Schritt {step.number}</p>
-      {/* The step size has no token in the text scale; the time chips scale with it (variant "cook"). */}
-      <p className="mt-2 mb-5 text-[30px] leading-[1.3] font-semibold tracking-[-0.02em] wrap-anywhere lg:text-[34px] phone:text-[26px]">
-        <StepText value={step.text} timerLabel={`${plainName} · Schritt ${step.number}`} variant="cook" />
-      </p>
+      {/* Announced on every step change: paging moves no focus. */}
+      <div aria-live="polite">
+        <h2 className="text-sm font-semibold text-muted-foreground tabular-nums">Schritt {step.number}</h2>
+        {/* The step size has no token in the text scale; the time chips scale with it (variant "cook"). */}
+        <p className="mt-2 mb-5 text-[30px] leading-[1.3] font-semibold tracking-[-0.02em] wrap-anywhere lg:text-[34px] phone:text-[26px]">
+          <StepText value={step.text} timerLabel={`${plainName} · Schritt ${step.number}`} variant="cook" />
+        </p>
+      </div>
       {next && (
         <div className="mt-10 text-[15px]">
           <span className="block text-xs font-semibold text-muted-foreground">Danach</span>

@@ -21,6 +21,10 @@ describe('flattenSteps', () => {
     expect(flattenSteps([section(null, ['a']), section(' ', ['b'], 2)]).map((s) => s.sectionName)).toEqual([null, null])
   })
 
+  it('trims section names', () => {
+    expect(flattenSteps([section(' Teig ', ['a']), section('B', ['b'], 2)])[0].sectionName).toBe('Teig')
+  })
+
   it('is empty without steps', () => {
     expect(flattenSteps([])).toEqual([])
     expect(flattenSteps([section('A', []), section('B', [], 2)])).toEqual([])

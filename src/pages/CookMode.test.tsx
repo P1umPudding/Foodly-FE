@@ -156,9 +156,32 @@ describe('CookMode', () => {
     await screen.findByText('Zwiebeln hacken')
     fireEvent.click(screen.getByRole('button', { name: 'Timer' }))
     await screen.findByRole('dialog', { name: 'Timer' })
+    // The panel is non-modal: keys outside it must not page or leave either.
+    fireEvent.keyDown(document.body, { key: 'ArrowRight' })
+    expect(subtitle()).toContain('Schritt 1 von 5')
     fireEvent.keyDown(document.body, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Timer' })).toBeNull())
     expect(screen.queryByTestId('location')).toBeNull()
+  })
+
+  it('ignores arrow keys before the steps have loaded', async () => {
+    let resolve: (r: Recipe) => void = () => {}
+    vi.spyOn(foodly, 'getRecipe').mockReturnValue(new Promise<Recipe>((r) => (resolve = r)))
+    renderCook()
+    fireEvent.keyDown(document.body, { key: 'ArrowRight' })
+    await act(async () => resolve(recipe(TWO_SECTIONS)))
+    expect(subtitle()).toBe('Soße · Schritt 1 von 5')
+  })
+
+  it('keeps focus on the primary button when Weiter turns into Fertig', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe([section(1, null, ['a', 'b'])]))
+    renderCook()
+    await screen.findByText('a')
+    const primary = next()
+    primary.focus()
+    fireEvent.click(primary)
+    expect(primary.textContent).toBe('Fertig')
+    expect(document.activeElement).toBe(primary)
   })
 
   describe('leaving', () => {
@@ -209,7 +232,6 @@ describe('CookMode', () => {
     await screen.findByText('Schritt-Text 1')
     expect(screen.getByText('1 / 13')).toBeTruthy()
     expect(screen.queryByTestId('step-dots')).toBeNull()
-    // A single section has no name in the subtitle.
     expect(subtitle()).toBe('Schritt 1 von 13')
   })
 
@@ -227,6 +249,7 @@ describe('CookMode', () => {
     await screen.findByText('Zwiebeln hacken')
     expect(document.title).toBe('Kochen: Lasagne · Foodly')
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Lasagne')
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('Schritt 1')
   })
 
   it('shows a step skeleton while loading', () => {
@@ -322,6 +345,16 @@ describe('CookMode wake lock', () => {
     await waitFor(() => expect(request).toHaveBeenCalledWith('screen'))
     expect(release).not.toHaveBeenCalled()
     unmount()
+    expect(release).toHaveBeenCalledTimes(1)
+  })
+
+  it('releases the lock when cook mode is left', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(TWO_SECTIONS))
+    renderCook('/recipes/5/cook', ['/recipes/5'])
+    await screen.findByText('Zwiebeln hacken')
+    await waitFor(() => expect(request).toHaveBeenCalled())
+    fireEvent.click(screen.getByRole('button', { name: 'Koch-Modus beenden' }))
+    expect(location()).toBe('/recipes/5')
     expect(release).toHaveBeenCalledTimes(1)
   })
 

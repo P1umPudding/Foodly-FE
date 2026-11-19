@@ -15,7 +15,7 @@ export function flattenSteps(sections: Section[]): CookStep[] {
   const named = sections.length > 1
   const out: CookStep[] = []
   sections.forEach((section, sectionIndex) => {
-    const sectionName = named && section.name?.trim() ? section.name : null
+    const sectionName = (named && section.name?.trim()) || null
     for (const text of section.steps) out.push({ text, number: out.length + 1, sectionIndex, sectionName })
   })
   return out
