@@ -131,7 +131,14 @@ export function Categories() {
   }, [editedGone])
 
   const newCategoryButton = (
-    <TriggerButton ref={newButton} variant="outline" size="sm" className="touch:h-10" disabled={editorSaving} onClick={() => openEditor(null)}>
+    <TriggerButton
+      ref={newButton}
+      variant="outline"
+      size="sm"
+      className="touch:h-10"
+      disabled={editorSaving}
+      onClick={() => openEditor(null)}
+    >
       <Plus aria-hidden className="size-4" />
       Neue Kategorie
     </TriggerButton>
@@ -215,7 +222,10 @@ export function Categories() {
                   <div className="flex min-w-0 flex-1 flex-col">
                     {/* Touch: the padding grows the tap area to 40 px inside truncate's clip, the negative margins keep the
                         row height; relative keeps the link above the count for hit-testing. */}
-                    <Link to={categoryPageHref(c.id)} className={cn('relative truncate rounded-sm font-medium touch:-my-2.5 touch:py-2.5', FOCUS_RING)}>
+                    <Link
+                      to={categoryPageHref(c.id)}
+                      className={cn('relative truncate rounded-sm font-medium touch:-my-2.5 touch:py-2.5', FOCUS_RING)}
+                    >
                       {c.name}
                     </Link>
                     <span className="text-xs text-muted-foreground tabular-nums">{recipeCount(c.recipes.length)}</span>

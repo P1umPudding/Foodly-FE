@@ -84,7 +84,10 @@ export function Sidebar({
         {!collapsed && (
           <Link
             to="/"
-            className={cn('-ml-1 flex items-center rounded-md px-1 focus-visible:ring-sidebar-ring touch:min-h-10', FOCUS_RING)}
+            className={cn(
+              '-ml-1 flex items-center rounded-md px-1 focus-visible:ring-sidebar-ring touch:min-h-10',
+              FOCUS_RING,
+            )}
           >
             <Brand />
           </Link>

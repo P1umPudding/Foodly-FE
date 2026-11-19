@@ -167,7 +167,10 @@ function BackLink({ pathname }: { pathname: string }) {
           to={parentHref(pathname)}
           onClick={onClick}
           aria-label="Zurück"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), '-ml-2 shrink-0 phone:size-10 touch:size-10')}
+          className={cn(
+            buttonVariants({ variant: 'ghost', size: 'icon' }),
+            '-ml-2 shrink-0 phone:size-10 touch:size-10',
+          )}
         >
           <ChevronLeft className="size-5" />
         </Link>
