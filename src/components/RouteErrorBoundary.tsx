@@ -54,10 +54,10 @@ class RouteErrorBoundary extends Component<BoundaryProps, BoundaryState> {
   }
 }
 
-// The status sits next to the skeleton, not around it: the auth skeleton brings its own <main>, and a live region
-// should only announce the one sentence.
-// The page's own h1 arrives with its chunk; until then `title` keeps one heading for screen readers. Outside the
-// shell nothing else provides the main landmark, so `bare` brings one (the skeleton inside is aria-hidden).
+// The page's own h1 arrives with its chunk; until then `title` keeps one heading for screen readers. The status sits
+// next to the aria-hidden skeleton, so the live region announces only its one sentence. Outside the shell nothing
+// else provides the main landmark, so `bare` brings one: a plain block, since `display: contents` drops the landmark
+// role in older Safari / iOS.
 function RouteFallback({ title, bare, children }: { title: string; bare: boolean; children: ReactNode }) {
   const content = (
     <>
@@ -70,7 +70,7 @@ function RouteFallback({ title, bare, children }: { title: string; bare: boolean
       </div>
     </>
   )
-  return bare ? <main className="contents">{content}</main> : content
+  return bare ? <main className="min-h-dvh">{content}</main> : content
 }
 
 export function LazyRoute({

@@ -46,7 +46,10 @@ describe('lazy route fallbacks', () => {
     expect(container.querySelector('.animate-spin')).toBeNull()
     expect(screen.queryByRole('navigation', { name: 'Shell' }) !== null).toBe(inShell)
     // The real shell brings <main> (mocked away here); cook mode's fallback has to bring its own.
-    if (!inShell) expect(screen.getByRole('heading', { level: 1, name: title }).closest('main')).not.toBeNull()
+    if (!inShell) {
+      expect(screen.getByRole('heading', { level: 1, name: title }).closest('main')).not.toBeNull()
+      expect(screen.getAllByRole('main')).toHaveLength(1)
+    }
   })
 
   it.each([

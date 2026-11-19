@@ -18,6 +18,7 @@ function renderAt(path: string, routes: ReactNode) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Link to="/ok">Weiter</Link>
+      <Link to="/broken">Andere Seite</Link>
       <Routes>{routes}</Routes>
     </MemoryRouter>,
   )
@@ -88,6 +89,36 @@ describe('LazyRoute', () => {
     const alert = await screen.findByRole('alert')
     expect(alert.closest('main')).not.toBeNull()
     expect(screen.queryByRole('link', { name: /Zur/ })).toBeNull()
+  })
+
+  it('outside the shell, keeps one visible main while a sibling route loads over a loaded page', async () => {
+    const Page = lazy(() => Promise.resolve({ default: () => <main>Geladene Seite</main> }))
+    renderAt(
+      '/ok',
+      <>
+        <Route
+          path="/ok"
+          element={
+            <LazyRoute title="Erste Seite" fallback={null} bare>
+              <Page />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/broken"
+          element={
+            <LazyRoute title="Zweite Seite" fallback={<Skeleton className="h-4" />} bare>
+              <Pending />
+            </LazyRoute>
+          }
+        />
+      </>,
+    )
+    await screen.findByText('Geladene Seite')
+    fireEvent.click(screen.getByRole('link', { name: 'Andere Seite' }))
+    // React hides the loaded page with display: none, which takes its main out of the accessibility tree.
+    expect(screen.getByRole('heading', { level: 1, name: 'Zweite Seite' })).toBeTruthy()
+    expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 
   it('clears the error when a sibling lazy route takes over', async () => {
