@@ -161,6 +161,17 @@ describe('AppShell header on subpages', () => {
   it('shows only the origin while the name is unknown', () => {
     renderAt(['/categories/999'])
     expect(crumbText()).toBe('Rezepte')
+    // jsdom has no layout: this and the next test only guard the classes that keep "Rezepte" from being cut to
+    // "R…" (#268).
+    expect(header().getByRole('link', { name: 'Rezepte' }).className).toContain('max-w-60')
+  })
+
+  it('lets the recipe name give way before the origin', () => {
+    renderAt(['/recipes/1'])
+    const name = header().getByText('Spaghetti Bolognese')
+    expect(name.className).toContain('truncate')
+    expect(name.className).toContain('shrink-[1000]')
+    expect(name.className).toContain('min-w-24')
   })
 
   it('titles the editor without a crumb, back leads to the recipe', () => {

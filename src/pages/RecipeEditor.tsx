@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Alert, AlertDescription, AlertTitle, Button, Spinner, toast } from '@postxl/ui-components'
 import { Skeleton } from '../components/Skeleton'
+import { ErrorState } from '../components/StateCard'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { foodly } from '../api'
 import { errorMessage } from '../lib/errorMessage'
@@ -40,7 +41,7 @@ export function RecipeEditor() {
   const {
     status,
     data: loaded,
-    error,
+    reload,
   } = useRequest(() => (isNew ? Promise.resolve(null) : foodly.getRecipe(Number(id))), [id])
 
   const [draft, setDraft] = useState<Draft | null>(isNew ? emptyDraft() : null)
@@ -184,20 +185,23 @@ export function RecipeEditor() {
 
   const patch = (p: Partial<Draft>) => setDraft((d) => (d === null ? d : { ...d, ...p }))
 
+  // REST errors carry no status, so "not found" and "server unreachable" look the same: the detail page's neutral
+  // card, no raw backend message.
   if (status === 'error') {
     return (
-      <div className={`mx-auto max-w-3xl px-6 py-10 ${SAFE_BOTTOM}`}>
+      <Page className={`pb-10 ${SAFE_BOTTOM}`}>
         {heading}
-        <Alert variant="destructive">
-          <AlertTitle>Rezept nicht gefunden</AlertTitle>
-          <AlertDescription className="flex flex-col gap-2">
-            <span>{error?.message}</span>
+        <ErrorState
+          title="Rezept konnte nicht geladen werden"
+          description="Vielleicht wurde es gelöscht, oder der Server ist gerade nicht erreichbar."
+          onRetry={reload}
+          extraAction={
             <Button asChild variant="outline" size="sm">
               <Link to="/recipes">Zur Liste</Link>
             </Button>
-          </AlertDescription>
-        </Alert>
-      </div>
+          }
+        />
+      </Page>
     )
   }
 

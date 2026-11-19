@@ -187,8 +187,9 @@ describe('exactly one h1', () => {
   it('editor on error', async () => {
     vi.mocked(foodly.getRecipe).mockRejectedValue(new Error('nicht da'))
     await renderAt('/recipes/5/edit')
-    await screen.findByText('Rezept nicht gefunden')
+    await screen.findByText('Rezept konnte nicht geladen werden')
     expect(h1s()).toHaveLength(1)
+    expect(document.body.textContent).not.toContain('nicht da')
   })
 
   it('editor without edit rights', async () => {
@@ -196,6 +197,18 @@ describe('exactly one h1', () => {
     await renderAt('/recipes/5/edit')
     await screen.findByText('Kein Zugriff')
     expect(h1s()).toHaveLength(1)
+  })
+
+  it('detail on error', async () => {
+    vi.mocked(foodly.getRecipe).mockRejectedValue(new Error('nicht da'))
+    await renderAt('/recipes/5')
+    await screen.findByText('Rezept konnte nicht geladen werden')
+    expect(h1s()).toHaveLength(1)
+    expect(document.body.textContent).not.toContain('nicht da')
+    // AC 3 on the real route: the origin keeps its full label, no %-cap that cut it to „R…“ (#268).
+    const origin = within(screen.getByRole('banner')).getByRole('link', { name: 'Rezepte' })
+    expect(origin.className.split(/\s+/)).toContain('max-w-60')
+    expect(origin.className).not.toContain('max-w-[45%]')
   })
 
   it('detail keeps the recipe name as its h1', async () => {
