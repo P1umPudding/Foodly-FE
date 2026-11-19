@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { SheetClose, SheetContent, SheetDescription, SheetTitle, cn } from '@postxl/ui-components'
+import { useVisualViewportInset } from '../hooks/useVisualViewportInset'
 import { PANEL_TITLE, PanelCloseButton, PanelHead } from './PanelHead'
 
 export type BottomSheetProps = Omit<ComponentPropsWithoutRef<typeof SheetContent>, 'side' | 'title'> & {
@@ -14,15 +15,20 @@ export type BottomSheetProps = Omit<ComponentPropsWithoutRef<typeof SheetContent
 // (30 px, 40 px on touch) in one row.
 // Goes inside the caller's <Sheet>, so the caller keeps the root, the trigger and `modal`.
 export function BottomSheet({ title, description, scroll = true, className, children, ...props }: BottomSheetProps) {
+  const keyboardInsetRef = useVisualViewportInset<HTMLDivElement>()
   return (
     <SheetContent
       side="bottom"
       {...props}
+      ref={keyboardInsetRef}
       // The lib's ✕ (16 px, "Close") can't be configured; it is always the first child, so hide it and
       // render our own. It keeps its data-test-id ("<id>-close") in the DOM, hidden. pt-0: the grip sits 8 px
       // below the edge as in the mockup, not below the lib's p-6.
+      // --vv-inset: the part the on-screen keyboard covers (#220). The bottom padding lifts the footer above it (or
+      // above the home indicator, whichever is taller), and the max height shrinks by it so the head stays visible
+      // on iOS, where dvh ignores the keyboard.
       className={cn(
-        'flex max-h-[80vh] flex-col gap-0 rounded-t-lg px-0 pt-0 pb-[env(safe-area-inset-bottom)] [&>button:first-child]:hidden',
+        'flex max-h-[calc(80dvh_-_var(--vv-inset,0px))] flex-col gap-0 rounded-t-lg px-0 pt-0 pb-[max(env(safe-area-inset-bottom),var(--vv-inset,0px))] [&>button:first-child]:hidden',
         className,
       )}
     >

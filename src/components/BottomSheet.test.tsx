@@ -76,4 +76,23 @@ describe('BottomSheet', () => {
     const sheet = renderSheet({ scroll: false })
     expect(screen.getByText('Inhalt').parentElement).toBe(sheet)
   })
+
+  // #220: dvh, not vh (iOS's vh is the largest viewport); the keyboard inset lifts the footer and caps the height.
+  it('keeps its footer and head clear of the keyboard and the home indicator', () => {
+    const classes = renderSheet().className.split(' ')
+    expect(classes).toContain('max-h-[calc(80dvh_-_var(--vv-inset,0px))]')
+    expect(classes).toContain('pb-[max(env(safe-area-inset-bottom),var(--vv-inset,0px))]')
+    expect(classes).not.toContain('max-h-[80vh]')
+  })
+
+  it('tracks the keyboard inset on the sheet itself', () => {
+    // jsdom has no visualViewport (and a 0 px layout): a closed keyboard covers nothing.
+    const vv = Object.assign(new EventTarget(), { height: 0, offsetTop: 0, scale: 1 })
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: vv })
+    try {
+      expect(renderSheet().style.getPropertyValue('--vv-inset')).toBe('0px')
+    } finally {
+      Reflect.deleteProperty(window, 'visualViewport')
+    }
+  })
 })
