@@ -118,11 +118,11 @@ describe('AppShell on the desktop', () => {
     renderAt('/recipes')
     // The shell's --shell-left (overlay inset) has to move with the sidebar width.
     const shell = () => sidebar().closest('.min-h-screen')!.className.split(/\s+/)
-    expect(sidebar().className.split(/\s+/)).toContain('w-62')
-    expect(shell()).toContain('[--shell-left:15.5rem]')
+    expect(sidebar().className.split(/\s+/)).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
+    expect(shell()).toContain('[--shell-left:calc(15.5rem+env(safe-area-inset-left))]')
     fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
-    expect(sidebar().className.split(/\s+/)).toContain('w-16')
-    expect(shell()).toContain('[--shell-left:4rem]')
+    expect(sidebar().className.split(/\s+/)).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
+    expect(shell()).toContain('[--shell-left:calc(4rem+env(safe-area-inset-left))]')
   })
 
   it('collapses to icons, remembers it, and expands again', () => {
@@ -145,11 +145,11 @@ describe('AppShell on the desktop', () => {
 
   it('starts collapsed below 1024 px and open from 1024 px while nothing is saved (#222)', () => {
     for (const [width, expected] of [
-      [761, 'w-16'],
-      [800, 'w-16'],
-      [1023, 'w-16'],
-      [1024, 'w-62'],
-      [1280, 'w-62'],
+      [761, 'w-[calc(4rem+env(safe-area-inset-left))]'],
+      [800, 'w-[calc(4rem+env(safe-area-inset-left))]'],
+      [1023, 'w-[calc(4rem+env(safe-area-inset-left))]'],
+      [1024, 'w-[calc(15.5rem+env(safe-area-inset-left))]'],
+      [1280, 'w-[calc(15.5rem+env(safe-area-inset-left))]'],
     ] as const) {
       setViewport(width)
       const { unmount } = renderAt('/recipes')
@@ -162,13 +162,15 @@ describe('AppShell on the desktop', () => {
     setViewport(1280)
     renderAt('/recipes')
     const width = () => sidebar().className.split(/\s+/)
-    expect(width()).toContain('w-62')
+    expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
     setViewport(800)
-    expect(width()).toContain('w-16')
+    expect(width()).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
     screen.getByRole('button', { name: 'Seitenleiste ausklappen' })
-    expect(sidebar().closest('.min-h-screen')!.className.split(/\s+/)).toContain('[--shell-left:4rem]')
+    expect(sidebar().closest('.min-h-screen')!.className.split(/\s+/)).toContain(
+      '[--shell-left:calc(4rem+env(safe-area-inset-left))]',
+    )
     setViewport(1280)
-    expect(width()).toContain('w-62')
+    expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
     screen.getByRole('button', { name: 'Seitenleiste einklappen' })
     expect(localStorage.getItem('foodly:sidebar-collapsed')).toBeNull()
   })
@@ -182,12 +184,12 @@ describe('AppShell on the desktop', () => {
     unmount()
     renderAt('/recipes')
     const width = () => sidebar().className.split(/\s+/)
-    expect(width()).toContain('w-62')
+    expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
     screen.getByRole('button', { name: 'Seitenleiste einklappen' })
     setViewport(1280)
-    expect(width()).toContain('w-62')
+    expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
     setViewport(800)
-    expect(width()).toContain('w-62')
+    expect(width()).toContain('w-[calc(15.5rem+env(safe-area-inset-left))]')
   })
 
   it('keeps a saved "collapsed" on wide screens too (#222)', () => {
@@ -195,11 +197,11 @@ describe('AppShell on the desktop', () => {
     setViewport(1280)
     renderAt('/recipes')
     const width = () => sidebar().className.split(/\s+/)
-    expect(width()).toContain('w-16')
+    expect(width()).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
     setViewport(800)
-    expect(width()).toContain('w-16')
+    expect(width()).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
     setViewport(1280)
-    expect(width()).toContain('w-16')
+    expect(width()).toContain('w-[calc(4rem+env(safe-area-inset-left))]')
   })
 
   it('leads to the start page from the wordmark', () => {
@@ -380,11 +382,12 @@ describe('AppShell on the desktop', () => {
 describe('AppShell on the phone', () => {
   beforeEach(() => setViewport(375))
 
-  it('has a 56 px header (the offset the category headers stick at)', () => {
+  it('has a 56 px header below the top inset (the offset the category headers stick at)', () => {
     renderAt('/recipes')
     const header = screen.getByRole('banner')
     expect(header.className).toContain('h-(--site-nav-h)')
-    expect(header.closest('.min-h-screen')!.className).toContain('[--site-nav-h:3.5rem]')
+    expect(header.className.split(/\s+/)).toContain('pt-[env(safe-area-inset-top)]')
+    expect(header.closest('.min-h-screen')!.className).toContain('[--site-nav-h:calc(3.5rem+env(safe-area-inset-top))]')
   })
 
   it('has a 52 px "+" with the mockup shadow', () => {
@@ -475,20 +478,30 @@ describe('AppShell on the phone', () => {
       expect(screen.queryByRole('navigation', { name: 'Hauptnavigation' })).toBeNull()
       expect(screen.queryByRole('link', { name: 'Neues Rezept' })).toBeNull()
       // The page reaches the bottom edge: no tab-bar padding, no tab-bar inset for fixed bars.
-      expect(screen.getByRole('main').parentElement!.className.split(/\s+/)).not.toContain('pb-16')
+      expect(screen.getByRole('main').parentElement!.className.split(/\s+/)).not.toContain('pb-(--shell-bottom)')
       const shell = screen.getByRole('banner').closest('.min-h-screen')!.className.split(/\s+/)
-      expect(shell).toContain('[--site-nav-h:3.5rem]')
-      expect(shell).not.toContain('[--shell-bottom:4rem]')
+      expect(shell).toContain('[--site-nav-h:calc(3.5rem+env(safe-area-inset-top))]')
+      expect(shell).not.toContain('[--shell-bottom:calc(4rem+env(safe-area-inset-bottom))]')
     },
   )
+
+  // #220: with viewport-fit=cover the home indicator would sit on the labels and the "+".
+  it('lifts the tab bar labels and the "+" above the bottom inset', () => {
+    renderAt('/recipes')
+    const bar = mainNav().className.split(/\s+/)
+    expect(bar).toContain('h-[calc(4rem+env(safe-area-inset-bottom))]')
+    expect(bar).toContain('pb-[env(safe-area-inset-bottom)]')
+    const fab = screen.getByRole('link', { name: 'Neues Rezept' }).className.split(/\s+/)
+    expect(fab).toContain('bottom-[calc(5rem+env(safe-area-inset-bottom))]')
+  })
 
   it('keeps the tab bar, its padding and inset on the list (#218)', () => {
     renderAt('/recipes')
     mainNav()
     screen.getByRole('link', { name: 'Neues Rezept' })
-    expect(screen.getByRole('main').parentElement!.className.split(/\s+/)).toContain('pb-16')
+    expect(screen.getByRole('main').parentElement!.className.split(/\s+/)).toContain('pb-(--shell-bottom)')
     expect(screen.getByRole('banner').closest('.min-h-screen')!.className.split(/\s+/)).toContain(
-      '[--shell-bottom:4rem]',
+      '[--shell-bottom:calc(4rem+env(safe-area-inset-bottom))]',
     )
   })
 

@@ -24,15 +24,24 @@ import { TabBar } from './TabBar'
 // Sidebar width and the matching --shell-left, kept side by side. Fixed page bars offset themselves by
 // --shell-left / --shell-bottom so the sidebar or tab bar never covers them (none today since the editor's footer
 // moved into the header, #231). --shell-bottom is unset without the tab bar: read it as var(--shell-bottom,0px).
+// Safe-area insets (viewport-fit=cover, #220) widen the chrome instead of squeezing its content: the sidebar by the
+// left inset (phones on their side get the desktop layout), the tab bar by the bottom one, the header by the top one.
 const SIDEBAR_WIDTH = {
-  expanded: { width: 'w-62', shellVar: '[--shell-left:15.5rem]' },
-  collapsed: { width: 'w-16', shellVar: '[--shell-left:4rem]' },
+  expanded: {
+    width: 'w-[calc(15.5rem+env(safe-area-inset-left))]',
+    shellVar: '[--shell-left:calc(15.5rem+env(safe-area-inset-left))]',
+  },
+  collapsed: {
+    width: 'w-[calc(4rem+env(safe-area-inset-left))]',
+    shellVar: '[--shell-left:calc(4rem+env(safe-area-inset-left))]',
+  },
 }
-// --site-nav-h: header height, which the list's group headers stick under; the desktop 60 px is the :root default.
-const PHONE_SHELL_VAR = '[--site-nav-h:3.5rem]'
-const TAB_BAR_SHELL_VAR = '[--shell-bottom:4rem]'
+// --site-nav-h: header height incl. the top inset, which the list's group headers stick under; the desktop value is
+// the :root default.
+const PHONE_SHELL_VAR = '[--site-nav-h:calc(3.5rem+env(safe-area-inset-top))]'
+const TAB_BAR_SHELL_VAR = '[--shell-bottom:calc(4rem+env(safe-area-inset-bottom))]'
 // sonner applies mobileOffset only up to 600 px, so the offset has to follow our breakpoint instead.
-const PHONE_TOAST_OFFSET = { bottom: '5rem' }
+const PHONE_TOAST_OFFSET = { bottom: 'calc(5rem + env(safe-area-inset-bottom))' }
 const EDITOR_PHONE_TOAST_OFFSET = { bottom: 'calc(1rem + env(safe-area-inset-bottom))' }
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -85,11 +94,22 @@ export function AppShell({ children }: { children: ReactNode }) {
           {isDesktop && (
             <Sidebar collapsed={collapsed} onCollapsedChange={setSidebarCollapsed} widthClass={sidebar.width} />
           )}
-          <div className={cn('flex min-w-0 flex-1 flex-col', tabBar && 'pb-16')}>
+          <div
+            className={cn(
+              'flex min-w-0 flex-1 flex-col',
+              tabBar && 'pb-(--shell-bottom)',
+              // Side insets in landscape: the sidebar takes the left one on the desktop layout.
+              isDesktop
+                ? 'pr-[env(safe-area-inset-right)]'
+                : 'pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]',
+            )}
+          >
             {/* `site-header`: hook for the theme view-transition rule in styles.css. */}
             <header
               className={cn(
-                'site-header sticky top-0 z-50 flex h-(--site-nav-h) items-center gap-3 border-b border-border/60 bg-background/85 backdrop-blur-md',
+                // border-box: --site-nav-h includes the top inset, so the padding leaves the bar its full height.
+                'site-header sticky top-0 z-50 flex h-(--site-nav-h) items-center gap-3 border-b border-border/60 bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-md',
+                // The column around it already takes the side insets.
                 isDesktop ? 'px-8' : 'px-4',
               )}
             >
@@ -134,7 +154,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Button
               asChild
               size="icon"
-              className="fixed right-4 bottom-20 z-40 size-13 rounded-full shadow-[0_6px_20px_rgb(0_0_0/0.22)]"
+              className="fixed right-[calc(1rem+env(safe-area-inset-right))] bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 size-13 rounded-full shadow-[0_6px_20px_rgb(0_0_0/0.22)]"
             >
               <Link to="/recipes/new" aria-label="Neues Rezept">
                 <Plus className="size-6" />

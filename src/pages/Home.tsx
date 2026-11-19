@@ -14,7 +14,7 @@ export function Home() {
   return (
     <HomeSectionsProvider>
       {/* Phone bottom padding clears the shell's "+" button (#74), as on the list. */}
-      <Page className="flex flex-col gap-8 pb-10 phone:pb-[calc(6rem+env(safe-area-inset-bottom))]">
+      <Page className="flex flex-col gap-8 pb-10 phone:pb-24">
         <div className="mt-2 flex flex-col phone:mt-0">
           {/* Subtle although this is small text (design.md: subtle is below AA there): #242 names it explicitly, as
               in the mockup. */}

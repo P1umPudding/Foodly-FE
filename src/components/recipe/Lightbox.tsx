@@ -135,7 +135,8 @@ export function Lightbox({
       aria-modal="true"
       aria-label="Fotos"
       onClick={onClose}
-      className="fixed inset-0 z-[100] flex cursor-zoom-out flex-col bg-[oklch(0.12_0_0)] text-white"
+      // The backdrop fills the whole screen, the controls stay clear of notch and home indicator (viewport-fit=cover).
+      className="fixed inset-0 z-[100] flex cursor-zoom-out flex-col bg-[oklch(0.12_0_0)] pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-white"
     >
       <div className="flex h-14 shrink-0 items-center justify-between pl-5 pr-3">
         <span onClick={stop} aria-live="polite" className="cursor-default text-sm tabular-nums text-white/75">
@@ -180,13 +181,13 @@ export function Lightbox({
           </Button>
         )}
         {/* Max sizes only (as in the mockup): the <img> box stays the visible image, so a click beside it
-            reaches the stage and closes. 140 px = top bar 56 + thumbnail strip 84. */}
+            reaches the stage and closes. 140 px = top bar 56 + thumbnail strip 84, plus the safe-area insets the backdrop pads. */}
         <RecipeImage
           image={image}
           alt={imageName(image)}
           onClick={stop}
-          className="max-h-[calc(100dvh-140px)] max-w-full cursor-default rounded-md object-contain phone:rounded-none"
-          fallbackClassName="h-[calc(100dvh-140px)] w-full max-w-4xl cursor-default rounded-md bg-white/10 text-white/40 phone:max-w-none phone:rounded-none"
+          className="max-h-[calc(100dvh-140px-env(safe-area-inset-top)-env(safe-area-inset-bottom))] max-w-full cursor-default rounded-md object-contain phone:rounded-none"
+          fallbackClassName="h-[calc(100dvh-140px-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-4xl cursor-default rounded-md bg-white/10 text-white/40 phone:max-w-none phone:rounded-none"
         />
         {n > 1 && (
           <Button
