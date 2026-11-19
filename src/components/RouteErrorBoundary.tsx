@@ -14,17 +14,19 @@ type Exit = { to: string; label: string }
 
 type BoundaryProps = { resetKey: string; exit?: Exit; bare: boolean; children: ReactNode }
 
-class RouteErrorBoundary extends Component<BoundaryProps, { failed: boolean }> {
-  state = { failed: false }
+type BoundaryState = { failed: boolean; resetKey: string }
+
+class RouteErrorBoundary extends Component<BoundaryProps, BoundaryState> {
+  state = { failed: false, resetKey: this.props.resetKey }
 
   static getDerivedStateFromError() {
     return { failed: true }
   }
 
-  // React Router keeps this instance when a sibling route renders the same element type (/categories → /categories/5),
-  // so leaving the failed page has to clear the error here.
-  componentDidUpdate(prev: BoundaryProps) {
-    if (this.state.failed && prev.resetKey !== this.props.resetKey) this.setState({ failed: false })
+  // React Router keeps this instance when a sibling route renders the same element type (/login → /register,
+  // /recipes/new → /recipes/5/edit), so leaving the failed page clears the error, before the new path renders.
+  static getDerivedStateFromProps(props: BoundaryProps, state: BoundaryState) {
+    return props.resetKey === state.resetKey ? null : { failed: false, resetKey: props.resetKey }
   }
 
   render() {
@@ -54,9 +56,11 @@ class RouteErrorBoundary extends Component<BoundaryProps, { failed: boolean }> {
 
 // The status sits next to the skeleton, not around it: the auth skeleton brings its own <main>, and a live region
 // should only announce the one sentence.
-function RouteFallback({ children }: { children: ReactNode }) {
+// The page's own h1 arrives with its chunk; until then `title` keeps one heading for screen readers.
+function RouteFallback({ title, children }: { title: string; children: ReactNode }) {
   return (
     <>
+      <h1 className="sr-only">{title}</h1>
       <span role="status" className="sr-only">
         Seite wird geladen
       </span>
@@ -68,11 +72,13 @@ function RouteFallback({ children }: { children: ReactNode }) {
 }
 
 export function LazyRoute({
+  title,
   fallback,
   exit,
   bare = false,
   children,
 }: {
+  title: string
   fallback: ReactNode
   // A way out next to the retry. None on the sign-in pages: for a signed-out user "/" leads straight back there.
   exit?: Exit
@@ -82,7 +88,7 @@ export function LazyRoute({
   const { pathname } = useLocation()
   return (
     <RouteErrorBoundary resetKey={pathname} exit={exit} bare={bare}>
-      <Suspense fallback={<RouteFallback>{fallback}</RouteFallback>}>{children}</Suspense>
+      <Suspense fallback={<RouteFallback title={title}>{fallback}</RouteFallback>}>{children}</Suspense>
     </RouteErrorBoundary>
   )
 }

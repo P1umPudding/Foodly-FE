@@ -6,7 +6,7 @@ import { Skeleton } from './Skeleton'
 export function CookSkeleton() {
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
-      <div className="flex items-center gap-3 px-4 py-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] pr-[calc(1rem+env(safe-area-inset-right))] pl-[calc(1rem+env(safe-area-inset-left))]">
+      <div className="sticky top-0 z-10 flex items-center gap-3 bg-background px-4 py-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] pr-[calc(1rem+env(safe-area-inset-right))] pl-[calc(1rem+env(safe-area-inset-left))]">
         <Skeleton className="-ml-2 size-9 rounded-md" />
         <Skeleton className="h-5 w-48 max-w-full" />
       </div>

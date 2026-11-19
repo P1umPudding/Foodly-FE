@@ -42,13 +42,14 @@ describe('LazyRoute', () => {
       <Route
         path="/"
         element={
-          <LazyRoute fallback={<Skeleton className="h-4" />}>
+          <LazyRoute title="Testseite" fallback={<Skeleton className="h-4" />}>
             <Pending />
           </LazyRoute>
         }
       />,
     )
     expect(screen.getByRole('status').textContent).toBe('Seite wird geladen')
+    expect(screen.getByRole('heading', { level: 1, name: 'Testseite' })).toBeTruthy()
     expect(screen.getByTestId('route-fallback').querySelector('[data-slot="skeleton"]')).not.toBeNull()
     expect(container.querySelector('.animate-spin')).toBeNull()
   })
@@ -59,7 +60,7 @@ describe('LazyRoute', () => {
       <Route
         path="/"
         element={
-          <LazyRoute fallback={null} exit={{ to: '/', label: 'Zur Startseite' }}>
+          <LazyRoute title="Testseite" fallback={null} exit={{ to: '/', label: 'Zur Startseite' }}>
             <Broken />
           </LazyRoute>
         }
@@ -78,7 +79,7 @@ describe('LazyRoute', () => {
       <Route
         path="/"
         element={
-          <LazyRoute fallback={null} bare>
+          <LazyRoute title="Testseite" fallback={null} bare>
             <Broken />
           </LazyRoute>
         }
@@ -96,7 +97,7 @@ describe('LazyRoute', () => {
         <Route
           path="/broken"
           element={
-            <LazyRoute fallback={null}>
+            <LazyRoute title="Testseite" fallback={null}>
               <Broken />
             </LazyRoute>
           }
@@ -104,7 +105,7 @@ describe('LazyRoute', () => {
         <Route
           path="/ok"
           element={
-            <LazyRoute fallback={null}>
+            <LazyRoute title="Testseite" fallback={null}>
               <Working />
             </LazyRoute>
           }

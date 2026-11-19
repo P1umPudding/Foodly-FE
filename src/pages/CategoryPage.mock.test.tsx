@@ -7,6 +7,7 @@ import { loadPersisted, savePersisted } from '../list/persistence'
 import { setViewport } from '../test/viewport'
 import { SHELL_NAV_STATE } from '../components/shell/nav'
 import { redTokens } from '../test/redTokens'
+import { lazyPageLoaded } from '../test/lazyRoutes'
 
 // Mock mode is decided when src/api loads, so the app is imported fresh with VITE_MOCK=1 — which also gives every test
 // fresh mock data (creates, renames and deletes mutate it).
@@ -49,6 +50,7 @@ async function renderAt(path: string) {
   )
   // The shell mounts once the auth guard has settled.
   await screen.findByRole('main', {}, WAIT)
+  await lazyPageLoaded()
 }
 
 const main = () => screen.getByRole('main')

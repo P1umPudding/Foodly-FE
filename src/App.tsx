@@ -36,6 +36,7 @@ export function RecipeEditorRoute() {
   // the wrong recipe. Key on route identity to force a clean remount.
   return (
     <LazyRoute
+      title={id ? 'Rezept bearbeiten' : 'Neues Rezept'}
       exit={HOME}
       fallback={
         <Page className={`pb-10 ${SAFE_BOTTOM}`}>
@@ -52,7 +53,7 @@ export function RecipeEditorRoute() {
 function CookModeRoute() {
   const { id } = useParams()
   return (
-    <LazyRoute bare exit={{ to: `/recipes/${id}`, label: 'Zum Rezept' }} fallback={<CookSkeleton />}>
+    <LazyRoute title="Kochen" bare exit={{ to: `/recipes/${id}`, label: 'Zum Rezept' }} fallback={<CookSkeleton />}>
       <CookMode key={id} />
     </LazyRoute>
   )
@@ -63,6 +64,7 @@ function CategoryPageRoute() {
   const { id } = useParams()
   return (
     <LazyRoute
+      title="Kategorie"
       exit={HOME}
       fallback={
         <Page className="pb-10 phone:pb-24">
@@ -86,7 +88,7 @@ export default function App() {
           <Route
             path="/login"
             element={
-              <LazyRoute bare fallback={<AuthCardSkeleton />}>
+              <LazyRoute title="Anmelden" bare fallback={<AuthCardSkeleton />}>
                 <Login />
               </LazyRoute>
             }
@@ -94,7 +96,7 @@ export default function App() {
           <Route
             path="/register"
             element={
-              <LazyRoute bare fallback={<AuthCardSkeleton />}>
+              <LazyRoute title="Konto anlegen" bare fallback={<AuthCardSkeleton />}>
                 <Register />
               </LazyRoute>
             }
@@ -113,6 +115,7 @@ export default function App() {
               path="/categories"
               element={
                 <LazyRoute
+                  title="Kategorien"
                   exit={HOME}
                   fallback={
                     <Page className="pb-10">

@@ -13,6 +13,7 @@ import { foodly } from './api'
 import { useRequest } from './hooks/useRequest'
 import { setViewport } from './test/viewport'
 import type { Recipe } from './api/protocol'
+import { lazyPageLoaded } from './test/lazyRoutes'
 
 // The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
 vi.mock('./components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
@@ -85,6 +86,7 @@ async function renderAt(entry: string) {
     </ThemeProvider>,
   )
   await act(async () => {})
+  await lazyPageLoaded()
 }
 
 const h1s = () => screen.getAllByRole('heading', { level: 1 })
@@ -121,8 +123,6 @@ describe('page title shown once', () => {
 
   it('new recipe: title only in the header', async () => {
     await renderAt('/recipes/new')
-    // The editor loads lazily (#221): wait for the page's own heading before counting.
-    await screen.findByRole('heading', { level: 1, name: 'Neues Rezept' }, { timeout: 3000 })
     expectTitleOnce('Neues Rezept')
     expect(h1s()).toHaveLength(1)
   })
