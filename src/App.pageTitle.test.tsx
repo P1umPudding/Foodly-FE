@@ -121,6 +121,8 @@ describe('page title shown once', () => {
 
   it('new recipe: title only in the header', async () => {
     await renderAt('/recipes/new')
+    // The editor loads lazily (#221): wait for the page's own heading before counting.
+    await screen.findByRole('heading', { level: 1, name: 'Neues Rezept' }, { timeout: 3000 })
     expectTitleOnce('Neues Rezept')
     expect(h1s()).toHaveLength(1)
   })

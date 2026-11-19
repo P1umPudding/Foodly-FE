@@ -158,7 +158,7 @@ export function Categories() {
           Kategorien sind deine persönlichen Sammlungen. Ein Rezept kann in mehreren sein, andere sehen sie nicht.
         </p>
 
-        {categories.status === 'loading' && <CategoryRowsSkeleton />}
+        {categories.status === 'loading' && <CategoryRowsSkeleton rowTestId="category-row-skeleton" />}
 
         {categories.status === 'error' && (
           <ErrorState

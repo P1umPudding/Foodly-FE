@@ -94,6 +94,12 @@ werden hier nicht wiederholt.
 - Statische Segmente vor Parametern (`/recipes/new` vor `/recipes/:id`).
 - Seiten mit seed-einmal-State per `key` auf die Route-Identität remounten
   (`RecipeEditorRoute` in `src/App.tsx`).
+- Code-Splitting (#221): Start, Liste, Detail, Profil und 404 liegen im Einstiegs-Chunk (häufige erste Seiten);
+  Editor, Koch-Modus, Kategorien, Kategorieseite, Login und Registrierung lädt `React.lazy` nach. Jede lazy Route
+  steckt einzeln in `LazyRoute` (`src/components/RouteErrorBoundary.tsx`), damit Shell und Tab-Leiste stehen bleiben:
+  Fallback ist ein Skelett in Seitenform aus dem Einstieg (nie aus der Seite selbst importieren), ein gescheiterter
+  Chunk zeigt `ErrorState`, „Erneut versuchen“ lädt die Seite neu (React.lazy merkt sich den Fehler). Neue seltene
+  Seiten genauso einhängen; Tests warten auf lazy Seiten mit `await findBy…`.
 - Kein Data Router (`createBrowserRouter`) → kein `useBlocker`; Verlassen-Schutz via
   `beforeunload` + Flush bei Unmount. Lesezugriffe (`getRecipe`, `searchRecipes`) warten auf den
   noch laufenden Unmount-Save (`src/api/pendingSaves.ts`, max. 10 s); Requests deshalb in Effects

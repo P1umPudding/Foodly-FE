@@ -28,13 +28,16 @@ vi.mock('./pages/Profile', () => ({ Profile: () => <Page name="profile" /> }))
 vi.mock('./pages/NotFound', () => ({ NotFound: () => <Page name="404" /> }))
 vi.mock('./pages/CookMode', () => ({ CookMode: () => <Page name="cook" /> }))
 
-const at = (path: string) => {
+// Some routes load their page lazily (#221); the first import in a file can take a moment.
+const WAIT = { timeout: 3000 }
+
+const at = async (path: string) => {
   render(
     <MemoryRouter initialEntries={[path]}>
       <App />
     </MemoryRouter>,
   )
-  return screen.getByTestId('page').textContent
+  return (await screen.findByTestId('page', {}, WAIT)).textContent
 }
 
 afterEach(() => localStorage.clear())
@@ -50,8 +53,8 @@ describe('App routes', () => {
     ['/', 'login /login?next=%2F'],
     ['/login', 'login /login'],
     ['/register', 'register /register'],
-  ])('without a session %s shows %s', (path, page) => {
-    expect(at(path)).toBe(page)
+  ])('without a session %s shows %s', async (path, page) => {
+    expect(await at(path)).toBe(page)
   })
 
   it.each([
@@ -65,20 +68,20 @@ describe('App routes', () => {
     ['/?foo=1', 'home /?foo=1'],
     ['/login', 'list /recipes'],
     ['/register', 'list /recipes'],
-  ])('with a session %s shows %s', (path, page) => {
+  ])('with a session %s shows %s', async (path, page) => {
     seedSession()
-    expect(at(path)).toBe(page)
+    expect(await at(path)).toBe(page)
   })
 
-  it('renders cook mode without the shell', () => {
+  it('renders cook mode without the shell', async () => {
     seedSession()
-    at('/recipes/5/cook')
+    await at('/recipes/5/cook')
     expect(screen.queryByRole('navigation', { name: 'Shell' })).toBeNull()
   })
 
-  it('keeps the shell around the recipe page', () => {
+  it('keeps the shell around the recipe page', async () => {
     seedSession()
-    at('/recipes/5')
+    await at('/recipes/5')
     expect(screen.getByRole('navigation', { name: 'Shell' })).toBeTruthy()
   })
 })

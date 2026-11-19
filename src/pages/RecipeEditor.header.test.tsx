@@ -157,9 +157,11 @@ describe('RecipeEditor in the shell header', () => {
     expect(header().getByRole('button', { name: 'Anlegen' }).getAttribute('aria-disabled')).toBe('false')
   })
 
-  it('nothing in the header while the recipe loads', () => {
+  it('nothing in the header while the recipe loads', async () => {
     vi.spyOn(foodly, 'getRecipe').mockReturnValue(new Promise(() => {}))
     renderAt('/recipes/5/edit')
+    // The editor loads lazily (#221): its own heading first, so the skeleton below is the page's, not the route's.
+    await screen.findByRole('heading', { level: 1, name: 'Rezept bearbeiten' }, { timeout: 3000 })
 
     expect(screen.getByTestId('editor-skeleton')).toBeTruthy()
     expect(header().queryByRole('button', { name: 'Fertig' })).toBeNull()
