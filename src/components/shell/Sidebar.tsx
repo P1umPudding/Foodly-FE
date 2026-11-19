@@ -76,7 +76,7 @@ export function Sidebar({
     <aside
       aria-label="Seitenleiste"
       className={cn(
-        'sticky top-0 flex h-screen shrink-0 flex-col gap-0.5 border-r border-sidebar-border bg-sidebar px-3 py-4 text-sidebar-foreground',
+        'sticky top-0 flex h-screen shrink-0 flex-col gap-0.5 border-r border-sidebar-border bg-sidebar pt-4 pr-3 pb-[max(1rem,env(safe-area-inset-bottom))] pl-[calc(0.75rem+env(safe-area-inset-left))] text-sidebar-foreground',
         widthClass,
       )}
     >

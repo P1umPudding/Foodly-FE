@@ -27,7 +27,7 @@ describe('Lightbox image that fails to load', () => {
 
     fireEvent.error(screen.getByAltText('Bild 1'))
     const fallback = screen.getByRole('img', { name: 'Bild 1' })
-    expect(fallback.className).toContain('h-[calc(100dvh-140px)]')
+    expect(fallback.className).toContain('h-[calc(100dvh-140px-env(safe-area-inset-top)-env(safe-area-inset-bottom))]')
 
     fireEvent.click(fallback)
     expect(onClose).not.toHaveBeenCalled()

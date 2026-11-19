@@ -10,7 +10,8 @@ export function TabBar() {
     <nav
       aria-label="Hauptnavigation"
       // `tab-bar`: hook for styles.css, which drops the blur during the theme view-transition (as for the header).
-      className="tab-bar fixed inset-x-0 bottom-0 z-40 flex h-16 border-t border-sidebar-border bg-sidebar/92 backdrop-blur-[14px]"
+      // The bar grows by the safe-area insets (#220): the labels keep their 4 rem, the home indicator sits below them.
+      className="tab-bar fixed inset-x-0 bottom-0 z-40 flex h-[calc(4rem+env(safe-area-inset-bottom))] border-t border-sidebar-border bg-sidebar/92 pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] backdrop-blur-[14px]"
     >
       {/* No category entries here, so unlike the sidebar "Rezepte" stays current on a category view. A plain Link:
           NavLink drops aria-current whenever its own route doesn't match, and /recipes doesn't match a category page. */}
