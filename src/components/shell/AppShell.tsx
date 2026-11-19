@@ -190,7 +190,8 @@ function Crumb({ origin, fromShell, name }: { origin: Origin; fromShell: boolean
         state={fromShell ? SHELL_NAV_STATE : undefined}
         className={cn(
           'max-w-[45%] min-w-0 truncate rounded-sm text-muted-foreground hover:text-foreground',
-          // On touch the padding grows the tap area to 40 px inside truncate's clip; the negative margins keep the layout.
+          // On touch the padding grows the tap area to 40 px inside truncate's clip; the negative margins keep the
+          // layout.
           'touch:-mx-1 touch:-my-2.5 touch:px-1 touch:py-2.5',
           FOCUS_RING,
         )}
