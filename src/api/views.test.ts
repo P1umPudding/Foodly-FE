@@ -298,8 +298,10 @@ describe('formatRecipeTimes', () => {
     expect(formatRecipeTimes(null, 45)).toBe('45 min gesamt')
     expect(formatRecipeTimes(15, null)).toBe('15 min Arbeit')
     expect(formatRecipeTimes(0, 45)).toBe('45 min gesamt')
+    expect(formatRecipeTimes(15, 0)).toBe('15 min Arbeit')
   })
   it('shows nothing without minutes', () => {
     expect(formatRecipeTimes(null, null)).toBeNull()
+    expect(formatRecipeTimes(0, 0)).toBeNull()
   })
 })

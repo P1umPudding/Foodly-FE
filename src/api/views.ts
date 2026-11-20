@@ -179,9 +179,9 @@ export function hasPortions(sizeNumber: number | null): boolean {
   return sizeNumber !== null && sizeNumber > 0
 }
 
-// Lists show the total time from minutes ("45 min", "1 h", "1 h 30 min"). No minutes → nothing, never the free-text
-// `time` (it can be long, e.g. "20 min + Kochzeit 25 min", and would break the one-line meta). {tag} substitution stays
-// a render-time concern.
+// Lists show the total time from minutes ("45 min", "1 h", "1 h 30 min"); the detail page combines work and total
+// time via formatRecipeTimes. No minutes → nothing, never the free-text `time` (it can be long, e.g.
+// "20 min + Kochzeit 25 min", and would break the one-line meta).
 export function formatMinutes(minutes: number | null): string | null {
   if (minutes === null || !Number.isFinite(minutes)) return null
   const m = Math.round(minutes)
