@@ -43,9 +43,9 @@ export type Draft = {
   mainImage: ImageRef | null
   images: ImageRef[]
   sections: DraftSection[]
-  // Never edited: the detail page still renders `time`, and PUT is a full
-  // replace — dropping it would wipe the string. Goes away once the detail page
-  // derives its display from workMinutes/overallMinutes.
+  // Never edited, but kept: PUT is a full replace, so dropping it would wipe the
+  // string, and the detail page still falls back to it for old recipes without
+  // workMinutes/overallMinutes.
   time: string | null
 }
 
