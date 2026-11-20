@@ -10,6 +10,7 @@ import {
   ingredientParts,
   hasPortions,
   formatMinutes,
+  formatRecipeTimes,
 } from './views'
 import type { Recipe } from './protocol'
 
@@ -285,5 +286,22 @@ describe('formatMinutes', () => {
     expect(formatMinutes(0)).toBeNull()
     expect(formatMinutes(-5)).toBeNull()
     expect(formatMinutes(0.4)).toBeNull()
+  })
+})
+
+describe('formatRecipeTimes', () => {
+  it('joins work and total time', () => {
+    expect(formatRecipeTimes(15, 45)).toBe('15 min Arbeit · 45 min gesamt')
+    expect(formatRecipeTimes(20, 90)).toBe('20 min Arbeit · 1 h 30 min gesamt')
+  })
+  it('shows only the value that is set', () => {
+    expect(formatRecipeTimes(null, 45)).toBe('45 min gesamt')
+    expect(formatRecipeTimes(15, null)).toBe('15 min Arbeit')
+    expect(formatRecipeTimes(0, 45)).toBe('45 min gesamt')
+    expect(formatRecipeTimes(15, 0)).toBe('15 min Arbeit')
+  })
+  it('shows nothing without minutes', () => {
+    expect(formatRecipeTimes(null, null)).toBeNull()
+    expect(formatRecipeTimes(0, 0)).toBeNull()
   })
 })

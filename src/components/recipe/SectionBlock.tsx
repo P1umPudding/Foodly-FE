@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { TagText } from '../TagText'
 import { StepText } from './StepText'
-import { IngredientLine } from './IngredientLine'
+import { IngredientTable } from './IngredientTable'
 import type { RecipeIngredientId, Section } from '../../api/protocol'
 
 export function SectionBlock({
@@ -44,27 +44,13 @@ export function SectionBlock({
           // self-start: a stretched table spreads the extra height across its rows.
           <div className="self-start">
             <ColumnTitle level={columnLevel}>Zutaten</ColumnTitle>
-            {/* border-collapse is what lets the rows draw their hairlines. */}
-            <table className="w-full table-fixed border-collapse">
-              <colgroup>
-                {checkable && <col className="w-8" />}
-                {/* Under table-fixed the width includes the cell's pr-3: 84 px content plus a 12 px gap. */}
-                <col className="w-24" />
-                <col />
-              </colgroup>
-              <tbody>
-                {section.ingredients.map((line) => (
-                  <IngredientLine
-                    key={line.id}
-                    line={line}
-                    factor={factor}
-                    checkable={checkable}
-                    checked={checkedIds?.has(line.id) ?? false}
-                    onToggle={onToggle}
-                  />
-                ))}
-              </tbody>
-            </table>
+            <IngredientTable
+              ingredients={section.ingredients}
+              factor={factor}
+              checkable={checkable}
+              checkedIds={checkedIds}
+              onToggle={onToggle}
+            />
           </div>
         )}
 

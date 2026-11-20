@@ -13,12 +13,21 @@ import { TagText } from '../components/TagText'
 import { TriggerButton } from '../components/TriggerButton'
 import { MugIcon } from '../components/WakeLockToggle'
 import { StepText } from '../components/recipe/StepText'
+import {
+  CookIngredientsColumn,
+  CookIngredientsSheet,
+  hasIngredients,
+  useIngredientSheet,
+} from '../components/cook/CookIngredients'
+import { CookNeed } from '../components/cook/CookNeed'
 import { plainTagText } from '../components/tagTokens'
-import { sizeOnly } from '../cook/size'
+import { openRecipe, useCheckedIngredients } from '../cook/checkedIngredients'
+import { parseSize, sizeOnly, withSize } from '../cook/size'
 import { flattenSteps, nextStep, type CookStep } from '../cook/steps'
 import { canEdit } from '../editor/access'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useHasAppHistory } from '../hooks/useHasAppHistory'
+import { useIsWideDesktop } from '../hooks/useIsDesktop'
 import { useRequest } from '../hooks/useRequest'
 import { useWakeLock } from '../hooks/useWakeLock'
 import { TimerPanel } from '../timers/TimerPanel'
@@ -33,7 +42,7 @@ export function CookMode() {
   const { status, data: recipe, reload } = useRequest(() => foodly.getRecipe(recipeId), [recipeId])
   const { byId: tags } = useTags()
   const currentUserId = useCurrentUserId()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const hasAppHistory = useHasAppHistory()
   const timerPanel = useTimerPanel()
@@ -41,6 +50,15 @@ export function CookMode() {
   const [index, setIndex] = useState(0)
   const primaryRef = useRef<HTMLButtonElement>(null)
   const backRef = useRef<HTMLButtonElement>(null)
+  const { checkedIds, toggle } = useCheckedIngredients(recipeId)
+  const wide = useIsWideDesktop()
+  const sheet = useIngredientSheet(wide)
+  // The size cook mode was opened with, as the raw params: the recipe (and its sizeNumber) may still be loading.
+  const [arrivalSize] = useState(() => sizeOnly(searchParams).toString())
+
+  useEffect(() => {
+    openRecipe(recipeId)
+  }, [recipeId])
 
   const plainName = recipe ? plainTagText(recipe.name, tags) : ''
   useDocumentTitle(recipe ? `Kochen: ${plainName} · Foodly` : 'Kochen · Foodly')
@@ -49,11 +67,16 @@ export function CookMode() {
   const stepCount = steps.length
   const query = sizeOnly(searchParams).toString()
   const detailHref = `/recipes/${id}${query ? `?${query}` : ''}`
+  const sizeNumber = recipe?.sizeNumber ?? null
+  const factor = parseSize(searchParams, sizeNumber)
+  const setFactor = (next: number) => setSearchParams((p) => withSize(p, next, sizeNumber), { replace: true })
+  const sizeChanged = parseSize(new URLSearchParams(arrivalSize), sizeNumber) !== factor
 
   // Back like the browser when an in-app entry lies behind (§3.4); otherwise to the recipe, replacing this entry so
-  // Back doesn't return to cook mode.
+  // Back doesn't return to cook mode. A size changed here must reach the detail (#210), and the entry behind still
+  // has the old one, so then it goes forward to the recipe as well.
   const close = () => {
-    if (hasAppHistory()) navigate(-1)
+    if (hasAppHistory() && !sizeChanged) navigate(-1)
     else navigate(detailHref, { replace: true })
   }
 
@@ -68,7 +91,7 @@ export function CookMode() {
     const onKeyDown = (e: KeyboardEvent) => {
       // Radix handles Escape for its open layers first and marks it handled: an open popover, sheet or tooltip
       // (hovered ✕) closes on the first Esc, cook mode on the next.
-      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || panelOpen) return
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || panelOpen || sheet.open) return
       if (isEditable(e.target)) return
       if (e.key === 'Escape') close()
       // No steps yet (loading, error): paging now would leave the index outside the list once they arrive.
@@ -165,24 +188,36 @@ export function CookMode() {
   const step = steps[index]
   const next = nextStep(steps, index)
   const last = index === stepCount - 1
+  const withIngredients = hasIngredients(recipe)
+  const ingredientProps = { recipe, factor, onFactorChange: setFactor, checkedIds, onToggle: toggle }
 
   return (
     <CookFrame
+      aside={
+        wide && withIngredients ? (
+          <CookIngredientsColumn {...ingredientProps} takeFocus={sheet.handOver} onFocusTaken={sheet.handedOver} />
+        ) : undefined
+      }
       header={
         <>
           <CookHeader
             close={closeButton}
             actions={
-              wakeLock.supported && (
-                <CompactToggle
-                  pressed={wakeLock.enabled}
-                  onClick={wakeLock.toggle}
-                  label="Bildschirm anlassen"
-                  tooltip={wakeLock.enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}
-                >
-                  <MugIcon steam={wakeLock.enabled} />
-                </CompactToggle>
-              )
+              <>
+                {!wide && withIngredients && (
+                  <CookIngredientsSheet open={sheet.open} onOpenChange={sheet.setOpen} {...ingredientProps} />
+                )}
+                {wakeLock.supported && (
+                  <CompactToggle
+                    pressed={wakeLock.enabled}
+                    onClick={wakeLock.toggle}
+                    label="Bildschirm anlassen"
+                    tooltip={wakeLock.enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}
+                  >
+                    <MugIcon steam={wakeLock.enabled} />
+                  </CompactToggle>
+                )}
+              </>
             }
           >
             {title}
@@ -256,6 +291,7 @@ export function CookMode() {
       <p className="mt-2 mb-5 text-[30px] leading-[1.3] font-semibold tracking-[-0.02em] wrap-anywhere lg:text-[34px] phone:text-[26px]">
         <StepText value={step.text} timerLabel={`${plainName} · Schritt ${step.number}`} variant="cook" />
       </p>
+      <CookNeed ingredients={recipe.sections[step.sectionIndex].ingredients} factor={factor} checkedIds={checkedIds} />
       {next && (
         <div className="mt-10 text-[15px]">
           <span className="block text-xs font-semibold text-muted-foreground">Danach</span>
@@ -273,13 +309,35 @@ export function CookMode() {
   )
 }
 
-function CookFrame({ header, footer, children }: { header: ReactNode; footer?: ReactNode; children: ReactNode }) {
+function CookFrame({
+  header,
+  footer,
+  aside,
+  children,
+}: {
+  header: ReactNode
+  footer?: ReactNode
+  aside?: ReactNode
+  children: ReactNode
+}) {
+  const main = (
+    <main className="mx-auto w-full max-w-[860px] flex-1 px-10 pt-[8vh] pb-10 lg:px-14 phone:px-5 phone:pt-7">
+      {children}
+    </main>
+  )
   return (
-    <div className="flex min-h-dvh flex-col bg-background text-foreground">
+    // With the ingredient column the frame fills the screen and column and step scroll on their own; the step's
+    // scroller spans the full width, so the wheel works beside the centred 860 px too. Without it the page scrolls.
+    <div className={cn('flex flex-col bg-background text-foreground', aside ? 'h-dvh' : 'min-h-dvh')}>
       <div className="sticky top-0 z-10 bg-background">{header}</div>
-      <main className="mx-auto w-full max-w-[860px] flex-1 px-10 pt-[8vh] pb-10 lg:px-14 phone:px-5 phone:pt-7">
-        {children}
-      </main>
+      {aside ? (
+        <div className="flex min-h-0 flex-1">
+          {aside}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">{main}</div>
+        </div>
+      ) : (
+        main
+      )}
       {footer}
     </div>
   )
@@ -336,5 +394,7 @@ function StepSkeleton() {
 
 function isEditable(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
-  return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+  // A ticked checkbox keeps focus; the arrow keys must still page then.
+  if (target instanceof HTMLInputElement) return target.type !== 'checkbox'
+  return target.isContentEditable || ['TEXTAREA', 'SELECT'].includes(target.tagName)
 }
