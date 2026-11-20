@@ -21,7 +21,7 @@ Absolute Zahlen hängen von der Maschine ab; entscheidend ist der relative Gewin
 
 `vmThreads` lässt jede Datei in einem frischen `vm`-Kontext laufen: Mocks und Modul-Singletons bleiben pro Datei isoliert, die Kosten pro Datei für Worker, Environment und Importe aus `node_modules` entfallen aber (Import 51 % → 13 %, Environment 19 % → 2 %). Laut vitest-5-Typen hat `isolate` bei `vmThreads` keine Wirkung, deshalb wird es nicht gesetzt.
 
-`vmMemoryLimit: '1024MB'` (Abweichung: ursprünglich nur bei OOM geplant): vitest setzt den Default auf Speicher / `maxWorkers` (Speicher = cgroup-Grenze, hier 4 GB). Bei 2 Kernen gibt es einen Worker, der damit nie recycelt wird und auf ~1,76 GB Heap wächst. Mit fester Grenze pro Worker wird er recycelt, Spitze ~1 GB, gleiche Laufzeit (168,9 s). Auf Maschinen mit vielen Kernen liegt 1 GB pro Worker nahe am vitest-Default.
+`vmMemoryLimit: '1024MB'` (Abweichung: ursprünglich nur bei OOM geplant): vitest setzt den Default auf Speicher / `maxWorkers` (Speicher = cgroup-Grenze, hier 4 GB). Bei 2 Kernen gibt es einen Worker, der damit nie recycelt wird und auf ~1,76 GB Heap wächst. Mit fester Grenze pro Worker wird er recycelt, Spitze ~1 GB, gleiche Laufzeit (168,9 s). Das ist konservativer als der Default; auf Maschinen mit vielen Kernen recycelt ein Worker ggf. öfter (nicht gemessen).
 
 `CatalogProvider.test.tsx` (Abweichung: Schritt 3 sah „nur notieren“ vor; der Fix ist eine Warte-Zeile und passt zu AC4): Der Shuffle-Lauf (Seed 29811) fand eine vorbestehende Race. Der Probe mountet erst, wenn Tags, me und Zutaten geladen sind; die Tests suchten den `refresh`-Button aber direkt nach dem ersten Kategorien-Aufruf. `renderCategories()` wartet jetzt auf den Probe.
 
@@ -39,4 +39,4 @@ Bewusst nicht geändert: `src/test/setup.ts` und Tests (A4/A5 entfallen, weil di
    - Speicher: ein Lauf mit `--logHeapUsage`, Spitzenwert in den PR.
    - Watch-Modus: `npx vitest --watch <datei>` startet und läuft grün.
    - AC5: `npm ci`, `npm run build`, `npm test -- --passWithNoTests`, `npm run format:check`, `npm run lint`.
-4. Commits: `Tests: vmThreads-Pool halbiert die Laufzeit (#298)`, dann Speichergrenze und Race-Fix.
+4. Commits: Pool-Wechsel, dann Speichergrenze und Race-Fix, dann Korrekturen aus dem Code-Review.
