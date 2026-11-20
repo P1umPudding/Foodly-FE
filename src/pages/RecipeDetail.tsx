@@ -393,8 +393,6 @@ export function RecipeDetail() {
   )
 }
 
-// "von <owner>" on someone else's recipe, "mit <editors>" on my own shared one; nothing otherwise, and nothing
-// until at least one name has loaded.
 // Minutes win over the legacy free-text `time`: the editor only maintains the minutes, so `time` is shown only for old
 // data without them. The free text may wrap, the minutes stay on one line like in the list.
 function RecipeTime({ recipe }: { recipe: Recipe }) {
@@ -413,6 +411,8 @@ function RecipeTime({ recipe }: { recipe: Recipe }) {
   )
 }
 
+// "von <owner>" on someone else's recipe, "mit <editors>" on my own shared one; nothing otherwise, and nothing
+// until at least one name has loaded.
 function RecipeOrigin({ recipe, me }: { recipe: Recipe; me: UserId | null }) {
   // Until I'm known (me still loading), my own recipe would read "von <me>", so nothing shows yet.
   const notMine = me !== null && recipe.owner !== me
