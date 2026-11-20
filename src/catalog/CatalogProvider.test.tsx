@@ -116,17 +116,19 @@ function CategoriesProbe() {
   )
 }
 
-function renderCategories() {
+// The probe only mounts once tags, me and ingredients have settled, which can lag behind the categories call.
+async function renderCategories() {
   render(
     <CatalogProvider>
       <CategoriesProbe />
     </CatalogProvider>,
   )
+  await screen.findByText('refresh')
 }
 
 it('refreshes the categories in the background, keeping the old list meanwhile', async () => {
   const calls = deferredCategories()
-  renderCategories()
+  await renderCategories()
   await waitFor(() => expect(calls).toHaveLength(1))
   calls[0].resolve([category(1, [5])])
   await screen.findByText('cats:ready:1/1')
@@ -140,7 +142,7 @@ it('refreshes the categories in the background, keeping the old list meanwhile',
 
 it('keeps only the latest refresh when responses arrive out of order', async () => {
   const calls = deferredCategories()
-  renderCategories()
+  await renderCategories()
   await waitFor(() => expect(calls).toHaveLength(1))
   calls[0].resolve([category(1, [5])])
   await screen.findByText('cats:ready:1/1')
@@ -155,7 +157,7 @@ it('keeps only the latest refresh when responses arrive out of order', async () 
 
 it('keeps the loaded categories when a refresh fails', async () => {
   const calls = deferredCategories()
-  renderCategories()
+  await renderCategories()
   await waitFor(() => expect(calls).toHaveLength(1))
   calls[0].resolve([category(1, [5])])
   await screen.findByText('cats:ready:1/1')
@@ -167,7 +169,7 @@ it('keeps the loaded categories when a refresh fails', async () => {
 
 it('retries failed categories from loading', async () => {
   const calls = deferredCategories()
-  renderCategories()
+  await renderCategories()
   await waitFor(() => expect(calls).toHaveLength(1))
   calls[0].reject(new Error('boom'))
   await screen.findByText('cats:error:')
@@ -203,7 +205,7 @@ it('shows an error with a retry instead of the app when /users/me fails', async 
 
 it('keeps a successful first load when a refresh started meanwhile fails', async () => {
   const calls = deferredCategories()
-  renderCategories()
+  await renderCategories()
   await waitFor(() => expect(calls).toHaveLength(1))
 
   fireEvent.click(screen.getByText('refresh'))
@@ -215,7 +217,7 @@ it('keeps a successful first load when a refresh started meanwhile fails', async
 
 it('waits for the first load when a refresh started meanwhile fails first', async () => {
   const calls = deferredCategories()
-  renderCategories()
+  await renderCategories()
   await waitFor(() => expect(calls).toHaveLength(1))
 
   fireEvent.click(screen.getByText('refresh'))
@@ -227,7 +229,7 @@ it('waits for the first load when a refresh started meanwhile fails first', asyn
 
 it('reports the error once every call in flight has failed', async () => {
   const calls = deferredCategories()
-  renderCategories()
+  await renderCategories()
   await waitFor(() => expect(calls).toHaveLength(1))
 
   fireEvent.click(screen.getByText('refresh'))
@@ -238,7 +240,7 @@ it('reports the error once every call in flight has failed', async () => {
 
 it('keeps categories a refresh loaded when a later retry fails', async () => {
   const calls = deferredCategories()
-  renderCategories()
+  await renderCategories()
   await waitFor(() => expect(calls).toHaveLength(1))
   await act(async () => calls[0].reject(new Error('boom')))
   screen.getByText('cats:error:')

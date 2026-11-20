@@ -38,6 +38,8 @@ export default defineConfig(({ mode }) => {
       // vm contexts keep each file isolated but skip the per-file worker/import cost (#298, ~4x faster).
       // `isolate: false` is no alternative: `vi.mock` leaks into modules other files already loaded.
       pool: 'vmThreads',
+      // The default limit is a share of the host RAM, not of the container's; without it a worker grows past 1.7 GB.
+      vmMemoryLimit: '1024MB',
       // Vitest blanks CSS imports, `?raw` included; focusRing.test.ts needs the real token values,
       // phoneVariant.test.ts the real `phone` variant.
       css: { include: [/src\/styles\/(theme|styles)\.css\?raw$/] },
