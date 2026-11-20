@@ -126,6 +126,7 @@ export function CookIngredientsSheet({
 export function useIngredientSheet(wide: boolean) {
   const [open, setOpen] = useState(false)
   const [handOver, setHandOver] = useState(false)
+  // The reset below 1024 px is a guard only: the column normally mounts in the same commit and clears the flag.
   if (wide && open) {
     setOpen(false)
     setHandOver(true)

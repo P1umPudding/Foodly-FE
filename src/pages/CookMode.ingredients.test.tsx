@@ -229,6 +229,16 @@ describe('CookMode ingredients', () => {
     expect(subtitle()).toBe('Soße · Schritt 2 von 4')
   })
 
+  it('leaves focus alone when the window grows with the sheet closed', async () => {
+    setViewport(1023)
+    renderCook()
+    await ready()
+    next().focus()
+    setViewport(1024)
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)))
+    expect(document.activeElement).toBe(next())
+  })
+
   describe('leaving with a changed size', () => {
     it('opens the recipe with the new size instead of going back, replacing cook mode', async () => {
       renderCook('/recipes/5/cook?servings=4', ['/recipes/5?servings=4'])
