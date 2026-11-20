@@ -190,6 +190,40 @@ describe('RecipeDetail head layout', () => {
   })
 })
 
+describe('RecipeDetail time', () => {
+  const timeText = async (over: Partial<Recipe>) => {
+    renderDetail('/recipes/5', { 5: recipe(over) })
+    await heading()
+    return screen.queryByTestId('recipe-time')?.textContent ?? null
+  }
+
+  it('shows work and total time from the minutes', async () => {
+    expect(await timeText({ workMinutes: 15, overallMinutes: 45 })).toBe('15 min Arbeit · 45 min gesamt')
+  })
+
+  it('shows only the total time when only it is set', async () => {
+    expect(await timeText({ overallMinutes: 45 })).toBe('45 min gesamt')
+  })
+
+  it('shows only the work time when only it is set', async () => {
+    expect(await timeText({ workMinutes: 15 })).toBe('15 min Arbeit')
+  })
+
+  it('falls back to the free-text time without minutes', async () => {
+    expect(await timeText({ time: '20 Min.' })).toBe('20 Min.')
+  })
+
+  it('prefers the minutes over the free-text time', async () => {
+    expect(await timeText({ time: '20 Min.', workMinutes: 15, overallMinutes: 45 })).toBe(
+      '15 min Arbeit · 45 min gesamt',
+    )
+  })
+
+  it('leaves the time out when nothing is set', async () => {
+    expect(await timeText({})).toBeNull()
+  })
+})
+
 describe('RecipeDetail origin', () => {
   it('names the owner of someone else’s recipe', async () => {
     renderDetail('/recipes/5', { 5: recipe({ owner: 2, viewers: [1] }) })

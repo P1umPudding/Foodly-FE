@@ -37,6 +37,7 @@ import { Page } from '../components/shell/Page'
 import { RecipeCategoryChips } from '../components/category/RecipeCategoryChips'
 import type { Recipe, UserId } from '../api/protocol'
 import { cookHref, parseSize, withSize } from '../cook/size'
+import { formatRecipeTimes } from '../api/views'
 import { openRecipe, useCheckedIngredients } from '../cook/checkedIngredients'
 import { pushRecentlyViewed, removeRecentlyViewed } from '../home/recentlyViewed'
 
@@ -296,12 +297,7 @@ export function RecipeDetail() {
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
                 <Rating recipe={ratedRecipe?.id === recipe.id ? ratedRecipe : recipe} onChange={setRatedRecipe} />
-                {recipe.time && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Clock className="size-4 shrink-0" />
-                    <TagText value={recipe.time} />
-                  </span>
-                )}
+                <RecipeTime recipe={recipe} />
                 <RecipeOrigin recipe={recipe} me={currentUserId} />
               </div>
 
@@ -399,6 +395,24 @@ export function RecipeDetail() {
 
 // "von <owner>" on someone else's recipe, "mit <editors>" on my own shared one; nothing otherwise, and nothing
 // until at least one name has loaded.
+// Minutes win over the legacy free-text `time`: the editor only maintains the minutes, so `time` is shown only for old
+// data without them. The free text may wrap, the minutes stay on one line like in the list.
+function RecipeTime({ recipe }: { recipe: Recipe }) {
+  const minutes = formatRecipeTimes(recipe.workMinutes, recipe.overallMinutes)
+  const text = minutes ? (
+    <span className="whitespace-nowrap tabular-nums">{minutes}</span>
+  ) : (
+    recipe.time && <TagText value={recipe.time} />
+  )
+  if (!text) return null
+  return (
+    <span data-testid="recipe-time" className="inline-flex items-center gap-1.5">
+      <Clock className="size-4 shrink-0" />
+      {text}
+    </span>
+  )
+}
+
 function RecipeOrigin({ recipe, me }: { recipe: Recipe; me: UserId | null }) {
   // Until I'm known (me still loading), my own recipe would read "von <me>", so nothing shows yet.
   const notMine = me !== null && recipe.owner !== me
