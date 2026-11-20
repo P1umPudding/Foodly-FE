@@ -193,7 +193,11 @@ export function CookMode() {
 
   return (
     <CookFrame
-      aside={wide && withIngredients ? <CookIngredientsColumn {...ingredientProps} /> : undefined}
+      aside={
+        wide && withIngredients ? (
+          <CookIngredientsColumn {...ingredientProps} takeFocus={sheet.handOver} onFocusTaken={sheet.handedOver} />
+        ) : undefined
+      }
       header={
         <>
           <CookHeader
@@ -391,6 +395,6 @@ function StepSkeleton() {
 function isEditable(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
   // A ticked checkbox keeps focus; the arrow keys must still page then.
-  if (target instanceof HTMLInputElement) return !['checkbox', 'radio'].includes(target.type)
+  if (target instanceof HTMLInputElement) return target.type !== 'checkbox'
   return target.isContentEditable || ['TEXTAREA', 'SELECT'].includes(target.tagName)
 }

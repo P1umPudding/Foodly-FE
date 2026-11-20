@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -171,20 +171,32 @@ describe('CookMode ingredients', () => {
   })
 
   it('ticks without Web Storage', async () => {
-    renderCook()
-    await ready()
-    // The timers read their storage on mount; only the ticks are checked.
+    // From before the first render: the store must not read ticks on mount either. The timers keep their own keys.
     const storage = [
       vi.spyOn(Storage.prototype, 'getItem'),
       vi.spyOn(Storage.prototype, 'setItem'),
       vi.spyOn(Storage.prototype, 'removeItem'),
     ]
+    renderCook()
+    await ready()
     const tomaten = within(column()).getByRole('checkbox', { name: 'Tomaten' }) as HTMLInputElement
     fireEvent.click(tomaten)
     expect(tomaten.checked).toBe(true)
     fireEvent.click(tomaten)
     expect(tomaten.checked).toBe(false)
-    for (const spy of storage) expect(spy).not.toHaveBeenCalled()
+    const keys = storage.flatMap((spy) => spy.mock.calls.map((call) => String(call[0])))
+    expect(keys.filter((key) => !key.includes('timer'))).toEqual([])
+  })
+
+  it('scales a fixed-size recipe by ?factor, and the stepper writes ?factor', async () => {
+    renderCook('/recipes/5/cook?factor=2', [], recipe(SECTIONS, { sizeNumber: null, sizeText: 'Blech' }))
+    await ready()
+    expect(within(column()).getByText('400 g')).toBeTruthy()
+    expect(need()!.textContent).toBe('400 g Tomaten')
+    fireEvent.click(within(column()).getByRole('button', { name: 'Weniger' }))
+    expect(location().textContent).toBe('/recipes/5/cook?factor=1.5')
+    expect(location().dataset.navigation).toBe('REPLACE')
+    expect(need()!.textContent).toBe('300 g Tomaten')
   })
 
   it('keeps the arrow keys working on a ticked checkbox', async () => {
@@ -208,6 +220,11 @@ describe('CookMode ingredients', () => {
 
     setViewport(1024)
     expect(screen.queryByRole('dialog')).toBeNull()
+    // The sheet's trigger is gone; focus goes to the column instead of the page.
+    await waitFor(() => expect(column().contains(document.activeElement)).toBe(true))
+    // Radix returns focus from a closed sheet in a timeout; it must not take it away again.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)))
+    expect(column().contains(document.activeElement)).toBe(true)
     fireEvent.keyDown(document.body, { key: 'ArrowRight' })
     expect(subtitle()).toBe('Soße · Schritt 2 von 4')
   })

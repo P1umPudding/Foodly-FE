@@ -1,6 +1,6 @@
 // The cook mode's ingredients (#210): the size stepper above all sections, every row tickable. The same content
 // sits in the column from 1024 px and in the sheet below.
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ListChecks } from 'lucide-react'
 import { Sheet, SheetTrigger } from '@postxl/ui-components'
 import { BottomSheet } from '../BottomSheet'
@@ -75,13 +75,25 @@ function CookIngredients({
 }
 
 // From 1024 px: a column left of the step, scrolling on its own; the stepper stays at its top.
-export function CookIngredientsColumn(props: CookIngredientsProps) {
+// `takeFocus`: the sheet just closed because the window grew, and its trigger is gone; focus would fall to the page.
+export function CookIngredientsColumn({
+  takeFocus = false,
+  onFocusTaken,
+  ...props
+}: CookIngredientsProps & { takeFocus?: boolean; onFocusTaken?: () => void }) {
+  const ref = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (!takeFocus) return
+    ref.current?.querySelector<HTMLElement>('button:not(:disabled), input')?.focus()
+    onFocusTaken?.()
+  }, [takeFocus, onFocusTaken])
   return (
     <aside
+      ref={ref}
       aria-label="Zutaten"
       className="w-[280px] shrink-0 overflow-y-auto border-r border-divider px-5 pb-7 text-lg xl:w-[320px] xl:px-6"
     >
-      <CookIngredients {...props} headingLevel={2} stickyClassName="sticky top-0 z-[1] bg-background pt-7 pb-1" />
+      <CookIngredients {...props} headingLevel={2} stickyClassName="sticky top-0 z-10 bg-background pt-7 pb-1" />
     </aside>
   )
 }
@@ -111,6 +123,11 @@ export function CookIngredientsSheet({
 // Keeps the sheet's open state; also closes it when the window grows past the sheet (the column takes over).
 export function useIngredientSheet(wide: boolean) {
   const [open, setOpen] = useState(false)
-  if (wide && open) setOpen(false)
-  return { open, setOpen }
+  const [handOver, setHandOver] = useState(false)
+  if (wide && open) {
+    setOpen(false)
+    setHandOver(true)
+  }
+  const handedOver = useCallback(() => setHandOver(false), [])
+  return { open, setOpen, handOver, handedOver }
 }
