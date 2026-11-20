@@ -84,7 +84,9 @@ export function CookIngredientsColumn({
   const ref = useRef<HTMLElement>(null)
   useEffect(() => {
     if (!takeFocus) return
-    ref.current?.querySelector<HTMLElement>('button:not(:disabled), input')?.focus()
+    // The first checkbox: on it the arrow keys still page (the stepper's box would swallow them, and a stray Space
+    // on „Weniger“ would shrink the recipe).
+    ref.current?.querySelector<HTMLElement>('input[type=checkbox]')?.focus()
     onFocusTaken?.()
   }, [takeFocus, onFocusTaken])
   return (
@@ -127,7 +129,7 @@ export function useIngredientSheet(wide: boolean) {
   if (wide && open) {
     setOpen(false)
     setHandOver(true)
-  }
+  } else if (!wide && handOver) setHandOver(false)
   const handedOver = useCallback(() => setHandOver(false), [])
   return { open, setOpen, handOver, handedOver }
 }

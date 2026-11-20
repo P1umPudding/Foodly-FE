@@ -20,12 +20,13 @@ export function CookNeed({
     <ul role="list" aria-label="Dafür" className="flex flex-wrap gap-2">
       {ingredients.map((line) => {
         const { quantity, name } = ingredientParts({ ...line, amount: scaleAmount(line.amount, factor) })
+        const checked = checkedIds.has(line.id)
         return (
           <li
             key={line.id}
             className={cn(
               'inline-flex h-[30px] max-w-full min-w-0 items-center rounded-sm bg-tag px-3 text-base font-medium text-muted-foreground',
-              checkedIds.has(line.id) && 'line-through opacity-50',
+              checked && 'line-through opacity-50',
             )}
           >
             <span className="truncate">
@@ -35,6 +36,7 @@ export function CookNeed({
                 </>
               )}
               <TagText value={name} />
+              {checked && <span className="sr-only"> (abgehakt)</span>}
             </span>
           </li>
         )

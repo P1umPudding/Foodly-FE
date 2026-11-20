@@ -161,7 +161,7 @@ describe('CookMode ingredients', () => {
     expect(subtitle()).toBe('Teig · Schritt 3 von 4')
     fireEvent.click(within(column()).getByRole('checkbox', { name: 'Mehl' }))
     const [mehl, salz] = within(need()!).getAllByRole('listitem')
-    expect(mehl.textContent).toBe('100 g Mehl')
+    expect(mehl.textContent).toBe('100 g Mehl (abgehakt)')
     expect(mehl.className).toContain('line-through')
     expect(salz.className).not.toContain('line-through')
 
@@ -185,7 +185,7 @@ describe('CookMode ingredients', () => {
     fireEvent.click(tomaten)
     expect(tomaten.checked).toBe(false)
     const keys = storage.flatMap((spy) => spy.mock.calls.map((call) => String(call[0])))
-    expect(keys.filter((key) => !key.includes('timer'))).toEqual([])
+    expect(keys.filter((key) => !key.startsWith('foodly.timers'))).toEqual([])
   })
 
   it('scales a fixed-size recipe by ?factor, and the stepper writes ?factor', async () => {
@@ -224,8 +224,8 @@ describe('CookMode ingredients', () => {
     await waitFor(() => expect(column().contains(document.activeElement)).toBe(true))
     // Radix returns focus from a closed sheet in a timeout; it must not take it away again.
     await act(() => new Promise((resolve) => setTimeout(resolve, 50)))
-    expect(column().contains(document.activeElement)).toBe(true)
-    fireEvent.keyDown(document.body, { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(within(column()).getByRole('checkbox', { name: 'Tomaten' }))
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' })
     expect(subtitle()).toBe('Soße · Schritt 2 von 4')
   })
 
