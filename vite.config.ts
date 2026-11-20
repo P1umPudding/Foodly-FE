@@ -35,6 +35,9 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       globals: true,
       setupFiles: ['./src/test/setup.ts'],
+      // vm contexts keep each file isolated but skip the per-file worker/import cost (#298, ~4x faster).
+      // `isolate: false` is no alternative: `vi.mock` leaks into modules other files already loaded.
+      pool: 'vmThreads',
       // Vitest blanks CSS imports, `?raw` included; focusRing.test.ts needs the real token values,
       // phoneVariant.test.ts the real `phone` variant.
       css: { include: [/src\/styles\/(theme|styles)\.css\?raw$/] },
