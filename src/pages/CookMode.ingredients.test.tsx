@@ -97,11 +97,11 @@ describe('CookMode ingredients', () => {
     expect(within(aside).getByRole('heading', { name: 'Zutaten · Teig', level: 2 })).toBeTruthy()
     // A section without ingredients gets no group.
     expect(within(aside).queryByRole('heading', { name: /Anrichten/ })).toBeNull()
-    expect(within(aside).getAllByRole('checkbox').map((c) => c.getAttribute('aria-label'))).toEqual([
-      'Tomaten',
-      'Mehl',
-      'Salz',
-    ])
+    expect(
+      within(aside)
+        .getAllByRole('checkbox')
+        .map((c) => c.getAttribute('aria-label')),
+    ).toEqual(['Tomaten', 'Mehl', 'Salz'])
     expect(within(aside).getByLabelText('Portionen')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Zutaten' })).toBeNull()
   })
@@ -150,7 +150,11 @@ describe('CookMode ingredients', () => {
   it('shows the section’s ingredients as „Dafür“ chips, ticked ones dimmed, none in a section without', async () => {
     renderCook()
     await ready()
-    expect(within(need()!).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['200 g Tomaten'])
+    expect(
+      within(need()!)
+        .getAllByRole('listitem')
+        .map((li) => li.textContent),
+    ).toEqual(['200 g Tomaten'])
 
     fireEvent.click(next())
     fireEvent.click(next())

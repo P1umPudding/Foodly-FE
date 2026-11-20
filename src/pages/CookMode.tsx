@@ -205,11 +205,11 @@ export function CookMode() {
                 )}
                 {wakeLock.supported && (
                   <CompactToggle
-                  pressed={wakeLock.enabled}
-                  onClick={wakeLock.toggle}
-                  label="Bildschirm anlassen"
-                  tooltip={wakeLock.enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}
-                >
+                    pressed={wakeLock.enabled}
+                    onClick={wakeLock.toggle}
+                    label="Bildschirm anlassen"
+                    tooltip={wakeLock.enabled ? 'Bildschirm bleibt an' : 'Bildschirm anlassen'}
+                  >
                     <MugIcon steam={wakeLock.enabled} />
                   </CompactToggle>
                 )}
