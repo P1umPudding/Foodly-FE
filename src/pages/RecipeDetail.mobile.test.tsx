@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TooltipProvider, buttonVariants } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
@@ -56,10 +56,13 @@ const VIEWER = { owner: 2, viewers: [1] }
 
 async function renderDetail(over: Partial<Recipe>, width = 390) {
   setViewport(width)
-  vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(over))
+  vi.spyOn(foodly, 'getRecipe').mockImplementation(async (id) =>
+    recipe({ ...over, id, name: id === 5 ? 'Pancakes' : 'Waffeln' }),
+  )
   render(
     <TooltipProvider>
       <MemoryRouter initialEntries={['/recipes/5']}>
+        <Link to="/recipes/6">test-open-6</Link>
         <Routes>
           <Route path="/recipes/:id" element={<RecipeDetail />} />
         </Routes>
@@ -83,7 +86,7 @@ function stubWakeLock() {
   const release = vi.fn().mockResolvedValue(undefined)
   const request = vi.fn().mockResolvedValue({ release })
   Object.defineProperty(navigator, 'wakeLock', { configurable: true, value: { request } })
-  return request
+  return { request, release }
 }
 
 afterEach(() => {
@@ -120,7 +123,7 @@ describe('RecipeDetail on phones (#301)', () => {
   })
 
   it('switches „Bildschirm anlassen“ behind ⋯ and requests the lock', async () => {
-    const request = stubWakeLock()
+    const { request } = stubWakeLock()
     await renderDetail(VIEWER)
     const menu = await openMenu()
     const item = menu.getByRole('menuitemcheckbox', { name: 'Bildschirm anlassen' })
@@ -132,12 +135,28 @@ describe('RecipeDetail on phones (#301)', () => {
   })
 
   it('keeps the lock on when the menu closes', async () => {
-    stubWakeLock()
+    const { request, release } = stubWakeLock()
     await renderDetail(OWNER)
     fireEvent.click((await openMenu()).getByRole('menuitemcheckbox', { name: 'Bildschirm anlassen' }))
+    await waitFor(() => expect(request).toHaveBeenCalled())
     fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
     expect(rowToggle('Bildschirm anlassen').getAttribute('aria-pressed')).toBe('true')
+    expect(release).not.toHaveBeenCalled()
+  })
+
+  it('releases the lock when another recipe opens', async () => {
+    const { request, release } = stubWakeLock()
+    await renderDetail(OWNER)
+    fireEvent.click((await openMenu()).getByRole('menuitemcheckbox', { name: 'Bildschirm anlassen' }))
+    await waitFor(() => expect(request).toHaveBeenCalled())
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+
+    fireEvent.click(screen.getByText('test-open-6'))
+    await screen.findByRole('heading', { name: 'Waffeln' })
+    await waitFor(() => expect(release).toHaveBeenCalled())
+    expect(rowToggle('Bildschirm anlassen').getAttribute('aria-pressed')).toBe('false')
   })
 
   it('leaves out „Bildschirm anlassen“ without the Wake Lock API', async () => {
@@ -170,7 +189,8 @@ describe('RecipeDetail on phones (#301)', () => {
           .filter((c) => !c.startsWith('gap-')),
       ),
     )
-    expect(pencil).not.toContain('border')
+    for (const outlineOnly of ['border', 'bg-background', 'shadow-xs', 'dark:border-input'])
+      expect(pencil).not.toContain(outlineOnly)
   })
 
   it('drops the toggle items when the window grows to desktop with the menu open', async () => {
