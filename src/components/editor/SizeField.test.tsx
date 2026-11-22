@@ -62,6 +62,27 @@ describe('SizeField', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
+  // jsdom renders no CSS, so the classes that decide the cascade are checked: postxl's data-[state=on]:bg-accent
+  // beats a plain bg-card, so the active look needs its own data-[state=on]: classes (as in Segment.tsx).
+  it('styles the active segment as a raised card surface that postxl’s accent does not override', () => {
+    render(<SizeField mode="portions" sizeNumber={4} sizeText="" error={null} onChange={vi.fn()} />)
+    const classes = (el: HTMLElement) => el.className.split(/\s+/)
+
+    expect(classes(screen.getByRole('group', { name: 'Größe' }))).toContain('bg-seg')
+
+    const active = screen.getByRole('radio', { name: 'Portionen' })
+    expect(active.getAttribute('data-state')).toBe('on')
+    expect(classes(active)).toEqual(
+      expect.arrayContaining(['bg-card', 'shadow-seg', 'text-foreground', 'data-[state=on]:bg-card']),
+    )
+    expect(classes(active)).not.toContain('data-[state=on]:bg-accent')
+    expect(classes(active)).not.toContain('data-[state=on]:text-accent-foreground')
+
+    const inactive = screen.getByRole('radio', { name: 'Freitext' })
+    expect(classes(inactive)).toContain('text-muted-foreground')
+    expect(classes(inactive)).not.toContain('bg-card')
+  })
+
   it('explains both modes with the mockup hint and the 26 cm example', () => {
     render(<SizeField mode="text" sizeNumber={null} sizeText="" error={null} onChange={vi.fn()} />)
 
