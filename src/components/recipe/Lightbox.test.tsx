@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { useState } from 'react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { Lightbox } from './Lightbox'
 import { ref } from '../../test/images'
@@ -146,6 +147,130 @@ describe('Lightbox keyboard', () => {
     press('Escape')
     expect(onIndexChange).not.toHaveBeenCalled()
     expect(onClose).not.toHaveBeenCalled()
+  })
+})
+
+describe('Lightbox focus (#300)', () => {
+  const images = [ref(1), ref(2), ref(3)]
+  const tab = (shiftKey = false) => fireEvent.keyDown(document.activeElement!, { key: 'Tab', shiftKey })
+
+  // A page with an opener button; the lightbox closes through its own onClose.
+  function Page({ keepOpener = true }: { keepOpener?: boolean }) {
+    const [open, setOpen] = useState(false)
+    return (
+      <>
+        {(keepOpener || !open) && (
+          <button type="button" onClick={() => setOpen(true)}>
+            Öffnen
+          </button>
+        )}
+        {open && <Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => setOpen(false)} />}
+      </>
+    )
+  }
+  const open = () => {
+    const opener = screen.getByRole('button', { name: 'Öffnen' })
+    // jsdom doesn't focus on click; a keyboard user has the opener focused.
+    opener.focus()
+    fireEvent.click(opener)
+    return opener
+  }
+
+  it('is a named modal dialog', () => {
+    render(<Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />)
+    expect(screen.getByRole('dialog', { name: 'Fotos' }).getAttribute('aria-modal')).toBe('true')
+  })
+
+  it('moves focus to the close button on open', () => {
+    render(<Page />)
+    open()
+    const close = screen.getByRole('button', { name: 'Schließen' })
+    expect(document.activeElement).toBe(close)
+    expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true)
+  })
+
+  it('Tab on the last control wraps to the first, Shift+Tab on the first to the last', () => {
+    render(<Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />)
+    const close = screen.getByRole('button', { name: 'Schließen' })
+    const lastThumb = screen.getByRole('button', { name: 'Bild 3' })
+
+    lastThumb.focus()
+    expect(tab()).toBe(false)
+    expect(document.activeElement).toBe(close)
+
+    expect(tab(true)).toBe(false)
+    expect(document.activeElement).toBe(lastThumb)
+  })
+
+  it('leaves Tab between inner controls to the browser', () => {
+    render(<Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />)
+    screen.getByRole('button', { name: 'Bild 2' }).focus()
+    expect(tab()).toBe(true)
+    expect(tab(true)).toBe(true)
+  })
+
+  it('pulls focus back in from the page behind or from the dialog container', () => {
+    render(
+      <>
+        <button type="button">Dahinter</button>
+        <Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />
+      </>,
+    )
+    const close = screen.getByRole('button', { name: 'Schließen' })
+    const lastThumb = screen.getByRole('button', { name: 'Bild 3' })
+
+    screen.getByRole('button', { name: 'Dahinter' }).focus()
+    expect(tab()).toBe(false)
+    expect(document.activeElement).toBe(close)
+
+    // A click on the image or the counter focuses the container itself.
+    screen.getByRole('dialog').focus()
+    expect(tab(true)).toBe(false)
+    expect(document.activeElement).toBe(lastThumb)
+
+    lastThumb.blur()
+    expect(document.activeElement).toBe(document.body)
+    expect(fireEvent.keyDown(document.body, { key: 'Tab' })).toBe(false)
+    expect(document.activeElement).toBe(close)
+  })
+
+  it('with a single image, Tab stays on the close button', () => {
+    render(<Lightbox images={[ref(1)]} index={0} onIndexChange={() => {}} onClose={() => {}} />)
+    const close = screen.getByRole('button', { name: 'Schließen' })
+    expect(tab()).toBe(false)
+    expect(document.activeElement).toBe(close)
+    expect(tab(true)).toBe(false)
+    expect(document.activeElement).toBe(close)
+  })
+
+  it('ignores Tab with Ctrl, Alt or Meta', () => {
+    render(<Lightbox images={images} index={0} onIndexChange={() => {}} onClose={() => {}} />)
+    screen.getByRole('button', { name: 'Bild 3' }).focus()
+    for (const mod of ['ctrlKey', 'altKey', 'metaKey']) {
+      expect(fireEvent.keyDown(document.activeElement!, { key: 'Tab', [mod]: true })).toBe(true)
+    }
+  })
+
+  it.each([
+    ['Escape', () => fireEvent.keyDown(document.activeElement!, { key: 'Escape' })],
+    ['the close button', () => fireEvent.click(screen.getByRole('button', { name: 'Schließen' }))],
+    ['a click on the empty stage', () => fireEvent.click(screen.getByAltText('Bild 1').parentElement!)],
+  ])('returns focus to the opener after closing via %s', (_, close) => {
+    render(<Page />)
+    const opener = open()
+    expect(document.activeElement).not.toBe(opener)
+    close()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(opener)
+  })
+
+  it('does not try to restore focus to an opener that is gone', () => {
+    render(<Page keepOpener={false} />)
+    open()
+    expect(screen.queryByRole('button', { name: 'Öffnen' })).toBeNull()
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(document.body)
   })
 })
 
