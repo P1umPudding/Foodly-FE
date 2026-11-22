@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button, cn } from '@postxl/ui-components'
@@ -14,9 +14,10 @@ import { TriggerButton } from '../TriggerButton'
 
 const SWIPE_MIN_PX = 50
 
-// Only buttons live in the lightbox. DOM order, no visibility filter: the phone-hidden arrows stay in the cycle.
+// Only buttons live in the lightbox. No visibility filter: Close is always first and, with arrows, a thumbnail
+// always last, so the phone-hidden arrows are never a wrap target.
 const focusables = (root: HTMLElement) => [
-  ...root.querySelectorAll<HTMLElement>('button:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+  ...root.querySelectorAll<HTMLElement>('button:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'),
 ]
 
 export function Lightbox({
@@ -36,17 +37,16 @@ export function Lightbox({
   const dialogRef = useRef<HTMLDivElement>(null)
   const swipeStart = useRef<{ id: number; x: number; y: number } | null>(null)
   const swiped = useRef(false)
-  // Captured during render: StrictMode's effect re-run would otherwise see the Close button.
-  const [trigger] = useState(() => document.activeElement)
 
-  // Modal focus: in on open (Close button), back to the opener on every close path.
+  // Restoring in the cleanup covers every close path (Esc, Close, backdrop) and an unmount by the caller.
   useEffect(() => {
+    const trigger = document.activeElement
     const dialog = dialogRef.current
     if (dialog) (focusables(dialog)[0] ?? dialog).focus()
     return () => {
       if (trigger instanceof HTMLElement && trigger !== document.body && trigger.isConnected) trigger.focus()
     }
-  }, [trigger])
+  }, [])
 
   useEffect(() => {
     const trapTab = (e: KeyboardEvent) => {

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { useState } from 'react'
+import { StrictMode, useState } from 'react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { Lightbox } from './Lightbox'
 import { ref } from '../../test/images'
@@ -261,6 +261,18 @@ describe('Lightbox focus (#300)', () => {
     expect(document.activeElement).not.toBe(opener)
     close()
     expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(opener)
+  })
+
+  it('returns focus to the opener under StrictMode too (effects run twice)', () => {
+    render(
+      <StrictMode>
+        <Page />
+      </StrictMode>,
+    )
+    const opener = open()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Schließen' }))
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
     expect(document.activeElement).toBe(opener)
   })
 
