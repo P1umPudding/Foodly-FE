@@ -1,5 +1,4 @@
 import { CompactToggle } from './CompactToggle'
-import { useWakeLock } from '../hooks/useWakeLock'
 
 const ICON = 'size-4'
 
@@ -22,9 +21,17 @@ export function MugIcon({ steam }: { steam: boolean }) {
   )
 }
 
-// Lives in the recipe detail action row, next to „Abhaken“.
-export function WakeLockToggle() {
-  const { enabled, supported, toggle } = useWakeLock()
+// Lives in the recipe detail action row, next to „Abhaken“. Controlled: the page owns the lock, so the phone's
+// ⋯ menu item shares its state.
+export function WakeLockToggle({
+  enabled,
+  supported,
+  toggle,
+}: {
+  enabled: boolean
+  supported: boolean
+  toggle: () => void
+}) {
   if (!supported) return null
 
   return (
