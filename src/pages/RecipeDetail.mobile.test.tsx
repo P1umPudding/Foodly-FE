@@ -180,6 +180,7 @@ describe('RecipeDetail on phones (#301)', () => {
   })
 
   it('renders the pencil as ghost', async () => {
+    // Outline shares ghost's hover tokens, so the absence of its own tokens is what tells them apart.
     await renderDetail(EDITOR)
     const pencil = classesOf(screen.getByRole('link', { name: 'Bearbeiten' }))
     expect(pencil).toEqual(
