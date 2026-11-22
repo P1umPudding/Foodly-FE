@@ -2,18 +2,11 @@ import { render, screen } from '@testing-library/react'
 import { TooltipProvider } from '@postxl/ui-components'
 import { describe, expect, it, vi } from 'vitest'
 import { WakeLockToggle } from './WakeLockToggle'
-import { useWakeLock } from '../hooks/useWakeLock'
-
-// jsdom has no navigator.wakeLock, so the real hook would render nothing.
-vi.mock('../hooks/useWakeLock', () => ({ useWakeLock: vi.fn() }))
 
 function renderToggle(enabled: boolean) {
-  vi.mocked(useWakeLock).mockReturnValue({ enabled, supported: true, toggle: vi.fn() } as unknown as ReturnType<
-    typeof useWakeLock
-  >)
   render(
     <TooltipProvider>
-      <WakeLockToggle />
+      <WakeLockToggle enabled={enabled} supported toggle={vi.fn()} />
     </TooltipProvider>,
   )
   return screen.getByRole('button', { name: 'Bildschirm anlassen' })
@@ -45,5 +38,12 @@ describe('WakeLockToggle — focus ring (#64)', () => {
     expect(button.classList.contains('focus-visible:ring-[3px]')).toBe(true)
     expect(button.classList.contains('focus-visible:ring-ring/50')).toBe(true)
     expect(button.classList.contains('focus-visible:ring-0')).toBe(false)
+  })
+})
+
+describe('WakeLockToggle — unsupported', () => {
+  it('renders nothing without the Wake Lock API', () => {
+    const { container } = render(<WakeLockToggle enabled={false} supported={false} toggle={vi.fn()} />)
+    expect(container.innerHTML).toBe('')
   })
 })

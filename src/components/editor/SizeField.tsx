@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { Input, Label, ToggleGroup, cn } from '@postxl/ui-components'
 import { FocusToggleGroupItem } from '../list/FocusToggleGroupItem'
+import { SEG_ITEM, SEG_ITEM_ON, SEG_ITEM_STATE, SEG_TRACK } from '../list/Segment'
 import type { Draft, SizeMode } from '../../editor/draft'
 
 // sizeNumber and sizeText are mutually exclusive in the model (PortionScaler
@@ -38,8 +39,8 @@ export function SizeField({
   return (
     <div className="flex flex-col gap-1.5">
       <Label id={labelId}>Größe</Label>
-      {/* The V1 segment track (ViewToggles). Radix renders its items as radios; an empty value (re-clicking the
-          active one) is ignored, so one mode is always chosen. */}
+      {/* The segment track of Segment.tsx; SEG_ITEM_STATE keeps postxl's accent off the active segment. Radix renders
+          its items as radios; an empty value (re-clicking the active one) is ignored, so one mode is always chosen. */}
       <ToggleGroup
         type="single"
         value={mode}
@@ -48,15 +49,17 @@ export function SizeField({
           if (next === 'portions') onChange({ sizeMode: 'portions' })
           else if (next === 'text') onChange({ sizeMode: 'text', sizeNumber: null })
         }}
-        className="gap-0.5 self-start rounded-lg bg-seg p-0.5"
+        className={cn(SEG_TRACK, 'self-start')}
       >
         {SIZE_MODES.map(([value, label]) => (
           <FocusToggleGroupItem
             key={value}
             value={value}
             className={cn(
-              'h-8 rounded-md px-3 text-muted-foreground hover:bg-transparent hover:text-foreground touch:h-10',
-              mode === value && 'bg-card text-foreground shadow-seg hover:bg-card',
+              SEG_ITEM,
+              SEG_ITEM_STATE,
+              'h-8 touch:h-10',
+              mode === value && cn(SEG_ITEM_ON, 'hover:bg-card'),
             )}
           >
             {label}

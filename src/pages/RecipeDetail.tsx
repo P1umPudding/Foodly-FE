@@ -4,8 +4,10 @@ import { ChefHat, Clock, Copy, ListChecks, MoreHorizontal, Pencil, Trash2, Users
 import {
   Button,
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
   Tooltip,
   TooltipContent,
@@ -18,6 +20,8 @@ import { ErrorState } from '../components/StateCard'
 import { foodly } from '../api'
 import { errorMessage } from '../lib/errorMessage'
 import { useRequest } from '../hooks/useRequest'
+import { useIsDesktop } from '../hooks/useIsDesktop'
+import { useWakeLock } from '../hooks/useWakeLock'
 import { canEdit, isOwner } from '../editor/access'
 import { useCurrentUserId, useRefreshCategories, useTags, useUsers } from '../catalog/CatalogProvider'
 import { TagText } from '../components/TagText'
@@ -92,6 +96,14 @@ export function RecipeDetail() {
   // clone state are reset here.
   const [searchParams, setSearchParams] = useSearchParams()
   const { checkable, checkedIds, setCheckable, toggle: toggleChecked } = useCheckedIngredients(recipeId)
+  // Owned here, not by the toggle: on phones the ⋯ menu item switches it, and that item unmounts with the menu.
+  const {
+    enabled: wakeEnabled,
+    supported: wakeSupported,
+    setEnabled: setWakeLock,
+    toggle: toggleWakeLock,
+  } = useWakeLock()
+  const isDesktop = useIsDesktop()
 
   useEffect(() => {
     openRecipe(recipeId)
@@ -102,7 +114,9 @@ export function RecipeDetail() {
     setCloning(false)
     setCloneError(null)
     cloneAttempt.current++
-  }, [recipeId])
+    // The lock used to end with the toggle's unmount on a recipe switch; keep it that way.
+    setWakeLock(false)
+  }, [recipeId, setWakeLock])
 
   // Keyed on the loaded id only, so portion or rating changes don't push again; a repeat push just moves it to
   // the front, so StrictMode's double run is harmless.
@@ -121,6 +135,7 @@ export function RecipeDetail() {
   const setFactor = (next: number) => setSearchParams((p) => withSize(p, next, sizeNumber), { replace: true })
 
   const editable = recipe ? canEdit(recipe, currentUserId) : false
+  const owner = recipe ? isOwner(recipe, currentUserId) : false
   const hasPhoto = allImages.length > 0
   const hasSteps = recipe ? recipe.sections.some((s) => s.steps.length > 0) : false
 
@@ -130,8 +145,8 @@ export function RecipeDetail() {
         <>
           <HeaderCrumbName name={plainName} />
           <HeaderActions>
-            {/* On phones every action is an icon-only 40×40 tap target (design.md §7). Editors get only the
-                pencil there; viewers get "Kopie erstellen" in its place, their way to an editable version. */}
+            {/* On phones every action is an icon-only 40×40 tap target (design.md §7). Editors get the pencil
+                there; viewers get "Kopie erstellen" in its place, their way to an editable version. */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <TriggerButton
@@ -156,7 +171,11 @@ export function RecipeDetail() {
                     to={`/recipes/${recipe.id}/edit`}
                     state={{ fromDetail: true }}
                     aria-label="Bearbeiten"
-                    className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 phone:size-10')}
+                    className={cn(
+                      // Ghost on phones like the other header icons (#301); desktop keeps the labelled outline.
+                      buttonVariants({ variant: isDesktop ? 'outline' : 'ghost', size: 'sm' }),
+                      'gap-1.5 phone:size-10',
+                    )}
                   >
                     <Pencil className="h-4 w-4" />
                     <span className="phone:hidden">Bearbeiten</span>
@@ -165,8 +184,10 @@ export function RecipeDetail() {
                 <TooltipContent>Rezept bearbeiten</TooltipContent>
               </Tooltip>
             )}
-            {/* Löschen isn't in the mockup's header: a lead decision keeps it reachable behind ⋯ (owner only). */}
-            {isOwner(recipe, currentUserId) && (
+            {/* Löschen isn't in the mockup's header: a lead decision keeps it reachable behind ⋯ (owner only). On
+                phones ⋯ also takes the action row's two toggles (#301), so there everyone gets it. One element
+                for both layouts, so an open menu survives a resize across the breakpoint. */}
+            {(owner || !isDesktop) && (
               <DropdownMenu modal={false}>
                 <Tooltip>
                   {/* Menu trigger outside: postxl's DropdownMenuTrigger doesn't forward refs, so it can't sit under
@@ -194,22 +215,46 @@ export function RecipeDetail() {
                     openingDelete.current = false
                   }}
                 >
-                  <DropdownMenuItem
-                    variant="destructive"
-                    className="gap-2"
-                    onSelect={() => {
-                      openingDelete.current = true
-                      setDeleteOpen(true)
-                    }}
-                  >
-                    <Trash2 className="size-4" />
-                    Löschen
-                  </DropdownMenuItem>
+                  {!isDesktop && (
+                    <>
+                      {/* preventDefault keeps the menu open, so the new check state shows right away. */}
+                      <DropdownMenuCheckboxItem
+                        checked={checkable}
+                        onCheckedChange={setCheckable}
+                        onSelect={(e) => e.preventDefault()}
+                      >
+                        Zutaten abhaken
+                      </DropdownMenuCheckboxItem>
+                      {wakeSupported && (
+                        <DropdownMenuCheckboxItem
+                          checked={wakeEnabled}
+                          onCheckedChange={setWakeLock}
+                          onSelect={(e) => e.preventDefault()}
+                        >
+                          Bildschirm anlassen
+                        </DropdownMenuCheckboxItem>
+                      )}
+                      {owner && <DropdownMenuSeparator />}
+                    </>
+                  )}
+                  {owner && (
+                    <DropdownMenuItem
+                      variant="destructive"
+                      className="gap-2"
+                      onSelect={() => {
+                        openingDelete.current = true
+                        setDeleteOpen(true)
+                      }}
+                    >
+                      <Trash2 className="size-4" />
+                      Löschen
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
           </HeaderActions>
-          {isOwner(recipe, currentUserId) && (
+          {owner && (
             <DeleteRecipeDialog
               open={deleteOpen}
               onOpenChange={setDeleteOpen}
@@ -317,16 +362,16 @@ export function RecipeDetail() {
                 </ul>
               )}
 
-              {/* One row on desktop. A phone can't fit stepper, size text, both 40 px toggles and „Kochen“ in 358 px,
-                  so there the toggles move to a second row and the stepper shares the first with „Kochen“. */}
-              <div className="mt-5 flex flex-wrap items-center gap-3">
+              {/* One row on both layouts. A phone can't fit stepper, size text, both 40 px toggles and „Kochen“ in
+                  358 px, so there the toggles live in the header's ⋯ menu instead (#301). */}
+              <div className="mt-5 flex flex-wrap items-center gap-3 phone:flex-nowrap">
                 <PortionScaler
                   factor={factor}
                   onChange={setFactor}
                   sizeNumber={recipe.sizeNumber}
                   sizeText={recipe.sizeText}
                 />
-                <div className="flex items-center gap-2 phone:order-last phone:basis-full">
+                <div className="flex items-center gap-2 phone:hidden">
                   <CompactToggle
                     pressed={checkable}
                     onClick={() => setCheckable(!checkable)}
@@ -335,7 +380,7 @@ export function RecipeDetail() {
                   >
                     <ListChecks className="size-4" />
                   </CompactToggle>
-                  <WakeLockToggle />
+                  <WakeLockToggle enabled={wakeEnabled} supported={wakeSupported} toggle={toggleWakeLock} />
                 </div>
                 {hasSteps && (
                   <Link

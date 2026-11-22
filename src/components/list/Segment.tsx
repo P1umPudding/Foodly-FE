@@ -9,6 +9,9 @@ import type { MouseEvent } from 'react'
 export const SEG_TRACK = 'gap-0.5 rounded-lg bg-seg p-0.5'
 export const SEG_ITEM = 'rounded-md px-3 text-sm font-medium text-muted-foreground'
 export const SEG_ITEM_ON = 'bg-card text-foreground shadow-seg'
+// postxl's data-[state=on]:bg-accent beats a plain bg-card; these replace its on-state look (twMerge, same variant).
+export const SEG_ITEM_STATE =
+  'hover:bg-transparent hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground'
 
 export function Segment<T extends string>({
   value,
@@ -53,7 +56,7 @@ export function Segment<T extends string>({
             onClick={onItemClick && ((e) => onItemClick(o.value, e))}
             className={cn(
               SEG_ITEM,
-              'hover:bg-transparent hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground',
+              SEG_ITEM_STATE,
               full && 'flex-1 gap-1.5 px-1.5',
               selected && cn(SEG_ITEM_ON, 'hover:bg-card'),
               itemClassName,
