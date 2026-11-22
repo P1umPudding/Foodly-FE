@@ -366,7 +366,7 @@ describe('RecipeDetail actions', () => {
     expect(screen.queryByRole('link', { name: 'Bearbeiten' })).toBeNull()
   })
 
-  it('an editor gets the pencil on phones, „Kopie erstellen“ only on desktop', async () => {
+  it('an editor gets the pencil on phones, „Kopie erstellen“ only on desktop, no ⋯ on desktop', async () => {
     renderDetail('/recipes/5', { 5: recipe({ owner: 2, editors: [1] }) })
     await heading()
 
