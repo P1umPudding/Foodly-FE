@@ -14,6 +14,12 @@ import { TriggerButton } from '../TriggerButton'
 
 const SWIPE_MIN_PX = 50
 
+// Only buttons live in the lightbox. No visibility filter: Close is always first and, with arrows, a thumbnail
+// always last, so the phone-hidden arrows are never a wrap target.
+const focusables = (root: HTMLElement) => [
+  ...root.querySelectorAll<HTMLElement>('button:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'),
+]
+
 export function Lightbox({
   images,
   index,
@@ -32,9 +38,37 @@ export function Lightbox({
   const swipeStart = useRef<{ id: number; x: number; y: number } | null>(null)
   const swiped = useRef(false)
 
+  // Restoring in the cleanup covers every close path (Esc, Close, backdrop) and an unmount by the caller.
   useEffect(() => {
+    const trigger = document.activeElement
+    const dialog = dialogRef.current
+    if (dialog) (focusables(dialog)[0] ?? dialog).focus()
+    return () => {
+      if (trigger instanceof HTMLElement && trigger !== document.body && trigger.isConnected) trigger.focus()
+    }
+  }, [])
+
+  useEffect(() => {
+    const trapTab = (e: KeyboardEvent) => {
+      const dialog = dialogRef.current
+      if (!dialog || e.ctrlKey || e.altKey || e.metaKey) return
+      const items = focusables(dialog)
+      const first = items[0]
+      const last = items[items.length - 1]
+      const active = document.activeElement
+      // Outside or on the container itself (after a click on the image or the counter): pull focus back in.
+      const outside = !(active instanceof Node) || !dialog.contains(active) || active === dialog
+      let target: HTMLElement | undefined
+      if (outside) target = e.shiftKey ? last : first
+      else if (e.shiftKey && active === first) target = last
+      else if (!e.shiftKey && active === last) target = first
+      if (!target) return
+      e.preventDefault()
+      target.focus()
+    }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Tab') trapTab(e)
+      else if (e.key === 'Escape') onClose()
       else if (e.key === 'ArrowLeft') go(-1)
       else if (e.key === 'ArrowRight') go(1)
     }
@@ -60,7 +94,8 @@ export function Lightbox({
     }
     const swallowKeys = (e: KeyboardEvent) => {
       // Space on a focused button inside the lightbox activates it (no scroll); cancelling its keydown would
-      // swallow the click. Buttons on the page behind stay blocked (focus isn't moved into the dialog).
+      // swallow the click. Buttons on the page behind stay blocked too, in case focus still lands there
+      // (the focus trap keeps it inside otherwise).
       const t = e.target
       if (e.key === ' ' && t instanceof Element && t.closest('button') && dialogRef.current?.contains(t)) return
       if ([' ', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault()
@@ -134,9 +169,11 @@ export function Lightbox({
       role="dialog"
       aria-modal="true"
       aria-label="Fotos"
+      // Fallback focus target; not a control, so no ring on the near-black backdrop.
+      tabIndex={-1}
       onClick={onClose}
       // The backdrop fills the whole screen, the controls stay clear of notch and home indicator (viewport-fit=cover).
-      className="fixed inset-0 z-[100] flex cursor-zoom-out flex-col bg-[oklch(0.12_0_0)] pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-white"
+      className="fixed inset-0 z-[100] flex cursor-zoom-out outline-none flex-col bg-[oklch(0.12_0_0)] pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-white"
     >
       <div className="flex h-14 shrink-0 items-center justify-between pl-5 pr-3">
         <span onClick={stop} aria-live="polite" className="cursor-default text-sm tabular-nums text-white/75">

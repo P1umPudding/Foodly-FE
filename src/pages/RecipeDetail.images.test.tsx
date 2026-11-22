@@ -86,4 +86,22 @@ describe('RecipeDetail images', () => {
     fireEvent.click(fallback)
     expect(screen.getByRole('dialog')).toBeTruthy()
   })
+
+  it.each(['Foto groß ansehen', 'Foto 2 groß ansehen'])(
+    'opened from "%s", the lightbox takes focus and gives it back on Escape (#300)',
+    async (name) => {
+      renderDetail()
+
+      await screen.findByRole('heading', { name: 'Pancakes' })
+      const opener = screen.getByRole('button', { name })
+      // jsdom doesn't focus on click; a keyboard user has the opener focused.
+      opener.focus()
+      fireEvent.click(opener)
+      expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true)
+
+      fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(document.activeElement).toBe(opener)
+    },
+  )
 })
