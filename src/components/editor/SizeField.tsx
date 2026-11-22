@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import { Input, Label, ToggleGroup, cn } from '@postxl/ui-components'
 import { FocusToggleGroupItem } from '../list/FocusToggleGroupItem'
-import { SEG_ITEM, SEG_ITEM_ON, SEG_TRACK } from '../list/Segment'
+import { SEG_ITEM, SEG_ITEM_ON, SEG_ITEM_STATE, SEG_TRACK } from '../list/Segment'
 import type { Draft, SizeMode } from '../../editor/draft'
 
 // sizeNumber and sizeText are mutually exclusive in the model (PortionScaler
@@ -39,9 +39,8 @@ export function SizeField({
   return (
     <div className="flex flex-col gap-1.5">
       <Label id={labelId}>Größe</Label>
-      {/* The segment track of Segment.tsx. Radix renders its items as radios; an empty value (re-clicking the
-          active one) is ignored, so one mode is always chosen. The active look is set via data-[state=on] too:
-          otherwise postxl's data-[state=on]:bg-accent wins over a plain bg-card. */}
+      {/* The segment track of Segment.tsx; SEG_ITEM_STATE keeps postxl's accent off the active segment. Radix renders
+          its items as radios; an empty value (re-clicking the active one) is ignored, so one mode is always chosen. */}
       <ToggleGroup
         type="single"
         value={mode}
@@ -58,7 +57,8 @@ export function SizeField({
             value={value}
             className={cn(
               SEG_ITEM,
-              'h-8 hover:bg-transparent hover:text-foreground data-[state=on]:bg-card data-[state=on]:text-foreground touch:h-10',
+              SEG_ITEM_STATE,
+              'h-8 touch:h-10',
               mode === value && cn(SEG_ITEM_ON, 'hover:bg-card'),
             )}
           >

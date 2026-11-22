@@ -64,7 +64,7 @@ describe('SizeField', () => {
 
   // jsdom renders no CSS, so the classes that decide the cascade are checked: postxl's data-[state=on]:bg-accent
   // beats a plain bg-card, so the active look needs its own data-[state=on]: classes (as in Segment.tsx).
-  it('styles the active segment as a raised card surface that postxl’s accent does not override', () => {
+  it('styles the active segment as a raised card surface that the postxl accent does not override', () => {
     render(<SizeField mode="portions" sizeNumber={4} sizeText="" error={null} onChange={vi.fn()} />)
     const classes = (el: HTMLElement) => el.className.split(/\s+/)
 
