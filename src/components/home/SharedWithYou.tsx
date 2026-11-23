@@ -2,14 +2,13 @@
 // newest share first: for an editor or viewer, accessSince is when the access was granted (backend #22), so the server
 // does the ordering.
 import { Link } from 'react-router-dom'
-import { UtensilsCrossed } from 'lucide-react'
 import { Card } from '@postxl/ui-components'
 import { foodly } from '../../api'
 import type { Recipe, RecipeSearchQuery } from '../../api/protocol'
 import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
 import { useRequest } from '../../hooks/useRequest'
 import { hasDisplayableImages } from '../../list/rowData'
-import { RecipeImage } from '../recipe/RecipeImage'
+import { RecipeThumb } from '../recipe/RecipeThumb'
 import { ROW_DIVIDER } from '../rowDivider'
 import { Skeleton } from '../Skeleton'
 import { TagText } from '../TagText'
@@ -70,25 +69,13 @@ export function SharedWithYou() {
 
 function SharedRow({ recipe, showImage }: { recipe: Recipe; showImage: boolean }) {
   const owner = useUser(recipe.owner)
-  const noPhoto = <UtensilsCrossed className="size-[18px] text-muted-foreground/40" />
   return (
     <li className={ROW_DIVIDER}>
       <Link
         to={`/recipes/${recipe.id}`}
         className="flex items-center gap-3.5 rounded-sm px-3 py-2.5 outline-none transition-colors hover:bg-hover focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
-        {showImage && (
-          <div
-            data-testid="shared-thumb"
-            className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted"
-          >
-            {recipe.mainImage !== null ? (
-              <RecipeImage image={recipe.mainImage} alt="" className="size-full object-cover" fallback={noPhoto} />
-            ) : (
-              noPhoto
-            )}
-          </div>
-        )}
+        {showImage && <RecipeThumb image={recipe.mainImage} size="sm" testId="shared-thumb" />}
         <div className="min-w-0 flex-1">
           <span className="block truncate font-medium">
             <TagText value={recipe.name} />

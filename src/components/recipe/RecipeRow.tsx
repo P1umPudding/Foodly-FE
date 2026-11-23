@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Clock, UtensilsCrossed } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { TagText } from '../TagText'
 import { plainTagText } from '../tagTokens'
@@ -8,7 +8,7 @@ import { TagChips } from './TagChips'
 import { RatingMeta } from './Stars'
 import { RoleCollabIndicator } from './RoleCollabIndicator'
 import { CategoryDots } from './CategoryDots'
-import { RecipeImage } from './RecipeImage'
+import { RecipeThumb } from './RecipeThumb'
 import { formatMinutes, visibleRating } from '../../api/views'
 import { useCurrentUserId, useTags, useUser } from '../../catalog/CatalogProvider'
 import type { Recipe, UserCategory } from '../../api/protocol'
@@ -68,8 +68,6 @@ export function RecipeRow({
   const ownerName = recipe.owner !== me ? owner?.name : undefined
   const indicator = <RoleCollabIndicator recipe={recipe} />
   const dots = <CategoryDots categories={categories} />
-  // A photo that fails to load looks like no photo at all.
-  const noPhoto = <UtensilsCrossed className="h-5 w-5 text-muted-foreground/40" />
   // Tags only from 1024 px: two unshrinkable chips (up to ~330 px) would squeeze the name to a few letters on
   // narrow tablets/windows, and phones hide them anyway (mockup). No wrapper without tags, so no empty flex gap.
   const tags = recipe.tags.length > 0 && (
@@ -110,18 +108,7 @@ export function RecipeRow({
   // then tags → access → dots, all vertically centred in one row.
   return (
     <Link to={`/recipes/${recipe.id}`} className={`${ROW} gap-3.5 px-3 py-2.5`}>
-      {showImages && (
-        <div
-          data-testid="recipe-thumb"
-          className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted"
-        >
-          {recipe.mainImage !== null ? (
-            <RecipeImage image={recipe.mainImage} alt="" className="h-full w-full object-cover" fallback={noPhoto} />
-          ) : (
-            noPhoto
-          )}
-        </div>
-      )}
+      {showImages && <RecipeThumb image={recipe.mainImage} size="md" testId="recipe-thumb" />}
 
       <div className="min-w-0 flex-1">
         <span className="block truncate font-medium">
