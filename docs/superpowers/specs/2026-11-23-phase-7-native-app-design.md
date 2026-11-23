@@ -1,6 +1,7 @@
 # Phase 7 — Native App mit Capacitor — Design
 
-> Freigegeben von Daniel am 2026-11-23 (12:30 UTC): Empfehlungen E2–E9 übernommen, E1 (App-ID) offen.
+> Freigegeben von Daniel am 2026-11-23 (12:30 UTC): Empfehlungen E2–E9 übernommen. E1 entschieden
+> (Daniel, 2026-11-23, 18:28 UTC): App-ID `io.github.p1umpudding.foodly`, App-Name „Foodly“.
 
 ## Ziel
 
@@ -163,7 +164,7 @@ Biometrie, Live-Updates, CI-Builds (keine GitHub Actions, ADR 0004).
 
 | # | Frage | Optionen | Empfehlung |
 |---|---|---|---|
-| E1 | App-ID (Reverse-Domain, nach Store-Veröffentlichung nicht mehr änderbar) und App-Name | z. B. `de.<eure-domain>.foodly` oder `io.github.klassenserver7b.foodly`; Name „Foodly“ | keine: hängt davon ab, welche Domain euch gehört |
+| E1 | App-ID (Reverse-Domain, nach Store-Veröffentlichung nicht mehr änderbar) und App-Name | z. B. `de.<eure-domain>.foodly` oder `io.github.klassenserver7b.foodly`; Name „Foodly“ | entschieden (Daniel, 2026-11-23): `io.github.p1umpudding.foodly`, Name „Foodly“ |
 | E2 | Plattformen und wer baut | a) Android + iOS gleichzeitig (`ios/` wird committet, iOS baut wer einen Mac hat) b) Android zuerst, iOS später | a), wenn einer von euch einen Mac hat; sonst b) |
 | E3 | Verteilung in Phase 7 | a) nur Test-Builds (APK, Xcode/TestFlight) b) gleich Store-Veröffentlichung | a): ohne Backend lohnt kein Store-Eintrag; Store wird ein eigener Block |
 | E4 | Timer im Hintergrund (Android) | a) `SCHEDULE_EXACT_ALARM` anfragen, Hinweis + Knopf „Genaue Wecker erlauben“, sonst ungenau b) nur ungenau (kann sich im Doze um Minuten verspäten) c) keine Hintergrund-Alarme | a): pünktlich, wenn der Nutzer es erlaubt, ohne Play-Richtlinien-Risiko von `USE_EXACT_ALARM` |
