@@ -134,8 +134,8 @@ describe('SuggestInput keepListInView', () => {
   it('never scrolls the page when nothing around it scrolls', () => {
     setup({ scrolls: false })
     expect(() => type('Lin')).not.toThrow()
-    expect(region().scrollTop).toBe(0)
-    expect(document.documentElement.scrollTop).toBe(0)
+    // No container found, so nothing is measured or scrolled (jsdom wouldn't move the page anyway).
+    expect(Element.prototype.getBoundingClientRect).not.toHaveBeenCalled()
   })
 
   it('does not scroll without the opt-in (desktop)', () => {
