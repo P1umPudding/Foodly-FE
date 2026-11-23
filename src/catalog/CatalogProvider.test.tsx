@@ -7,6 +7,7 @@ import {
   useMe,
   useRefreshCategories,
   useUser,
+  useUserLookup,
   useUsers,
 } from './CatalogProvider'
 
@@ -330,6 +331,54 @@ describe('users on demand', () => {
     await act(async () => {})
     expect(screen.getAllByText('user2:-')).toHaveLength(2)
     expect(getUsers).toHaveBeenCalledTimes(1)
+  })
+
+  function LookupProbe({ id }: { id: number }) {
+    const { user, unknown } = useUserLookup(id)
+    return (
+      <span>
+        lookup{id}:{user?.name ?? '-'}:{unknown ? 'unknown' : 'pending-or-known'}
+      </span>
+    )
+  }
+
+  function renderLookups(ids: number[]) {
+    return render(
+      <StrictMode>
+        <CatalogProvider>
+          {ids.map((id) => (
+            <LookupProbe key={id} id={id} />
+          ))}
+        </CatalogProvider>
+      </StrictMode>,
+    )
+  }
+
+  it('useUserLookup: a found user is not unknown; an id missing from the answer is', async () => {
+    // Held open, so the state before the answer can be seen.
+    let answer = (_users: typeof knownUsers) => {}
+    getUsers.mockImplementation(() => new Promise((resolve) => (answer = resolve)))
+    renderLookups([2, 9])
+    await screen.findByText('lookup2:-:pending-or-known')
+    screen.getByText('lookup9:-:pending-or-known')
+    await act(async () => answer(knownUsers.filter((u) => u.id === 2)))
+    await waitFor(() => screen.getByText('lookup9:-:unknown'))
+    screen.getByText('lookup2:Mara:pending-or-known')
+  })
+
+  it('useUserLookup: every id of a failed request is unknown', async () => {
+    getUsers.mockImplementation(() => Promise.reject(new Error('boom')))
+    renderLookups([2, 3])
+    await waitFor(() => screen.getByText('lookup2:-:unknown'))
+    screen.getByText('lookup3:-:unknown')
+    expect(getUsers).toHaveBeenCalledTimes(1)
+  })
+
+  it('useUserLookup: the current user is known right away', async () => {
+    renderLookups([1])
+    await waitFor(() => screen.getByText('lookup1:Kolja:pending-or-known'))
+    await act(async () => {})
+    expect(getUsers).not.toHaveBeenCalled()
   })
 
   function UsersProbe({ ids }: { ids: number[] }) {

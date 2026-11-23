@@ -14,6 +14,7 @@ vi.mock('../catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
   useCategories: () => categories.current,
   useUser: () => undefined,
+  useUserLookup: () => ({ user: undefined, unknown: false }),
   useTags: () => ({ byId: {}, status: 'ready' }),
 }))
 

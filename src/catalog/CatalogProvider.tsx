@@ -14,7 +14,7 @@ export type CategoriesStatus = 'loading' | 'ready' | 'error'
 
 type Catalog = {
   tags: { byId: Record<TagId, Tag>; status: CatalogStatus }
-  users: { byId: Record<UserId, User>; request: (id: UserId) => void }
+  users: { byId: Record<UserId, User>; missing: ReadonlySet<UserId>; request: (id: UserId) => void }
   me: User | null
   ingredients: { byId: Record<IngredientId, Ingredient>; status: CatalogStatus }
   categories: { list: UserCategory[]; status: CategoriesStatus; error: Error | null; retry: () => void }
@@ -166,21 +166,31 @@ function withOrder(list: UserCategory[], ids: UserCategoryId[]): UserCategory[] 
 
 // Names for owners, editors and raters. useUser reports ids it doesn't know; all reported in one render are
 // fetched in one request (microtask). An id is asked for once per page load: found, not found or failed alike,
-// so an unknown id doesn't refetch on every render. RequireAuth keys the provider by user, so a switch starts empty.
+// so an unknown id doesn't refetch on every render. `missing` holds the ids whose request settled without a user, so a
+// row can tell "still loading" from "won't come". RequireAuth keys the provider by user, so a switch starts empty.
 // No unmount guard: the refs survive StrictMode's double effect, and a guard would drop the in-flight answer.
 function useUserDirectory(me: User | null) {
   const [byId, setById] = useState<Record<UserId, User>>({})
+  const [missing, setMissing] = useState<ReadonlySet<UserId>>(new Set())
   const asked = useRef(new Set<UserId>())
   const queue = useRef<UserId[]>([])
+
+  const markMissing = useCallback((ids: UserId[]) => {
+    if (ids.length > 0) setMissing((known) => new Set([...known, ...ids]))
+  }, [])
 
   const flush = useCallback(() => {
     const ids = queue.current
     queue.current = []
     foodly
       .getUsers(ids)
-      .then((users) => setById((known) => ({ ...known, ...indexBy(users, (u) => u.id) })))
-      .catch(() => {}) // the ids count as not found until the next page load
-  }, [])
+      .then((users) => {
+        setById((known) => ({ ...known, ...indexBy(users, (u) => u.id) }))
+        const found = new Set(users.map((u) => u.id))
+        markMissing(ids.filter((id) => !found.has(id)))
+      })
+      .catch(() => markMissing(ids)) // the ids count as not found until the next page load
+  }, [markMissing])
 
   const meId = me?.id
   const request = useCallback(
@@ -194,7 +204,7 @@ function useUserDirectory(me: User | null) {
   )
 
   const withMe = useMemo(() => (me ? { ...byId, [me.id]: me } : byId), [byId, me])
-  return { byId: withMe, request }
+  return { byId: withMe, missing, request }
 }
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
@@ -260,12 +270,17 @@ export function useTags() {
 export function useTag(id: TagId): Tag | undefined {
   return useCatalog().tags.byId[id]
 }
-export function useUser(id: UserId): User | undefined {
-  const { byId, request } = useCatalog().users
+// `unknown`: the lookup settled without a user (not found or failed), so it won't arrive before the next page load.
+export function useUserLookup(id: UserId): { user: User | undefined; unknown: boolean } {
+  const { byId, missing, request } = useCatalog().users
   useEffect(() => {
     request(id)
   }, [id, request])
-  return byId[id]
+  const user = byId[id]
+  return { user, unknown: !user && missing.has(id) }
+}
+export function useUser(id: UserId): User | undefined {
+  return useUserLookup(id).user
 }
 // The known users among `ids`, in order; unknown ones are requested and left out until they load.
 export function useUsers(ids: readonly UserId[]): User[] {
