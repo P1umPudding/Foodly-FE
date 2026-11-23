@@ -38,6 +38,7 @@ Kolja) · `später` (nicht blockierend).
 | B17 | Rezept-Import (URL + Foto)               | offen       | nein (nach der Alpha)   | [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28) |
 | B18 | Standard-Kategorie „Favoriten“           | offen       | ja: FE #289             | [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29) |
 | B19 | Rezeptzahl fürs Profil                   | offen       | nein (FE #304)          | –             |
+| B20 | Native Origins in `CORS_ALLOWED_ORIGINS` | Hinweis     | nein (Phase 7, REST-Build) | –          |
 | G1  | `createdAt` / `updatedAt` an Recipe     | FE-Arbeit   | –                       | –             |
 | G2  | `UserRating` DB-only                    | gelöst      | –                       | –             |
 | G3  | Tag-Icons (`GET /tags/{id}/icon`)       | gelöst      | –                       | –             |
@@ -323,6 +324,10 @@ Backend-Umbau der Zugriffsabfrage.
   kann die Zahl nicht ohne Zusatz-Request bestimmen: `User` hat keinen Zähler, die Suche ist paginiert und liefert
   keine Gesamtzahl. Vorschlag: `recipeCount` in `GET /users/me` oder `total` in der Suchantwort (B16). Offen:
   eigene oder alle sichtbaren Rezepte. Bis dahin zeigt das Profil keine Zahl (FE #304).
+- **B20 Native Origins** (Phase 7, 2026-11-23): Die native App (Capacitor) läuft unter `capacitor://localhost` (iOS)
+  und `https://localhost` (Android). Für einen REST-Build muss das Deployment beide in `CORS_ALLOWED_ORIGINS`
+  aufnehmen und das Backend über HTTPS erreichbar sein. Reine Konfiguration, kein Code; kein Backend-Issue (Hinweis
+  kommt beim Deployment). Details: `docs/native.md` (mit N1).
 
 ## Gelöst / Frontend muss nachziehen
 
