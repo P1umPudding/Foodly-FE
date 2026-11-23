@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { IngredientPicker } from './IngredientPicker'
 
 vi.mock('../../catalog/CatalogProvider', () => ({
@@ -190,6 +190,8 @@ describe('IngredientPicker', () => {
 })
 
 describe('IngredientPicker in the phone sheet', () => {
+  afterEach(() => vi.restoreAllMocks())
+
   it('passes keepListInView on, so the list scrolls into view (#306)', () => {
     // Region 0–200, field 160–200, list below it: anything to scroll means the opt-in reached SuggestInput.
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
@@ -203,6 +205,5 @@ describe('IngredientPicker in the phone sheet', () => {
     )
     type('Lin')
     expect(getByTestId('region').scrollTop).toBeGreaterThan(0)
-    vi.restoreAllMocks()
   })
 })

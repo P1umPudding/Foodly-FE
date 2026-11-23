@@ -100,9 +100,9 @@ export function SuggestInput({
   useEffect(() => {
     const vv = window.visualViewport
     if (!keepListInView || !expanded || !vv) return
-    // The keyboard opening (or resizing) after the list is shown: BottomSheet's own listener (attached earlier, so it
-    // runs first) shrinks the sheet to the visible height; its height isn't transitioned, so the next frame has the
-    // final layout. Android fires many resize events while the keyboard animates, so only the last frame counts.
+    // The keyboard opening (or resizing) after the list is shown: BottomSheet shrinks the sheet to the visible height on
+    // the same event, and its height isn't transitioned, so a frame later the layout is final. Android fires many
+    // resize events while the keyboard animates; they are merged per frame.
     let frame = 0
     const onResize = () => {
       cancelAnimationFrame(frame)

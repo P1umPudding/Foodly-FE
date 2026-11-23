@@ -97,6 +97,8 @@ describe('SuggestInput keepListInView', () => {
     layout.box = { top: 0, bottom: 400 }
     vv.dispatchEvent(new Event('resize'))
     vv.dispatchEvent(new Event('resize'))
+    // Merged: the first frame was cancelled, one reveal is left.
+    expect(frames.filter(Boolean)).toHaveLength(1)
     act(() => frames.forEach((cb) => cb?.(0)))
     expect(region().scrollTop).toBe(144)
   })
