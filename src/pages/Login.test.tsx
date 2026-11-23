@@ -52,7 +52,7 @@ describe('Login', () => {
     // #307: text-sm's line height is 18 px, so 11 px padding each side makes the 40.
     const link = screen.getByRole('link', { name: 'Registrieren' }).className.split(/\s+/)
     expect(link).toEqual(expect.arrayContaining(['touch:inline-block', 'touch:py-[11px]', 'touch:-my-[11px]']))
-    expect(link).not.toContain('py-2.5')
+    expect(link).not.toContain('py-[11px]')
   })
 
   it('sets the page title and restores the previous one on leaving', () => {

@@ -171,8 +171,8 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
           placeholder="–"
           prefix="≤"
           suffix="min"
-          // suffix is the wrapper's last child span → shrink just "min". Touch: 42 px so the input inside the 1 px border
-          // is 40 px (design.md §7).
+          // suffix is the wrapper's last child span → shrink just "min". Touch: 42 px so the input inside the 1 px
+          // border is 40 px (design.md §7).
           wrapperClassName="min-h-8 phone:min-h-10 touch:min-h-[42px] w-28 shrink-0 [&>span:last-child]:text-xs [&>span:first-child]:text-base"
           // dark:bg-transparent so the input area matches the wrapper (the lib leaves dark:bg-input/30 on the
           // input, which otherwise differs from prefix/suffix).
