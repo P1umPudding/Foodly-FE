@@ -3,6 +3,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { previewBase } from './src/previewBase'
+import { hasModuleSideEffects } from './src/treeshake'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -27,10 +28,14 @@ export default defineConfig(({ mode }) => {
       proxy: { '/api': { target: 'http://localhost:8080', changeOrigin: true } },
     },
     preview: previewServer,
-    // The entry chunk is ~700 kB minified even with the rare routes split off (#221): most of it is
-    // @postxl/ui-components and react-dom, which every first page needs (#309). The limit sits just above today's size,
-    // so a growing entry still warns.
-    build: { chunkSizeWarningLimit: 710 },
+    // The entry chunk stays ~687 kB minified even with the rare routes split off (#221) and unused postxl
+    // dependencies dropped (#309): most of it is react-dom and @postxl/ui-components, whose single pre-bundled file
+    // can't be tree-shaken without rewriting its code (ruled out, #309). The limit sits just above today's size, so a
+    // growing entry warns, and so does a dropped dependency creeping back in (e.g. after a postxl upgrade).
+    build: {
+      chunkSizeWarningLimit: 690,
+      rollupOptions: { treeshake: { moduleSideEffects: hasModuleSideEffects } },
+    },
     test: {
       environment: 'jsdom',
       globals: true,

@@ -101,6 +101,11 @@ werden hier nicht wiederholt.
   Chunk zeigt `ErrorState`, „Erneut versuchen“ lädt die Seite neu (React.lazy merkt sich den Fehler). Neue seltene
   Seiten genauso einhängen; Tests warten auf lazy Seiten mit `await findBy…` oder `lazyPageLoaded()`
   (`src/test/lazyRoutes.ts`), nie darauf, dass ein früherer Test die Seite schon geladen hat.
+- Einstiegs-Chunk und `@postxl/ui-components` (#309): postxl kommt als eine vorgebündelte Datei ohne PURE-Annotationen und
+  lässt sich nicht tree-shaken; ungenutzte Komponenten bleiben im Einstieg. Den Code von postxl beim Build umschreiben ist
+  ausgeschlossen (gilt als Patch). Ungenutzte postxl-Abhängigkeiten, die nur ihr eigener Top-Level-Code im Einstieg hält,
+  kommen in die Liste in `src/treeshake.ts` (Kriterien dort). `chunkSizeWarningLimit` in `vite.config.ts` liegt knapp
+  über der Einstiegsgröße und warnt, wenn sie wächst.
 - Kein Data Router (`createBrowserRouter`) → kein `useBlocker`; Verlassen-Schutz via
   `beforeunload` + Flush bei Unmount. Lesezugriffe (`getRecipe`, `searchRecipes`) warten auf den
   noch laufenden Unmount-Save (`src/api/pendingSaves.ts`, max. 10 s); Requests deshalb in Effects
