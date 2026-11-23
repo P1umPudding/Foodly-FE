@@ -168,7 +168,7 @@ Altlasten in `eslint-suppressions.json`):
 | `react/forbid-dom-props` (`style`, `title`) | Tailwind statt Inline-Style; postxl `Tooltip` statt `title=""` (der `--cat-*`-Helper wird gespreizt und fällt nicht darunter) |
 | `no-restricted-syntax` gegen `as Error` | Fehlertexte nicht per Cast lesen |
 | `no-restricted-syntax` gegen Effekt-Callbacks ohne Block-Body (`useEffect`, `useLayoutEffect`, `useInsertionEffect`, auch als `React.*`) | Ein Effekt gibt React nur bewusst eine Cleanup-Funktion zurück (#211) |
-| `no-restricted-syntax` gegen `BrowserRouter`/`MemoryRouter` ohne `useTransitions` | Navigationen laufen wie in React Router 6 ohne `startTransition` (`useTransitions={false}`, App und Tests gleich, #297) |
+| `no-restricted-syntax` gegen `BrowserRouter`/`MemoryRouter` ohne `useTransitions={false}` | Navigationen laufen wie in React Router 6 ohne `startTransition` (`useTransitions={false}`, App und Tests gleich, #297) |
 | `@typescript-eslint/no-floating-promises`, `no-misused-promises` | Promises behandeln (§4), keine async-Handler, deren Fehler verloren gehen |
 | `react-hooks/rules-of-hooks`, `exhaustive-deps` | Hook-Regeln |
 | `import-x/no-extraneous-dependencies` | jeder Import steht in `package.json`, devDependencies nur in Tests/Configs |
