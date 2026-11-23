@@ -270,13 +270,6 @@ export function useTags() {
 export function useTag(id: TagId): Tag | undefined {
   return useCatalog().tags.byId[id]
 }
-export function useUser(id: UserId): User | undefined {
-  const { byId, request } = useCatalog().users
-  useEffect(() => {
-    request(id)
-  }, [id, request])
-  return byId[id]
-}
 // `unknown`: the lookup settled without a user (not found or failed), so it won't arrive before the next page load.
 export function useUserLookup(id: UserId): { user: User | undefined; unknown: boolean } {
   const { byId, missing, request } = useCatalog().users
@@ -285,6 +278,9 @@ export function useUserLookup(id: UserId): { user: User | undefined; unknown: bo
   }, [id, request])
   const user = byId[id]
   return { user, unknown: !user && missing.has(id) }
+}
+export function useUser(id: UserId): User | undefined {
+  return useUserLookup(id).user
 }
 // The known users among `ids`, in order; unknown ones are requested and left out until they load.
 export function useUsers(ids: readonly UserId[]): User[] {

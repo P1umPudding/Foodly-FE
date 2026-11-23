@@ -140,12 +140,9 @@ describe('SharedWithYou', () => {
     expect(thumbs).toHaveLength(3)
     // The small (sm, 36 px) thumb of the recipe row: the photo, or the cutlery placeholder for a recipe without one.
     expect(thumbs.every((t) => /\bsize-9\b/.test(t.className))).toBe(true)
-    expect(thumbs.map((t) => (t.querySelector('img') ? 'photo' : 'placeholder'))).toEqual([
-      'placeholder',
-      'photo',
-      'placeholder',
-    ])
-    expect(thumbs.map((t) => t.querySelector('.lucide-utensils-crossed') !== null)).toEqual([true, false, true])
+    const content = (t: HTMLElement) =>
+      t.querySelector('.lucide-utensils-crossed') ? 'placeholder' : t.querySelector('img') && 'photo'
+    expect(thumbs.map(content)).toEqual(['placeholder', 'photo', 'placeholder'])
   })
 
   it('shows row skeletons while loading', () => {
