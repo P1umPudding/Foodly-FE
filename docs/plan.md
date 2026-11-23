@@ -242,8 +242,8 @@ Präsenz, native Shell, Zugriff auf Geräte-APIs.
 
 Geschnitten und freigegeben (Daniel, 2026-11-23): Spec `docs/superpowers/specs/2026-11-23-phase-7-native-app-design.md`,
 Issues N1–N7 (#323–#329) in `docs/superpowers/plans/2026-11-23-phase-7-native-app.md` (Capacitor 8, `src/native/`, Mock-Build als
-Standard, Timer-Benachrichtigung im Hintergrund). Nur Test-Builds, Store als eigener Block (E3). N1 (#323) wartet auf die App-ID
-(E1). Gerätetest durch die Owner nach `docs/native.md`, Journeys in `docs/qa/journeys.md`.
+Standard, Timer-Benachrichtigung im Hintergrund). Nur Test-Builds, Store als eigener Block (E3). App-ID (E1, Daniel
+2026-11-23): `io.github.p1umpudding.foodly`, Name „Foodly“; N1 (#323) ist damit frei. Gerätetest durch die Owner nach `docs/native.md`, Journeys in `docs/qa/journeys.md`.
 
 ## Phase 8 — Offline-Modus (native App)
 
