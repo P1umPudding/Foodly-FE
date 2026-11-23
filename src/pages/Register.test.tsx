@@ -90,6 +90,7 @@ describe('Register', () => {
     const note = noteOf(email)
     expect(note?.textContent).toBe('Diese E-Mail ist schon registriert. Anmelden')
     expect(note?.querySelector('a')?.getAttribute('href')).toBe('/login?email=kim%40example.com&next=%2Frecipes%2F5')
+    expect(note?.querySelector('a')?.className.split(/\s+/)).toContain('touch:py-[11px]')
     expect(screen.queryByRole('alert')).toBeNull()
     expect(document.activeElement).toBe(email)
   })
@@ -134,5 +135,13 @@ describe('Register', () => {
   it('links to /login and keeps next', () => {
     renderAuthRoutes('/register?next=%2Frecipes%2F5', { register: <Register /> })
     expect(screen.getByRole('link', { name: 'Anmelden' }).getAttribute('href')).toBe('/login?next=%2Frecipes%2F5')
+  })
+
+  // #307: the switch link gets 40 px on touch (18 px line height + 2 × 11 px).
+  it('gives the switch link a 40 px tap area on touch only', () => {
+    renderAuthRoutes('/register', { register: <Register /> })
+    const link = screen.getByRole('link', { name: 'Anmelden' }).className.split(/\s+/)
+    expect(link).toEqual(expect.arrayContaining(['touch:inline-block', 'touch:py-[11px]', 'touch:-my-[11px]']))
+    expect(link).not.toContain('py-[11px]')
   })
 })

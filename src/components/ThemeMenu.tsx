@@ -76,7 +76,7 @@ export function ThemeSegment({ labelledBy }: { labelledBy: string }) {
       onItemClick={(mode, e) => void select(e, mode)}
       options={SEGMENT_OPTIONS}
       withLabels
-      itemClassName="h-8 gap-1.5"
+      itemClassName="h-8 gap-1.5 touch:h-10"
       aria-labelledby={labelledBy}
     />
   )

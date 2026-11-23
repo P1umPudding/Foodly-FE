@@ -108,7 +108,13 @@ export function CookMode() {
   const closeButton = (
     <Tooltip>
       <TooltipTrigger asChild>
-        <TriggerButton variant="ghost" size="icon" aria-label="Koch-Modus beenden" onClick={close} className="-ml-2">
+        <TriggerButton
+          variant="ghost"
+          size="icon"
+          aria-label="Koch-Modus beenden"
+          onClick={close}
+          className="-ml-2 touch:size-10"
+        >
           <X className="size-5" />
         </TriggerButton>
       </TooltipTrigger>
