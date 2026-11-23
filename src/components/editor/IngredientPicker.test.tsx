@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { IngredientPicker } from './IngredientPicker'
 
 vi.mock('../../catalog/CatalogProvider', () => ({
@@ -186,5 +186,24 @@ describe('IngredientPicker', () => {
     fireEvent.keyDown(field(), { key: 'Enter' })
 
     expect(onText).toHaveBeenCalledWith('Zimtstange')
+  })
+})
+
+describe('IngredientPicker forwards keepListInView', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('scrolls its scroll region when keepListInView is set, as the phone sheet does (#306)', () => {
+    // Region 0–200, field 160–200, list below it: anything to scroll means the opt-in reached SuggestInput.
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+      const top = this.getAttribute('role') === 'listbox' ? 204 : this.getAttribute('role') === 'combobox' ? 160 : 0
+      return { top, bottom: top + (top === 0 ? 200 : 40) } as DOMRect
+    })
+    const { getByTestId } = render(
+      <div data-testid="region" style={{ overflowY: 'auto' }}>
+        <IngredientPicker value={null} text="" onPick={vi.fn()} onText={vi.fn()} keepListInView />
+      </div>,
+    )
+    type('Lin')
+    expect(getByTestId('region').scrollTop).toBeGreaterThan(0)
   })
 })

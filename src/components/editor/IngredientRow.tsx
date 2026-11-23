@@ -19,11 +19,13 @@ export function UnitInput({
   onChange,
   className,
   field,
+  keepListInView,
 }: {
   value: string
   onChange: (unit: string) => void
   className?: string
   field?: { id?: string; className?: string }
+  keepListInView?: boolean
 }) {
   const unit = value.trim().toLowerCase()
   return (
@@ -35,6 +37,7 @@ export function UnitInput({
       inputClassName={field?.className}
       icon={<ChevronDown className="size-4" />}
       openOnClick
+      keepListInView={keepListInView}
       value={value}
       onValueChange={onChange}
       suggestions={UNITS.filter((u) => u.toLowerCase().startsWith(unit) && u.toLowerCase() !== unit).map((u) => ({

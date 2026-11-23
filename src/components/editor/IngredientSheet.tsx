@@ -75,7 +75,8 @@ export function IngredientSheet({
         onOpenAutoFocus={onOpenAutoFocus}
         onCloseAutoFocus={onCloseAutoFocus}
       >
-        {/* pb-8: room for the suggestion lists below the last fields, which open inside this scroll region */}
+        {/* pb-8: room for the suggestion lists below the last fields, which open inside this scroll region;
+            keepListInView scrolls it to show them */}
         <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-4 pt-1.5 pb-8">
           <div>
             <Label htmlFor={`${id}-amount`}>Menge</Label>
@@ -97,6 +98,7 @@ export function IngredientSheet({
             <UnitInput
               className="mt-1.5"
               field={{ id: `${id}-unit`, className: 'h-10' }}
+              keepListInView
               value={line.unit}
               onChange={(unit) => onChange({ unit })}
             />
@@ -124,6 +126,7 @@ export function IngredientSheet({
             <IngredientPicker
               className="mt-1.5"
               field={{ id: `${id}-name`, describedBy: `${id}-name-hint`, className: 'h-10' }}
+              keepListInView
               value={line.ingredient}
               text={line.text}
               {...pickHandlers(line, onChange)}

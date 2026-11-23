@@ -18,6 +18,7 @@ export function IngredientPicker({
   onText,
   className,
   field,
+  keepListInView,
 }: {
   value: IngredientId | null
   text: string
@@ -26,6 +27,7 @@ export function IngredientPicker({
   className?: string
   // Passed on to the input, e.g. a caption's htmlFor and a hint in the phone sheet.
   field?: { id?: string; describedBy?: string; className?: string }
+  keepListInView?: boolean
 }) {
   const { byId } = useIngredients()
   const [typed, setTyped] = useState<string | null>(null)
@@ -66,6 +68,7 @@ export function IngredientPicker({
       describedBy={field?.describedBy}
       inputClassName={field?.className}
       icon={<Search className="size-4" />}
+      keepListInView={keepListInView}
       value={typed ?? stored}
       onValueChange={setTyped}
       suggestions={[
