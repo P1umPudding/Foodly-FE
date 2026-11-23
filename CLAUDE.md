@@ -89,7 +89,8 @@ There's no server code and no secrets in the repo.
   `VITE_MOCK=1` (`bootstrap()` doesn't load it in REST mode).
 - `src/catalog/` — `CatalogProvider` (tags, users, ingredients as `byId`
   maps, plus `me` and the user's categories; users are fetched on demand:
-  `useUser(id)` reports unknown ids, batched into one `foodly.getUsers` call).
+  `useUser(id)` reports unknown ids, batched into one `foodly.getUsers` call;
+  `useUserLookup(id)` also says when a lookup settled without a user, `unknown`).
   `src/list/` — recipe-list state (filters, sort, search, URL, persistence).
   `src/editor/` — recipe-editor draft + autosave. `src/timers/` —
   cooking timers per user. `src/home/` — recently viewed recipes per user (start page).

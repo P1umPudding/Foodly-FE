@@ -1,4 +1,5 @@
 // With the real CatalogProvider: a failing GET /users?ids=… must end in a row without the "von" line (#303 AC5).
+import { StrictMode } from 'react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -47,11 +48,13 @@ vi.mock('../../api', () => ({
 describe('SharedWithYou with the real catalog', () => {
   it('drops the "von" line once the owner lookup has failed', async () => {
     render(
-      <MemoryRouter>
-        <CatalogProvider>
-          <SharedWithYou />
-        </CatalogProvider>
-      </MemoryRouter>,
+      <StrictMode>
+        <MemoryRouter>
+          <CatalogProvider>
+            <SharedWithYou />
+          </CatalogProvider>
+        </MemoryRouter>
+      </StrictMode>,
     )
     const link = await screen.findByRole('link', { name: /Rezept 5/ })
     await waitFor(() => expect(getUsers).toHaveBeenCalledWith([4]))
