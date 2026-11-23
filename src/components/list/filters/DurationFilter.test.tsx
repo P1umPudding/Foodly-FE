@@ -31,6 +31,14 @@ afterEach(() => {
 })
 
 describe('DurationFilter', () => {
+  // #307: the bordered wrapper is 42 px on touch so the input inside it is 40; the mouse height stays.
+  it('gives the minutes field a 40 px tap area on touch only', () => {
+    render(<Stateful set={vi.fn()} />)
+    const wrapper = field().parentElement!.className.split(/\s+/)
+    expect(wrapper).toEqual(expect.arrayContaining(['min-h-8', 'touch:min-h-[42px]']))
+    expect(wrapper).not.toContain('min-h-[42px]')
+  })
+
   it('a preset sets the value and every control follows', () => {
     const set = vi.fn()
     render(<Stateful set={set} />)

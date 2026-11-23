@@ -125,6 +125,14 @@ describe('AppShell on the desktop', () => {
     expect(shell()).toContain('[--shell-left:calc(4rem+env(safe-area-inset-left))]')
   })
 
+  // #307: collapsed, the entries are 39 px wide; on touch 1 px less right padding makes them 40.
+  it('narrows the collapsed rail padding on touch only', () => {
+    renderAt('/recipes')
+    expect(sidebar().className.split(/\s+/)).not.toContain('touch:pr-[11px]')
+    fireEvent.click(screen.getByRole('button', { name: 'Seitenleiste einklappen' }))
+    expect(sidebar().className.split(/\s+/)).toEqual(expect.arrayContaining(['pr-3', 'touch:pr-[11px]']))
+  })
+
   it('collapses to icons, remembers it, and expands again', () => {
     const { unmount } = renderAt('/recipes')
     within(sidebar()).getByRole('link', { name: 'Foodly' })
