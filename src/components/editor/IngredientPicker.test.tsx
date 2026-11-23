@@ -188,3 +188,21 @@ describe('IngredientPicker', () => {
     expect(onText).toHaveBeenCalledWith('Zimtstange')
   })
 })
+
+describe('IngredientPicker in the phone sheet', () => {
+  it('passes keepListInView on, so the list scrolls into view (#306)', () => {
+    // Region 0–200, field 160–200, list below it: anything to scroll means the opt-in reached SuggestInput.
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+      const top = this.getAttribute('role') === 'listbox' ? 204 : this.getAttribute('role') === 'combobox' ? 160 : 0
+      return { top, bottom: top + (top === 0 ? 200 : 40) } as DOMRect
+    })
+    const { getByTestId } = render(
+      <div data-testid="region" style={{ overflowY: 'auto' }}>
+        <IngredientPicker value={null} text="" onPick={vi.fn()} onText={vi.fn()} keepListInView />
+      </div>,
+    )
+    type('Lin')
+    expect(getByTestId('region').scrollTop).toBeGreaterThan(0)
+    vi.restoreAllMocks()
+  })
+})
