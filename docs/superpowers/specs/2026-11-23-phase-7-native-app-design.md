@@ -1,6 +1,6 @@
 # Phase 7 — Native App mit Capacitor — Design
 
-> Entwurf 2026-11-23 (Lead). Auftrag: Daniel, 2026-11-23 („Phase 7 schneiden“). Offene Entscheidungen unten.
+> Freigegeben von Daniel am 2026-11-23 (12:30 UTC): Empfehlungen E2–E9 übernommen, E1 (App-ID) offen.
 
 ## Ziel
 

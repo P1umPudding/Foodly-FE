@@ -1,6 +1,6 @@
 # Phase 7 — Native App mit Capacitor — Issue-Plan
 
-> Entwurf 2026-11-23 (Lead), wartet auf Freigabe durch Kolja oder Daniel. Die Abschnitte N1–N7 sind die Issue-Texte;
+> Freigegeben von Daniel am 2026-11-23 (12:30 UTC), Empfehlungen E2–E9 übernommen; E1 (App-ID) offen. Die Abschnitte N1–N7 sind die Issue-Texte;
 > der Titel ist jeweils die Überschrift ohne „Nx —“. Die Issues setzen die Empfehlungen zu E1–E9 der Spec voraus; ändert
 > die Freigabe eine Entscheidung, passe ich die betroffenen Issues vor dem Anlegen an. E1 (App-ID) hat keine Empfehlung:
 > N1 wird erst angelegt, wenn die ID feststeht; sie ersetzt dann `<APP_ID>` und `<APP_NAME>` wörtlich.
