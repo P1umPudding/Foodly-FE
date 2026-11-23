@@ -2,7 +2,8 @@
 
 > Entwurf 2026-11-23 (Lead), wartet auf Freigabe durch Kolja oder Daniel. Die Abschnitte N1–N7 sind die Issue-Texte;
 > der Titel ist jeweils die Überschrift ohne „Nx —“. Die Issues setzen die Empfehlungen zu E1–E9 der Spec voraus; ändert
-> die Freigabe eine Entscheidung, passe ich die betroffenen Issues vor dem Anlegen an.
+> die Freigabe eine Entscheidung, passe ich die betroffenen Issues vor dem Anlegen an. E1 (App-ID) hat keine Empfehlung:
+> N1 wird erst angelegt, wenn die ID feststeht; sie ersetzt dann `<APP_ID>` und `<APP_NAME>` wörtlich.
 
 Spec: `docs/superpowers/specs/2026-11-23-phase-7-native-app-design.md`. Architektur: `docs/architecture.md`, neue
 Decision-Note 0005 (kommt mit N1).
@@ -44,7 +45,10 @@ Linux-Container geprüft: `cap add android`, `cap add ios` (SPM, ohne CocoaPods/
 Daniel in Android Studio bzw. Xcode öffnen und auf einem Gerät starten können.
 
 ### Behaviour
-- `capacitor.config.ts`: `appId` und `appName` laut Freigabe (E1), `webDir: 'dist'`, `server.androidScheme: 'https'`.
+- `capacitor.config.ts`: `appId: '<APP_ID>'`, `appName: '<APP_NAME>'`, `webDir: 'dist'`, `server.androidScheme: 'https'`.
+- iOS `Info.plist`: `NSCameraUsageDescription` („Foodly nutzt die Kamera, damit du Fotos zu Rezepten aufnehmen kannst.“) und
+  `NSPhotoLibraryUsageDescription` („Foodly greift auf deine Fotos zu, damit du Bilder zu Rezepten hinzufügen kannst.“),
+  nötig für `<input type=file>`.
 - Pakete exakt gepinnt: `@capacitor/core`, `@capacitor/cli` (dev), `@capacitor/android`, `@capacitor/ios`, alle 8.6.2.
 - `android/` und `ios/` committet; deren Build-Artefakte sind ignoriert (die von Capacitor erzeugten `.gitignore` reichen,
   sonst ergänzen).
@@ -54,12 +58,17 @@ Daniel in Android Studio bzw. Xcode öffnen und auf einem Gerät starten können
 - `.env.native` (committet): `VITE_MOCK=1`. Für einen REST-Build legt man `.env.native.local` mit `VITE_MOCK=` und
   `VITE_API_URL=https://…/api/v1` an (`.gitignore` deckt `*.local` ab; prüfen).
 - `npm run cap:sync`: `npm run build:native && cap sync`.
-- `src/native/platform.ts`: `isNative()` und `platform()` (`'web' | 'android' | 'ios'`) über `Capacitor`.
+- `src/native/platform.ts`: `isNative()` und `platform()` (`'web' | 'android' | 'ios'`) über
+  `globalThis.Capacitor?.isNativePlatform?.()` / `getPlatform?.()` (die native Hülle injiziert das Objekt), **ohne**
+  statischen Import von `@capacitor/core`; so bleibt Capacitor aus dem Web-Entry. Plugins importieren die Adapter
+  dynamisch.
 - ESLint: `no-restricted-imports` verbietet `@capacitor/*` und `@capacitor-community/*` außerhalb `src/native/`.
 - `docs/native.md`: Voraussetzungen (Node ≥ 22, Android Studio, Xcode auf dem Mac), Mock- vs. REST-Build, `cap:sync`,
   Öffnen/Starten (`npx cap open android|ios`), lokaler LAN-Test mit `androidScheme: 'http'` als nicht committete
   Abweichung, CORS-Origins für das Backend (`capacitor://localhost`, `https://localhost`), Abschnitt „Prüfliste“ mit den
-  ersten Zeilen (App startet, Startseite mit Mock-Daten, Navigation, Safe Areas oben/unten auf Android und iOS).
+  ersten Zeilen (App startet, Startseite mit Mock-Daten, Navigation, Safe Areas oben/unten auf Android und iOS, Bild
+  hinzufügen öffnet Kamera/Galerie auf iOS).
+- `docs/backend-questions.md`: B19 „Native Origins in `CORS_ALLOWED_ORIGINS`“ (Hinweis, kein Blocker, Spec).
 - `docs/decisions/0005-native-shell.md`: Capacitor, `src/native/` als einzige Stelle für native APIs, Plugins dynamisch
   importiert, Web bleibt Primärziel.
 - `CLAUDE.md`: Befehle `build:native`/`cap:sync`, Modul `src/native/`, Env-Tabelle um `.env.native` ergänzt.
@@ -72,9 +81,12 @@ Daniel in Android Studio bzw. Xcode öffnen und auf einem Gerät starten können
    `SKAILE_PREVIEW_BASE=/x/` gesetzt ist.
 3. `npm run build:native` mit `VITE_MOCK=` und ohne absoluten `VITE_API_URL` bricht mit einer Meldung ab, die auf
    `.env.native.local` verweist.
-4. `npm run build` (Web) ist unverändert: gleiche Ausgabe wie vorher, kein Capacitor-Code im Entry-Chunk
-   (`grep -L Capacitor dist/assets/index-*.js`).
-5. Vitest: `isNative()`/`platform()` liefern im Test `false`/`'web'` und mit gemocktem `Capacitor` `true`/`'android'`.
+4. Nach `npm run build` (Web) enthält der Entry-Chunk keinen Capacitor-Code:
+   `! grep -qE '@capacitor|registerPlugin' dist/assets/index-*.js`; die Größenwarnung (`chunkSizeWarningLimit` 710) bleibt
+   aus. Diese Prüfung gilt für alle folgenden Issues („Entry-Check“).
+5. Vitest: `isNative()`/`platform()` liefern im Test `false`/`'web'` und mit gesetztem `globalThis.Capacitor`
+   (`isNativePlatform: () => true`, `getPlatform: () => 'android'`) `true`/`'android'`.
+5a. `ios/App/App/Info.plist` enthält beide Usage-Descriptions mit den Texten oben.
 6. `npm run lint` meldet einen Import von `@capacitor/core` in einer Datei unter `src/components/` als Fehler (im PR
    kurz nachgewiesen, nicht committet).
 7. `docs/native.md`, ADR 0005, CLAUDE.md und architecture.md sind wie beschrieben ergänzt.
@@ -88,8 +100,8 @@ E1 (App-ID/Name) und E2 (beide Plattformen) laut Freigabe; E6 = Mock-Build als S
 
 ### Affected areas
 `package.json`, `package-lock.json`, `capacitor.config.ts`, `vite.config.ts`, `.env.native`, `.gitignore`,
-`eslint.config.js`, `src/native/platform.ts` (+ Test), `android/`, `ios/`, `docs/native.md`, `docs/decisions/0005-native-shell.md`,
-`docs/architecture.md`, `CLAUDE.md`.
+`eslint.config.js`, `src/native/platform.ts` (+ Test), `android/`, `ios/` (inkl. `Info.plist`), `docs/native.md`,
+`docs/decisions/0005-native-shell.md`, `docs/architecture.md`, `docs/backend-questions.md`, `CLAUDE.md`.
 
 ---
 
@@ -107,12 +119,13 @@ Die App hat ein Foodly-Icon und einen ruhigen Splash, und die Statusleisten-Symb
 lesbar.
 
 ### Behaviour
-- Quelldateien `assets/icon.png` (1024×1024, aus `favicon.svg`), `assets/icon-foreground.png` + `assets/icon-background.png`
+- Quelldateien `assets/icon-only.png` (1024×1024, aus `favicon.svg`; gerastert einmalig mit dem in `@capacitor/assets`
+  enthaltenen `sharp`, das Skript dafür wird nicht committet), `assets/icon-foreground.png` + `assets/icon-background.png`
   für Android-Adaptive-Icons, `assets/splash.png` und `assets/splash-dark.png` (2732×2732, Logo mittig auf
   `#fafafa` bzw. `#0f0f0f`, den Theme-Farben aus `index.html`). `@capacitor/assets` (dev, gepinnt) erzeugt daraus die
   Plattform-Dateien; die erzeugten Dateien werden committet. Skript `npm run cap:assets`.
-- `@capacitor/splash-screen` (gepinnt): `launchAutoHide: false`; `src/native/appShell.ts` blendet den Splash nach dem
-  ersten Render aus (aufgerufen aus `src/main.tsx`, nach `render()`), spätestens nach 3 s.
+- `@capacitor/splash-screen` (gepinnt): `launchAutoHide: false`; `src/native/appShell.ts` startet in `src/main.tsx`
+  **vor** `bootstrap()` einen 3-s-Fallback und blendet den Splash nach dem ersten Render aus (was zuerst kommt).
 - `@capacitor/status-bar` (gepinnt): `src/native/appShell.ts` setzt `Style.Light`/`Style.Dark` passend zum aufgelösten
   Theme und folgt Theme-Wechseln (`ThemeProvider`). Keine Hintergrundfarbe setzen.
 - Auf Web sind alle Aufrufe No-ops; die Plugins werden nur nativ dynamisch importiert.
@@ -124,7 +137,7 @@ lesbar.
 2. Vitest: auf Web ruft `appShell` keine Plugin-Funktion auf; nativ (gemockt) ruft der Start `SplashScreen.hide` einmal
    auf, auch wenn das Rendern scheitert (Fallback nach 3 s, mit Fake-Timern geprüft).
 3. Vitest: Theme `dark` → `StatusBar.setStyle({ style: Style.Dark })`, Wechsel auf `light` → `Style.Light`.
-4. Kein Capacitor-Code im Web-Entry-Chunk (wie N1 AK 4).
+4. Entry-Check aus N1 AK 4.
 5. Prüfzeilen in `docs/native.md` ergänzt; die fünf Checks und `npm run cap:sync` laufen durch.
 
 ### Non-goals
@@ -154,7 +167,7 @@ Die Zurück-Taste verhält sich wie in nativen Apps: erst Overlay schließen, da
 ### Behaviour
 `src/native/backButton.ts`, registriert einmal beim Start (nur Android, `@capacitor/app` gepinnt, dynamisch importiert):
 1. Ist ein Overlay offen (`[role="dialog"][data-state="open"]`, `[role="alertdialog"][data-state="open"]`,
-   `[role="menu"][data-state="open"]`; das zuletzt im DOM stehende ist das oberste), wird ein `keydown` `Escape`
+   `[role="menu"][data-state="open"]`, `[role="listbox"][data-state="open"]` (postxl `Select`); das zuletzt im DOM stehende ist das oberste), wird ein `keydown` `Escape`
    (bubbles) an dieses Element geschickt. Nichts sonst.
 2. Sonst, wenn der Pfad ohne `basename` nicht `/` ist: zurück im Verlauf, wenn `canGoBack`; sonst `navigate('/')`.
 3. Auf `/`: `App.exitApp()`.
@@ -163,7 +176,7 @@ Die Navigation läuft über React Router (Hook oder Komponente in `src/native/`,
 
 ### Acceptance criteria
 1. Vitest mit gemocktem `App`-Plugin: offenes postxl-`Dialog` → nach Zurück ist es geschlossen, der Pfad unverändert.
-2. Dasselbe für ein `BottomSheet` und ein `DropdownMenu`; bei zwei offenen Overlays schließt nur das oberste.
+2. Dasselbe für ein `BottomSheet`, ein `DropdownMenu` und ein offenes `Select`; bei zwei offenen Overlays schließt nur das oberste.
 3. Ohne Overlay auf `/recipes/1` mit Verlauf → zurück zur vorigen Route; ohne Verlauf → `/`.
 4. Auf `/` → `exitApp` wird aufgerufen.
 5. Auf Web und iOS wird kein Listener registriert.
@@ -195,9 +208,8 @@ Im Koch-Modus bleibt der Bildschirm auch in der App wach; externe Links öffnen 
 - `src/native/keepAwake.ts` (`@capacitor-community/keep-awake` 8.0.1, gepinnt): `keepAwake()`/`allowSleep()`.
   `useWakeLock` nutzt nativ diesen Adapter (`supported` ist nativ immer `true`), auf Web unverändert die Wake Lock API.
   Ein Fehler des Plugins setzt `enabled` auf `false` wie heute.
-- `src/native/openExternal.ts` (`@capacitor/browser`, gepinnt): nativ `Browser.open({ url })`, Web `window.open(url,
-  '_blank', 'noopener,noreferrer')`. Der Quelle-Link ruft das im `onClick` auf (`preventDefault` nur nativ), `href` bleibt
-  für Web, Kontextmenü und Barrierefreiheit.
+- `src/native/openExternal.ts` (`@capacitor/browser`, gepinnt): `Browser.open({ url })`. Der Quelle-Link bekommt den
+  `onClick`-Handler (mit `preventDefault`) **nur nativ**; auf Web bleibt er ein normaler Link mit `target="_blank"`.
 - Weitere externe Links im Code, falls vorhanden (grep nach `target="_blank"`), laufen über denselben Adapter.
 
 ### Acceptance criteria
@@ -241,11 +253,17 @@ Nativ bleibt man angemeldet, auch wenn iOS den WebView-Speicher leert. Web verh�
   aus `localStorage` gelöscht.
 - Der Datei-Kopf von `auth.ts` und CLAUDE.md (Abschnitt `auth.ts`) beschreiben die neue Invariante.
 - Mock-Modus: unverändert (kein `auth.ts`).
+- `bootstrap()` kehrt heute im REST-Modus früh zurück; es muss nativ vorher die Session laden. `src/api/index.ts` liest
+  beim Laden des Moduls `session.session()` (Cache für Nutzer): nach dem Laden aus Preferences muss eine Änderung gemeldet
+  bzw. der Cache neu gesetzt werden.
+- Nach einem Refresh wird der Preferences-Schreibvorgang abgewartet, bevor der neue Token genutzt wird (die Backend-
+  Rotation macht den alten Refresh-Token ungültig).
 
 ### Acceptance criteria
 1. Vitest nativ (Preferences gemockt): Anmelden schreibt in Preferences, nicht in `localStorage`; nach einem simulierten
    Neustart (Modul neu laden, Preferences behalten, `localStorage` geleert) ist man nach `bootstrap()` angemeldet.
-2. Abmelden und abgelaufener Refresh löschen den Eintrag in Preferences.
+2. Abmelden und abgelaufener Refresh löschen den Eintrag in Preferences; nach einem Refresh steht der neue Refresh-Token
+   in Preferences, bevor die wiederholte Anfrage gesendet wird.
 3. Migration aus `localStorage` wie beschrieben.
 4. Vor dem Ende von `bootstrap()` rendert die App nicht (bestehende Reihenfolge in `main.tsx`), also kein kurzes
    „abgemeldet“.
@@ -271,8 +289,9 @@ Labels: agent-ready, phase:7, device-check · Depends on: N1
 
 ### Context
 Spec „Timer-Benachrichtigung (N4)“, E4, E8, E9. Timer laufen in `src/timers/TimerProvider.tsx` (pro Nutzer in
-`localStorage`), der Alarm `src/timers/alarm.ts` klingelt nur im Vordergrund. Im Hintergrund pausiert die WebView JS; nach
-der Rückkehr flippt der Timer auf `expired` und `alarm.ts` würde verspätet klingeln.
+`localStorage`, Tick per `setInterval`), der Alarm `src/timers/alarm.ts` klingelt nur im Vordergrund. Im Hintergrund
+pausiert iOS JS, die Android-WebView lässt Timer oft weiterlaufen: dann würde der Tick im Hintergrund `startAlarm` und den
+Toast auslösen, zusätzlich zur Benachrichtigung; auf iOS würde `alarm.ts` nach der Rückkehr verspätet klingeln.
 
 ### Goal
 Läuft ein Timer ab, während die App im Hintergrund oder der Bildschirm gesperrt ist, kommt eine Benachrichtigung mit
@@ -280,32 +299,38 @@ Ton. Im Vordergrund bleibt alles wie heute, nie doppelt.
 
 ### Behaviour
 - `src/native/timerNotifications.ts` (`@capacitor/local-notifications` 8.3.1, `@capacitor/app`, gepinnt):
-  - Start: Android-Kanal `timers` (Wichtigkeit hoch, Systemton, Vibration) anlegen; alle ausstehenden
-    Foodly-Benachrichtigungen stornieren.
-  - `appStateChange` → inaktiv: für jeden laufenden Timer eine Benachrichtigung zur Endzeit planen (Titel „Foodly“, Text
-    „<Timer-Name> ist fertig“, ohne Namen „Timer ist fertig“; `allowWhileIdle: true`; Kanal `timers`; eine stabile
-    numerische ID je Timer). → aktiv: alle stornieren.
+  - Liefert `isActive()` (Vordergrund-Zustand aus `appStateChange`; Web immer `true`).
+  - Start: Android-Kanal `timers` (`createChannel`, Wichtigkeit 5, Systemton, Vibration) anlegen; alle ausstehenden
+    stornieren (`getPending()` → `cancel({ notifications })`). `smallIcon` in `capacitor.config.ts` auf ein einfarbiges
+    Drawable (`ic_stat_foodly`, aus dem Logo), sonst zeigt Android ein weißes Quadrat.
+  - `appStateChange` → inaktiv: für jeden laufenden Timer `schedule` mit `schedule: { at: <Endzeit>, allowWhileIdle: true }`
+    (Titel „Foodly“, Text „<Timer-Name> ist fertig“, ohne Namen „Timer ist fertig“; `channelId: 'timers'`; ID = positiver
+    int32-Hash der Timer-UUID). → aktiv: alle stornieren.
   - Abmelden bzw. Unmount von `TimerProvider`: alle stornieren.
   - Tippen auf die Benachrichtigung (`localNotificationActionPerformed`): App kommt nach vorn, das Timer-Panel öffnet sich
     (`TimerPanelContext`).
-  - Berechtigung: beim ersten Start eines Timers nativ `requestPermissions()` (E9); abgelehnt → Timer läuft trotzdem.
-  - Android: wenn `checkExactNotificationSetting()` nicht `granted` ist, wird ungenau geplant (kein Fehler).
-- `TimerProvider`: ein Timer, der während der Hintergrundphase abgelaufen ist (Endzeit vor dem Zeitpunkt der Rückkehr),
-  zeigt `expired`, **ohne** `startAlarm` aufzurufen. Läuft er im Vordergrund ab, klingelt `alarm.ts` wie heute.
+  - Berechtigung: beim Start eines Timers nativ `checkPermissions()`; ist sie `prompt`, folgt `requestPermissions()` (E9);
+    abgelehnt → Timer läuft trotzdem.
+  - Ohne „genaue Wecker“ plant das Plugin selbst ungenau; N6 prüft das nicht (Hinweis kommt mit N7).
+- `TimerProvider`: Läuft ein Timer ab, während `isActive()` `false` ist (Android-Tick im Hintergrund), oder ist seine
+  Endzeit bei der Rückkehr schon vorbei (iOS), flippt er auf `expired` **ohne** `startAlarm` und ohne Toast. Läuft er im
+  Vordergrund ab, klingelt `alarm.ts` wie heute.
 - Web: nichts davon (Adapter No-op).
-- Android-Manifest: `POST_NOTIFICATIONS`, `SCHEDULE_EXACT_ALARM` (nicht `USE_EXACT_ALARM`), `RECEIVE_BOOT_COMPLETED` laut
-  Plugin-Doku.
+- Android-Manifest: `SCHEDULE_EXACT_ALARM` von Hand ergänzen (nicht `USE_EXACT_ALARM`); die übrigen Berechtigungen bringt
+  das Plugin über das Manifest-Merging mit.
 
 ### Acceptance criteria
 1. Vitest (Plugins gemockt): zwei laufende Timer, Wechsel in den Hintergrund → zwei `schedule`-Aufrufe mit der Endzeit
    und dem Text; pausierte/abgelaufene Timer werden nicht geplant.
 2. Rückkehr in den Vordergrund → `cancel` für alle geplanten IDs.
-3. Timer, der im Hintergrund abgelaufen ist → nach der Rückkehr Status `expired`, `startAlarm` nicht aufgerufen; ein Timer,
-   der im Vordergrund abläuft → `startAlarm` einmal aufgerufen (bestehender Test grün).
+3. Tick bei `isActive() === false` über die Endzeit → Status `expired`, weder `startAlarm` noch Toast. Rückkehr nach der
+   Endzeit ohne Tick dazwischen → ebenso. Ablauf im Vordergrund → `startAlarm` einmal (bestehender Test grün).
 4. App-Start und Abmelden stornieren alle ausstehenden Benachrichtigungen.
 5. Tippen auf eine Benachrichtigung öffnet das Timer-Panel.
-6. Erster Timer-Start nativ fragt die Berechtigung genau einmal; Ablehnung verhindert den Start nicht.
-7. Web: kein Aufruf eines Plugins; kein Capacitor-Code im Web-Entry-Chunk.
+6. Timer-Start nativ mit Berechtigung `prompt` → `requestPermissions` aufgerufen; mit `granted`/`denied` nicht; `denied`
+   verhindert den Start nicht.
+7. Web: kein Aufruf eines Plugins; Entry-Check aus N1 AK 4.
+7a. Geplante Benachrichtigungen haben eine positive int32-ID, gleich für dieselbe Timer-UUID.
 8. Prüfzeilen in `docs/native.md` (Timer 1 Min., App in den Hintergrund, Bildschirm sperren → Ton; im Vordergrund kein
    doppelter Alarm; Tippen öffnet das Panel); die fünf Checks und `npm run cap:sync` laufen durch.
 
@@ -316,7 +341,8 @@ Hinweise im Timer-Panel (N7), eigener Ton (E8), Push vom Server, Live-Countdown 
 E4 = a (exakt, wenn erlaubt, sonst ungenau), E8 = Systemton, E9 = beim ersten Timer-Start.
 
 ### Affected areas
-`package.json`, `android/app/src/main/AndroidManifest.xml`, `capacitor.config.ts`, `src/native/timerNotifications.ts`
+`package.json`, `android/app/src/main/AndroidManifest.xml`, `android/app/src/main/res/drawable*/ic_stat_foodly.*`,
+`capacitor.config.ts`, `src/native/timerNotifications.ts`
 (+ Test), `src/timers/TimerProvider.tsx` (+ Test), `src/timers/TimerPanelContext.tsx`, `docs/native.md`.
 
 ---
@@ -335,8 +361,10 @@ Knopf.
 
 ### Behaviour
 - `timerNotifications.ts` liefert den Zustand `'ok' | 'denied' | 'inexact'` (neu geprüft beim Öffnen des Panels und bei
-  Rückkehr in den Vordergrund).
-- `src/timers/TimerPanel.tsx`, nur nativ und nur wenn mindestens ein Timer existiert oder das Panel offen ist:
+  Rückkehr in den Vordergrund): Berechtigung `denied` → `denied`; sonst (auch `prompt`) nur auf Android
+  `checkExactNotificationSetting()` ≠ `granted` → `inexact`; sonst `ok`. Auf iOS wird `checkExactNotificationSetting` nie
+  aufgerufen.
+- `src/timers/TimerPanel.tsx`, nur nativ:
   - `denied`: „Benachrichtigungen sind aus – Timer klingeln nur, solange Foodly offen ist. Du kannst sie in den
     Systemeinstellungen erlauben.“ (kein Link).
   - `inexact` (nur Android): „Timer können sich im Hintergrund um einige Minuten verspäten.“ mit Button „Genaue Wecker
@@ -348,7 +376,8 @@ Knopf.
 1. Vitest: `denied` → erster Text sichtbar, kein Button; `inexact` → zweiter Text und Button; Klick ruft
    `changeExactNotificationSetting` auf; `ok` → kein Hinweis.
 2. Rückkehr in den Vordergrund nach Erlauben → Hinweis verschwindet (Zustand neu geprüft).
-3. Web: kein Hinweis, kein Plugin-Aufruf.
+3. Web: kein Hinweis, kein Plugin-Aufruf. iOS (gemockt): kein Aufruf von `checkExactNotificationSetting`; Berechtigung
+   `prompt` → kein Hinweis.
 4. Prüfzeilen in `docs/native.md`; die fünf Checks und `npm run cap:sync` laufen durch.
 
 ### Non-goals
@@ -365,8 +394,8 @@ E4 = a.
 ## Backend-Issues
 
 Keine. Für einen REST-Build braucht das Deployment `CORS_ALLOWED_ORIGINS` mit `capacitor://localhost` und
-`https://localhost` sowie ein über HTTPS erreichbares Backend. Das kommt als B19 (Hinweis) in
-`docs/backend-questions.md` und in `docs/native.md`; ein Backend-Issue lege ich nur an, wenn die Owner es wollen.
+`https://localhost` sowie ein über HTTPS erreichbares Backend. Das trägt N1 als B19 (Hinweis) in
+`docs/backend-questions.md` und in `docs/native.md` ein; ein Backend-Issue lege ich nur an, wenn die Owner es wollen.
 
 ## QA-Journeys (Gerätetest durch Kolja/Daniel nach N7, Checkliste `docs/native.md`)
 
@@ -380,4 +409,14 @@ Keine. Für einen REST-Build braucht das Deployment `CORS_ALLOWED_ORIGINS` mit `
    Tippen öffnet das Timer-Panel; im Vordergrund klingelt nur der In-App-Alarm.
 5. Berechtigung ablehnen → Hinweis im Panel; Android 14+: Hinweis „verspäten“, Knopf öffnet die Einstellung.
 6. Sobald ein Backend erreichbar ist (REST-Build): anmelden, App beenden, neu starten → weiter angemeldet.
-Befunde sammelt ein Issue „Gerätetest Phase 7: Befunde“.
+Befunde sammelt ein Issue „Gerätetest Phase 7: Befunde“, das der Lead nach dem Merge von N7 anlegt.
+
+## Review-Log
+
+- 2026-11-23, unabhängiges Review (1 Blocker, 4 Major, 7 Minor), eingearbeitet: N1 erst nach E1 anlegen (Platzhalter
+  `<APP_ID>`); `platform.ts` ohne statischen Core-Import, Entry-Check als prüfbarer `grep`; N4-Link-Handler nur nativ
+  (sonst zwei Tabs auf Web); N6 berücksichtigt weiterlaufende Android-Ticks (`isActive()`); `Info.plist`-Texte in N1;
+  B19 und Befund-Issue zugeordnet; `icon-only.png`, Rasterung, Splash-Fallback vor `bootstrap()`; N6-Plugin-Details
+  (`schedule.allowWhileIdle`, `getPending`/`cancel`, int32-IDs, `checkPermissions`→`requestPermissions`, `smallIcon`,
+  Manifest-Merging, Exakt-Prüfung erst in N7); N7 `prompt`→`ok`, iOS ohne Exakt-Prüfung, Bedingung gestrichen; N3 mit
+  `Select`; N5 mit Umbau von `bootstrap()`, Cache in `index.ts` und abgewartetem Schreiben nach Refresh.
