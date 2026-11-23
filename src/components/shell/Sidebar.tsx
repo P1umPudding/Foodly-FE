@@ -78,6 +78,9 @@ export function Sidebar({
       className={cn(
         'sticky top-0 flex h-screen shrink-0 flex-col gap-0.5 border-r border-sidebar-border bg-sidebar pt-4 pr-3 pb-[max(1rem,env(safe-area-inset-bottom))] pl-[calc(0.75rem+env(safe-area-inset-left))] text-sidebar-foreground',
         widthClass,
+        // Touch: the collapsed rail's entries would be 64 − 12 − 12 − 1 (border) = 39 px wide; 11 px right padding makes
+        // them 40 (the safe-area inset is in both width and left padding, so it cancels out).
+        collapsed && 'touch:pr-[11px]',
       )}
     >
       <div className={cn('flex items-center pb-4', collapsed ? 'flex-col gap-2' : 'justify-between pl-2.5')}>

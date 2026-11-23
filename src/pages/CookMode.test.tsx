@@ -100,6 +100,15 @@ afterEach(() => {
 })
 
 describe('CookMode', () => {
+  // #307: the ✕ gets 40 px on touch; the mouse size (size-9 from size="icon") stays.
+  it('gives the close button a 40 px tap area on touch only', async () => {
+    vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(TWO_SECTIONS))
+    renderCook()
+    const cls = (await screen.findByRole('button', { name: 'Koch-Modus beenden' })).className.split(/\s+/)
+    expect(cls).toEqual(expect.arrayContaining(['size-9', 'touch:size-10']))
+    expect(cls).not.toContain('size-10')
+  })
+
   it('counts steps across sections and names the section', async () => {
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(TWO_SECTIONS))
     renderCook()

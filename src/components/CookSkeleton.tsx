@@ -7,7 +7,8 @@ export function CookSkeleton() {
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
       <div className="sticky top-0 z-10 flex items-center gap-3 bg-background px-4 py-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] pr-[calc(1rem+env(safe-area-inset-right))] pl-[calc(1rem+env(safe-area-inset-left))]">
-        <Skeleton className="-ml-2 size-9 rounded-md" />
+        {/* touch:size-10 like the ✕ in CookMode, so the header doesn't grow when the page arrives. */}
+        <Skeleton className="-ml-2 size-9 rounded-md touch:size-10" />
         <Skeleton className="h-5 w-48 max-w-full" />
       </div>
       <div className="mx-auto w-full max-w-[860px] flex-1 px-10 pt-[8vh] pb-10 lg:px-14 phone:px-5 phone:pt-7">

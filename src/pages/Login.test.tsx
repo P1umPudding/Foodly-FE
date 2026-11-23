@@ -43,15 +43,16 @@ async function signIn(path: string, mail = 'kim@example.com', pw = 'password123'
 }
 
 describe('Login', () => {
-  // #219: the submit button and the „Registrieren“ link get 40 px on touch; the mouse height stays.
+  // #219/#307: the submit button and the „Registrieren“ link get 40 px on touch; the mouse height stays.
   it('gives the submit button and the switch link a 40 px tap area on touch only', () => {
     renderAuthRoutes('/login', { login: <Login /> })
     const submit = screen.getByRole('button', { name: 'Anmelden' }).className.split(/\s+/)
     expect(submit).toContain('touch:h-10')
     expect(submit).not.toContain('h-10')
-    expect(screen.getByRole('link', { name: 'Registrieren' }).className.split(/\s+/)).toEqual(
-      expect.arrayContaining(['touch:inline-block', 'touch:py-2.5', 'touch:-my-2.5']),
-    )
+    // #307: text-sm's line height is 18 px, so 11 px padding each side makes the 40.
+    const link = screen.getByRole('link', { name: 'Registrieren' }).className.split(/\s+/)
+    expect(link).toEqual(expect.arrayContaining(['touch:inline-block', 'touch:py-[11px]', 'touch:-my-[11px]']))
+    expect(link).not.toContain('py-2.5')
   })
 
   it('sets the page title and restores the previous one on leaving', () => {

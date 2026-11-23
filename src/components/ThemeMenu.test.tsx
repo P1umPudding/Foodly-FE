@@ -47,6 +47,16 @@ describe('ThemeSegment', () => {
     expect(screen.getByRole('radio', { name: 'System' }).getAttribute('aria-checked')).toBe('false')
   })
 
+  // #307: 40 px tap area on touch only; the mouse height stays.
+  it('gives each option a 40 px tap area on touch only', () => {
+    renderSegment()
+    for (const name of ['Hell', 'Dunkel', 'System']) {
+      const cls = screen.getByRole('radio', { name }).className.split(/\s+/)
+      expect(cls).toEqual(expect.arrayContaining(['h-8', 'touch:h-10']))
+      expect(cls).not.toContain('h-10')
+    }
+  })
+
   it('switches to dark and stores the choice', async () => {
     renderSegment()
     fireEvent.click(screen.getByRole('radio', { name: 'Dunkel' }))

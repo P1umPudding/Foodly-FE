@@ -46,12 +46,12 @@ export function AuthCardSkeleton() {
 
 export function AuthLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    // Touch: inline-block so the padding adds to the 20 px line height (40 px tap area; on a plain inline link it would
-    // add to the smaller font box); the negative margins keep the line where it was. relative: in a field's error note
-    // the padding reaches into the (positioned) input box, which would otherwise take those taps.
+    // Touch: inline-block so the padding adds to text-sm's 18 px line height (18 + 2 × 11 = 40 px tap area; on a plain
+    // inline link it would add to the smaller font box); the negative margins keep the line where it was. relative: in a
+    // field's error note the padding reaches into the (positioned) input box, which would otherwise take those taps.
     <Link
       to={to}
-      className="font-medium text-foreground underline underline-offset-4 touch:relative touch:-my-2.5 touch:inline-block touch:py-2.5"
+      className="font-medium text-foreground underline underline-offset-4 touch:relative touch:-my-[11px] touch:inline-block touch:py-[11px]"
     >
       {children}
     </Link>
