@@ -321,7 +321,7 @@ Backend-Umbau der Zugriffsabfrage.
 
 - **B19 Rezeptzahl fürs Profil** (Daniel, 2026-11-23): Das Mockup zeigt im Profil-Kopf „42 Rezepte“. Das FE
   kann die Zahl nicht ohne Zusatz-Request bestimmen: `User` hat keinen Zähler, die Suche ist paginiert und liefert
-  keine Gesamtzahl (B16). Vorschlag: `recipeCount` in `GET /users/me` oder `total` in der Suchantwort (B16). Offen:
+  keine Gesamtzahl. Vorschlag: `recipeCount` in `GET /users/me` oder `total` in der Suchantwort (B16). Offen:
   eigene oder alle sichtbaren Rezepte. Bis dahin zeigt das Profil keine Zahl (FE #304).
 
 ## Gelöst / Frontend muss nachziehen
