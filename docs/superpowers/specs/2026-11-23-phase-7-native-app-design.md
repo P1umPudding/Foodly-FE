@@ -139,7 +139,7 @@ Keine neuen Endpunkte oder Felder. Für einen REST-Build braucht das Deployment:
 - ein von Geräten erreichbares Backend über HTTPS. Mit `androidScheme: 'https'` blockiert die WebView `http://`-APIs als
   Mixed Content; für einen lokalen LAN-Test ist `androidScheme: 'http'` + `cleartext` nur als lokale, nicht committete
   Abweichung in `docs/native.md` beschrieben.
-Eintrag als B19 in `docs/backend-questions.md` (Hinweis, kein Blocker). Vorschlag: kein Backend-Issue, nur der Hinweis im
+Eintrag als B20 in `docs/backend-questions.md` (Hinweis, kein Blocker). Vorschlag: kein Backend-Issue, nur der Hinweis im
 Deployment, sobald ein Backend läuft (die Owner bestätigen das mit der Freigabe).
 
 ## Nicht im Umfang

@@ -68,7 +68,7 @@ Daniel in Android Studio bzw. Xcode öffnen und auf einem Gerät starten können
   Abweichung, CORS-Origins für das Backend (`capacitor://localhost`, `https://localhost`), Abschnitt „Prüfliste“ mit den
   ersten Zeilen (App startet, Startseite mit Mock-Daten, Navigation, Safe Areas oben/unten auf Android und iOS, Bild
   hinzufügen öffnet Kamera/Galerie auf iOS).
-- `docs/backend-questions.md`: B19 „Native Origins in `CORS_ALLOWED_ORIGINS`“ (Hinweis, kein Blocker, Spec).
+- `docs/backend-questions.md`: B20 „Native Origins in `CORS_ALLOWED_ORIGINS`“ (Hinweis, kein Blocker, Spec).
 - `docs/decisions/0005-native-shell.md`: Capacitor, `src/native/` als einzige Stelle für native APIs, Plugins dynamisch
   importiert, Web bleibt Primärziel.
 - `CLAUDE.md`: Befehle `build:native`/`cap:sync`, Modul `src/native/`, Env-Tabelle um `.env.native` ergänzt.
@@ -394,7 +394,7 @@ E4 = a.
 ## Backend-Issues
 
 Keine. Für einen REST-Build braucht das Deployment `CORS_ALLOWED_ORIGINS` mit `capacitor://localhost` und
-`https://localhost` sowie ein über HTTPS erreichbares Backend. Das trägt N1 als B19 (Hinweis) in
+`https://localhost` sowie ein über HTTPS erreichbares Backend. Das trägt N1 als B20 (Hinweis) in
 `docs/backend-questions.md` und in `docs/native.md` ein; ein Backend-Issue lege ich nur an, wenn die Owner es wollen.
 
 ## QA-Journeys (Gerätetest durch Kolja/Daniel nach N7, Checkliste `docs/native.md`)
@@ -416,7 +416,7 @@ Befunde sammelt ein Issue „Gerätetest Phase 7: Befunde“, das der Lead nach 
 - 2026-11-23, unabhängiges Review (1 Blocker, 4 Major, 7 Minor), eingearbeitet: N1 erst nach E1 anlegen (Platzhalter
   `<APP_ID>`); `platform.ts` ohne statischen Core-Import, Entry-Check als prüfbarer `grep`; N4-Link-Handler nur nativ
   (sonst zwei Tabs auf Web); N6 berücksichtigt weiterlaufende Android-Ticks (`isActive()`); `Info.plist`-Texte in N1;
-  B19 und Befund-Issue zugeordnet; `icon-only.png`, Rasterung, Splash-Fallback vor `bootstrap()`; N6-Plugin-Details
+  B20 und Befund-Issue zugeordnet; `icon-only.png`, Rasterung, Splash-Fallback vor `bootstrap()`; N6-Plugin-Details
   (`schedule.allowWhileIdle`, `getPending`/`cancel`, int32-IDs, `checkPermissions`→`requestPermissions`, `smallIcon`,
   Manifest-Merging, Exakt-Prüfung erst in N7); N7 `prompt`→`ok`, iOS ohne Exakt-Prüfung, Bedingung gestrichen; N3 mit
   `Select`; N5 mit Umbau von `bootstrap()`, Cache in `index.ts` und abgewartetem Schreiben nach Refresh.
