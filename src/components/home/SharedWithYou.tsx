@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import { Card } from '@postxl/ui-components'
 import { foodly } from '../../api'
 import type { Recipe, RecipeSearchQuery } from '../../api/protocol'
-import { useCurrentUserId, useUser } from '../../catalog/CatalogProvider'
+import { useCurrentUserId, useUserLookup } from '../../catalog/CatalogProvider'
 import { useRequest } from '../../hooks/useRequest'
 import { hasDisplayableImages } from '../../list/rowData'
 import { RecipeThumb } from '../recipe/RecipeThumb'
@@ -68,7 +68,7 @@ export function SharedWithYou() {
 }
 
 function SharedRow({ recipe, showImage }: { recipe: Recipe; showImage: boolean }) {
-  const owner = useUser(recipe.owner)
+  const { user: owner, unknown: ownerUnknown } = useUserLookup(recipe.owner)
   return (
     <li className={ROW_DIVIDER}>
       <Link
@@ -80,11 +80,14 @@ function SharedRow({ recipe, showImage }: { recipe: Recipe; showImage: boolean }
           <span className="block truncate font-medium">
             <TagText value={recipe.name} />
           </span>
-          {/* Empty while the owner's name is still unknown (as in RecipeRow), but one line tall, so the row doesn't grow
-              when it arrives. */}
-          <span className="mt-0.5 block h-lh truncate text-sm text-muted-foreground">
-            {owner && `von ${owner.name}`}
-          </span>
+          {/* While the name loads the line is reserved (h-lh), so the row doesn't grow when it arrives. An owner that
+              can't be resolved gets no line at all rather than a blank one; that row shrinks once, when the lookup
+              settles. */}
+          {!ownerUnknown && (
+            <span data-testid="shared-owner" className="mt-0.5 block h-lh truncate text-sm text-muted-foreground">
+              {owner && `von ${owner.name}`}
+            </span>
+          )}
         </div>
       </Link>
     </li>

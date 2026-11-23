@@ -5,10 +5,14 @@ import { foodly } from '../../api'
 import type { Recipe, RecipeId, UserId } from '../../api/protocol'
 import { SharedWithYou } from './SharedWithYou'
 
-const users = vi.hoisted(() => ({ names: {} as Record<number, string> }))
+// Per owner id: a name (found), in `unknown` (lookup settled without a user), or neither (still loading).
+const users = vi.hoisted(() => ({ names: {} as Record<number, string>, unknown: new Set<number>() }))
 vi.mock('../../catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
-  useUser: (id: number) => (users.names[id] ? { id, name: users.names[id], profilePicture: null } : undefined),
+  useUserLookup: (id: number) => ({
+    user: users.names[id] ? { id, name: users.names[id], profilePicture: null } : undefined,
+    unknown: users.unknown.has(id),
+  }),
   useTags: () => ({ byId: {}, status: 'ready' }),
 }))
 
@@ -53,6 +57,7 @@ const rowLinks = () => within(region()).queryAllByRole('link')
 afterEach(() => {
   vi.restoreAllMocks()
   users.names = {}
+  users.unknown = new Set()
 })
 
 describe('SharedWithYou', () => {
@@ -87,13 +92,29 @@ describe('SharedWithYou', () => {
     expect(screen.queryByRole('region', { name: 'Geteilt mit dir' })).toBeNull()
   })
 
-  it('leaves out "von" while the owner is unknown', async () => {
+  const rowLink = async (name: RegExp) =>
+    within(await screen.findByRole('region', { name: 'Geteilt mit dir' })).findByRole('link', { name })
+
+  it('keeps an empty one-line "von" slot while the owner is still loading', async () => {
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue(page([recipe(5, 4)]))
     renderSection()
-    const link = await within(await screen.findByRole('region', { name: 'Geteilt mit dir' })).findByRole('link', {
-      name: /Rezept 5/,
-    })
+    const link = await rowLink(/Rezept 5/)
     expect(within(link).queryByText(/von/)).toBeNull()
+    const slot = within(link).getByTestId('shared-owner')
+    expect(slot.textContent).toBe('')
+    expect(slot.className.split(/\s+/)).toContain('h-lh')
+  })
+
+  it('drops the "von" line when the owner cannot be resolved', async () => {
+    // e.g. GET /users?ids=… failed or didn't return the id
+    users.names = { 2: 'Mara' }
+    users.unknown = new Set([4])
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue(page([recipe(5, 4), recipe(6, 2)]))
+    renderSection()
+    const unknownRow = await rowLink(/Rezept 5/)
+    expect(within(unknownRow).queryByTestId('shared-owner')).toBeNull()
+    expect(unknownRow.textContent).toBe('Rezept 5')
+    expect(within(await rowLink(/Rezept 6/)).getByTestId('shared-owner').textContent).toBe('von Mara')
   })
 
   it('has no image column when none of the shown recipes has a photo', async () => {
