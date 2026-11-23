@@ -61,6 +61,13 @@ export default tseslint.config(
           message:
             'An expression-bodied effect callback hands its value to React as the cleanup; use a block body (and an explicit `return` for a real cleanup).',
         },
+        {
+          // Without it React Router 7 runs navigations in startTransition (no lazy-route skeleton, lagging
+          // re-renders); tests must match the app (#297).
+          selector:
+            "JSXOpeningElement[name.name=/^(Browser|Memory)Router$/]:not(:has(JSXAttribute[name.name='useTransitions']))",
+          message: 'Set useTransitions={false} on every router, like src/main.tsx (keeps the v6 navigation behaviour).',
+        },
       ],
     },
   },
