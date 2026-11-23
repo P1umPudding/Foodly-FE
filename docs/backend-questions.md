@@ -37,6 +37,7 @@ Kolja) · `später` (nicht blockierend).
 | B16 | Trefferzahlen/Facetten in der Suche      | offen       | nein (FE ohne Zahlen)   | [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17) |
 | B17 | Rezept-Import (URL + Foto)               | offen       | nein (nach der Alpha)   | [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28) |
 | B18 | Standard-Kategorie „Favoriten“           | offen       | ja: FE #289             | [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29) |
+| B19 | Rezeptzahl fürs Profil                   | offen       | nein (Profil ohne Zahl, #304) | –             |
 | G1  | `createdAt` / `updatedAt` an Recipe     | FE-Arbeit   | –                       | –             |
 | G2  | `UserRating` DB-only                    | gelöst      | –                       | –             |
 | G3  | Tag-Icons (`GET /tags/{id}/icon`)       | gelöst      | –                       | –             |
@@ -317,6 +318,11 @@ Backend-Umbau der Zugriffsabfrage.
   (`order 0`, `#e11d48`, leer), als normale Kategorie (umbenennen/löschen erlaubt, kommt nicht zurück). Migration für
   bestehende Nutzer ohne Kategorien. FE braucht keinen Code, nur Prüfung nach dem Merge (FE #289).
   → [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29)
+
+- **B19 Rezeptzahl fürs Profil** (Daniel, 2026-11-23): Das Mockup zeigt im Profil-Kopf „42 Rezepte“. Das FE
+  kann die Zahl nicht ohne Zusatz-Request bestimmen: `User` hat keinen Zähler, die Suche ist paginiert und liefert
+  keine Gesamtzahl (B16). Vorschlag: `recipeCount` in `GET /users/me` oder `total` in der Suchantwort (B16). Offen:
+  eigene oder alle sichtbaren Rezepte. Bis dahin zeigt das Profil keine Zahl (FE #304).
 
 ## Gelöst / Frontend muss nachziehen
 

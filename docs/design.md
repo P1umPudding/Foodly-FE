@@ -146,7 +146,7 @@ Farbton bleibt (OKLCH). So ist jede Nutzerfarbe lesbar.
 - **Handy (bis 760 px):** Tab-Leiste unten (Icon + Label), Kopfzeile mit Titel, Aktionen, Timer-Knopf und ganz
   rechts dem **Avatar → Profil** (auf Hauptseiten; Unterseiten haben stattdessen links den Zurück-Pfeil).
   Der Avatar (Handy) bzw. der Profil-Eintrag unten in der Seitenleiste führt zur Profilseite `/profile` (#245):
-  Kopf mit Avatar und Name, „Darstellung“ mit Segment „Design“ (Hell/Dunkel/System), „Kategorien ›“ und
+  Kopf mit Avatar und Name (ohne Rezeptzahl bis B19), „Darstellung“ mit Segment „Design“ (Hell/Dunkel/System), „Kategorien ›“ und
   „Abmelden“ in Rot (nur REST). Wake-Lock bleibt auf der Rezeptseite (Daniel, 15.11.2026). `/profile` ist eine
   Hauptseite (kein Zurück-Pfeil, kein Avatar, Handy-Titel „Profil“); Elternseite von `/categories` ist das Profil.
   „Neues Rezept“ ist der runde FAB unten rechts über der Tab-Leiste.
