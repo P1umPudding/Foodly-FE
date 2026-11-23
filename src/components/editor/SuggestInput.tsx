@@ -1,12 +1,41 @@
-import { useId, useState, type FocusEvent, type KeyboardEvent, type ReactNode } from 'react'
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react'
 import { Input, cn } from '@postxl/ui-components'
 
 export type Suggestion = { id: string; label: ReactNode }
+
+// The nearest ancestor that scrolls, stopping short of the page itself.
+function scrollParent(el: HTMLElement): HTMLElement | null {
+  for (let p = el.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+    if (/^(auto|scroll)$/.test(getComputedStyle(p).overflowY)) return p
+  }
+  return null
+}
+
+// block: 'nearest' within one container only; Element.scrollIntoView would also scroll every outer ancestor and can
+// pan the iOS visual viewport.
+function bringIntoView(container: HTMLElement, el: HTMLElement) {
+  const box = container.getBoundingClientRect()
+  const rect = el.getBoundingClientRect()
+  if (rect.bottom > box.bottom) container.scrollTop += rect.bottom - box.bottom
+  if (rect.top < box.top) container.scrollTop -= box.top - rect.top
+}
 
 // A text field whose suggestions open right below it while typing (TagPicker pattern, mockup `.unit-in`/`.name-in`):
 // the list is rendered inline (no portal), the keyboard stays on the input and drives it via aria-activedescendant.
 // It opens on typing or ArrowDown, never on focus, so tabbing through a table row doesn't pop lists open. `openOnClick`
 // also opens it on a click or tap, for fields that look like a choice (Einheit) and would otherwise hide their list.
+// `keepListInView` (phone sheet, #306): the list opens inside the sheet's scroll region, where the on-screen keyboard
+// leaves little room, so that region scrolls to show it, input first. Desktop callers leave it off: there it would
+// scroll whatever ancestor happens to scroll.
 export function SuggestInput({
   value,
   onValueChange,
@@ -16,6 +45,7 @@ export function SuggestInput({
   onEnter,
   onBlur,
   openOnClick = false,
+  keepListInView = false,
   icon,
   label,
   placeholder,
@@ -33,6 +63,7 @@ export function SuggestInput({
   onEnter?: () => void
   onBlur?: (e: FocusEvent<HTMLInputElement>) => void
   openOnClick?: boolean
+  keepListInView?: boolean
   icon?: ReactNode
   label: string
   placeholder?: string
@@ -48,6 +79,42 @@ export function SuggestInput({
   const activeIndex = Math.min(active, suggestions.length - 1)
   const expanded = open && suggestions.length > 0
   const optionId = (i: number) => `${listId}-${i}`
+  const rootRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  const reveal = () => {
+    const root = rootRef.current
+    const container = root && scrollParent(root)
+    if (!container || !listRef.current || !inputRef.current) return
+    // Input last: when both don't fit, the field stays in view and the list shows as far as there is room. This also
+    // undoes scrolling done by hand while typing, which is fine: each keystroke changes the list anyway.
+    bringIntoView(container, listRef.current)
+    bringIntoView(container, inputRef.current)
+  }
+
+  useLayoutEffect(() => {
+    if (keepListInView && expanded) reveal()
+  }, [keepListInView, expanded, value, suggestions.length])
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!keepListInView || !expanded || !vv) return
+    // The keyboard opening (or resizing) after the list is shown: BottomSheet shrinks the sheet to the visible height on
+    // the same event, and its height isn't transitioned, so a frame later the layout is final. Android fires many
+    // resize events while the keyboard animates; they are merged per frame. Its `scroll` (iOS offsetTop) only moves the
+    // sheet, not its height, so it needs no reveal.
+    let frame = 0
+    const onResize = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(reveal)
+    }
+    vv.addEventListener('resize', onResize)
+    return () => {
+      vv.removeEventListener('resize', onResize)
+      cancelAnimationFrame(frame)
+    }
+  }, [keepListInView, expanded])
 
   const select = (id: string) => {
     onSelect(id)
@@ -85,8 +152,9 @@ export function SuggestInput({
   }
 
   return (
-    <div className={cn('relative', className)}>
+    <div ref={rootRef} className={cn('relative', className)}>
       <Input
+        ref={inputRef}
         id={id}
         role="combobox"
         aria-label={label}
@@ -118,6 +186,7 @@ export function SuggestInput({
       )}
       {expanded && (
         <div
+          ref={listRef}
           id={listId}
           role="listbox"
           aria-label={`${label}: Vorschläge`}
