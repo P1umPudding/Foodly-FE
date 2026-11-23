@@ -21,13 +21,13 @@ gleichzeitig, der zweite rebased vor dem PR.
 
 | # | Issue | Hängt ab von | Parallel möglich mit |
 |---|---|---|---|
-| N1 | Native App: Capacitor-Grundgerüst für Android und iOS | – | – |
-| N2 | Native App: Icon, Splash und Statusleiste | N1 | N3 |
-| N3 | Native App: Android-Zurück-Taste | N1 | N2 |
-| N4 | Native App: Bildschirm wach und externe Links | N1 | N5 |
-| N5 | Native App: Anmeldung in Preferences speichern | N1 | N4 |
-| N6 | Native App: Timer klingeln im Hintergrund | N1 | N2, N3 |
-| N7 | Native App: Hinweise zu Benachrichtigungen im Timer-Panel | N6 | – |
+| N1 (#323) | Native App: Capacitor-Grundgerüst für Android und iOS | – | – |
+| N2 (#324) | Native App: Icon, Splash und Statusleiste | N1 | N3 |
+| N3 (#325) | Native App: Android-Zurück-Taste | N1 | N2 |
+| N4 (#326) | Native App: Bildschirm wach und externe Links | N1 | N5 |
+| N5 (#327) | Native App: Anmeldung in Preferences speichern | N1 | N4 |
+| N6 (#328) | Native App: Timer klingeln im Hintergrund | N1 | N2, N3 |
+| N7 (#329) | Native App: Hinweise zu Benachrichtigungen im Timer-Panel | N6 | – |
 
 ---
 
