@@ -11,7 +11,7 @@ describe('hasModuleSideEffects', () => {
   })
 
   it.each([
-    '/app/node_modules/@postxl/ui-components/dist/index.js',
+    '/app/node_modules/react-dom/cjs/react-dom.production.min.js',
     '/app/node_modules/@postxl/ui-components/src/styles/theme.css',
     '/app/node_modules/react-resizable-panels-foo/dist/index.js',
     '/app/src/main.tsx',

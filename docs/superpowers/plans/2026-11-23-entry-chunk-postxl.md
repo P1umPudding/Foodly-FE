@@ -54,8 +54,8 @@ Target lever: Rollup `treeshake.moduleSideEffects` false only for `react-resizab
 5 checks green, tests unchanged. 6 n/a (condition 2 allows small PR < 5 %).
 
 ## Commits (no Co-Authored-By or other AI trailer, per CLAUDE.md; `npm run format` before commit)
-1. `build: drop unused react-resizable-panels from entry chunk (#309)` (treeshake.ts + test + vite.config)
-2. `docs: note postxl tree-shaking limits (#309)` — architecture.md bullet + this plan committed as
+1. `build: drop unused react-resizable-panels from entry chunk` (body: Refs #309) (treeshake.ts + test + vite.config)
+2. `docs: note postxl tree-shaking limits` (body: Refs #309) — architecture.md bullet + this plan committed as
    `docs/superpowers/plans/2026-11-23-entry-chunk-postxl.md`.
 
 ## Review log

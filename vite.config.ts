@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => {
       proxy: { '/api': { target: 'http://localhost:8080', changeOrigin: true } },
     },
     preview: previewServer,
-    // The entry chunk stays ~690 kB minified even with the rare routes split off (#221) and unused postxl
+    // The entry chunk stays ~687 kB minified even with the rare routes split off (#221) and unused postxl
     // dependencies dropped (#309): most of it is react-dom and @postxl/ui-components, whose single pre-bundled file
     // can't be tree-shaken without rewriting its code (ruled out, #309). The limit sits just above today's size, so a
     // growing entry warns, and so does a dropped dependency creeping back in (e.g. after a postxl upgrade).
