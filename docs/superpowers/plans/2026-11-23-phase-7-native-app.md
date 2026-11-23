@@ -1,9 +1,9 @@
 # Phase 7 — Native App mit Capacitor — Issue-Plan
 
-> Freigegeben von Daniel am 2026-11-23 (12:30 UTC), Empfehlungen E2–E9 übernommen; E1 (App-ID) offen. Die Abschnitte N1–N7 sind die Issue-Texte;
+> Freigegeben von Daniel am 2026-11-23 (12:30 UTC), Empfehlungen E2–E9 übernommen; E1 entschieden (Daniel, 18:28 UTC). Die Abschnitte N1–N7 sind die Issue-Texte;
 > der Titel ist jeweils die Überschrift ohne „Nx —“. Die Issues setzen die Empfehlungen zu E1–E9 der Spec voraus; ändert
-> die Freigabe eine Entscheidung, passe ich die betroffenen Issues vor dem Anlegen an. E1 (App-ID) hat keine Empfehlung:
-> N1 wird erst angelegt, wenn die ID feststeht; sie ersetzt dann `<APP_ID>` und `<APP_NAME>` wörtlich.
+> die Freigabe eine Entscheidung, passe ich die betroffenen Issues vor dem Anlegen an. E1: App-ID
+> `io.github.p1umpudding.foodly`, App-Name „Foodly“; in N1 eingesetzt.
 
 Spec: `docs/superpowers/specs/2026-11-23-phase-7-native-app-design.md`. Architektur: `docs/architecture.md`, neue
 Decision-Note 0005 (kommt mit N1).
@@ -45,7 +45,7 @@ Linux-Container geprüft: `cap add android`, `cap add ios` (SPM, ohne CocoaPods/
 Daniel in Android Studio bzw. Xcode öffnen und auf einem Gerät starten können.
 
 ### Behaviour
-- `capacitor.config.ts`: `appId: '<APP_ID>'`, `appName: '<APP_NAME>'`, `webDir: 'dist'`, `server.androidScheme: 'https'`.
+- `capacitor.config.ts`: `appId: 'io.github.p1umpudding.foodly'`, `appName: 'Foodly'`, `webDir: 'dist'`, `server.androidScheme: 'https'`.
 - iOS `Info.plist`: `NSCameraUsageDescription` („Foodly nutzt die Kamera, damit du Fotos zu Rezepten aufnehmen kannst.“) und
   `NSPhotoLibraryUsageDescription` („Foodly greift auf deine Fotos zu, damit du Bilder zu Rezepten hinzufügen kannst.“),
   nötig für `<input type=file>`.
