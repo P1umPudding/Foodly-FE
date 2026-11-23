@@ -82,7 +82,8 @@ gemergt. Neue Reihenfolge (Daniel): **Redesign Schritt 6** (Detail + Koch-Modus,
 **Stand 2026-11-23:** Redesign Schritt 6 und 7 sowie Phase 6 (M1–M8) sind gemergt (bis PR #317). Offen sind nur
 Nachzügler (#303, #304, #306, #307, #309, #297) und die backend-blockierten #49 (Backend #17), #250 (Backend #16, laut
 Maintainer erst mit Axum 0.9) und #289 (Backend #29). Backend `main`/`web-api` seit 2026-11-13 unverändert. Damit ist die
-Alpha bis auf Backend-Blöcke erreicht; der nächste Breakdown ist offen (Empfehlung an Kolja über den Dispatcher).
+Alpha bis auf Backend-Blöcke erreicht. Nächster Block (Daniel, 23.11.): Phase 7 (native App); die Alpha-Abnahme gegen das
+echte Backend entfällt vorerst, weil noch kein Backend erreichbar ist.
 
 Details je Phase in `phases/`.
 
@@ -234,10 +235,15 @@ Tippflächen 40 px auf Touch, PWA-Manifest ohne Service Worker + Safe Areas, Cod
 Die Web-App für Mobile schärfen: Touch-Targets, responsives Layout, Performance,
 ggf. PWA-Grundlagen. Voraussetzung fürs native Wrappen.
 
-## Phase 7 — Als native Mobile-App wrappen
+## Phase 7 — Als native Mobile-App wrappen  (geschnitten, läuft)
 
 Die SPA als native App verpacken (z.B. Capacitor) für iOS/Android: App-Store-
 Präsenz, native Shell, Zugriff auf Geräte-APIs.
+
+Geschnitten und freigegeben (Daniel, 2026-11-23): Spec `docs/superpowers/specs/2026-11-23-phase-7-native-app-design.md`,
+Issues N1–N7 (#323–#329) in `docs/superpowers/plans/2026-11-23-phase-7-native-app.md` (Capacitor 8, `src/native/`, Mock-Build als
+Standard, Timer-Benachrichtigung im Hintergrund). Nur Test-Builds, Store als eigener Block (E3). N1 (#323) wartet auf die App-ID
+(E1). Gerätetest durch die Owner nach `docs/native.md`, Journeys in `docs/qa/journeys.md`.
 
 ## Phase 8 — Offline-Modus (native App)
 
