@@ -1,7 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { StrictMode } from 'react'
 import type { ReactNode } from 'react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { foodly } from '../api'
 import { resetSessionEnd } from '../api/auth'
@@ -152,7 +152,7 @@ describe('timers per signed-in user', () => {
 
   function renderApp() {
     render(
-      <MemoryRouter initialEntries={['/recipes']}>
+      <MemoryRouter useTransitions={false} initialEntries={['/recipes']}>
         <Routes>
           <Route element={<RedirectIfSignedIn />}>
             <Route path="/login" element={<p>login</p>} />

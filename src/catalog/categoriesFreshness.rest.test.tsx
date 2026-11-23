@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterAll, afterEach, expect, it, vi } from 'vitest'
 import { CatalogProvider } from './CatalogProvider'
@@ -81,7 +81,7 @@ it('updates the sidebar count after deleting a recipe (REST)', async () => {
     <ThemeProvider>
       <TooltipProvider>
         <TimerProvider userId={1}>
-          <MemoryRouter initialEntries={['/recipes/5']}>
+          <MemoryRouter useTransitions={false} initialEntries={['/recipes/5']}>
             <CatalogProvider>
               <AppShell>
                 <Routes>

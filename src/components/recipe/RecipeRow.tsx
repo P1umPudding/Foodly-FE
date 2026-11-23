@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Clock } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@postxl/ui-components'
 import { TagText } from '../TagText'

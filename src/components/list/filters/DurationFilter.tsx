@@ -34,7 +34,7 @@ export function DurationFilter({ value, set }: { value: number | null; set: (pat
 
   // Deferred commits (timer, blur) run outside render, so they read the latest props through refs. valueRef is
   // also moved ahead by commit(), so an edit right after a commit, before the re-render, starts from the
-  // committed value. (With react-router's v7_startTransition the re-render could lag further; not enabled.)
+  // committed value. (React Router 7's transitions would let the re-render lag further; off, see main.tsx.)
   const valueRef = useRef(value)
   const setRef = useRef(set)
   const pendingRef = useRef<Draft | null>(null)

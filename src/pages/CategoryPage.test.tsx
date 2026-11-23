@@ -1,7 +1,7 @@
 // The page against a catalog that changes under it: the mock-mode tests can only remount the page.
 import { StrictMode } from 'react'
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CategoryPage } from './CategoryPage'
@@ -39,7 +39,7 @@ vi.mock('../hooks/useRecipeSearch', () => ({
 
 const page = () => (
   <TooltipProvider>
-    <MemoryRouter initialEntries={['/categories/2']}>
+    <MemoryRouter useTransitions={false} initialEntries={['/categories/2']}>
       <Routes>
         <Route path="/categories/:id" element={<CategoryPage />} />
       </Routes>

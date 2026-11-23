@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeTile } from './RecipeTile'
 import type { Recipe, User, UserCategory } from '../../api/protocol'
@@ -48,7 +48,7 @@ const cat = (id: number, name: string): UserCategory => ({
 function renderTile(recipe: Recipe, categories?: UserCategory[]) {
   return render(
     <TooltipProvider>
-      <MemoryRouter>
+      <MemoryRouter useTransitions={false}>
         <RecipeTile recipe={recipe} categories={categories} />
       </MemoryRouter>
     </TooltipProvider>,

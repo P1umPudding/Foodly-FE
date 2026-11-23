@@ -1,5 +1,5 @@
 // The header slot: pages put their actions into the shell's header and tell it the name for the breadcrumb.
-// Router-free on purpose (context + portal only): page tests mock react-router-dom with a handful of hooks.
+// Router-free on purpose (context + portal only): page tests mock react-router with a handful of hooks.
 // Without the shell (a page rendered alone in a test) actions render in place and the name is ignored.
 import { createContext, useContext, useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'

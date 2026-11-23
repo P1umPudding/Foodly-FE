@@ -1,6 +1,6 @@
 // The category page inside the real app in mock mode: catalog, search, shell and sidebar all real.
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter, useLocation, useNavigate, type NavigateFunction } from 'react-router-dom'
+import { MemoryRouter, useLocation, useNavigate, type NavigateFunction } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_STATE } from '../list/state'
 import { loadPersisted, savePersisted } from '../list/persistence'
@@ -43,7 +43,7 @@ function Probe() {
 
 async function renderAt(path: string) {
   render(
-    <MemoryRouter initialEntries={[path]}>
+    <MemoryRouter useTransitions={false} initialEntries={[path]}>
       <App />
       <Probe />
     </MemoryRouter>,
@@ -109,7 +109,7 @@ describe('Category page (mock mode)', () => {
       expect((await heading()).textContent).toBe('Kategorie nicht gefunden')
       expect(within(main()).getByRole('link', { name: 'Zu den Rezepten' }).getAttribute('href')).toBe('/recipes')
 
-      navigate('/categories/abc')
+      void navigate('/categories/abc')
       await waitFor(() => expect(location).toBe('/categories/abc'))
       expect((await heading()).textContent).toBe('Kategorie nicht gefunden')
       expect(search).not.toHaveBeenCalled()
@@ -192,12 +192,12 @@ describe('Category page (mock mode)', () => {
       await renderAt('/categories/2?q=gu')
       await rowLink('Guacamole')
       const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
-      navigate('/categories/2', { state: SHELL_NAV_STATE })
+      void navigate('/categories/2', { state: SHELL_NAV_STATE })
       await waitFor(() => expect(location).toBe('/categories/2'))
       expect(scrollTo).toHaveBeenCalledWith(0, 0)
 
       scrollTo.mockClear()
-      navigate(-1)
+      void navigate(-1)
       await waitFor(() => expect(location).toBe('/categories/2?q=gu'))
       expect(scrollTo).not.toHaveBeenCalled()
     },
@@ -240,7 +240,7 @@ describe('Category page (mock mode)', () => {
     async () => {
       await renderAt('/categories/4')
       expect((await heading()).textContent).toBe('Meal Prep')
-      navigate('/categories')
+      void navigate('/categories')
       fireEvent.keyDown(await within(main()).findByRole('button', { name: 'Aktionen für „Meal Prep“' }, WAIT), {
         key: 'Enter',
       })
@@ -249,7 +249,7 @@ describe('Category page (mock mode)', () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }))
       await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull(), WAIT)
 
-      navigate('/categories/4')
+      void navigate('/categories/4')
       await waitFor(() => expect(location).toBe('/categories/4'))
       expect((await heading()).textContent).toBe('Kategorie nicht gefunden')
     },

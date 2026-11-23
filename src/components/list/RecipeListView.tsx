@@ -1,5 +1,5 @@
 import { Button, Collapse, CollapseContent, CollapseTrigger } from '@postxl/ui-components'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { ChevronDown } from 'lucide-react'
 import { RecipeRow } from '../recipe/RecipeRow'
 import { RecipeTile } from '../recipe/RecipeTile'

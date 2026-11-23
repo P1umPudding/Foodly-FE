@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CategoryTiles } from './CategoryTiles'
 import { HomeSectionsProvider, NothingToShow } from './HomeSections'
@@ -24,7 +24,7 @@ const category = (id: number, name: string, order: number | null, recipes: numbe
 
 function renderTiles() {
   render(
-    <MemoryRouter>
+    <MemoryRouter useTransitions={false}>
       <HomeSectionsProvider>
         <CategoryTiles />
         <NothingToShow />

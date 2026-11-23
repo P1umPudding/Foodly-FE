@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { cn } from '@postxl/ui-components'
 import { SHELL_NAV_STATE, NAV_DESTINATIONS, currentFor, inRecipesSection } from './nav'
 import { useNavState } from './useNavState'

@@ -9,7 +9,7 @@ import type { Recipe } from '../api/protocol'
 vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
 
 const navigate = vi.fn()
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   useSearchParams: () => [new URLSearchParams(), vi.fn()],
   useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),

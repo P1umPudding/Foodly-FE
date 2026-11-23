@@ -3,7 +3,7 @@
 // Kept in sessionStorage keyed by the history entry, so a reload still knows it. The label is the one shown when the
 // user left, so a later rename shows up only on the next visit.
 import { useLayoutEffect, useRef, useState } from 'react'
-import { useLocation, useNavigationType } from 'react-router-dom'
+import { useLocation, useNavigationType } from 'react-router'
 import type { Origin } from './origin'
 
 const STORAGE_KEY = 'foodly.origin'

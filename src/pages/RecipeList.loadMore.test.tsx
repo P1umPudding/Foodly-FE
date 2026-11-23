@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './RecipeList'
@@ -90,7 +90,7 @@ function deferred() {
 
 function renderList(url = '/recipes?group=0') {
   return render(
-    <MemoryRouter initialEntries={[url]}>
+    <MemoryRouter useTransitions={false} initialEntries={[url]}>
       <TooltipProvider>
         <RecipeList />
       </TooltipProvider>

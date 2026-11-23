@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { seedSession } from './test/auth'
 import App from './App'
@@ -23,7 +23,7 @@ vi.mock('./catalog/CatalogProvider', () => ({
 
 const at = (path: string) =>
   render(
-    <MemoryRouter initialEntries={[path]}>
+    <MemoryRouter useTransitions={false} initialEntries={[path]}>
       <App />
     </MemoryRouter>,
   )

@@ -1,7 +1,7 @@
 // The start page's sections report their state here, so the page knows when it has nothing to show without
 // knowing which sections exist (D2–D4 add sections without touching this logic).
 import { createContext, useCallback, useContext, useId, useLayoutEffect, useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { UtensilsCrossed } from 'lucide-react'
 import { Button } from '@postxl/ui-components'
 import { EmptyState } from '../StateCard'

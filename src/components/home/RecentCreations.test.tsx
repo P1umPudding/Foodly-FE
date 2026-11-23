@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { foodly } from '../../api'
 import type { Recipe, RecipeId } from '../../api/protocol'
@@ -43,7 +43,7 @@ const page = (ids: RecipeId[]) => ({ items: ids.map(recipe), cursor: null })
 
 function renderSection() {
   render(
-    <MemoryRouter>
+    <MemoryRouter useTransitions={false}>
       <RecentCreations />
     </MemoryRouter>,
   )

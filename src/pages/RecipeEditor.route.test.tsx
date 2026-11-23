@@ -1,6 +1,6 @@
 import { useEffect, useState, type ComponentProps } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { BrowserRouter, Link, MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Link, MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { Button, TooltipProvider, toast } from '@postxl/ui-components'
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditorRoute } from '../App'
@@ -67,7 +67,7 @@ describe('RecipeEditorRoute · remount on route change', () => {
 
     render(
       <TooltipProvider>
-        <MemoryRouter initialEntries={['/recipes/5/edit']}>
+        <MemoryRouter useTransitions={false} initialEntries={['/recipes/5/edit']}>
           <Link to="/recipes/new">go new</Link>
           <Routes>
             <Route path="/recipes/new" element={<RecipeEditorRoute />} />
@@ -138,7 +138,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     visits.length = 0
     render(
       <TooltipProvider>
-        <MemoryRouter initialEntries={entries} initialIndex={entries.length - 1}>
+        <MemoryRouter useTransitions={false} initialEntries={entries} initialIndex={entries.length - 1}>
           <VisitLog />
           <Link to="/recipes">elsewhere</Link>
           <HistoryBack />
@@ -155,7 +155,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
 
   function HistoryBack() {
     const navigate = useNavigate()
-    return <Button onClick={() => navigate(-1)}>history-back</Button>
+    return <Button onClick={() => void navigate(-1)}>history-back</Button>
   }
 
   const titleInput = () => screen.getByLabelText('Titel') as HTMLInputElement
@@ -295,7 +295,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     const go = vi.spyOn(window.history, 'go')
     render(
       <TooltipProvider>
-        <BrowserRouter>
+        <BrowserRouter useTransitions={false}>
           <Routes>
             <Route path="/recipes/:id" element={<DetailStub />} />
             <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
@@ -319,7 +319,7 @@ describe('RecipeEditorRoute · Fertig waits for the save', () => {
     const go = vi.spyOn(window.history, 'go').mockImplementation(() => {})
     render(
       <TooltipProvider>
-        <BrowserRouter>
+        <BrowserRouter useTransitions={false}>
           <Routes>
             <Route path="/recipes/:id/edit" element={<RecipeEditorRoute />} />
           </Routes>
@@ -397,7 +397,7 @@ describe('RecipeEditorRoute · leaving another way', () => {
   async function renderEditor(path = '/recipes/5/edit') {
     render(
       <TooltipProvider>
-        <MemoryRouter initialEntries={[path]}>
+        <MemoryRouter useTransitions={false} initialEntries={[path]}>
           <Link to="/recipes/5">to detail</Link>
           <Link to="/recipes/5/edit">to editor</Link>
           <Routes>
@@ -495,7 +495,7 @@ describe('RecipeEditorRoute · Anlegen', () => {
   async function renderNew() {
     render(
       <TooltipProvider>
-        <MemoryRouter initialEntries={['/recipes/new']}>
+        <MemoryRouter useTransitions={false} initialEntries={['/recipes/new']}>
           <Link to="/elsewhere">elsewhere</Link>
           <Routes>
             <Route path="/elsewhere" element={<p>Elsewhere</p>} />

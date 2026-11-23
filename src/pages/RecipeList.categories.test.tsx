@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './RecipeList'
@@ -49,7 +49,7 @@ function rec(id: number, name: string): Recipe {
 
 function list(url: string) {
   const ui = () => (
-    <MemoryRouter initialEntries={[url]}>
+    <MemoryRouter useTransitions={false} initialEntries={[url]}>
       <TooltipProvider>
         <RecipeList />
       </TooltipProvider>

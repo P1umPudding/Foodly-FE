@@ -9,7 +9,7 @@ import type { Recipe } from '../api/protocol'
 vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
 
 // The size lives in the URL; this keeps it in component state, so the steppers re-render the amounts.
-vi.mock('react-router-dom', async () => {
+vi.mock('react-router', async () => {
   const { useState } = await vi.importActual<typeof import('react')>('react')
   return {
     useSearchParams: () => {

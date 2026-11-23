@@ -9,7 +9,7 @@ import { ref } from '../test/images'
 // The category row has its own tests (RecipeDetail.categories); here it would only need more catalog mocks.
 vi.mock('../components/category/RecipeCategoryChips', () => ({ RecipeCategoryChips: () => null }))
 
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   useSearchParams: () => [new URLSearchParams(), vi.fn()],
   useLocation: () => ({ key: 'default' }),
   useParams: () => ({ id: '5' }),

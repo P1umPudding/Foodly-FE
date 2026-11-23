@@ -1,6 +1,6 @@
 // „Meine Kategorien“: the user's categories, created, renamed, recoloured, reordered and deleted here.
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import {
   Alert,
   AlertTitle,

@@ -1,6 +1,6 @@
 import { StrictMode, useState } from 'react'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { Button } from '@postxl/ui-components'
 import { describe, expect, it } from 'vitest'
 import { HomeSection } from './HomeSection'
@@ -10,7 +10,7 @@ const CARD_TEXT = 'Hier erscheinen deine Kategorien und Rezepte, die du zuletzt 
 
 function Page({ states }: { states: SectionState[] }) {
   return (
-    <MemoryRouter>
+    <MemoryRouter useTransitions={false}>
       <HomeSectionsProvider>
         {states.map((state, i) => (
           <HomeSection key={i} title={`Abschnitt ${i}`} state={state} onRetry={() => {}}>
@@ -26,7 +26,7 @@ function Page({ states }: { states: SectionState[] }) {
 function Toggle() {
   const [shown, setShown] = useState(true)
   return (
-    <MemoryRouter>
+    <MemoryRouter useTransitions={false}>
       <HomeSectionsProvider>
         <Button onClick={() => setShown(false)}>weg</Button>
         {shown && <HomeSection title="A" state="ready" onRetry={() => {}} />}

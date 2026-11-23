@@ -1,7 +1,7 @@
 // The category row above a recipe's title: one tinted chip per category it sits in, then "+" to add or remove it.
 // Categories are personal, so this shows for every visible recipe, including foreign ones.
 import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Plus } from 'lucide-react'
 import { cn } from '@postxl/ui-components'
 import { useCategories } from '../../catalog/CatalogProvider'

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './pages/RecipeList'
@@ -59,7 +59,7 @@ const recipe: Recipe = {
 function renderAt(entry: string) {
   return render(
     <TooltipProvider>
-      <MemoryRouter basename="/foo/" initialEntries={[entry]}>
+      <MemoryRouter useTransitions={false} basename="/foo/" initialEntries={[entry]}>
         <Routes>
           <Route path="/recipes" element={<RecipeList />} />
           <Route path="/recipes/:id" element={<RecipeDetail />} />
