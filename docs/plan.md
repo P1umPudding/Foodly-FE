@@ -79,6 +79,11 @@ geteilt“ kommt mit Teilen (#12).
 gemergt. Neue Reihenfolge (Daniel): **Redesign Schritt 6** (Detail + Koch-Modus, R1–R5 = #206–#210, kein Backend-Block) →
 **Phase 6 Mobile** → **Teilen erst mit Backend #12** (kein Demo-Stub vorab). Gruppen warten auf Backend #13.
 
+**Stand 2026-11-23:** Redesign Schritt 6 und 7 sowie Phase 6 (M1–M8) sind gemergt (bis PR #317). Offen sind nur
+Nachzügler (#303, #304, #306, #307, #309, #297) und die backend-blockierten #49 (Backend #17), #250 (Backend #16, laut
+Maintainer erst mit Axum 0.9) und #289 (Backend #29). Backend `main`/`web-api` seit 2026-11-13 unverändert. Damit ist die
+Alpha bis auf Backend-Blöcke erreicht; der nächste Breakdown ist offen (Empfehlung an Kolja über den Dispatcher).
+
 Details je Phase in `phases/`.
 
 ---
@@ -172,7 +177,7 @@ Teilen (Stub), Tag-Picker. Siehe „Meilenstein Alpha“.
   ein. **Toggle „Name statt Icon"** fügt stattdessen `{!tagId}` ein — der Toggle
   setzt sich beim Schließen/Neuöffnen wieder auf „Icon" zurück.
 
-## Redesign „Ruhig“  (läuft, vor bzw. mit Phase 5)
+## Redesign „Ruhig“  ✅ erledigt (Nachzügler #303, #304)
 
 Neues neutrales Design für die ganze App. Spec: `docs/design/redesign/README.md`
 (PR #25), Kategorie-Farben: ADR [0002](decisions/0002-category-colors.md).
@@ -220,7 +225,7 @@ Routing `/` → Dashboard, `/recipes` → Liste. **Blockiert:** Gruppen (B12 + B
 - **Gruppen**, in denen man Mitglied ist, mit Links,
 - ggf. weitere Kacheln.
 
-## Phase 6 — Mobile optimieren
+## Phase 6 — Mobile optimieren  ✅ erledigt (Nachzügler #306, #307, #309)
 
 Geschnitten (Daniel, 2026-11-13) nach QA-Mobile-Audit: Spec `docs/superpowers/specs/2026-11-13-phase-6-mobile-design.md`,
 Issues M1–M8 in `docs/superpowers/plans/2026-11-13-phase-6-mobile.md` (16-px-Eingaben, Scroll-Restore, Editor Handy,
