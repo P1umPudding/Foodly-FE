@@ -36,7 +36,7 @@ describe('DurationFilter', () => {
     render(<Stateful set={vi.fn()} />)
     const wrapper = field().parentElement!.className.split(/\s+/)
     expect(wrapper).toEqual(expect.arrayContaining(['min-h-8', 'touch:min-h-[42px]']))
-    expect(wrapper).not.toContain('touch:min-h-10')
+    expect(wrapper).not.toContain('min-h-[42px]')
   })
 
   it('a preset sets the value and every control follows', () => {
