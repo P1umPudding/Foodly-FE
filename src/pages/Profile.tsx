@@ -1,5 +1,6 @@
 // „Profil & Einstellungen“ (mockup `#/profile`): who is signed in, the theme, the way to the categories and Abmelden.
-// Mockup entries with nothing behind them in the app (counts, Timer-Ton, Offline, wake-lock: #245) are left out.
+// Mockup entries with nothing behind them in the app are left out: the recipe count (B19: none without an extra
+// request, #304), the group count (B5), Timer-Ton, Offline, wake-lock (#245).
 import { Link } from 'react-router-dom'
 import { Avatar, AvatarFallback, Button, Card, cn } from '@postxl/ui-components'
 import { ChevronRight } from 'lucide-react'
