@@ -35,7 +35,7 @@ function bringIntoView(container: HTMLElement, el: HTMLElement) {
 // also opens it on a click or tap, for fields that look like a choice (Einheit) and would otherwise hide their list.
 // `keepListInView` (phone sheet, #306): the list opens inside the sheet's scroll region, where the on-screen keyboard
 // leaves little room, so that region scrolls to show it, input first. Desktop callers leave it off: there it would
-// scroll the page.
+// scroll whatever ancestor happens to scroll.
 export function SuggestInput({
   value,
   onValueChange,

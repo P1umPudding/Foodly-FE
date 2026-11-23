@@ -192,7 +192,7 @@ describe('IngredientPicker', () => {
 describe('IngredientPicker forwards keepListInView', () => {
   afterEach(() => vi.restoreAllMocks())
 
-  it('scrolls the list into view with it, as the phone sheet sets it (#306)', () => {
+  it('scrolls its scroll region when keepListInView is set, as the phone sheet does (#306)', () => {
     // Region 0–200, field 160–200, list below it: anything to scroll means the opt-in reached SuggestInput.
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
       const top = this.getAttribute('role') === 'listbox' ? 204 : this.getAttribute('role') === 'combobox' ? 160 : 0
