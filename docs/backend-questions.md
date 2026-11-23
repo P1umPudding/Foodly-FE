@@ -37,7 +37,7 @@ Kolja) · `später` (nicht blockierend).
 | B16 | Trefferzahlen/Facetten in der Suche      | offen       | nein (FE ohne Zahlen)   | [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17) |
 | B17 | Rezept-Import (URL + Foto)               | offen       | nein (nach der Alpha)   | [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28) |
 | B18 | Standard-Kategorie „Favoriten“           | offen       | ja: FE #289             | [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29) |
-| B19 | Rezeptzahl fürs Profil                   | offen       | nein (Profil ohne Zahl, #304) | –             |
+| B19 | Rezeptzahl fürs Profil                   | offen       | nein (FE #304)          | –             |
 | G1  | `createdAt` / `updatedAt` an Recipe     | FE-Arbeit   | –                       | –             |
 | G2  | `UserRating` DB-only                    | gelöst      | –                       | –             |
 | G3  | Tag-Icons (`GET /tags/{id}/icon`)       | gelöst      | –                       | –             |
