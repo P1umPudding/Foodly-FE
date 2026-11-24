@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import { HomeSection } from './HomeSection'
 import type { SectionState } from './HomeSections'
@@ -7,7 +7,7 @@ import { redTokens } from '../../test/redTokens'
 
 function renderSection(state: SectionState, onRetry = vi.fn()) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter useTransitions={false}>
       <HomeSection
         title="Kategorien"
         link={{ label: 'Verwalten', to: '/categories' }}

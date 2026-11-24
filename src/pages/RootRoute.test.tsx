@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import { RootRoute } from './RootRoute'
 
@@ -12,7 +12,7 @@ function Where() {
 
 function renderAt(entry: string, basename?: string) {
   render(
-    <MemoryRouter basename={basename} initialEntries={[entry]}>
+    <MemoryRouter useTransitions={false} basename={basename} initialEntries={[entry]}>
       <Routes>
         <Route path="/" element={<RootRoute />} />
         <Route path="/recipes" element={<Where />} />

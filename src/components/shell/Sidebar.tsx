@@ -2,7 +2,7 @@
 // 768 px via useIsMobile and collapses to 3rem, while the redesign needs 761 px, a bottom tab bar
 // below it and a 64 px icon rail (docs/design/redesign §1.6).
 import type { ReactNode } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router'
 import { Button, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
 import { Skeleton } from '../Skeleton'
 import { PanelLeftClose, PanelLeftOpen, Plus, Settings } from 'lucide-react'

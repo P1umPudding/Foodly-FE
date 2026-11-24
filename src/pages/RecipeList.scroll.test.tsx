@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { Link, MemoryRouter, useNavigate } from 'react-router-dom'
+import { Link, MemoryRouter, useNavigate } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './RecipeList'
@@ -72,13 +72,13 @@ function renderedRows() {
 let navigate: (to: string) => void = () => {}
 function Navigator() {
   const nav = useNavigate()
-  navigate = (to) => nav(to)
+  navigate = (to) => void nav(to)
   return null
 }
 
 function renderList(url = '/recipes?group=0') {
   return render(
-    <MemoryRouter initialEntries={[url]}>
+    <MemoryRouter useTransitions={false} initialEntries={[url]}>
       <TooltipProvider>
         <Navigator />
         {/* The same URL as the list: React Router replaces the entry (new key, not POP), like a tab-bar tap. */}

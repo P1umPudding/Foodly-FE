@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react'
-import { MemoryRouter, useNavigate, useNavigationType } from 'react-router-dom'
+import { MemoryRouter, useNavigate, useNavigationType } from 'react-router'
 import type { ReactNode } from 'react'
 import { useListState } from './useListState'
 import { DEFAULT_STATE } from './state'
@@ -10,7 +10,7 @@ vi.mock('../catalog/CatalogProvider', () => ({ useCurrentUserId: () => 1 }))
 const wrapper =
   (initialEntries: string[], initialIndex?: number) =>
   ({ children }: { children: ReactNode }) => (
-    <MemoryRouter initialEntries={initialEntries} initialIndex={initialIndex}>
+    <MemoryRouter useTransitions={false} initialEntries={initialEntries} initialIndex={initialIndex}>
       {children}
     </MemoryRouter>
   )
@@ -27,7 +27,11 @@ type Harness = ReturnType<typeof renderWithHistory>['result']
 const typeSearch = (result: Harness, text: string) => {
   for (let i = 1; i <= text.length; i++) act(() => result.current.list.setSearch(text.slice(0, i)))
 }
-const back = (result: Harness) => act(() => result.current.navigate(-1))
+const back = (result: Harness) => {
+  act(() => {
+    void result.current.navigate(-1)
+  })
+}
 
 beforeEach(() => localStorage.clear())
 
@@ -55,7 +59,9 @@ describe('useListState', () => {
     const { result } = renderHook(() => ({ list: useListState(), navigate: useNavigate() }), {
       wrapper: wrapper(['/?sort=rating']),
     })
-    act(() => result.current.navigate('/?cat=2&sort=rating'))
+    act(() => {
+      void result.current.navigate('/?cat=2&sort=rating')
+    })
     expect(result.current.list.state.categories).toEqual([2])
     expect(JSON.parse(localStorage.getItem('foodly:list-state:1')!).state.categories).toEqual([2])
   })
@@ -126,7 +132,9 @@ describe('useListState', () => {
       expect(result.current.type).toBe('PUSH')
       act(() => result.current.list.setSearch('pasta'))
       expect(result.current.type).toBe('REPLACE')
-      act(() => result.current.navigate(-1))
+      act(() => {
+        void result.current.navigate(-1)
+      })
       expect(result.current.list.state.search).toBe('pas')
     })
 
@@ -135,7 +143,10 @@ describe('useListState', () => {
         () => ({ list: useListState(), navigate: useNavigate(), type: useNavigationType() }),
         {
           wrapper: ({ children }: { children: ReactNode }) => (
-            <MemoryRouter initialEntries={[{ pathname: '/', search: '?q=pas', state: { listSearch: true } }]}>
+            <MemoryRouter
+              useTransitions={false}
+              initialEntries={[{ pathname: '/', search: '?q=pas', state: { listSearch: true } }]}
+            >
               {children}
             </MemoryRouter>
           ),
@@ -145,7 +156,9 @@ describe('useListState', () => {
       expect(result.current.type).toBe('PUSH')
       act(() => result.current.list.setSearch('pasta'))
       expect(result.current.type).toBe('REPLACE')
-      act(() => result.current.navigate(-1))
+      act(() => {
+        void result.current.navigate(-1)
+      })
       expect(result.current.list.state.search).toBe('pas')
     })
 
@@ -169,7 +182,9 @@ describe('useListState', () => {
       })
       act(() => result.current.list.setSearch(''))
       expect(result.current.list.state.search).toBe('')
-      act(() => result.current.navigate(-1))
+      act(() => {
+        void result.current.navigate(-1)
+      })
       expect(result.current.list.state.search).toBe('pas')
     })
 

@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { SectionHeader } from './SectionHeader'
 
 function renderHeader(link?: { label: string; to: string }) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter useTransitions={false}>
       <SectionHeader id="sec" title="Kategorien" link={link} />
     </MemoryRouter>,
   )

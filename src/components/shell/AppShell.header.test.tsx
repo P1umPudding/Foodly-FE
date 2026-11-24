@@ -1,6 +1,6 @@
 // The header on subpages (#228): back arrow, "<origin> / <name>" and the page's actions.
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes, useNavigate, useParams } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppShell } from './AppShell'
@@ -51,7 +51,7 @@ function DetailProbe() {
 function ReplaceButton() {
   const navigate = useNavigate()
   return (
-    <button type="button" onClick={() => navigate('?factor=2', { replace: true })}>
+    <button type="button" onClick={() => void navigate('?factor=2', { replace: true })}>
       replace entry
     </button>
   )
@@ -64,7 +64,7 @@ function renderAt(entries: Entry[]) {
     <ThemeProvider>
       <TooltipProvider>
         <TimerProvider userId={1}>
-          <MemoryRouter initialEntries={entries} initialIndex={entries.length - 1}>
+          <MemoryRouter useTransitions={false} initialEntries={entries} initialIndex={entries.length - 1}>
             <AppShell>
               <Routes>
                 <Route path="/" element={<Link to="/recipes/1">open recipe</Link>} />

@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import { Routes, Route, useParams } from 'react-router-dom'
+import { Routes, Route, useParams } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RedirectIfSignedIn, RequireAuth, ShellLayout } from './components/shell/RequireAuth'
 import { BareLayout } from './components/shell/BareLayout'

@@ -1,6 +1,6 @@
 // Start page section "Kategorien" (D2): the user's categories as borderless tinted tiles linking to their pages,
 // an auto-fill grid on wider screens and one horizontally scrolling strip on phones (designer review 13.11.).
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Skeleton } from '../Skeleton'
 import { useCategories } from '../../catalog/CatalogProvider'
 import { categoryColorVars } from '../../lib/categoryColor'

@@ -8,7 +8,7 @@ import type { Recipe } from '../api/protocol'
 const navigate = vi.fn()
 let params: { id?: string } = {}
 
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   useParams: () => params,
   useNavigate: () => navigate,
   useLocation: () => ({ key: 'default', state: null }),

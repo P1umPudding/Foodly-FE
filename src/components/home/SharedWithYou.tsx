@@ -1,7 +1,7 @@
 // "Geteilt mit dir": the side column of the start page (mockup `#/home` aside). Recipes others shared with me, the
 // newest share first: for an editor or viewer, accessSince is when the access was granted (backend #22), so the server
 // does the ordering.
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Card } from '@postxl/ui-components'
 import { foodly } from '../../api'
 import type { Recipe, RecipeSearchQuery } from '../../api/protocol'

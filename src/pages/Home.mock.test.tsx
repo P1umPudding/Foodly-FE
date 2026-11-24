@@ -1,6 +1,6 @@
 // The start page inside the real app in mock mode: "Zuletzt angesehen" with the real catalog and mock recipes.
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setViewport } from '../test/viewport'
 
@@ -30,7 +30,7 @@ const WAIT = { timeout: 3000 }
 
 async function renderHome() {
   render(
-    <MemoryRouter initialEntries={['/']}>
+    <MemoryRouter useTransitions={false} initialEntries={['/']}>
       <App />
     </MemoryRouter>,
   )

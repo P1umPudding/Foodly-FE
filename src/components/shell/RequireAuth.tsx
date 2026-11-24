@@ -2,7 +2,7 @@
 // session); /login and /register sit outside both. In mock mode foodly.auth is always signed in, so
 // nothing is guarded and /login forwards to the list. Signed-in routes pick their frame below the guard:
 // ShellLayout (sidebar / tab bar) or BareLayout (cook mode), both under the same timers, catalogs and toasts.
-import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router'
 import { foodly } from '../../api'
 import { CatalogProvider } from '../../catalog/CatalogProvider'
 import { useAuthSession } from '../../hooks/useAuthSession'

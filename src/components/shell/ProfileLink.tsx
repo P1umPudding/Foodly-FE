@@ -7,7 +7,7 @@ import {
   buttonVariants,
   cn,
 } from '@postxl/ui-components'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 import { useMe } from '../../catalog/CatalogProvider'
 import { navItemClass } from './navItem'
 import { profileName } from './profileName'

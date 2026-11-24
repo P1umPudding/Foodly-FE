@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes } from 'react-router'
 import { TooltipProvider, buttonVariants } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
@@ -61,7 +61,7 @@ async function renderDetail(over: Partial<Recipe>, width = 390) {
   )
   render(
     <TooltipProvider>
-      <MemoryRouter initialEntries={['/recipes/5']}>
+      <MemoryRouter useTransitions={false} initialEntries={['/recipes/5']}>
         <Link to="/recipes/6">test-open-6</Link>
         <Routes>
           <Route path="/recipes/:id" element={<RecipeDetail />} />

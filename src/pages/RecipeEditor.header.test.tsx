@@ -1,6 +1,6 @@
 // The editor inside the real shell (#231): status and "Fertig" / "Anlegen" sit in the header, the old footer is gone.
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeEditorRoute } from '../App'
@@ -51,7 +51,7 @@ async function renderAt(path: string) {
     <ThemeProvider>
       <TooltipProvider>
         <TimerProvider userId={1}>
-          <MemoryRouter initialEntries={[path]}>
+          <MemoryRouter useTransitions={false} initialEntries={[path]}>
             <AppShell>
               <Routes>
                 <Route path="/recipes/new" element={<RecipeEditorRoute />} />

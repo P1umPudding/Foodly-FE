@@ -1,7 +1,7 @@
 // The category page's own search/sort/view, kept in its URL only: unlike the list, nothing is restored from or saved
 // to the stored list state, so this page never changes what /recipes opens with.
 import { useCallback } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router'
 import { DEFAULT_STATE, type ListState } from './state'
 import { fromSearchParams, toSearchParams } from './url'
 

@@ -1,6 +1,6 @@
 // One category: its tinted head and the recipes in it, with the list's search, sort and view but no filters or layout.
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigationType, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigationType, useParams } from 'react-router'
 import {
   Button,
   DropdownMenu,

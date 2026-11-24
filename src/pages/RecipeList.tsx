@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigationType } from 'react-router-dom'
+import { Link, useLocation, useNavigationType } from 'react-router'
 import { Button } from '@postxl/ui-components'
 import { Search, UtensilsCrossed } from 'lucide-react'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'

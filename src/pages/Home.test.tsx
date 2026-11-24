@@ -1,5 +1,5 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { foodly } from '../api'
 import { Home } from './Home'
@@ -57,7 +57,7 @@ const sideColumn = () => document.querySelector<HTMLElement>('[data-slot="home-s
 
 function renderHome() {
   render(
-    <MemoryRouter>
+    <MemoryRouter useTransitions={false}>
       <Home />
     </MemoryRouter>,
   )

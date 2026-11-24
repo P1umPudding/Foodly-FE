@@ -1,6 +1,6 @@
 // REST mode (VITE_MOCK is unset in tests): the owner's name comes from getUsers through the real catalog.
 import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, expect, it, vi } from 'vitest'
 import { foodly } from '../../api'
@@ -44,7 +44,7 @@ it('names the owner of a foreign recipe from the backend answer', async () => {
 
   render(
     <TooltipProvider>
-      <MemoryRouter>
+      <MemoryRouter useTransitions={false}>
         <CatalogProvider>
           <RecipeTile recipe={recipe} />
         </CatalogProvider>

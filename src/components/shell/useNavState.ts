@@ -1,4 +1,4 @@
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router'
 import { useCurrentUserId } from '../../catalog/CatalogProvider'
 import { loadPersisted } from '../../list/persistence'
 import { activeCategoryId, listHref, navPrefs } from './nav'

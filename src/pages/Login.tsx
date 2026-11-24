@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { flushSync } from 'react-dom'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router'
 import { Alert, AlertDescription, Button, Spinner } from '@postxl/ui-components'
 import { ApiError, foodly } from '../api'
 import { AuthCard, AuthLink } from '../components/auth/AuthCard'

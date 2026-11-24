@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { seedSession } from './test/auth'
 import App from './App'
@@ -33,7 +33,7 @@ const WAIT = { timeout: 3000 }
 
 const at = async (path: string) => {
   render(
-    <MemoryRouter initialEntries={[path]}>
+    <MemoryRouter useTransitions={false} initialEntries={[path]}>
       <App />
     </MemoryRouter>,
   )

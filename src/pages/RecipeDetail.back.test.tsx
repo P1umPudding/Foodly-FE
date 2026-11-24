@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { BrowserRouter, Link, MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Link, MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { Button, TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ReactNode } from 'react'
@@ -54,7 +54,7 @@ function ListProbe() {
 
 function ForwardButton() {
   const navigate = useNavigate()
-  return <Button onClick={() => navigate(1)}>test-forward</Button>
+  return <Button onClick={() => void navigate(1)}>test-forward</Button>
 }
 
 // The back arrow lives in the shell's header since #228.
@@ -77,7 +77,7 @@ function renderMemory(entries: string[], name?: string) {
     <ThemeProvider>
       <TooltipProvider>
         <TimerProvider userId={1}>
-          <MemoryRouter initialEntries={entries} initialIndex={entries.length - 1}>
+          <MemoryRouter useTransitions={false} initialEntries={entries} initialIndex={entries.length - 1}>
             {routes()}
           </MemoryRouter>
         </TimerProvider>
@@ -92,7 +92,7 @@ function renderBrowser() {
     <ThemeProvider>
       <TooltipProvider>
         <TimerProvider userId={1}>
-          <BrowserRouter>{routes()}</BrowserRouter>
+          <BrowserRouter useTransitions={false}>{routes()}</BrowserRouter>
         </TimerProvider>
       </TooltipProvider>
     </ThemeProvider>,

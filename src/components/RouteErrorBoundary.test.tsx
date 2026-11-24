@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { reloadPage } from '../lib/reloadPage'
 import { LazyRoute } from './RouteErrorBoundary'
@@ -16,7 +16,7 @@ const Pending = lazy(() => new Promise<never>(() => {}))
 
 function renderAt(path: string, routes: ReactNode) {
   return render(
-    <MemoryRouter initialEntries={[path]}>
+    <MemoryRouter useTransitions={false} initialEntries={[path]}>
       <Link to="/ok">Weiter</Link>
       <Link to="/broken">Andere Seite</Link>
       <Routes>{routes}</Routes>

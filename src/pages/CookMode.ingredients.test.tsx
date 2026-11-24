@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation, useNavigationType } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CookMode } from './CookMode'
@@ -62,7 +62,7 @@ function renderCook(cookPath = '/recipes/5/cook', entries: string[] = [], data =
   vi.spyOn(foodly, 'getRecipe').mockResolvedValue(data)
   return render(
     <TooltipProvider>
-      <MemoryRouter initialEntries={[...entries, cookPath]} initialIndex={entries.length}>
+      <MemoryRouter useTransitions={false} initialEntries={[...entries, cookPath]} initialIndex={entries.length}>
         <TimerProvider userId={1}>
           <Routes>
             <Route path="/recipes/:id/cook" element={<CookMode />} />

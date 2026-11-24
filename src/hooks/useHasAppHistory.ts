@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router'
 
 // Whether an in-app entry lies behind the current one, so `navigate(-1)` stays inside the app. The sign-in
 // redirect replaces the entry (non-default key) without adding one before it, so BrowserRouter's history index

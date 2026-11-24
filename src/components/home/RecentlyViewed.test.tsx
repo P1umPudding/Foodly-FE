@@ -1,5 +1,5 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { foodly } from '../../api'
 import type { Recipe, RecipeId } from '../../api/protocol'
@@ -44,7 +44,7 @@ function store(ids: RecipeId[]) {
 
 function renderSection() {
   render(
-    <MemoryRouter>
+    <MemoryRouter useTransitions={false}>
       <RecentlyViewed />
     </MemoryRouter>,
   )
