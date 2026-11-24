@@ -35,8 +35,10 @@ export function handleBack({ canGoBack, pathname, navigate, exitApp }: BackConte
     target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
     return
   }
+  // React Router also matches "/login/"; without trimming, that would bounce off RequireAuth like navigate('/').
+  const page = pathname.replace(/\/+$/, '') || '/'
   // Register usually opens from the sign-in page, so back returns there when it can.
-  if (EXIT_PATHS.has(pathname) || (pathname === '/register' && !canGoBack)) exitApp()
+  if (EXIT_PATHS.has(page) || (page === '/register' && !canGoBack)) exitApp()
   else if (canGoBack) void navigate(-1)
   else void navigate('/', { replace: true })
 }

@@ -219,25 +219,52 @@ describe('Android back button with an open overlay', () => {
   })
 
   it('sends Escape from the focused field, so an open suggestion list closes before its sheet', async () => {
-    // The pattern of IngredientSheet: Escape from an expanded combobox only closes its list.
-    const targets: (EventTarget | null)[] = []
-    const keepOpen = (e: KeyboardEvent) => {
-      targets.push(e.target)
-      if ((e.target as Element | null)?.matches('[role=combobox][aria-expanded=true]')) e.preventDefault()
+    // The pattern of IngredientSheet and SuggestInput: Escape from an expanded combobox only closes its list.
+    function Suggest() {
+      const [expanded, setExpanded] = useState(true)
+      const keepOpen = (e: KeyboardEvent) => {
+        if ((e.target as Element | null)?.matches('[role=combobox][aria-expanded=true]')) e.preventDefault()
+      }
+      return (
+        <Sheet defaultOpen>
+          <BottomSheet title="Zutat bearbeiten" description="Zeile" onEscapeKeyDown={keepOpen}>
+            <Input
+              role="combobox"
+              aria-expanded={expanded}
+              aria-label="Zutat"
+              onKeyDown={(e) => e.key === 'Escape' && setExpanded(false)}
+            />
+          </BottomSheet>
+        </Sheet>
+      )
     }
-    await renderAt(
-      ['/recipes', '/recipes/1'],
-      <Sheet defaultOpen>
-        <BottomSheet title="Zutat bearbeiten" description="Zeile" onEscapeKeyDown={keepOpen}>
-          <Input role="combobox" aria-expanded="true" aria-label="Zutat" />
-        </BottomSheet>
-      </Sheet>,
-    )
+    await renderAt(['/recipes', '/recipes/1'], <Suggest />)
     const field = screen.getByRole('combobox')
     act(() => field.focus())
     await pressBack()
-    expect(targets).toEqual([field])
+    expect(field.getAttribute('aria-expanded')).toBe('false')
     expect(screen.getByRole('dialog')).toBeTruthy()
+    await pressBack()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(path()).toBe('/recipes/1')
+  })
+
+  it('sends Escape to the overlay itself when focus is outside it', async () => {
+    const targets: (EventTarget | null)[] = []
+    await renderAt(
+      ['/recipes', '/recipes/1'],
+      <Dialog defaultOpen modal={false}>
+        <DialogContent onEscapeKeyDown={(e) => targets.push(e.target)}>
+          <DialogTitle>Titel</DialogTitle>
+          <DialogDescription>Text</DialogDescription>
+        </DialogContent>
+      </Dialog>,
+    )
+    const dialog = screen.getByRole('dialog')
+    act(() => (document.activeElement as HTMLElement | null)?.blur())
+    expect(dialog.contains(document.activeElement)).toBe(false)
+    await pressBack()
+    expect(targets).toEqual([dialog])
   })
 })
 
@@ -262,11 +289,14 @@ describe('Android back button without an overlay', () => {
     expect(path()).toBe('/')
   })
 
-  it('leaves the app on the sign-in page, where the start page would redirect back', async () => {
-    await renderAt(['/login'])
-    await pressBack(false)
-    expect(plugin.exitApp).toHaveBeenCalledTimes(1)
-  })
+  it.each(['/login', '/login/'])(
+    'leaves the app on the sign-in page %s, where the start page would redirect back',
+    async (at) => {
+      await renderAt([at])
+      await pressBack(false)
+      expect(plugin.exitApp).toHaveBeenCalledTimes(1)
+    },
+  )
 
   it('goes back from register to sign-in, and leaves the app without history', async () => {
     await renderAt(['/login', '/register'])
