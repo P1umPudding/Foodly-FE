@@ -26,7 +26,8 @@ bzw. Xcode.
   ```
 
   `VITE_API_URL` gehört in diese Datei selbst: Ein Wert aus `.env.local` gilt sonst auch hier, und
-  `http://localhost:…` zeigt auf dem Gerät auf das Gerät selbst.
+  `http://localhost:…` zeigt auf dem Gerät auf das Gerät selbst (der Build warnt bei `localhost`; nur der
+  iOS-Simulator erreicht so den Mac).
 
 Der Build bricht ab, wenn weder `VITE_MOCK=1` noch eine absolute `VITE_API_URL` (`https://…` oder `http://…`) gesetzt
 ist. Variablen aus der Shell haben Vorrang vor den Dateien (`VITE_MOCK= npm run build:native` ist ein REST-Build).
@@ -51,7 +52,7 @@ Für ein Backend unter `http://<LAN-IP>:8080` (ohne HTTPS) lokal, **nicht commit
 - `.env.native.local`: `VITE_MOCK=` und `VITE_API_URL=http://<LAN-IP>:8080/api/v1`. Der Build warnt bei `http://`.
 
 Danach `npm run cap:sync`. Geprüft ist das nur für Android; iOS lässt `http://` ohne Ausnahme in der App Transport
-Security (`Info.plist`) nicht zu. Vor einem Commit beides zurücksetzen.
+Security nicht zu; dafür bräuchte `Info.plist` lokal `NSAppTransportSecurity` → `NSAllowsLocalNetworking`. Vor einem Commit beides zurücksetzen.
 
 ## CORS
 
@@ -71,6 +72,8 @@ entry=$(grep -oE 'src="/assets/index-[^"]+\.js"' dist/index.html | sed 's/^src="
 ```
 
 Der Name kommt aus `dist/index.html`, weil auch andere Chunks `index-*.js` heißen (Mocks, später Capacitor selbst).
+Dazu darf native Arbeit den Entry nicht vergrößern: keine neue Größenwarnung (`chunkSizeWarningLimit` in
+`vite.config.ts`).
 
 ## Prüfliste
 

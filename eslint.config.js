@@ -97,6 +97,7 @@ export default tseslint.config(
 
   {
     files: NATIVE_FILES,
+    // Only the Capacitor patterns are restricted today; a later pattern for src/** must be repeated here.
     rules: { 'no-restricted-imports': 'off' },
   },
 
