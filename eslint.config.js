@@ -9,9 +9,11 @@ import tseslint from 'typescript-eslint'
 
 const TEST_FILES = ['src/**/*.test.{ts,tsx}', 'src/test/**']
 const CONFIG_FILES = ['*.config.{js,cjs,ts}']
+const NATIVE_FILES = ['src/native/**']
 
 export default tseslint.config(
-  { ignores: ['dist/', 'node_modules/'] },
+  // android/ and ios/ are generated Capacitor projects, plus the web build copied in by `cap sync`.
+  { ignores: ['dist/', 'node_modules/', 'android/', 'ios/'] },
   { linterOptions: { reportUnusedDisableDirectives: 'error' } },
 
   {
@@ -48,6 +50,18 @@ export default tseslint.config(
           })),
         },
       ],
+      // ADR 0005: native APIs only behind the adapters in src/native/ (static imports; dynamic import() by convention).
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@capacitor/*', '@capacitor-community/*'],
+              message: 'Capacitor is only used in src/native/ (docs/decisions/0005-native-shell.md).',
+            },
+          ],
+        },
+      ],
       'no-restricted-syntax': [
         'error',
         {
@@ -79,6 +93,11 @@ export default tseslint.config(
       'react/forbid-dom-props': 'off',
       'react/forbid-elements': 'off',
     },
+  },
+
+  {
+    files: NATIVE_FILES,
+    rules: { 'no-restricted-imports': 'off' },
   },
 
   {
