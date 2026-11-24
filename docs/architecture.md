@@ -109,7 +109,8 @@ werden hier nicht wiederholt.
   Einstieg: sein Kern ist ein einziges Modul, das Foodly fast vollständig nutzt. Ihn in einen eigenen, immer geladenen
   Vendor-Chunk auszulagern hilft nicht, weil der erste Seitenaufruf gleich viel lädt und die Warnung ihren Sinn verlöre.
   Wächst der Einstieg durch eine Abhängigkeit, die er wirklich braucht, und lässt er sich nicht sinnvoll verkleinern,
-  kommt das Limit knapp über die neue Größe; die Begründung steht hier.
+  kommt das Limit knapp über die neue Größe; die Begründung steht hier. Stand #334: Limit 710 kB, Einstieg 704,26 kB,
+  mit den nativen PRs #336/#337 708,34 kB (Web) bzw. 708,73 kB (Native).
 - Kein Data Router (`createBrowserRouter`) → kein `useBlocker`; Verlassen-Schutz via
   `beforeunload` + Flush bei Unmount. Lesezugriffe (`getRecipe`, `searchRecipes`) warten auf den
   noch laufenden Unmount-Save (`src/api/pendingSaves.ts`, max. 10 s); Requests deshalb in Effects
