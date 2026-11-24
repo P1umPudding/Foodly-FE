@@ -85,3 +85,14 @@ Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iO
 - [ ] Navigation: Rezeptliste, Rezept, Koch-Modus, Kategorien, Profil und zurück.
 - [ ] Safe Areas: oben (Statusleiste, Notch) und unten (Home-Indikator, Gestenleiste) ist nichts verdeckt.
 - [ ] iOS: „Fotos hinzufügen“ im Editor (Bereich „Bilder“) öffnet die Auswahl mit Kamera und Fotomediathek.
+- [ ] Android, Zurück-Taste (#325):
+  - Ein offenes Sheet, ein Dialog, ein Menü oder die Fotoansicht schließt, die Seite bleibt.
+  - Im Zutaten-Sheet mit offener Vorschlagsliste schließt erst die Liste, dann das Sheet.
+  - Ohne Overlay geht es eine Seite zurück, nach einem direkten Einstieg (ohne Verlauf) zur Startseite.
+  - Auf der Startseite und auf „Anmelden“ schließt die App. „Konto anlegen“ führt zurück zu „Anmelden“; nach einem
+    direkten Einstieg (ohne Verlauf) schließt die App.
+  - Ist die Tastatur offen, schließt Android zuerst die Tastatur. Das liegt beim System und gehört nicht zur App.
+  - Tooltip: Schließt ein Sheet, geht der Fokus zurück auf seinen Auslöser. Hat der einen Tooltip (z. B. eine
+    Zutatenzeile im Editor), öffnet der sich und nimmt das nächste `Escape`. Prüfen, ob dann ein zusätzlicher Druck
+    nötig ist.
+  - Zweimal schnell drücken, während ein Menü noch zuklappt: Der zweite Druck kann verloren gehen.

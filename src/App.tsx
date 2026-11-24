@@ -15,6 +15,7 @@ import { NotFound } from './pages/NotFound'
 import { RootRoute } from './pages/RootRoute'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
+import { AndroidBackButton } from './native/AndroidBackButton'
 import { Profile } from './pages/Profile'
 
 // Start, list and detail are the usual first pages and stay in the entry chunk; the rarer pages load on demand
@@ -80,6 +81,7 @@ function CategoryPageRoute() {
 export default function App() {
   return (
     <TooltipProvider>
+      <AndroidBackButton />
       {/* The timers, the catalog and the toasts live inside RequireAuth: timers belong to the signed-in user, and the
           sidebar and profile page need the categories and `me`, which need a session. Below it each route picks its
           frame; both frames share those providers, so timers and toasts survive the way into cook mode. */}

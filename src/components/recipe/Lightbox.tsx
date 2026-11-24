@@ -168,6 +168,8 @@ export function Lightbox({
       ref={dialogRef}
       role="dialog"
       aria-modal="true"
+      // Like a Radix overlay, so the Android back button finds it (src/native/backButton.ts). It only renders while open.
+      data-state="open"
       aria-label="Fotos"
       // Fallback focus target; not a control, so no ring on the near-black backdrop.
       tabIndex={-1}
