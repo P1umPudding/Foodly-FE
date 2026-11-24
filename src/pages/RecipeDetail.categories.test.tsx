@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { UserCategory } from '../api/protocol'
@@ -41,7 +41,7 @@ async function renderDetail(recipeId: number) {
     <TooltipProvider>
       <CatalogProvider>
         <TimerProvider userId={1}>
-          <MemoryRouter initialEntries={[`/recipes/${recipeId}`]}>
+          <MemoryRouter useTransitions={false} initialEntries={[`/recipes/${recipeId}`]}>
             <Routes>
               <Route path="/recipes/:id" element={<RecipeDetail />} />
             </Routes>

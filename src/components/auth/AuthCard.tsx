@@ -1,6 +1,6 @@
 // Frame of the sign-in pages: grey page, card in the upper third so the phone keyboard doesn't cover it.
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { PageTitle } from '../PageTitle'
 import { Skeleton } from '../Skeleton'
 import { Brand } from '../shell/BrandMark'

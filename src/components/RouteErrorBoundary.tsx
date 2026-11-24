@@ -4,7 +4,7 @@
 // around it stays, and it also catches render errors of the page itself, hence the neutral wording.
 import { Component, Suspense } from 'react'
 import type { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 import { Button } from '@postxl/ui-components'
 import { reloadPage } from '../lib/reloadPage'
 import { ErrorState } from './StateCard'

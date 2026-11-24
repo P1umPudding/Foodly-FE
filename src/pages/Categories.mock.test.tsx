@@ -1,6 +1,6 @@
 // The page inside the real app in mock mode: catalog, actions, shell and sidebar all real.
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SUGGESTED_COLORS } from '../lib/categoryColor'
 import { setViewport } from '../test/viewport'
@@ -28,7 +28,7 @@ const SLOW = 10_000
 
 async function renderPage() {
   render(
-    <MemoryRouter initialEntries={['/categories']}>
+    <MemoryRouter useTransitions={false} initialEntries={['/categories']}>
       <App />
     </MemoryRouter>,
   )

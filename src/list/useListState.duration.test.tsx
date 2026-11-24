@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom'
+import { MemoryRouter, useLocation, useNavigate } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
 import { DurationFilter } from '../components/list/filters/DurationFilter'
 import { useRecipeSearch } from '../hooks/useRecipeSearch'
@@ -31,7 +31,11 @@ function Harness() {
 const location = () => screen.getByTestId('location').textContent
 const field = () => screen.getByLabelText<HTMLInputElement>('Maximale Arbeitszeit in Minuten')
 const sliderRoot = () => screen.getByLabelText('Maximale Arbeitszeit')
-const back = () => act(() => navigate(-1))
+const back = () => {
+  act(() => {
+    void navigate(-1)
+  })
+}
 
 let search: MockInstance<typeof foodly.searchRecipes>
 // Searches after the initial page load, as their maxWorkTime filters.
@@ -43,7 +47,7 @@ beforeEach(() => {
   // Never settles: only the calls matter, and a settling search would update the harness outside act().
   search = vi.spyOn(foodly, 'searchRecipes').mockReturnValue(new Promise(() => {}))
   render(
-    <MemoryRouter initialEntries={['/other', '/recipes?dmax=60']} initialIndex={1}>
+    <MemoryRouter useTransitions={false} initialEntries={['/other', '/recipes?dmax=60']} initialIndex={1}>
       <Harness />
     </MemoryRouter>,
   )

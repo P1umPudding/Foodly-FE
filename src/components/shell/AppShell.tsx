@@ -2,7 +2,7 @@
 // The window stays the scroll container: the list's scroll restore, sticky headers and infinite scroll
 // all rely on window scrolling.
 import { useCallback, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { Button, Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from '@postxl/ui-components'
 import { ChevronLeft, Plus } from 'lucide-react'
 import { TimerPanel } from '../../timers/TimerPanel'
@@ -172,7 +172,7 @@ function BackLink({ pathname }: { pathname: string }) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
     if (!hasAppHistory()) return
     e.preventDefault()
-    navigate(-1)
+    void navigate(-1)
   }
   return (
     <Tooltip>

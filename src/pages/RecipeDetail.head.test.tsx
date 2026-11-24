@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes, useLocation, useNavigationType } from 'react-router'
 import { TooltipProvider, buttonVariants } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
@@ -70,7 +70,7 @@ function renderDetail(entry: string, recipes: Record<number, Recipe>) {
   return render(
     <TooltipProvider>
       <TimerProvider userId={1}>
-        <MemoryRouter initialEntries={[entry]}>
+        <MemoryRouter useTransitions={false} initialEntries={[entry]}>
           <Link to="/recipes/6">test-open-6</Link>
           <Routes>
             <Route path="/recipes/:id" element={<RecipeDetail />} />

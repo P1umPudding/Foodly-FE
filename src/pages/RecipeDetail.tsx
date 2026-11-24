@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ChefHat, Clock, Copy, ListChecks, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-react'
 import {
   Button,
@@ -78,7 +78,7 @@ export function RecipeDetail() {
     try {
       const copy = await foodly.copyRecipe(recipe.id)
       refreshCategories() // the copy joins the original's categories
-      navigate(`/recipes/${copy.id}`)
+      void navigate(`/recipes/${copy.id}`)
     } catch (e) {
       if (attempt !== cloneAttempt.current) return
       setCloneError(errorMessage(e, 'Kopie erstellen fehlgeschlagen'))
@@ -270,7 +270,7 @@ export function RecipeDetail() {
                 // loads are only forgotten when another one loaded).
                 if (currentUserId !== null) removeRecentlyViewed(currentUserId, [recipe.id])
                 refreshCategories()
-                navigate('/recipes', { replace: true })
+                void navigate('/recipes', { replace: true })
               }}
             />
           )}

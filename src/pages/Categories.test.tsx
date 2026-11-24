@@ -1,6 +1,6 @@
 // Load states and the page's own controls, against a stand-in catalog. The full flows run in mock mode: Categories.mock.test.tsx.
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { TooltipProvider, buttonVariants } from '@postxl/ui-components'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Categories } from './Categories'
@@ -27,7 +27,7 @@ vi.mock('../catalog/useCategoryActions', () => ({
 function renderPage() {
   render(
     <TooltipProvider>
-      <MemoryRouter initialEntries={['/categories']}>
+      <MemoryRouter useTransitions={false} initialEntries={['/categories']}>
         <Routes>
           <Route path="/categories" element={<Categories />} />
         </Routes>

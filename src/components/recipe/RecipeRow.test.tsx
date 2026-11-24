@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeRow } from './RecipeRow'
 import type { Recipe, Tag, UserCategory } from '../../api/protocol'
@@ -48,7 +48,7 @@ function renderRow(
 ) {
   return render(
     <TooltipProvider>
-      <MemoryRouter>
+      <MemoryRouter useTransitions={false}>
         <RecipeRow recipe={recipe} compact={compact} showImages={showImages} categories={categories} />
       </MemoryRouter>
     </TooltipProvider>,

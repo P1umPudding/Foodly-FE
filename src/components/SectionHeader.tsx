@@ -1,5 +1,5 @@
 // A section heading of the mockup (`.section-h`): h2 15/600 with an optional quiet link on the right.
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { cn } from '@postxl/ui-components'
 import { FOCUS_RING } from './focusRing'
 

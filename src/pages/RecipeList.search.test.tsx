@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeList } from './RecipeList'
@@ -59,7 +59,7 @@ vi.mock('../catalog/CatalogProvider', () => ({
 // URL so tests assert on rendered content, not on collapse defaults.
 function renderList(url = '/recipes?group=0') {
   return render(
-    <MemoryRouter initialEntries={[url]}>
+    <MemoryRouter useTransitions={false} initialEntries={[url]}>
       <TooltipProvider>
         <RecipeList />
       </TooltipProvider>
@@ -229,7 +229,7 @@ describe('RecipeList (server-side search)', () => {
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [1])])
 
     render(
-      <MemoryRouter initialEntries={['/recipes?cat=1&group=0']}>
+      <MemoryRouter useTransitions={false} initialEntries={['/recipes?cat=1&group=0']}>
         <TooltipProvider>
           <RecipeList />
         </TooltipProvider>
@@ -287,7 +287,7 @@ describe('RecipeList (server-side search)', () => {
   describe('scroll restore', () => {
     function renderAt(entry: string | { pathname: string; search: string; state: unknown }) {
       return render(
-        <MemoryRouter initialEntries={[entry]}>
+        <MemoryRouter useTransitions={false} initialEntries={[entry]}>
           <TooltipProvider>
             <RecipeList />
           </TooltipProvider>
@@ -330,7 +330,7 @@ describe('RecipeList (server-side search)', () => {
       let goBack: () => void = () => {}
       function Detail() {
         const navigate = useNavigate()
-        goBack = () => navigate(-1)
+        goBack = () => void navigate(-1)
         return (
           <Link to="/recipes?group=0" state={SHELL_NAV_STATE}>
             open list
@@ -338,7 +338,7 @@ describe('RecipeList (server-side search)', () => {
         )
       }
       render(
-        <MemoryRouter initialEntries={entries} initialIndex={index}>
+        <MemoryRouter useTransitions={false} initialEntries={entries} initialIndex={index}>
           <TooltipProvider>
             <Routes>
               <Route path="/recipes" element={<RecipeList />} />
@@ -479,7 +479,7 @@ describe('RecipeList (result count and empty states)', () => {
   // later pages still might.
   function renderSearch(q: string) {
     return render(
-      <MemoryRouter initialEntries={[`/recipes?group=0&q=${q}`]}>
+      <MemoryRouter useTransitions={false} initialEntries={[`/recipes?group=0&q=${q}`]}>
         <TooltipProvider>
           <RecipeList />
         </TooltipProvider>
@@ -729,7 +729,7 @@ describe('RecipeList (rows)', () => {
     vi.spyOn(foodly, 'listCategories').mockResolvedValue([cat(1, [1]), cat(2, [1])])
 
     render(
-      <MemoryRouter initialEntries={['/recipes?cat=1']}>
+      <MemoryRouter useTransitions={false} initialEntries={['/recipes?cat=1']}>
         <TooltipProvider>
           <RecipeList />
         </TooltipProvider>

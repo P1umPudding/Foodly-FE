@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RecipeListView } from './RecipeListView'
 import { categoryColors } from '../../lib/categoryColor'
@@ -47,7 +47,7 @@ const cats: UserCategory[] = [
 it('by-category shows a recipe under each of its categories + Ohne Kategorie bucket', () => {
   render(
     <TooltipProvider>
-      <MemoryRouter>
+      <MemoryRouter useTransitions={false}>
         <RecipeListView recipes={recipes} categories={cats} detail="detailed" />
       </MemoryRouter>
     </TooltipProvider>,
@@ -62,7 +62,7 @@ it('by-category shows a recipe under each of its categories + Ohne Kategorie buc
 it('renders a collapsible, colour-coded heading per category', () => {
   render(
     <TooltipProvider>
-      <MemoryRouter>
+      <MemoryRouter useTransitions={false}>
         <RecipeListView recipes={recipes} categories={cats} detail="detailed" />
       </MemoryRouter>
     </TooltipProvider>,
@@ -95,7 +95,7 @@ it('renders a collapsible, colour-coded heading per category', () => {
 it('flat list (grouped=false): no category headers, every recipe once', () => {
   render(
     <TooltipProvider>
-      <MemoryRouter>
+      <MemoryRouter useTransitions={false}>
         <RecipeListView recipes={recipes} categories={cats} detail="detailed" grouped={false} />
       </MemoryRouter>
     </TooltipProvider>,
@@ -117,7 +117,7 @@ it('sticks each category header right under the site header', () => {
 function renderView(props: Partial<ComponentProps<typeof RecipeListView>> = {}) {
   return render(
     <TooltipProvider>
-      <MemoryRouter>
+      <MemoryRouter useTransitions={false}>
         <RecipeListView recipes={recipes} categories={cats} detail="detailed" {...props} />
       </MemoryRouter>
     </TooltipProvider>,
@@ -215,7 +215,7 @@ describe('tiles view', () => {
 it('flat list drops only the excepted category from the rows', () => {
   render(
     <TooltipProvider>
-      <MemoryRouter>
+      <MemoryRouter useTransitions={false}>
         <RecipeListView recipes={recipes} categories={cats} detail="detailed" grouped={false} exceptCategoryId={10} />
       </MemoryRouter>
     </TooltipProvider>,

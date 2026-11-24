@@ -1,6 +1,6 @@
 // Detail and cook mode share their ticks (#210, AC3): one router holding both pages.
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CookMode } from './CookMode'
@@ -56,7 +56,7 @@ function renderApp() {
   return render(
     <TooltipProvider>
       <TimerProvider userId={1}>
-        <MemoryRouter initialEntries={['/recipes/5']}>
+        <MemoryRouter useTransitions={false} initialEntries={['/recipes/5']}>
           <Link to="/recipes/6">test-open-6</Link>
           <Routes>
             <Route path="/recipes/:id" element={<RecipeDetail />} />

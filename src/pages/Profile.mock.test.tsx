@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 // Mock mode is decided when src/api loads, so the page is imported fresh with VITE_MOCK=1.
@@ -23,7 +23,7 @@ afterEach(() => {
 
 it('has no Abmelden in mock mode', () => {
   render(
-    <MemoryRouter>
+    <MemoryRouter useTransitions={false}>
       <Profile />
     </MemoryRouter>,
   )

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Clock } from 'lucide-react'
 import { TagText } from '../TagText'
 import { RatingMeta } from './Stars'

@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { foodly } from '../api'
 import { ThemeProvider } from '../theme/ThemeProvider'
@@ -16,7 +16,7 @@ const flush = () => act(() => new Promise((r) => setTimeout(r, 0)))
 function renderProfile() {
   render(
     <ThemeProvider>
-      <MemoryRouter>
+      <MemoryRouter useTransitions={false}>
         <Profile />
       </MemoryRouter>
     </ThemeProvider>,

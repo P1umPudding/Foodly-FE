@@ -1,7 +1,7 @@
 // Cook mode (/recipes/:id/cook): the recipe step by step, full screen without the shell (#209). The current step lives
 // only in state, so a reload starts at step 1 again; App keys the page on the id.
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Button, Progress, Tooltip, TooltipContent, TooltipTrigger, cn } from '@postxl/ui-components'
 import { Check, ChefHat, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { foodly } from '../api'
@@ -76,8 +76,8 @@ export function CookMode() {
   // Back doesn't return to cook mode. A size changed here must reach the detail (#210), and the entry behind still
   // has the old one, so then it goes forward to the recipe as well.
   const close = () => {
-    if (hasAppHistory() && !sizeChanged) navigate(-1)
-    else navigate(detailHref, { replace: true })
+    if (hasAppHistory() && !sizeChanged) void navigate(-1)
+    else void navigate(detailHref, { replace: true })
   }
 
   const goBack = () => {

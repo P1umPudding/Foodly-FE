@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter } from 'react-router'
 import { ThemeProvider } from './theme/ThemeProvider'
 import { bootstrap } from './api'
 import App from './App'
@@ -11,7 +11,9 @@ const root = ReactDOM.createRoot(document.getElementById('root')!)
 function render() {
   root.render(
     <React.StrictMode>
-      <BrowserRouter basename={import.meta.env.BASE_URL}>
+      {/* React Router 7 would run navigations in startTransition, which keeps the old page up while a lazy route
+          loads (no skeleton) and lets re-renders lag. Off to keep the v6 behaviour; test routers do the same. */}
+      <BrowserRouter basename={import.meta.env.BASE_URL} useTransitions={false}>
         <ThemeProvider>
           <App />
         </ThemeProvider>

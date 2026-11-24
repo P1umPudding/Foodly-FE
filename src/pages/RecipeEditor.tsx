@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Alert, AlertDescription, AlertTitle, Button, Spinner, toast } from '@postxl/ui-components'
 import { EditorSkeleton } from '../components/editor/EditorSkeleton'
 import { SAFE_BOTTOM } from '../components/editor/layout'
@@ -122,8 +122,8 @@ export function RecipeEditor() {
   const openedFromDetail = (location.state as { fromDetail?: unknown } | null)?.fromDetail === true
   const hasAppHistory = useHasAppHistory()
   const leaveToDetail = () => {
-    if (openedFromDetail && hasAppHistory()) navigate(-1)
-    else navigate(`/recipes/${recipeId}`, { replace: true })
+    if (openedFromDetail && hasAppHistory()) void navigate(-1)
+    else void navigate(`/recipes/${recipeId}`, { replace: true })
   }
 
   const [uploading, setUploading] = useState(false)
@@ -168,7 +168,7 @@ export function RecipeEditor() {
       // A new recipe can't be given a category yet, so this changes nothing today; keeps the sidebar right once it can.
       refreshCategories()
       setRecipeId(created.id)
-      if (alive.current) navigate(`/recipes/${created.id}/edit`, { replace: true })
+      if (alive.current) void navigate(`/recipes/${created.id}/edit`, { replace: true })
     } catch (e) {
       toast.error(`Rezept konnte nicht angelegt werden: ${errorMessage(e, 'unbekannter Fehler')}`)
     } finally {

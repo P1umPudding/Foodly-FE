@@ -1,7 +1,7 @@
 // #269: no "Function components cannot be given refs" on the pages with a ⋯ menu behind a tooltip, and that ⋯ still
 // behaves (tooltip on focus, menu on click, Escape returns focus). The real app in mock mode, like Categories.mock.
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockInstance } from 'vitest'
 import { setViewport } from '../test/viewport'
@@ -34,7 +34,7 @@ const SLOW = 10_000
 
 function renderAt(path: string) {
   render(
-    <MemoryRouter initialEntries={[path]}>
+    <MemoryRouter useTransitions={false} initialEntries={[path]}>
       <App />
     </MemoryRouter>,
   )

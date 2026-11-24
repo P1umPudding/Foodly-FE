@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Button } from '@postxl/ui-components'
 import { PageTitle } from '../components/PageTitle'
 import { Page } from '../components/shell/Page'

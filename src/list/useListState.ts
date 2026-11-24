@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigationType, useSearchParams } from 'react-router'
 import { useCurrentUserId } from '../catalog/CatalogProvider'
 import { DEFAULT_STATE, clearedState, type ListState } from './state'
 import { fromSearchParams, toSearchParams } from './url'

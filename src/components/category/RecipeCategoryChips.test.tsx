@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeCategoryChips } from './RecipeCategoryChips'
 import type { Recipe, UserCategory } from '../../api/protocol'
@@ -25,7 +25,7 @@ const recipe = { id: 5 } as Recipe
 
 function renderChips() {
   render(
-    <MemoryRouter>
+    <MemoryRouter useTransitions={false}>
       <RecipeCategoryChips recipe={recipe} />
     </MemoryRouter>,
   )

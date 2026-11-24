@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation, useNavigate, useNavigationType } from 'react-router'
 import { Button, TooltipProvider, toast } from '@postxl/ui-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CookMode } from './CookMode'
@@ -68,7 +68,7 @@ function TimerLabels() {
 function renderCook(cookPath = '/recipes/5/cook', entries: string[] = []) {
   return render(
     <TooltipProvider>
-      <MemoryRouter initialEntries={[...entries, cookPath]} initialIndex={entries.length}>
+      <MemoryRouter useTransitions={false} initialEntries={[...entries, cookPath]} initialIndex={entries.length}>
         <TimerProvider userId={1}>
           <Routes>
             <Route element={<BareLayout />}>
@@ -348,7 +348,7 @@ describe('CookMode', () => {
     vi.spyOn(foodly, 'getRecipe').mockResolvedValue(recipe(TWO_SECTIONS))
     render(
       <TooltipProvider>
-        <MemoryRouter initialEntries={['/recipes/5']}>
+        <MemoryRouter useTransitions={false} initialEntries={['/recipes/5']}>
           <TimerProvider userId={1}>
             <Routes>
               <Route element={<BareLayout />}>
@@ -376,7 +376,7 @@ describe('CookMode', () => {
 
 function CookLink() {
   const navigate = useNavigate()
-  return <Button onClick={() => navigate('/recipes/5/cook')}>cook</Button>
+  return <Button onClick={() => void navigate('/recipes/5/cook')}>cook</Button>
 }
 
 describe('CookMode wake lock', () => {

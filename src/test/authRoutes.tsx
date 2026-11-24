@@ -1,7 +1,7 @@
 // Route tree for the guard and sign-in page tests: probe routes print where navigation ended up.
 import { render } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { TooltipProvider } from '@postxl/ui-components'
 import { RedirectIfSignedIn, RequireAuth, ShellLayout } from '../components/shell/RequireAuth'
 
@@ -19,7 +19,7 @@ type Entry = string | { pathname: string; search?: string; state?: unknown }
 export function renderAuthRoutes(path: Entry, pages: { login?: ReactNode; register?: ReactNode } = {}) {
   return render(
     <TooltipProvider>
-      <MemoryRouter initialEntries={[path]}>
+      <MemoryRouter useTransitions={false} initialEntries={[path]}>
         <Routes>
           <Route element={<RedirectIfSignedIn />}>
             <Route path="/login" element={pages.login ?? <LocationProbe label="login" />} />

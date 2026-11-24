@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router'
 import { Button, TooltipProvider } from '@postxl/ui-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RecipeDetail } from './RecipeDetail'
@@ -49,14 +49,14 @@ function recipe(id: number): Recipe {
 
 function BackButton() {
   const navigate = useNavigate()
-  return <Button onClick={() => navigate(-1)}>test-back</Button>
+  return <Button onClick={() => void navigate(-1)}>test-back</Button>
 }
 
 function renderAt(path: string) {
   vi.spyOn(foodly, 'getRecipe').mockImplementation(async (id) => recipe(id))
   render(
     <TooltipProvider>
-      <MemoryRouter initialEntries={[path]}>
+      <MemoryRouter useTransitions={false} initialEntries={[path]}>
         <Link to="/recipes/6">test-go-6</Link>
         <BackButton />
         <Routes>
@@ -141,7 +141,7 @@ describe('RecipeDetail clone · StrictMode with the mock backend', () => {
       <StrictMode>
         <TimerProvider userId={1}>
           <TooltipProvider>
-            <MemoryRouter initialEntries={[`/recipes/${original.id}`]}>
+            <MemoryRouter useTransitions={false} initialEntries={[`/recipes/${original.id}`]}>
               <Routes>
                 <Route path="/recipes/:id" element={<RecipeDetail />} />
               </Routes>

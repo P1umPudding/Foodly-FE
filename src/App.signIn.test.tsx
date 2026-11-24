@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 import { jsonResponse, jwt } from './test/auth'
 import App from './App'
@@ -31,7 +31,7 @@ it('a signed-out visit to /recipes/5 ends on /recipes/5 after signing in', async
     }),
   )
   render(
-    <MemoryRouter initialEntries={['/recipes/5']}>
+    <MemoryRouter useTransitions={false} initialEntries={['/recipes/5']}>
       <App />
     </MemoryRouter>,
   )
