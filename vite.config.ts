@@ -2,7 +2,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import { previewBase } from './src/previewBase'
+import { buildBase, nativeEnvError, nativeEnvWarnings } from './src/nativeBuild'
 import { hasModuleSideEffects } from './src/treeshake'
 
 // https://vitejs.dev/config/
@@ -16,8 +16,16 @@ export default defineConfig(({ mode }) => {
   const forceMock = inPreview && !env.VITE_API_URL && !env.VITE_MOCK
   const previewServer = inPreview ? { host: true, allowedHosts: true as const } : {}
 
+  // `--mode native` (npm run build:native) builds for the Capacitor shell, which serves dist/ from its own root.
+  // The guard passes only with VITE_MOCK=1 or a VITE_API_URL, so forceMock is already off there.
+  if (mode === 'native') {
+    const error = nativeEnvError(env)
+    if (error) throw new Error(error)
+    nativeEnvWarnings(env).forEach((warning) => console.warn(warning))
+  }
+
   return {
-    base: previewBase(process.env.SKAILE_PREVIEW_BASE),
+    base: buildBase(mode, process.env.SKAILE_PREVIEW_BASE),
     define: forceMock ? { 'import.meta.env.VITE_MOCK': JSON.stringify('1') } : {},
     plugins: [react(), tailwindcss()],
     // Dev-only: proxy REST calls to the backend so the browser talks same-origin.
