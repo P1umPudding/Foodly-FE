@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:native": "tsc && vite build --mode native",
+    "cap:sync": "npm run build:native && cap sync",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
