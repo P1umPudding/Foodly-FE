@@ -6,6 +6,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import type { ReactNode } from 'react'
 import { toast } from '@postxl/ui-components'
 import type { UserId } from '../api/protocol'
+import { ensureNotificationPermission, isActive, startTimerNotifications } from '../native/timerNotifications'
 import { startAlarm, stopAlarm as stopAlarmSound, unlockAudio } from './alarm'
 
 export type TimerId = string
@@ -163,6 +164,30 @@ export function TimerProvider({ userId, children }: { userId: UserId | null; chi
     }
   }, [])
 
+  // In the background the notification rings (native app). A timer that ends there only flips to expired, without
+  // alarm or toast: Android's WebView may keep ticking (see the tick), and on iOS the first tick after the return
+  // would ring late, so the return settles those timers before it.
+  useEffect(() => {
+    return startTimerNotifications({
+      getTimers: () => timersRef.current,
+      onBecameActive: () => {
+        const now = Date.now()
+        const ended = timersRef.current
+          .filter((t) => t.status === 'running' && t.endAt !== null && t.endAt <= now)
+          .map((t) => t.id)
+        if (ended.length === 0) return
+        for (const id of ended) alarmedIds.current.add(id)
+        setTimers((prev) =>
+          prev.map((t) =>
+            ended.includes(t.id) && t.status === 'running'
+              ? { ...t, status: 'expired', endAt: null, remainingMs: 0 }
+              : t,
+          ),
+        )
+      },
+    })
+  }, [])
+
   const hasRunning = timers.some((t) => t.status === 'running')
 
   useEffect(() => {
@@ -175,6 +200,7 @@ export function TimerProvider({ userId, children }: { userId: UserId | null; chi
       for (const t of timersRef.current) {
         if (t.status === 'running' && t.endAt !== null && t.endAt <= now && !alarmedIds.current.has(t.id)) {
           alarmedIds.current.add(t.id)
+          if (!isActive()) continue
           // The 60s safety auto-stop only silences (clearAlarm) — it must not
           // delete an unnamed timer. Only an explicit Stopp removes it.
           startAlarm(t.id, () => clearAlarm(t.id))
@@ -221,6 +247,7 @@ export function TimerProvider({ userId, children }: { userId: UserId | null; chi
       ...prev,
       { id: newId(), label, durationMs, remainingMs: durationMs, endAt: now + durationMs, status: 'running' },
     ])
+    ensureNotificationPermission()
   }, [])
 
   const pause = useCallback((id: TimerId) => {
@@ -242,6 +269,7 @@ export function TimerProvider({ userId, children }: { userId: UserId | null; chi
         t.id === id && t.status === 'paused' ? { ...t, status: 'running', endAt: now + t.remainingMs } : t,
       ),
     )
+    ensureNotificationPermission()
   }, [])
 
   // Reset to the full duration the timer was created with and run again — never
@@ -257,6 +285,7 @@ export function TimerProvider({ userId, children }: { userId: UserId | null; chi
           t.id === id ? { ...t, status: 'running', remainingMs: t.durationMs, endAt: now + t.durationMs } : t,
         ),
       )
+      ensureNotificationPermission()
     },
     [clearAlarm],
   )

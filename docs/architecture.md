@@ -195,6 +195,9 @@ alles wie bisher.
   (`[role=dialog|alertdialog|menu|listbox][data-state="open"]`, das zuletzt im DOM stehende) bekommt ein `Escape`, vom
   fokussierten Element darin aus. Sonst geht es per React Router zurück (ohne Verlauf nach `/`). Auf `/` und `/login`
   schließt die App, auf `/register` nur ohne Verlauf. Eigene Overlays ohne Radix brauchen `data-state="open"`, wie die Lightbox.
+- `timerNotifications.ts` (#328): Timer-Benachrichtigungen. Beim Wechsel in den Hintergrund bekommt jeder laufende
+  Timer eine lokale Benachrichtigung zu seiner Endzeit, bei der Rückkehr werden alle storniert; `TimerProvider` lässt
+  einen im Hintergrund abgelaufenen Timer ohne Alarm auf `expired` springen. Details: [`native.md`](native.md).
 
 ## 7. Tests
 
