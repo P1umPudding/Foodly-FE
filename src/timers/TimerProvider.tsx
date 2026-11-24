@@ -179,7 +179,9 @@ export function TimerProvider({ userId, children }: { userId: UserId | null; chi
         for (const id of ended) alarmedIds.current.add(id)
         setTimers((prev) =>
           prev.map((t) =>
-            ended.includes(t.id) && t.status === 'running' ? { ...t, status: 'expired', endAt: null, remainingMs: 0 } : t,
+            ended.includes(t.id) && t.status === 'running'
+              ? { ...t, status: 'expired', endAt: null, remainingMs: 0 }
+              : t,
           ),
         )
       },

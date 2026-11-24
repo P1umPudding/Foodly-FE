@@ -44,7 +44,8 @@ export function notificationId(timerId: string): number {
 async function cancelPending(): Promise<void> {
   const [{ LocalNotifications }] = await loadPlugins()
   const { notifications } = await LocalNotifications.getPending()
-  if (notifications.length > 0) await LocalNotifications.cancel({ notifications: notifications.map(({ id }) => ({ id })) })
+  if (notifications.length > 0)
+    await LocalNotifications.cancel({ notifications: notifications.map(({ id }) => ({ id })) })
 }
 
 async function scheduleRunning(timers: NotifiableTimer[]): Promise<void> {
@@ -127,7 +128,8 @@ export function ensureNotificationPermission(): void {
   if (!isNative() || permissionRequest) return
   permissionRequest = loadPlugins()
     .then(async ([{ LocalNotifications }]) => {
-      if ((await LocalNotifications.checkPermissions()).display === 'prompt') await LocalNotifications.requestPermissions()
+      if ((await LocalNotifications.checkPermissions()).display === 'prompt')
+        await LocalNotifications.requestPermissions()
     })
     .catch(() => {})
     .finally(() => {
