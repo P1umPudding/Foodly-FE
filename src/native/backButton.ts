@@ -12,8 +12,8 @@ export const OVERLAY_SELECTOR = ['dialog', 'alertdialog', 'menu', 'listbox']
 // signed-out user there (navigate('/') would bounce right back).
 const EXIT_PATHS = new Set(['/', '/login'])
 
-export function topOverlay(root: ParentNode = document): Element | null {
-  const open = root.querySelectorAll(OVERLAY_SELECTOR)
+export function topOverlay(): Element | null {
+  const open = document.querySelectorAll(OVERLAY_SELECTOR)
   return open.length ? open[open.length - 1] : null
 }
 

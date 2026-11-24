@@ -2,6 +2,11 @@ import { StrictMode, useState, type ReactNode } from 'react'
 import { act, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -109,6 +114,23 @@ describe('Android back button with an open overlay', () => {
     expect(plugin.exitApp).not.toHaveBeenCalled()
   })
 
+  it('closes an alert dialog', async () => {
+    await renderAt(
+      ['/recipes', '/recipes/1'],
+      <AlertDialog defaultOpen>
+        <AlertDialogContent>
+          <AlertDialogTitle>Löschen?</AlertDialogTitle>
+          <AlertDialogDescription>Text</AlertDialogDescription>
+          <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+        </AlertDialogContent>
+      </AlertDialog>,
+    )
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+    await pressBack()
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(path()).toBe('/recipes/1')
+  })
+
   it('closes a bottom sheet', async () => {
     await renderAt(
       ['/recipes', '/recipes/1'],
@@ -198,7 +220,9 @@ describe('Android back button with an open overlay', () => {
 
   it('sends Escape from the focused field, so an open suggestion list closes before its sheet', async () => {
     // The pattern of IngredientSheet: Escape from an expanded combobox only closes its list.
+    const targets: (EventTarget | null)[] = []
     const keepOpen = (e: KeyboardEvent) => {
+      targets.push(e.target)
       if ((e.target as Element | null)?.matches('[role=combobox][aria-expanded=true]')) e.preventDefault()
     }
     await renderAt(
@@ -209,8 +233,10 @@ describe('Android back button with an open overlay', () => {
         </BottomSheet>
       </Sheet>,
     )
-    act(() => screen.getByRole('combobox').focus())
+    const field = screen.getByRole('combobox')
+    act(() => field.focus())
     await pressBack()
+    expect(targets).toEqual([field])
     expect(screen.getByRole('dialog')).toBeTruthy()
   })
 })

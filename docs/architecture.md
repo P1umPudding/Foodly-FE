@@ -189,7 +189,7 @@ alles wie bisher.
 - `backButton.ts` + `AndroidBackButton.tsx` (#325): die Android-Zurück-Taste. Ein offenes Overlay
   (`[role=dialog|alertdialog|menu|listbox][data-state="open"]`, das zuletzt im DOM stehende) bekommt ein `Escape`, vom
   fokussierten Element darin aus. Sonst geht es per React Router zurück (ohne Verlauf nach `/`). Auf `/` und `/login`
-  schließt die App. Eigene Overlays ohne Radix brauchen `data-state="open"`, wie die Lightbox.
+  schließt die App, auf `/register` nur ohne Verlauf. Eigene Overlays ohne Radix brauchen `data-state="open"`, wie die Lightbox.
 
 ## 7. Tests
 
