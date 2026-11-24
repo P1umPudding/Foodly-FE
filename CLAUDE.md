@@ -85,6 +85,14 @@ There's no server code and no secrets in the repo.
     correlation, events), **reserved for future live editing** and never
     connected today. Its `{ id, type, payload }` envelope is unused today; the
     mock responder short-circuits `request()`.
+- `src/native/` — **the only place for native (Capacitor) APIs**: `platform.ts`
+  (`isNative()`, `platform()`) reads the `window.Capacitor` the native shell
+  injects, without importing `@capacitor/core`; plugin adapters are imported
+  dynamically so Capacitor stays out of the web entry chunk. Lint forbids
+  `@capacitor/*` imports elsewhere. See
+  [`docs/decisions/0005-native-shell.md`](docs/decisions/0005-native-shell.md)
+  and [`docs/native.md`](docs/native.md) (build, sync, device checklist);
+  `android/` and `ios/` are the generated Capacitor projects.
 - `src/mocks/` — mock responder + JSON data (`src/mocks/data/`), used only for
   `VITE_MOCK=1` (`bootstrap()` doesn't load it in REST mode).
 - `src/catalog/` — `CatalogProvider` (tags, users, ingredients as `byId`
@@ -151,6 +159,8 @@ npm run test:watch   # vitest in watch mode
 npm run format       # prettier --write . (Skaile config: prettier.config.cjs)
 npm run format:check # prettier --check . (no writes)
 npm run lint         # eslint . (exit 0 required; legacy violations sit in eslint-suppressions.json)
+npm run build:native # tsc + vite build --mode native (base /, mock by default) -> dist/
+npm run cap:sync     # build:native + cap sync: copies dist/ into android/ and ios/ (docs/native.md)
 ```
 
 ### Environment
@@ -163,7 +173,8 @@ client; all of them are build-time, non-secret values.
 | `VITE_API_URL` | `/api/v1` | REST base URL. The relative default goes through the Vite dev proxy to `http://localhost:8080`. |
 | `VITE_MOCK` | unset (= REST) | `1` = serve everything from `src/mocks`. Any other value: REST. |
 | `VITE_WS_URL` | `''` | Reserved for future live editing. Passed to `SocketClient` but never connected. |
-| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and makes mock data the default (injects `VITE_MOCK=1` via `define`) unless `VITE_API_URL` or `VITE_MOCK` is set, in the process environment or a `.env*` file. |
+| `SKAILE_PREVIEW_BASE` | unset | Set by the Skaile preview (not a `VITE_` var, read in `vite.config.ts`): serves the app under that sub-path (`base`), opens the dev/preview server to the proxy host, and makes mock data the default (injects `VITE_MOCK=1` via `define`) unless `VITE_API_URL` or `VITE_MOCK` is set, in the process environment or a `.env*` file. Ignored by `--mode native` (`base` is always `/` there). |
+| `.env.native` | `VITE_MOCK=1` | Committed env file for `npm run build:native` / `cap:sync`: the native build is a mock build by default. A REST build needs `.env.native.local` with `VITE_MOCK=` and an absolute `VITE_API_URL`; otherwise the build aborts (`src/nativeBuild.ts`). |
 
 ## Formatting
 

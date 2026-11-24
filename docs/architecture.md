@@ -172,9 +172,19 @@ Altlasten in `eslint-suppressions.json`):
 | `@typescript-eslint/no-floating-promises`, `no-misused-promises` | Promises behandeln (§4), keine async-Handler, deren Fehler verloren gehen |
 | `react-hooks/rules-of-hooks`, `exhaustive-deps` | Hook-Regeln |
 | `import-x/no-extraneous-dependencies` | jeder Import steht in `package.json`, devDependencies nur in Tests/Configs |
+| `no-restricted-imports` (`@capacitor/*`, `@capacitor-community/*`) | Native APIs nur in `src/native/` (ADR [0005](decisions/0005-native-shell.md)); gilt für statische Importe, `import()` bleibt Konvention |
 
 Tests (`*.test.ts(x)`, `src/test/`) dürfen rohe Elemente und `style` nutzen.
 Begründete Einzelausnahme: `eslint-disable-next-line <regel> -- <grund>`.
+
+## 6a. Native (`src/native/`)
+
+Die App läuft zusätzlich in einer Capacitor-Hülle auf Android und iOS (ADR
+[0005](decisions/0005-native-shell.md), Bauen und Prüfen: [`native.md`](native.md)). `src/native/` ist die einzige
+Stelle, die native APIs anspricht: `platform.ts` (`isNative()`, `platform()`) liest das von der Hülle injizierte
+`window.Capacitor`, ohne `@capacitor/core` zu importieren. Plugin-Adapter kommen ab N2 dazu und werden dynamisch
+importiert, damit der Web-Entry-Chunk frei von Capacitor bleibt. Das Web bleibt Primärziel; ohne Hülle verhält sich
+alles wie bisher.
 
 ## 7. Tests
 
