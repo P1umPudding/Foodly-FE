@@ -1,6 +1,7 @@
 // Open state of the header's timer panel, shared so a time chip in the page can open it too.
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { onNotificationTap } from '../native/timerNotifications'
 
 type TimerPanelApi = {
   open: boolean
@@ -24,6 +25,11 @@ export function TimerPanelProvider({ children }: { children: ReactNode }) {
     const el = returnFocus.current
     returnFocus.current = null
     return el?.isConnected ? el : null
+  }, [])
+
+  // Here rather than in TimerProvider, which sits above the panel. Only one layout (shell or cook mode) is mounted.
+  useEffect(() => {
+    return onNotificationTap(() => setOpenState(true))
   }, [])
 
   const value = useMemo(() => ({ open, setOpen, takeReturnFocus }), [open, setOpen, takeReturnFocus])
