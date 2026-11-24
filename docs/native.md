@@ -88,8 +88,9 @@ Timer-Panel.
 - Android: Ohne „Wecker und Erinnerungen“ (ab Android 14 Standard) plant die App ungenau; die Benachrichtigung kann
   dann Minuten zu spät kommen. Wer vorher zurückkehrt, sieht den Timer still abgelaufen. Ein Hinweis dazu folgt mit N7.
   `SCHEDULE_EXACT_ALARM` steht im Manifest, `USE_EXACT_ALARM` bewusst nicht.
-- iOS: Auch Kontrollzentrum oder ein Systemdialog (etwa die Berechtigungsabfrage) zählen als Hintergrund. Läuft ein
-  Timer dort ab, klingelt nur die Benachrichtigung.
+- iOS: Auch Kontrollzentrum oder ein Systemdialog zählen als Hintergrund. Läuft ein Timer dort ab, klingelt nur die
+  Benachrichtigung. Während der Berechtigungsabfrage selbst ist noch nichts erlaubt: Ein Timer, der dabei abläuft,
+  klingelt gar nicht (betrifft nur Timer von wenigen Sekunden).
 - Wird eine Benachrichtigung abgemeldet angetippt, öffnet sich das Panel nach der nächsten Anmeldung.
 - Wird die App im Hintergrund beendet, setzt der nächste Start einen abgelaufenen Timer wie bisher auf seine volle Dauer
   zurück.
@@ -122,4 +123,6 @@ Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iO
       kurzem Wechsel in den Hintergrund und zurück.
 - [ ] Nach Ablauf im Hintergrund zurück in die App: Timer steht auf abgelaufen, kein verspäteter Alarm.
 - [ ] Tippen auf die Benachrichtigung öffnet die App mit dem Timer-Panel.
+- [ ] Android ohne „Wecker und Erinnerungen“: Der Wechsel in den Hintergrund öffnet keine Einstellungsseite, die
+      Benachrichtigung kommt (eventuell verspätet).
 - [ ] Benachrichtigungen abgelehnt: Der Timer läuft trotzdem und klingelt im Vordergrund.

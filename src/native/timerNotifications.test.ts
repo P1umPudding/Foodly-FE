@@ -103,6 +103,7 @@ describe('timerNotifications', () => {
         isExactNotification: true,
       }),
       expect.objectContaining({ id: notificationId('b'), body: 'Timer ist fertig' }),
+      expect.objectContaining({ id: notificationId('e'), schedule: { at: new Date(NOW - 1), allowWhileIdle: true } }),
     ])
   })
 
@@ -217,11 +218,16 @@ describe('timerNotifications', () => {
     const onTap = vi.fn()
     const stop = onNotificationTap(onTap)
     await flush()
-    expect(m.LocalNotifications.addListener).toHaveBeenCalledWith('localNotificationActionPerformed', onTap)
+    expect(m.LocalNotifications.addListener).toHaveBeenCalledWith(
+      'localNotificationActionPerformed',
+      expect.any(Function),
+    )
     m.state.tapHandler!()
-    expect(onTap).toHaveBeenCalled()
+    expect(onTap).toHaveBeenCalledTimes(1)
     stop()
     expect(m.handle.remove).toHaveBeenCalled()
+    m.state.tapHandler!()
+    expect(onTap).toHaveBeenCalledTimes(1)
   })
 
   it('never loads a plugin on the web', async () => {

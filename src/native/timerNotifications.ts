@@ -49,10 +49,8 @@ async function cancelPending(): Promise<void> {
 }
 
 async function scheduleRunning(timers: NotifiableTimer[]): Promise<void> {
-  const now = Date.now()
-  const due = timers.filter(
-    (t): t is NotifiableTimer & { endAt: number } => t.status === 'running' && t.endAt !== null && t.endAt > now,
-  )
+  // A timer that ended in the last tick interval still counts: both platforms deliver a past `at` right away.
+  const due = timers.filter((t): t is NotifiableTimer & { endAt: number } => t.status === 'running' && t.endAt !== null)
   if (due.length === 0) return
   const [{ LocalNotifications }] = await loadPlugins()
   // schedule() would open the permission dialog itself; that is only asked for on a timer start.
@@ -117,7 +115,6 @@ export function startTimerNotifications({
   return () => {
     disposed = true
     void handle?.remove()
-    active = true
     enqueue(cancelPending)
   }
 }
@@ -144,7 +141,11 @@ export function onNotificationTap(handler: () => void): () => void {
   let disposed = false
   let handle: PluginListenerHandle | null = null
   void loadPlugins()
-    .then(([{ LocalNotifications }]) => LocalNotifications.addListener('localNotificationActionPerformed', handler))
+    .then(([{ LocalNotifications }]) =>
+      LocalNotifications.addListener('localNotificationActionPerformed', () => {
+        if (!disposed) handler()
+      }),
+    )
     .then((h) => {
       if (disposed) void h.remove()
       else handle = h

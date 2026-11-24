@@ -10,10 +10,10 @@
     <group
         android:pivotX="16"
         android:pivotY="16"
-        android:scaleX="1.5"
-        android:scaleY="1.5"
-        android:translateX="-2.25"
-        android:translateY="0.375">
+        android:scaleX="1.4"
+        android:scaleY="1.4"
+        android:translateX="-2.1"
+        android:translateY="0.35">
         <path
             android:pathData="M11,7v5a2,2 0,0 0,2 2v11M11,7v4M15,7v4a2,2 0,0 1,-2 2M21,25v-9M18,11a3,4.5 0,1 0,6 0a3,4.5 0,1 0,-6 0"
             android:strokeColor="#FFFFFFFF"
