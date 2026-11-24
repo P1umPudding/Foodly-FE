@@ -105,7 +105,11 @@ werden hier nicht wiederholt.
   lässt sich nicht tree-shaken; ungenutzte Komponenten bleiben im Einstieg. Den Code von postxl beim Build umschreiben ist
   ausgeschlossen (gilt als Patch). Ungenutzte postxl-Abhängigkeiten, die nur ihr eigener Top-Level-Code im Einstieg hält,
   kommen in die Liste in `src/treeshake.ts` (Kriterien dort). `chunkSizeWarningLimit` in `vite.config.ts` liegt knapp
-  über der Einstiegsgröße und warnt, wenn sie wächst.
+  über der Einstiegsgröße und warnt, wenn sie wächst. React Router 7 (#333, Begründung #334) gehört ebenfalls in den
+  Einstieg: sein Kern ist ein einziges Modul, das Foodly fast vollständig nutzt. Ihn in einen eigenen, immer geladenen
+  Vendor-Chunk auszulagern hilft nicht, weil der erste Seitenaufruf gleich viel lädt und die Warnung ihren Sinn verlöre.
+  Wächst der Einstieg durch eine Abhängigkeit, die er wirklich braucht, und lässt er sich nicht sinnvoll verkleinern,
+  kommt das Limit knapp über die neue Größe; die Begründung steht hier.
 - Kein Data Router (`createBrowserRouter`) → kein `useBlocker`; Verlassen-Schutz via
   `beforeunload` + Flush bei Unmount. Lesezugriffe (`getRecipe`, `searchRecipes`) warten auf den
   noch laufenden Unmount-Save (`src/api/pendingSaves.ts`, max. 10 s); Requests deshalb in Effects
