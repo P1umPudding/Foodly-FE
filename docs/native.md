@@ -91,7 +91,8 @@ Timer-Panel.
 - iOS: Auch Kontrollzentrum oder ein Systemdialog zählen als Hintergrund. Läuft ein Timer dort ab, klingelt nur die
   Benachrichtigung. Während der Berechtigungsabfrage selbst ist noch nichts erlaubt: Ein Timer, der dabei abläuft,
   klingelt gar nicht (betrifft nur Timer von wenigen Sekunden).
-- Wird eine Benachrichtigung abgemeldet angetippt, öffnet sich das Panel nach der nächsten Anmeldung.
+- Tippt man im abgemeldeten Zustand auf eine Benachrichtigung, öffnet sich das Panel nach der nächsten Anmeldung.
+  Beim Abmelden werden ausstehende und bereits angezeigte Timer-Benachrichtigungen entfernt.
 - Wird die App im Hintergrund beendet, setzt der nächste Start einen abgelaufenen Timer wie bisher auf seine volle Dauer
   zurück.
 

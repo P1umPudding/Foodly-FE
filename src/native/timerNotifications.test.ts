@@ -23,6 +23,7 @@ const m = vi.hoisted(() => {
     }),
     checkPermissions: vi.fn(() => Promise.resolve({ display: state.display })),
     requestPermissions: vi.fn(() => Promise.resolve({ display: 'granted' })),
+    removeAllDeliveredNotifications: vi.fn(() => Promise.resolve()),
     checkExactNotificationSetting: vi.fn(() => Promise.resolve({ exact_alarm: state.exact })),
     addListener: vi.fn((_: string, fn: () => void) => {
       state.tapHandler = fn
@@ -30,6 +31,7 @@ const m = vi.hoisted(() => {
     }),
   }
   const App = {
+    getState: vi.fn(() => Promise.resolve({ isActive: true })),
     addListener: vi.fn((_: string, fn: (e: { isActive: boolean }) => void) => {
       state.appHandler = fn
       return Promise.resolve(handle)
@@ -142,7 +144,21 @@ describe('timerNotifications', () => {
     stop()
     await flush()
     expect(m.LocalNotifications.cancel).toHaveBeenLastCalledWith({ notifications: [{ id: 8 }] })
+    expect(m.LocalNotifications.removeAllDeliveredNotifications).toHaveBeenCalledTimes(1)
     expect(m.handle.remove).toHaveBeenCalled()
+  })
+
+  it('reads the app state on start, after a provider ended in the background', async () => {
+    const { startTimerNotifications, isActive } = await load()
+    const stop = startTimerNotifications({ getTimers: () => [], onBecameActive: () => {} })
+    await flush()
+    m.state.appHandler!({ isActive: false })
+    stop()
+    expect(isActive()).toBe(false)
+
+    startTimerNotifications({ getTimers: () => [], onBecameActive: () => {} })
+    await flush()
+    expect(isActive()).toBe(true)
   })
 
   it('ignores app state changes after cleanup', async () => {

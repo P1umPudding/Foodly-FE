@@ -94,8 +94,11 @@ export function startTimerNotifications({
   })
 
   void loadPlugins()
-    .then(([, { App }]) =>
-      App.addListener('appStateChange', ({ isActive: nowActive }) => {
+    .then(async ([, { App }]) => {
+      // A provider mounted after a sign-out in the background gets no event for the return, so read the state.
+      const state = await App.getState()
+      if (!disposed) active = state.isActive
+      return App.addListener('appStateChange', ({ isActive: nowActive }) => {
         if (disposed) return
         active = nowActive
         if (nowActive) {
@@ -104,8 +107,8 @@ export function startTimerNotifications({
         } else {
           enqueue(() => (disposed ? Promise.resolve() : scheduleRunning(getTimers())))
         }
-      }),
-    )
+      })
+    })
     .then((h) => {
       if (disposed) void h.remove()
       else handle = h
@@ -115,7 +118,12 @@ export function startTimerNotifications({
   return () => {
     disposed = true
     void handle?.remove()
-    enqueue(cancelPending)
+    enqueue(async () => {
+      await cancelPending()
+      // Sign-out or user switch: no lock-screen notification may name the previous user's timers.
+      const [{ LocalNotifications }] = await loadPlugins()
+      await LocalNotifications.removeAllDeliveredNotifications()
+    })
   }
 }
 

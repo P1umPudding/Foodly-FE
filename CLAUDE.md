@@ -89,8 +89,8 @@ There's no server code and no secrets in the repo.
   (`isNative()`, `platform()`) reads the `window.Capacitor` the native shell
   injects, without importing `@capacitor/core`; plugin adapters are imported
   dynamically so Capacitor stays out of the web entry chunk
-  (`timerNotifications.ts`: timer notifications while in the background). Lint forbids
-  `@capacitor/*` imports elsewhere. See
+  (`timerNotifications.ts`: timer notifications in the background). Lint
+  forbids `@capacitor/*` imports elsewhere. See
   [`docs/decisions/0005-native-shell.md`](docs/decisions/0005-native-shell.md)
   and [`docs/native.md`](docs/native.md) (build, sync, device checklist);
   `android/` and `ios/` are the generated Capacitor projects.
