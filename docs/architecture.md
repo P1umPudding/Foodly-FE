@@ -183,7 +183,8 @@ Die App läuft zusätzlich in einer Capacitor-Hülle auf Android und iOS (ADR
 [0005](decisions/0005-native-shell.md), Bauen und Prüfen: [`native.md`](native.md)). `src/native/` ist die einzige
 Stelle, die native APIs anspricht: `platform.ts` (`isNative()`, `platform()`) liest das von der Hülle injizierte
 `window.Capacitor`, ohne `@capacitor/core` zu importieren. Plugin-Adapter kommen ab N2 dazu und werden dynamisch
-importiert, damit der Web-Entry-Chunk frei von Capacitor bleibt. Das Web bleibt Primärziel; ohne Hülle verhält sich
+importiert, damit der Web-Entry-Chunk frei von Capacitor bleibt; `timerNotifications.ts` plant die
+Timer-Benachrichtigungen im Hintergrund (`native.md`). Das Web bleibt Primärziel; ohne Hülle verhält sich
 alles wie bisher.
 
 - `backButton.ts` + `AndroidBackButton.tsx` (#325): die Android-Zurück-Taste. Ein offenes Overlay
