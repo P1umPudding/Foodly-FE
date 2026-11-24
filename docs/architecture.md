@@ -183,14 +183,16 @@ Die App läuft zusätzlich in einer Capacitor-Hülle auf Android und iOS (ADR
 [0005](decisions/0005-native-shell.md), Bauen und Prüfen: [`native.md`](native.md)). `src/native/` ist die einzige
 Stelle, die native APIs anspricht: `platform.ts` (`isNative()`, `platform()`) liest das von der Hülle injizierte
 `window.Capacitor`, ohne `@capacitor/core` zu importieren. Plugin-Adapter kommen ab N2 dazu und werden dynamisch
-importiert, damit der Web-Entry-Chunk frei von Capacitor bleibt; `timerNotifications.ts` plant die
-Timer-Benachrichtigungen im Hintergrund (`native.md`). Das Web bleibt Primärziel; ohne Hülle verhält sich
+importiert, damit der Web-Entry-Chunk frei von Capacitor bleibt. Das Web bleibt Primärziel; ohne Hülle verhält sich
 alles wie bisher.
 
 - `backButton.ts` + `AndroidBackButton.tsx` (#325): die Android-Zurück-Taste. Ein offenes Overlay
   (`[role=dialog|alertdialog|menu|listbox][data-state="open"]`, das zuletzt im DOM stehende) bekommt ein `Escape`, vom
   fokussierten Element darin aus. Sonst geht es per React Router zurück (ohne Verlauf nach `/`). Auf `/` und `/login`
   schließt die App, auf `/register` nur ohne Verlauf. Eigene Overlays ohne Radix brauchen `data-state="open"`, wie die Lightbox.
+- `timerNotifications.ts` (#328): Timer-Benachrichtigungen. Beim Wechsel in den Hintergrund bekommt jeder laufende
+  Timer eine lokale Benachrichtigung zu seiner Endzeit, bei der Rückkehr werden alle storniert; `TimerProvider` lässt
+  einen im Hintergrund abgelaufenen Timer ohne Alarm auf `expired` springen. Details: [`native.md`](native.md).
 
 ## 7. Tests
 
