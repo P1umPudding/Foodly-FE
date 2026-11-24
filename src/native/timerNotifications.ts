@@ -50,7 +50,9 @@ async function cancelPending(): Promise<void> {
 
 async function scheduleRunning(timers: NotifiableTimer[]): Promise<void> {
   const now = Date.now()
-  const due = timers.filter((t) => t.status === 'running' && t.endAt !== null && t.endAt > now)
+  const due = timers.filter(
+    (t): t is NotifiableTimer & { endAt: number } => t.status === 'running' && t.endAt !== null && t.endAt > now,
+  )
   if (due.length === 0) return
   const [{ LocalNotifications }] = await loadPlugins()
   // schedule() would open the permission dialog itself; that is only asked for on a timer start.
@@ -63,9 +65,9 @@ async function scheduleRunning(timers: NotifiableTimer[]): Promise<void> {
     notifications: due.map((t) => ({
       id: notificationId(t.id),
       title: 'Foodly',
-      body: t.label.trim() ? `${t.label} ist fertig` : 'Timer ist fertig',
+      body: t.label.trim() ? `${t.label.trim()} ist fertig` : 'Timer ist fertig',
       channelId: CHANNEL_ID,
-      schedule: { at: new Date(t.endAt as number), allowWhileIdle: true },
+      schedule: { at: new Date(t.endAt), allowWhileIdle: true },
       ...(android ? { isExactNotification: exact } : { sound: 'default' }), // iOS is silent without a sound
     })),
   })

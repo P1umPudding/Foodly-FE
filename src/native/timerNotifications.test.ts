@@ -106,28 +106,23 @@ describe('timerNotifications', () => {
     ])
   })
 
-  it('cancels everything on return, after onBecameActive', async () => {
-    const { startTimerNotifications, isActive } = await load()
-    const order: string[] = []
-    const onBecameActive = vi.fn(() => order.push('active'))
-    m.LocalNotifications.getPending.mockImplementation(() => {
-      order.push('pending')
-      return Promise.resolve({ notifications: [...m.state.pending] })
-    })
+  it('cancels every scheduled notification on return, also right after leaving', async () => {
+    const { startTimerNotifications, isActive, notificationId } = await load()
+    const onBecameActive = vi.fn()
     startTimerNotifications({ getTimers: () => [timer({ id: 'a' }), timer({ id: 'b' })], onBecameActive })
     await flush()
-    order.length = 0
 
     // No await in between: the cancel must still land after the schedule.
     m.state.appHandler!({ isActive: false })
     expect(isActive()).toBe(false)
     m.state.appHandler!({ isActive: true })
     expect(isActive()).toBe(true)
+    expect(onBecameActive).toHaveBeenCalledTimes(1)
     await flush()
 
-    expect(order[0]).toBe('active')
+    expect(m.LocalNotifications.schedule).toHaveBeenCalledTimes(1)
     expect(m.LocalNotifications.cancel).toHaveBeenLastCalledWith({
-      notifications: expect.arrayContaining([expect.anything(), expect.anything()]),
+      notifications: [{ id: notificationId('a') }, { id: notificationId('b') }],
     })
     expect(m.state.pending).toEqual([])
   })
@@ -203,6 +198,18 @@ describe('timerNotifications', () => {
     ensureNotificationPermission()
     await flush()
     expect(m.LocalNotifications.requestPermissions).toHaveBeenCalledTimes(requests)
+  })
+
+  it('swallows a failing permission request', async () => {
+    const { ensureNotificationPermission } = await load()
+    m.state.display = 'prompt'
+    m.LocalNotifications.requestPermissions.mockRejectedValueOnce(new Error('denied'))
+    expect(() => ensureNotificationPermission()).not.toThrow()
+    await flush()
+    // The guard is released again, so a later start can still ask.
+    ensureNotificationPermission()
+    await flush()
+    expect(m.LocalNotifications.requestPermissions).toHaveBeenCalledTimes(2)
   })
 
   it('reports a tap on a notification', async () => {

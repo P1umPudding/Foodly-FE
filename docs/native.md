@@ -115,11 +115,11 @@ Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iO
     nötig ist.
   - Zweimal schnell drücken, während ein Menü noch zuklappt: Der zweite Druck kann verloren gehen.
 - [ ] Timer 1 Min. starten (beim ersten Start: Frage nach Benachrichtigungen erlauben), App in den Hintergrund: nach
-      Ablauf kommt die Benachrichtigung „<Name> ist fertig“ mit Ton (iOS: Ton prüfen).
-- [ ] Wie oben, aber Bildschirm sperren: Benachrichtigung mit Ton auf dem Sperrbildschirm.
+      Ablauf kommt die Benachrichtigung „<Name> ist fertig“ mit Ton (iOS: Ton prüfen); Android: das Symbol in der
+      Statusleiste ist das Foodly-Besteck, kein weißes Quadrat.
+- [ ] Wie oben, aber den Bildschirm sofort nach dem Start sperren: Benachrichtigung mit Ton auf dem Sperrbildschirm.
 - [ ] Timer im Vordergrund ablaufen lassen: nur der In-App-Alarm, keine zusätzliche Benachrichtigung, auch nicht nach
       kurzem Wechsel in den Hintergrund und zurück.
 - [ ] Nach Ablauf im Hintergrund zurück in die App: Timer steht auf abgelaufen, kein verspäteter Alarm.
 - [ ] Tippen auf die Benachrichtigung öffnet die App mit dem Timer-Panel.
-- [ ] Benachrichtigungen abgelehnt: Timer läuft trotzdem; Android: Symbol in der Statusleiste ist das Foodly-Besteck,
-      kein weißes Quadrat.
+- [ ] Benachrichtigungen abgelehnt: Der Timer läuft trotzdem und klingelt im Vordergrund.

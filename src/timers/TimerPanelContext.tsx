@@ -29,8 +29,8 @@ export function TimerPanelProvider({ children }: { children: ReactNode }) {
 
   // Here rather than in TimerProvider, which sits above the panel. Only one layout (shell or cook mode) is mounted.
   useEffect(() => {
-    return onNotificationTap(() => setOpenState(true))
-  }, [])
+    return onNotificationTap(() => setOpen(true))
+  }, [setOpen])
 
   const value = useMemo(() => ({ open, setOpen, takeReturnFocus }), [open, setOpen, takeReturnFocus])
   return <TimerPanelContext.Provider value={value}>{children}</TimerPanelContext.Provider>
