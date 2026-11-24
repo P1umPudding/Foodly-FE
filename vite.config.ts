@@ -36,12 +36,13 @@ export default defineConfig(({ mode }) => {
       proxy: { '/api': { target: 'http://localhost:8080', changeOrigin: true } },
     },
     preview: previewServer,
-    // The entry chunk stays ~687 kB minified even with the rare routes split off (#221) and unused postxl
-    // dependencies dropped (#309): most of it is react-dom and @postxl/ui-components, whose single pre-bundled file
-    // can't be tree-shaken without rewriting its code (ruled out, #309). The limit sits just above today's size, so a
-    // growing entry warns, and so does a dropped dependency creeping back in (e.g. after a postxl upgrade).
+    // The entry chunk stays ~704 kB minified even with the rare routes split off (#221) and unused postxl dependencies
+    // dropped (#309): most of it is react-dom and @postxl/ui-components, whose single pre-bundled file can't be
+    // tree-shaken without rewriting its code (ruled out, #309), plus React Router 7, whose core is one module the app
+    // needs almost whole (#334). The limit sits just above the size with the native PRs #336/#337 (708.34 kB web,
+    // 708.73 kB native), so a growing entry warns, and so does a dropped dependency creeping back in (~19 kB).
     build: {
-      chunkSizeWarningLimit: 690,
+      chunkSizeWarningLimit: 710,
       rollupOptions: { treeshake: { moduleSideEffects: hasModuleSideEffects } },
     },
     test: {
