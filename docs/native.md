@@ -76,6 +76,26 @@ Der Name kommt aus `dist/index.html`, weil auch andere Chunks `index-*.js` heiß
 Dazu darf native Arbeit den Entry nicht vergrößern: keine neue Größenwarnung (`chunkSizeWarningLimit` in
 `vite.config.ts`).
 
+## Timer-Benachrichtigungen
+
+`src/native/timerNotifications.ts` (`@capacitor/local-notifications`, `@capacitor/app`). Geht die App in den
+Hintergrund, bekommt jeder laufende Timer eine lokale Benachrichtigung zu seiner Endzeit (Android-Kanal `timers`,
+Systemton); bei der Rückkehr werden alle storniert, im Vordergrund klingelt nur der In-App-Alarm. Ein Timer, der im
+Hintergrund abläuft, steht danach auf „abgelaufen“, ohne Alarm und Toast. Tippen auf die Benachrichtigung öffnet das
+Timer-Panel.
+
+- Berechtigung: Der erste Timer-Start fragt danach. Abgelehnt läuft der Timer trotzdem, nur ohne Benachrichtigung.
+- Android: Ohne „Wecker und Erinnerungen“ (ab Android 14 Standard) plant die App ungenau; die Benachrichtigung kann
+  dann Minuten zu spät kommen. Wer vorher zurückkehrt, sieht den Timer still abgelaufen. Ein Hinweis dazu folgt mit N7.
+  `SCHEDULE_EXACT_ALARM` steht im Manifest, `USE_EXACT_ALARM` bewusst nicht.
+- iOS: Auch Kontrollzentrum oder ein Systemdialog zählen als Hintergrund. Läuft ein Timer dort ab, klingelt nur die
+  Benachrichtigung. Während der Berechtigungsabfrage selbst ist noch nichts erlaubt: Ein Timer, der dabei abläuft,
+  klingelt gar nicht (betrifft nur Timer von wenigen Sekunden).
+- Tippt man im abgemeldeten Zustand auf eine Benachrichtigung, öffnet sich das Panel nach der nächsten Anmeldung.
+  Beim Abmelden werden ausstehende und bereits angezeigte Timer-Benachrichtigungen entfernt.
+- Wird die App im Hintergrund beendet, setzt der nächste Start einen abgelaufenen Timer wie bisher auf seine volle Dauer
+  zurück.
+
 ## Prüfliste
 
 Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iOS:
@@ -96,3 +116,14 @@ Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iO
     Zutatenzeile im Editor), öffnet der sich und nimmt das nächste `Escape`. Prüfen, ob dann ein zusätzlicher Druck
     nötig ist.
   - Zweimal schnell drücken, während ein Menü noch zuklappt: Der zweite Druck kann verloren gehen.
+- [ ] Timer 1 Min. starten (beim ersten Start: Frage nach Benachrichtigungen erlauben), App in den Hintergrund: nach
+      Ablauf kommt die Benachrichtigung „<Name> ist fertig“ mit Ton (iOS: Ton prüfen); Android: das Symbol in der
+      Statusleiste ist das Foodly-Besteck, kein weißes Quadrat.
+- [ ] Wie oben, aber den Bildschirm sofort nach dem Start sperren: Benachrichtigung mit Ton auf dem Sperrbildschirm.
+- [ ] Timer im Vordergrund ablaufen lassen: nur der In-App-Alarm, keine zusätzliche Benachrichtigung, auch nicht nach
+      kurzem Wechsel in den Hintergrund und zurück.
+- [ ] Nach Ablauf im Hintergrund zurück in die App: Timer steht auf abgelaufen, kein verspäteter Alarm.
+- [ ] Tippen auf die Benachrichtigung öffnet die App mit dem Timer-Panel.
+- [ ] Android ohne „Wecker und Erinnerungen“: Der Wechsel in den Hintergrund öffnet keine Einstellungsseite, die
+      Benachrichtigung kommt (eventuell verspätet).
+- [ ] Benachrichtigungen abgelehnt: Der Timer läuft trotzdem und klingelt im Vordergrund.

@@ -7,6 +7,7 @@ import { foodly } from '../api'
 import { resetSessionEnd } from '../api/auth'
 import { RedirectIfSignedIn, RequireAuth, ShellLayout } from '../components/shell/RequireAuth'
 import { jsonResponse, seedSession } from '../test/auth'
+import { ensureNotificationPermission } from '../native/timerNotifications'
 import { startAlarm, stopAlarm } from './alarm'
 import { TimerProvider, useTimers } from './TimerProvider'
 
@@ -21,6 +22,19 @@ vi.mock('@postxl/ui-components', async (importOriginal) => ({
   toast,
 }))
 vi.mock('./alarm')
+const native = vi.hoisted(() => ({
+  active: true,
+  stop: vi.fn(),
+  onBecameActive: null as null | (() => void),
+}))
+vi.mock('../native/timerNotifications', () => ({
+  isActive: () => native.active,
+  ensureNotificationPermission: vi.fn(),
+  startTimerNotifications: vi.fn(({ onBecameActive }: { onBecameActive: () => void }) => {
+    native.onBecameActive = onBecameActive
+    return native.stop
+  }),
+}))
 vi.mock('../components/shell/AppShell', () => ({
   AppShell: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
@@ -58,6 +72,8 @@ function stored(label: string, fields: Partial<{ status: string; endAt: number |
 }
 
 afterEach(() => {
+  native.active = true
+  native.onBecameActive = null
   vi.useRealTimers()
   vi.restoreAllMocks()
   vi.clearAllMocks()
@@ -232,5 +248,76 @@ describe('timers per signed-in user', () => {
     expect(stopAlarm).toHaveBeenCalledWith(id)
     expect(toast.dismiss).toHaveBeenCalledWith('toast-1')
     expect(JSON.parse(localStorage.getItem('foodly.timers.v1:1')!)).toHaveLength(1)
+  })
+})
+
+describe('TimerProvider in the background (native app)', () => {
+  function renderTimers() {
+    vi.useFakeTimers()
+    return render(
+      <TimerProvider userId={1}>
+        <TimerList />
+      </TimerProvider>,
+    )
+  }
+
+  it('expires a timer that ends during a background tick without alarm or toast', () => {
+    renderTimers()
+    act(() => api.add({ label: 'Ei', durationMs: 1000 }))
+    native.active = false
+    act(() => {
+      vi.advanceTimersByTime(1500)
+    })
+    expect(timerItems()[0].textContent).toBe('Ei expired 0')
+    native.active = true
+    act(() => native.onBecameActive!())
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+    expect(startAlarm).not.toHaveBeenCalled()
+    expect(toast).not.toHaveBeenCalled()
+  })
+
+  it('expires a timer whose end passed while JS was suspended, before the next tick can ring', () => {
+    renderTimers()
+    act(() => api.add({ label: 'Ei', durationMs: 1000 }))
+    vi.setSystemTime(Date.now() + 5000)
+    act(() => native.onBecameActive!())
+    expect(timerItems()[0].textContent).toBe('Ei expired 0')
+    act(() => {
+      vi.advanceTimersByTime(500)
+    })
+    expect(startAlarm).not.toHaveBeenCalled()
+    expect(toast).not.toHaveBeenCalled()
+  })
+
+  it('leaves a timer that is still running on return alone and rings it in the foreground', () => {
+    renderTimers()
+    act(() => api.add({ label: 'Ei', durationMs: 10_000 }))
+    act(() => native.onBecameActive!())
+    expect(timerItems()[0].textContent).toContain('Ei running')
+    act(() => {
+      vi.advanceTimersByTime(10_500)
+    })
+    expect(startAlarm).toHaveBeenCalledTimes(1)
+    expect(toast).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks for notification permission whenever a timer starts', () => {
+    renderTimers()
+    act(() => api.add({ label: 'Ei', durationMs: 10_000 }))
+    const id = api.timers[0].id
+    act(() => api.pause(id))
+    expect(ensureNotificationPermission).toHaveBeenCalledTimes(1)
+    act(() => api.resume(id))
+    act(() => api.restart(id))
+    expect(ensureNotificationPermission).toHaveBeenCalledTimes(3)
+  })
+
+  it('stops the notifications on unmount (sign-out)', () => {
+    const { unmount } = renderTimers()
+    expect(native.stop).not.toHaveBeenCalled()
+    unmount()
+    expect(native.stop).toHaveBeenCalledTimes(1)
   })
 })

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status-bar icon for timer notifications: the fork and spoon from public/favicon.svg, white on transparent
+     (Android tints it; a coloured icon would show as a white square). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <!-- Scaled up around the centre: the favicon's padding would leave the glyph small in the status bar. -->
+    <group
+        android:pivotX="16"
+        android:pivotY="16"
+        android:scaleX="1.4"
+        android:scaleY="1.4"
+        android:translateX="-2.1"
+        android:translateY="0.35">
+        <path
+            android:pathData="M11,7v5a2,2 0,0 0,2 2v11M11,7v4M15,7v4a2,2 0,0 1,-2 2M21,25v-9M18,11a3,4.5 0,1 0,6 0a3,4.5 0,1 0,-6 0"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="1.8"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000" />
+    </group>
+</vector>
