@@ -186,6 +186,11 @@ Stelle, die native APIs anspricht: `platform.ts` (`isNative()`, `platform()`) li
 importiert, damit der Web-Entry-Chunk frei von Capacitor bleibt. Das Web bleibt Primärziel; ohne Hülle verhält sich
 alles wie bisher.
 
+- `backButton.ts` + `AndroidBackButton.tsx` (#325): die Android-Zurück-Taste. Ein offenes Overlay
+  (`[role=dialog|alertdialog|menu|listbox][data-state="open"]`, das zuletzt im DOM stehende) bekommt ein `Escape`, vom
+  fokussierten Element darin aus. Sonst geht es per React Router zurück (ohne Verlauf nach `/`). Auf `/` und `/login`
+  schließt die App. Eigene Overlays ohne Radix brauchen `data-state="open"`, wie die Lightbox.
+
 ## 7. Tests
 
 - Vitest + Testing Library, jsdom (`vite.config.ts`, Stubs in `src/test/setup.ts`).
