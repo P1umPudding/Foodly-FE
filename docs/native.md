@@ -51,8 +51,9 @@ Für ein Backend unter `http://<LAN-IP>:8080` (ohne HTTPS) lokal, **nicht commit
 - `capacitor.config.ts`: `server.androidScheme: 'http'`, sonst blockiert Android die Aufrufe als Mixed Content.
 - `.env.native.local`: `VITE_MOCK=` und `VITE_API_URL=http://<LAN-IP>:8080/api/v1`. Der Build warnt bei `http://`.
 
-Danach `npm run cap:sync`. Geprüft ist das nur für Android; iOS lässt `http://` ohne Ausnahme in der App Transport
-Security nicht zu; dafür bräuchte `Info.plist` lokal `NSAppTransportSecurity` → `NSAllowsLocalNetworking`. Vor einem Commit beides zurücksetzen.
+Danach `npm run cap:sync`, vor einem Commit beides zurücksetzen. Der Weg ist für Android gedacht und noch nicht am Gerät
+geprüft. iOS blockiert `http://` über die App Transport Security; ob eine lokale Ausnahme in `Info.plist` (etwa
+`NSAllowsLocalNetworking`) für eine LAN-IP reicht, ist nicht verifiziert.
 
 ## CORS
 

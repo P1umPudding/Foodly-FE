@@ -21,6 +21,7 @@ describe('nativeEnvError', () => {
   it('accepts an absolute backend URL', () => {
     expect(nativeEnvError({ VITE_MOCK: '', VITE_API_URL: 'https://foodly.example/api/v1' })).toBeNull()
     expect(nativeEnvError({ VITE_API_URL: ' http://192.168.1.20:8080/api/v1 ' })).toBeNull()
+    expect(nativeEnvError({ VITE_API_URL: 'HTTPS://foodly.example/api/v1' })).toBeNull()
   })
 
   it.each([
@@ -30,6 +31,7 @@ describe('nativeEnvError', () => {
     ['relative URL', { VITE_MOCK: '', VITE_API_URL: '/api/v1' }],
     ['blank URL', { VITE_API_URL: '   ' }],
     ['unparsable URL', { VITE_API_URL: 'https://' }],
+    ['other scheme', { VITE_API_URL: 'ftp://foodly.example/api/v1' }],
   ])('rejects %s and points to .env.native.local', (_, env) => {
     expect(nativeEnvError(env)).toContain('.env.native.local')
   })
@@ -42,7 +44,11 @@ describe('nativeEnvWarnings', () => {
     ])
   })
 
-  it.each(['https://localhost:8443/api/v1', 'https://127.0.0.1/api/v1', 'https://[::1]/api/v1'])(
+  it('reports both problems of http://localhost', () => {
+    expect(nativeEnvWarnings({ VITE_API_URL: 'http://localhost:8080/api/v1' })).toHaveLength(2)
+  })
+
+  it.each(['https://localhost:8443/api/v1', 'https://127.0.0.2/api/v1', 'https://[::1]/api/v1'])(
     'warns for the loopback host in %s',
     (url) => {
       expect(nativeEnvWarnings({ VITE_API_URL: url })).toEqual([expect.stringContaining('localhost')])

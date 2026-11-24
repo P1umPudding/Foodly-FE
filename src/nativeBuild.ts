@@ -16,7 +16,9 @@ export function buildBase(mode: string, previewBaseEnv: string | undefined): str
 function restUrl(env: NativeEnv): URL | null {
   if (env.VITE_MOCK === '1') return null
   const raw = env.VITE_API_URL?.trim() ?? ''
-  return /^https?:\/\//.test(raw) && URL.canParse(raw) ? new URL(raw) : null
+  if (!URL.canParse(raw)) return null
+  const url = new URL(raw)
+  return url.protocol === 'https:' || url.protocol === 'http:' ? url : null
 }
 
 export function nativeEnvError(env: NativeEnv): string | null {
@@ -36,7 +38,7 @@ export function nativeEnvWarnings(env: NativeEnv): string[] {
     // The committed androidScheme is https, so Android blocks an http:// backend as mixed content.
     warnings.push('Native build with an http:// VITE_API_URL: only works with androidScheme "http" (LAN test).')
   }
-  if (['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) {
+  if (url.hostname === 'localhost' || url.hostname === '[::1]' || /^127\./.test(url.hostname)) {
     warnings.push('Native build with a localhost VITE_API_URL: on a device that is the device itself (docs/native.md).')
   }
   return warnings
