@@ -117,8 +117,9 @@ erhalten bleibt (E7). Im Web bleibt er ein normaler Link in einem neuen Tab.
   `splash-dark.png`), abgeleitet aus `public/favicon.svg`. `npm run cap:assets` erzeugt daraus die Dateien unter
   `android/app/src/main/res/` und `ios/App/App/Assets.xcassets/`; sie sind committet. Das Skript läuft nur für
   Android und iOS, `public/` (PWA, Favicon) bleibt unverändert. `assets/adaptive-icon.mjs` läuft danach mit: Es
-  rendert die Adaptive-Icon-Ebenen in 72 dp neu (das Werkzeug schreibt sie in 48 dp, unscharf) und ersetzt das
-  querformatige `drawable-night/splash.png` durch das hochformatige. Danach `git status` prüfen: Das Werkzeug formatiert
+  rendert die Adaptive-Icon-Ebenen neu (das Werkzeug schreibt sie in 48 dp, unscharf; der Hintergrund bekommt die
+  vollen 108 dp ohne Inset) und ersetzt das querformatige `drawable-night/splash.png` durch das hochformatige. Die
+  Legacy-Icons `mipmap-*/ic_launcher*.png` (nur Android 7) lässt es, wie das Werkzeug sie erzeugt. Danach `git status` prüfen: Das Werkzeug formatiert
   `AndroidManifest.xml` und `AppIcon.appiconset/Contents.json` um, ohne Inhalt zu ändern; das nicht übernehmen.
 - **Splash:** `launchAutoHide: false` (`capacitor.config.ts`). `src/native/appShell.ts` blendet ihn nach dem ersten
   Render aus (`ThemeProvider`); scheitert das Rendern, nach spätestens 3 s. Scheitert das Ausblenden selbst, versucht
@@ -169,8 +170,8 @@ Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iO
       Rezept.
 - [ ] Icon auf dem Home-Bildschirm: Android rund und adaptiv (Besteck weiß auf Lila, scharf, nichts abgeschnitten),
       iOS.
-- [ ] Splash hell und dunkel: Systemmodus umstellen, App neu starten. Der Splash verschwindet beim ersten Render; ein kurzes Skelett
-      einer noch ladenden Seite danach ist in Ordnung.
+- [ ] Splash hell und dunkel: Systemmodus umstellen, App neu starten. Der Splash verschwindet beim ersten Render;
+      ein kurzes Skelett einer noch ladenden Seite danach ist in Ordnung.
 - [ ] Android ≥ 12: Das Icon ist auf dem hellen System-Splash sichtbar.
 - [ ] Statusleiste lesbar in hellem und dunklem Theme; ein Theme-Wechsel im Profil ändert die Symbolfarbe sofort.
 - [ ] Theme „System“: Wechsel des OS-Modus bei offener App ändert die Symbolfarbe mit.

@@ -88,6 +88,21 @@ describe('appShell', () => {
     expect(m.SplashScreen.hide).toHaveBeenCalledTimes(2)
   })
 
+  it('does not hide again when the fallback fires while a hide is still in flight', async () => {
+    let finish!: () => void
+    m.SplashScreen.hide.mockImplementationOnce(() => new Promise<void>((resolve) => (finish = resolve)))
+    const { startSplash, hideSplash } = await load()
+    startSplash()
+    await settle(2999)
+    hideSplash()
+    await settle(10)
+    expect(m.SplashScreen.hide).toHaveBeenCalledTimes(1)
+
+    finish()
+    await settle(3000)
+    expect(m.SplashScreen.hide).toHaveBeenCalledTimes(1)
+  })
+
   it('maps the theme to the status-bar style, in call order', async () => {
     const { setStatusBarStyle } = await load()
     setStatusBarStyle('dark')

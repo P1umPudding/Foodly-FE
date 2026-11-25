@@ -13,17 +13,25 @@ const loadStatusBar = () => (statusBarPlugin ??= import('@capacitor/status-bar')
 
 // Set on the first hide, so StrictMode's double effect hides once. The fallback timer is cleared only after hide()
 // succeeded: if it fails, the fallback tries once more instead of leaving the splash over the app for good.
+// `hiding` is set while a hide is in flight and after it succeeded, so a fallback firing mid-hide doesn't hide twice;
+// that fallback is then spent, so a hide failing after it gets no retry (render and failure both at ~3 s, accepted).
 let hideRequested = false
+let hiding = false
 let fallback: ReturnType<typeof setTimeout> | undefined
 
 function hide(): void {
+  if (hiding) return
+  hiding = true
   void loadSplash()
     .then(({ SplashScreen }) => SplashScreen.hide())
     .then(() => {
       clearTimeout(fallback)
       fallback = undefined
     })
-    .catch((error: unknown) => console.error(error))
+    .catch((error: unknown) => {
+      hiding = false
+      console.error(error)
+    })
 }
 
 export function startSplash(): void {
