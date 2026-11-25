@@ -2,7 +2,7 @@
 // every access re-reads localStorage["foodly.auth"] instead of caching, so a refresh or sign-out in another
 // tab is seen without syncing a second copy. The native app keeps it in memory, loaded once by loadSession()
 // in bootstrap() and written through to Preferences (iOS may clear WebView storage, E5). Only the refreshing
-// caller waits for that write; other requests may already send the new access token from memory.
+// caller waits for that write (at most 3 s); other requests may already send the new access token from memory.
 //
 // The backend rotates refresh tokens (a used one is invalid at once) and rate-limits /auth/refresh, so at
 // most one refresh runs at a time: one shared promise per tab, a Web Lock across tabs.
@@ -85,7 +85,8 @@ function writeStored(session: StoredSession | null): Promise<void> {
   written = true
   // A legacy copy kept after a failed migration must not bring a signed-out session back.
   if (!session) localStorage.removeItem(STORAGE_KEY)
-  // A timed-out write stays queued; only the caller stops waiting.
+  // A timed-out write stays queued and holds back later ones until it settles (last write still wins); only the
+  // caller stops waiting.
   return withTimeout(saveAuth(session ? JSON.stringify(session) : null)).catch((error: unknown) =>
     console.warn('Could not save the session', error),
   )

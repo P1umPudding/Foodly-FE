@@ -122,9 +122,13 @@ bleibt alles bei `localStorage["foodly.auth"]`.
   `localStorage` gelöscht; liegt in beiden eine, gewinnt Preferences. Schlägt die Übernahme fehl, bleibt die alte Kopie
   bis zum nächsten Start (ein Abmelden löscht sie mit).
 - Fehler: Ein fehlgeschlagenes Laden (oder keine Antwort nach 3 s) zählt als abgemeldet, nichts wird gelöscht. Ein
-  fehlgeschlagenes Schreiben wird nur protokolliert; die App bleibt angemeldet, nach einem Neustart ist man abgemeldet.
-- Nach einem Token-Refresh wartet die Anfrage, die ihn ausgelöst hat, auf das Schreiben. Stürzt die App genau zwischen
-  Refresh und Schreiben ab, ist man danach abgemeldet (der alte Refresh-Token ist beim Backend schon ungültig).
+  fehlgeschlagenes Schreiben wird nur protokolliert, die App läuft mit dem Stand im Speicher weiter; nach einem Neustart
+  gilt der zuletzt erfolgreich gespeicherte Stand (meist: abgemeldet, oder die Sitzung läuft beim ersten Refresh ab).
+  Antwortet ein Schreiben gar nicht, wartet der Aufrufer höchstens 3 s; spätere Schreibvorgänge warten in der
+  Warteschlange, bis es sich erledigt.
+- Nach einem Token-Refresh wartet die Anfrage, die ihn ausgelöst hat, auf das Schreiben (höchstens 3 s). Wird die App
+  beendet oder stürzt sie ab, bevor das Schreiben angekommen ist, ist man danach abgemeldet (der alte Refresh-Token ist
+  beim Backend schon ungültig).
 - Offen: Android sichert SharedPreferences (`allowBackup="true"`) und damit den Refresh-Token per Google-Backup mit;
   ob das so bleiben soll, ist noch zu entscheiden (verschlüsselter Speicher ist kein Ziel von #327).
 
