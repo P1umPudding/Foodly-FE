@@ -135,8 +135,11 @@ describe('native session storage', () => {
     prefs.set.mockImplementationOnce(() => new Promise(() => {}))
     vi.useFakeTimers()
 
-    const pending = auth.getAccessToken()
-    await vi.advanceTimersByTimeAsync(3000)
+    let settled = false
+    const pending = auth.getAccessToken().finally(() => (settled = true))
+    await vi.advanceTimersByTimeAsync(2999)
+    expect(settled).toBe(false)
+    await vi.advanceTimersByTimeAsync(1)
 
     expect(await pending).toBe(fresh)
     expect(console.warn).toHaveBeenCalled()
@@ -190,6 +193,7 @@ describe('native session storage', () => {
     const pending = auth.getAccessToken().then((t) => (token = t))
 
     await vi.waitFor(() => expect(prefs.set).toHaveBeenCalled())
+    await new Promise((resolve) => setTimeout(resolve, 0))
     expect(token).toBeUndefined()
     finish()
     await pending

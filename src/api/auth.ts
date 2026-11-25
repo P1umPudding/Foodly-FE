@@ -1,8 +1,9 @@
 // The session: the only place that reads or writes the tokens and the only sender of /auth/*. On the web
 // every access re-reads localStorage["foodly.auth"] instead of caching, so a refresh or sign-out in another
 // tab is seen without syncing a second copy. The native app keeps it in memory, loaded once by loadSession()
-// in bootstrap() and written through to Preferences (iOS may clear WebView storage, E5). Only the refreshing
-// caller waits for that write (at most 3 s); other requests may already send the new access token from memory.
+// in bootstrap() and written through to Preferences (iOS may clear WebView storage, E5). Sign-in, sign-out and
+// the refreshing caller wait for that write (at most 3 s); other requests may already send the new access token
+// from memory.
 //
 // The backend rotates refresh tokens (a used one is invalid at once) and rate-limits /auth/refresh, so at
 // most one refresh runs at a time: one shared promise per tab, a Web Lock across tabs.
@@ -307,7 +308,8 @@ async function refreshLocked(sent: { refreshToken: string; userId: UserId }): Pr
       void logout({ accessToken, refreshToken })
       return tokenOf(now, sent.userId)
     }
-    // The backend already invalidated the old refresh token: persist the new one before anyone uses it.
+    // The backend already invalidated the old refresh token: persist the new one before returning it (waits at most
+    // BRIDGE_TIMEOUT_MS).
     await writeStored({ ...now, accessToken, refreshToken })
     return tokenOf(readStored(), sent.userId)
   }

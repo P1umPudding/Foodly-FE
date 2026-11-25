@@ -25,8 +25,8 @@ function render() {
 
 // Render runs only after bootstrap settles: it installs the mock responder (mock mode only) via a dynamic import,
 // and rendering first would let the first mocked requests race ahead of it and reject with "socket not
-// connected" (native REST: it loads the session from Preferences, so the first render sees it; web REST: no-op).
-// If bootstrap fails, the error is logged and the app renders anyway; a render
+// connected". In native REST builds it loads the session from Preferences, so the first render already sees it;
+// in web REST it does nothing. If bootstrap fails, the error is logged and the app renders anyway; a render
 // failure is logged the same way.
 // No top-level await: in the production build the mock chunk imports modules it shares with this entry chunk,
 // so awaiting here deadlocks (the entry never finishes evaluating) and the page stays blank (#233).
