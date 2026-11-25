@@ -7,7 +7,11 @@ const config: CapacitorConfig = {
   // A LAN test against an http:// backend switches this to 'http' locally, never committed (docs/native.md).
   server: { androidScheme: 'https' },
   // Monochrome drawable (android/app/src/main/res/drawable/ic_stat_foodly.xml); the app icon would show as a white square.
-  plugins: { LocalNotifications: { smallIcon: 'ic_stat_foodly' } },
+  plugins: {
+    LocalNotifications: { smallIcon: 'ic_stat_foodly' },
+    // src/native/appShell.ts hides the splash after the first render, with a 3 s fallback if rendering fails.
+    SplashScreen: { launchAutoHide: false },
+  },
 }
 
 export default config

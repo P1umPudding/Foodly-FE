@@ -36,6 +36,7 @@ ist. Variablen aus der Shell haben Vorrang vor den Dateien (`VITE_MOCK= npm run 
 
 ```bash
 npm run cap:sync        # build:native + cap sync: kopiert dist/ nach android/ und ios/, aktualisiert Plugins
+npm run cap:assets      # Icon und Splash aus assets/ nach android/ und ios/ (siehe unten)
 npx cap open android    # Android Studio, dann Gerät/Emulator wählen und starten
 npx cap open ios        # Xcode (Mac), Team für die Signierung wählen, Gerät wählen und starten
 ```
@@ -69,8 +70,11 @@ Der Web-Entry-Chunk enthält keinen Capacitor-Code. Nach `npm run build` (Web, n
 
 ```bash
 entry=$(grep -oE 'src="/assets/index-[^"]+\.js"' dist/index.html | sed 's/^src="\///; s/"$//')
-! grep -qE '@capacitor|registerPlugin' "dist/$entry" && echo "Entry frei von Capacitor"
+[ -n "$entry" ] && ! grep -qE '@capacitor|registerPlugin' "dist/$entry" && echo "Entry frei von Capacitor"
 ```
+
+`SKAILE_PREVIEW_BASE` muss dafür ungesetzt sein, sonst liegt der Entry unter einem Unterpfad und `$entry` bleibt leer
+(ohne die Prüfung `[ -n "$entry" ]` meldete der Check dann fälschlich Erfolg).
 
 Der Name kommt aus `dist/index.html`, weil auch andere Chunks `index-*.js` heißen (Mocks, später Capacitor selbst).
 Dazu darf native Arbeit den Entry nicht vergrößern: keine neue Größenwarnung (`chunkSizeWarningLimit` in
@@ -106,6 +110,26 @@ der Seite oder Ausschalten gibt den Bildschirm frei. Schlägt das Plugin fehl, s
 `src/native/openExternal.ts` (`@capacitor/browser`): Der Quelle-Link eines Rezepts öffnet nativ im In-App-Browser
 (Android: Custom Tabs, ohne passenden Browser der Standardbrowser; iOS: SFSafariViewController), damit die App-WebView
 erhalten bleibt (E7). Im Web bleibt er ein normaler Link in einem neuen Tab.
+
+## Icon, Splash, Statusleiste
+
+- **Quellen:** `assets/` (`icon-only.png`, `icon-foreground.png`, `icon-background.png`, `splash.png`,
+  `splash-dark.png`), abgeleitet aus `public/favicon.svg`. `npm run cap:assets` erzeugt daraus die Dateien unter
+  `android/app/src/main/res/` und `ios/App/App/Assets.xcassets/`; sie sind committet. Das Skript läuft nur für
+  Android und iOS, `public/` (PWA, Favicon) bleibt unverändert. `assets/adaptive-icon.mjs` läuft danach mit: Es
+  rendert die Adaptive-Icon-Ebenen neu (das Werkzeug schreibt sie in 48 dp, unscharf; der Hintergrund bekommt die
+  vollen 108 dp ohne Inset) und ersetzt das querformatige `drawable-night/splash.png` durch das hochformatige. Die
+  Legacy-Icons `mipmap-*/ic_launcher*.png` (nur Android 7) lässt es, wie das Werkzeug sie erzeugt. Danach `git status` prüfen: Das Werkzeug formatiert
+  `AndroidManifest.xml` und `AppIcon.appiconset/Contents.json` um, ohne Inhalt zu ändern; das nicht übernehmen.
+- **Splash:** `launchAutoHide: false` (`capacitor.config.ts`). `src/native/appShell.ts` blendet ihn nach dem ersten
+  Render aus (`ThemeProvider`); scheitert das Rendern, nach spätestens 3 s. Scheitert das Ausblenden selbst, versucht
+  es der 3-s-Fallback noch einmal.
+- **Android:** Der System-Splash zeigt das App-Icon auf `#fafafa` bzw. `#0f0f0f` (`windowSplashScreenBackground`,
+  `values(-night)/colors.xml`); `splash.png` ist der Fensterhintergrund dahinter. Am Gerät auf Android < 12 und ≥ 12
+  prüfen. Ist das Icon auf dem hellen Splash nicht zu sehen, ist `windowSplashScreenIconBackgroundColor` `#7300ff`
+  der Ausweg. **iOS:** `splash.png` bzw. `splash-dark.png` im Launch-Screen.
+- **Statusleiste:** Die Symbole folgen dem aufgelösten Theme (dunkel → helle Symbole), auch bei „System“ und einem
+  Wechsel im OS. Keine Hintergrundfarbe, das Layout bleibt Edge-to-Edge.
 
 ## Prüfliste
 
@@ -144,3 +168,11 @@ Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iO
       Bildschirm frei.
 - [ ] Quelle-Link eines Rezepts öffnet im In-App-Browser; Schließen („Fertig“ bzw. Android-Zurück) führt zurück zum
       Rezept.
+- [ ] Icon auf dem Home-Bildschirm: Android rund und adaptiv (Besteck weiß auf Lila, scharf, nichts abgeschnitten),
+      iOS.
+- [ ] Splash hell und dunkel: Systemmodus umstellen, App neu starten. Der Splash verschwindet beim ersten Render;
+      ein kurzes Skelett einer noch ladenden Seite danach ist in Ordnung.
+- [ ] Android ≥ 12: Das Icon ist auf dem hellen System-Splash sichtbar.
+- [ ] Statusleiste lesbar in hellem und dunklem Theme; ein Theme-Wechsel im Profil ändert die Symbolfarbe sofort.
+- [ ] Theme „System“: Wechsel des OS-Modus bei offener App ändert die Symbolfarbe mit.
+- [ ] Theme fest auf Hell, OS bei offener App auf Dunkel stellen (und umgekehrt): Die Symbole bleiben lesbar.

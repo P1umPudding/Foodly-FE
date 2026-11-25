@@ -10,6 +10,7 @@ const bootstrap = vi.hoisted(() => {
 // Replaces all of `./api`: the real module runs session side effects on import.
 vi.mock('./api', () => ({ bootstrap: vi.fn(() => bootstrap.promise) }))
 vi.mock('./App', () => ({ default: () => <p>App rendered</p> }))
+vi.mock('./native/appShell', () => ({ startSplash: vi.fn(), hideSplash: vi.fn(), setStatusBarStyle: vi.fn() }))
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -39,6 +40,12 @@ it('finishes importing while bootstrap is pending and renders once it settles', 
   }
   await flush()
   expect(root.childNodes).toHaveLength(0)
+  // The splash fallback is armed before bootstrap, so a hanging bootstrap can't keep the native splash up.
+  const { startSplash } = await import('./native/appShell')
+  const { bootstrap: bootstrapMock } = await import('./api')
+  expect(vi.mocked(startSplash).mock.invocationCallOrder[0]).toBeLessThan(
+    vi.mocked(bootstrapMock).mock.invocationCallOrder[0],
+  )
 
   await act(async () => {
     bootstrap.resolve()

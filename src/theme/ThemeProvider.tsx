@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
+import { hideSplash, setStatusBarStyle } from '../native/appShell'
 
 export type ColorMode = 'light' | 'dark' | 'system'
 type ResolvedColorMode = 'light' | 'dark'
@@ -57,6 +58,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
   }, [colorMode])
+
+  // Native status-bar icons follow the resolved theme, so `system` and OS switches are covered too.
+  useEffect(() => {
+    setStatusBarStyle(resolvedColorMode)
+  }, [resolvedColorMode])
+
+  // ThemeProvider wraps the app, so its first commit is the first render. StrictMode runs this twice; hideSplash
+  // hides once.
+  useEffect(() => {
+    hideSplash()
+  }, [])
 
   const setColorMode = useCallback((mode: ColorMode) => {
     try {

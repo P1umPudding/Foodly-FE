@@ -91,7 +91,7 @@ There's no server code and no secrets in the repo.
   dynamically so Capacitor stays out of the web entry chunk
   (`timerNotifications.ts`: timer notifications in the background; `keepAwake.ts`:
   keep the screen on for `useWakeLock`; `openExternal.ts`: external links in the
-  in-app browser). Lint
+  in-app browser; `appShell.ts`: splash screen and status-bar style). Lint
   forbids `@capacitor/*` imports elsewhere. See
   [`docs/decisions/0005-native-shell.md`](docs/decisions/0005-native-shell.md)
   and [`docs/native.md`](docs/native.md) (build, sync, device checklist);
@@ -164,6 +164,7 @@ npm run format:check # prettier --check . (no writes)
 npm run lint         # eslint . (exit 0 required; legacy violations sit in eslint-suppressions.json)
 npm run build:native # tsc + vite build --mode native (base /, mock by default) -> dist/
 npm run cap:sync     # build:native + cap sync: copies dist/ into android/ and ios/ (docs/native.md)
+npm run cap:assets   # icon + splash from assets/ into android/ and ios/ (public/ untouched)
 ```
 
 ### Environment
