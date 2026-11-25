@@ -111,6 +111,23 @@ der Seite oder Ausschalten gibt den Bildschirm frei. Schlägt das Plugin fehl, s
 (Android: Custom Tabs, ohne passenden Browser der Standardbrowser; iOS: SFSafariViewController), damit die App-WebView
 erhalten bleibt (E7). Im Web bleibt er ein normaler Link in einem neuen Tab.
 
+## Anmeldung (Preferences)
+
+`src/native/storage.ts` (`@capacitor/preferences`): iOS kann den `localStorage` der WebView leeren, dann wäre man
+abgemeldet. Nativ liegt die Sitzung deshalb in Preferences (E5); `src/api/auth.ts` hält sie im Speicher, `bootstrap()`
+lädt sie vor dem ersten Render, und jedes Schreiben geht durch (in einer Warteschlange, das letzte gewinnt). Im Web
+bleibt alles bei `localStorage["foodly.auth"]`.
+
+- Migration: Liegt beim Start nur in `localStorage` eine Sitzung, wird sie nach Preferences übernommen und danach aus
+  `localStorage` gelöscht; liegt in beiden eine, gewinnt Preferences. Schlägt die Übernahme fehl, bleibt die alte Kopie
+  bis zum nächsten Start (ein Abmelden löscht sie mit).
+- Fehler: Ein fehlgeschlagenes Laden (oder keine Antwort nach 3 s) zählt als abgemeldet, nichts wird gelöscht. Ein
+  fehlgeschlagenes Schreiben wird nur protokolliert; die App bleibt angemeldet, nach einem Neustart ist man abgemeldet.
+- Nach einem Token-Refresh wartet die Anfrage, die ihn ausgelöst hat, auf das Schreiben. Stürzt die App genau zwischen
+  Refresh und Schreiben ab, ist man danach abgemeldet (der alte Refresh-Token ist beim Backend schon ungültig).
+- Offen: Android sichert SharedPreferences (`allowBackup="true"`) und damit den Refresh-Token per Google-Backup mit;
+  ob das so bleiben soll, ist noch zu entscheiden (verschlüsselter Speicher ist kein Ziel von #327).
+
 ## Icon, Splash, Statusleiste
 
 - **Quellen:** `assets/` (`icon-only.png`, `icon-foreground.png`, `icon-background.png`, `splash.png`,
@@ -176,3 +193,9 @@ Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iO
 - [ ] Statusleiste lesbar in hellem und dunklem Theme; ein Theme-Wechsel im Profil ändert die Symbolfarbe sofort.
 - [ ] Theme „System“: Wechsel des OS-Modus bei offener App ändert die Symbolfarbe mit.
 - [ ] Theme fest auf Hell, OS bei offener App auf Dunkel stellen (und umgekehrt): Die Symbole bleiben lesbar.
+
+REST-Build (`.env.native.local`, siehe „Mock- und REST-Build“), jeweils auf Android und iOS:
+
+- [ ] Anmelden, App beenden (aus dem App-Umschalter wischen), neu starten: weiterhin angemeldet, ohne kurzes
+      „abgemeldet“.
+- [ ] Abmelden, App beenden, neu starten: abgemeldet, die Anmeldeseite erscheint.
