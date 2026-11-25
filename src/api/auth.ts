@@ -1,11 +1,15 @@
-// The session: the only place that reads or writes the tokens (localStorage["foodly.auth"]) and the only
-// sender of /auth/*. Every access re-reads localStorage instead of caching, so a refresh or sign-out in
-// another tab is seen without syncing a second copy.
+// The session: the only place that reads or writes the tokens and the only sender of /auth/*. On the web
+// every access re-reads localStorage["foodly.auth"] instead of caching, so a refresh or sign-out in another
+// tab is seen without syncing a second copy. The native app keeps it in memory, loaded once by loadSession()
+// in bootstrap() and written through to Preferences (iOS may clear WebView storage, E5). Only the refreshing
+// caller waits for that write; other requests may already send the new access token from memory.
 //
 // The backend rotates refresh tokens (a used one is invalid at once) and rate-limits /auth/refresh, so at
 // most one refresh runs at a time: one shared promise per tab, a Web Lock across tabs.
 
 import { apiError, apiUrl, errorMessage } from './http'
+import { isNative } from '../native/platform'
+import { loadAuth, saveAuth } from '../native/storage'
 import type { AuthResponse, TokenPair, UserId } from './protocol'
 
 const STORAGE_KEY = 'foodly.auth'
@@ -13,6 +17,8 @@ const REFRESH_LOCK = 'foodly-auth-refresh'
 const EXPIRY_MARGIN_MS = 30_000
 // A hanging refresh would otherwise hold the cross-tab lock forever.
 const REFRESH_TIMEOUT_MS = 15_000
+// The app renders only after bootstrap(); a native bridge that never answers must not leave it blank.
+const LOAD_TIMEOUT_MS = 3_000
 
 // The e-mail is only kept to prefill the sign-in page after an expiry; the backend's User has none.
 type StoredSession = TokenPair & { userId: UserId; email?: string }
@@ -22,9 +28,8 @@ export type SessionEnd = { reason: SignedOutReason; email?: string }
 export type AuthEvent = { type: 'signed-out'; reason: SignedOutReason }
 export type AuthListener = (session: AuthSession | null, event?: AuthEvent) => void
 
-function readStored(): StoredSession | null {
+function parseStored(raw: string | null): StoredSession | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const value = JSON.parse(raw) as Partial<StoredSession> | null
     if (
@@ -43,9 +48,76 @@ function readStored(): StoredSession | null {
   return null
 }
 
-function writeStored(session: StoredSession | null): void {
-  if (session) localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-  else localStorage.removeItem(STORAGE_KEY)
+function readLocal(): StoredSession | null {
+  try {
+    return parseStored(localStorage.getItem(STORAGE_KEY))
+  } catch {
+    return null
+  }
+}
+
+let nativeSession: StoredSession | null = null
+// Set by the first native write: a load that finishes after it must not overwrite it.
+let written = false
+
+function readStored(): StoredSession | null {
+  return isNative() ? nativeSession : readLocal()
+}
+
+// Never rejects: natively memory is the source of truth, and a lost write only means signing in again after a
+// restart.
+function writeStored(session: StoredSession | null): Promise<void> {
+  if (!isNative()) {
+    if (session) localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+    else localStorage.removeItem(STORAGE_KEY)
+    return Promise.resolve()
+  }
+  nativeSession = session
+  written = true
+  // A legacy copy kept after a failed migration must not bring a signed-out session back.
+  if (!session) localStorage.removeItem(STORAGE_KEY)
+  return saveAuth(session ? JSON.stringify(session) : null).catch((error: unknown) =>
+    console.warn('Could not save the session', error),
+  )
+}
+
+// Native only: loads the session from Preferences before the first render. A session that only sits in
+// localStorage (from before Preferences) moves over; a failed or hanging load counts as signed out.
+export async function loadSession(): Promise<void> {
+  if (!isNative()) return
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let raw: string | null
+  try {
+    raw = await Promise.race([
+      loadAuth(),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('timed out')), LOAD_TIMEOUT_MS)
+      }),
+    ])
+  } catch (error) {
+    console.warn('Could not load the session', error)
+    return
+  } finally {
+    clearTimeout(timer)
+  }
+  if (written) return
+
+  const stored = parseStored(raw)
+  const legacy = readLocal()
+  if (stored) {
+    nativeSession = stored
+    localStorage.removeItem(STORAGE_KEY)
+  } else if (legacy) {
+    nativeSession = legacy
+    // Not awaited: the queue orders it before any later write, and a hanging bridge can't block the start.
+    void saveAuth(JSON.stringify(legacy)).then(
+      () => localStorage.removeItem(STORAGE_KEY),
+      (error: unknown) => console.warn('Could not move the session to Preferences', error),
+    )
+  } else {
+    localStorage.removeItem(STORAGE_KEY)
+  }
+  notify()
 }
 
 // Same object until the user changes, so useSyncExternalStore doesn't loop and a token refresh doesn't
@@ -72,10 +144,11 @@ export function resetSessionEnd(): void {
   ended = null
 }
 
-function endSession(end: SessionEnd): void {
-  writeStored(null)
+function endSession(end: SessionEnd): Promise<void> {
+  const write = writeStored(null)
   ended = end
   notify({ type: 'signed-out', reason: end.reason })
+  return write
 }
 
 const listeners = new Set<AuthListener>()
@@ -175,7 +248,7 @@ export function refreshAfterUnauthorized(
 export function expireIfCurrent(accessToken: string): void {
   const current = readStored()
   if (current?.accessToken !== accessToken) return
-  endSession({ reason: 'expired', email: current.email })
+  void endSession({ reason: 'expired', email: current.email })
 }
 
 type InflightRefresh = { refreshToken: string; promise: Promise<string | null> }
@@ -231,15 +304,16 @@ async function refreshLocked(sent: { refreshToken: string; userId: UserId }): Pr
       void logout({ accessToken, refreshToken })
       return tokenOf(now, sent.userId)
     }
-    writeStored({ ...now, accessToken, refreshToken })
-    return accessToken
+    // The backend already invalidated the old refresh token: persist the new one before anyone uses it.
+    await writeStored({ ...now, accessToken, refreshToken })
+    return tokenOf(readStored(), sent.userId)
   }
 
   if (res.status === 401) {
     // A tab without Web Locks may have rotated the token first; then ours was just stale.
     const now = readStored()
     if (now && now.refreshToken !== sent.refreshToken) return tokenOf(now, sent.userId)
-    if (now) endSession({ reason: 'expired', email: now.email })
+    if (now) void endSession({ reason: 'expired', email: now.email })
     return null
   }
 
@@ -258,10 +332,11 @@ async function startSession(
   if (!res.ok) throw await apiError(res)
   const { accessToken, refreshToken, user } = (await res.json()) as AuthResponse
   const replaced = readStored()
-  writeStored({ accessToken, refreshToken, userId: user.id, email: body.email })
+  const write = writeStored({ accessToken, refreshToken, userId: user.id, email: body.email })
   // Signed in over an existing session: revoke the old pair instead of leaving it valid for 30 days.
   if (replaced) void logout(replaced)
   notify()
+  await write
   return session() ?? { userId: user.id }
 }
 
@@ -279,8 +354,8 @@ export function signUp(name: string, email: string, password: string): Promise<A
 export function signOut(): Promise<void> {
   const current = readStored()
   if (!current) return Promise.resolve()
-  endSession({ reason: 'signed-out' })
-  return logout(current)
+  const write = endSession({ reason: 'signed-out' })
+  return Promise.all([write, logout(current)]).then(() => undefined)
 }
 
 // Best effort: the session is already gone locally either way.

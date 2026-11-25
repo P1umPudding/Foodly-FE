@@ -1,21 +1,37 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, seedSession, storedSession } from '../test/auth'
 
+// Only the native case reaches Preferences; on the web isNative() is false and the plugin never loads.
+const prefs = vi.hoisted(() => new Map<string, string>())
+vi.mock('@capacitor/preferences', () => ({
+  Preferences: {
+    get: ({ key }: { key: string }) => Promise.resolve({ value: prefs.get(key) ?? null }),
+    set: ({ key, value }: { key: string; value: string }) => Promise.resolve(void prefs.set(key, value)),
+    remove: ({ key }: { key: string }) => Promise.resolve(void prefs.delete(key)),
+  },
+}))
+
 const originalCreateObjectURL = URL.createObjectURL
 
 afterEach(() => {
   URL.createObjectURL = originalCreateObjectURL
   vi.restoreAllMocks()
   vi.unstubAllEnvs()
+  vi.unstubAllGlobals()
   localStorage.clear()
+  prefs.clear()
 })
 
 // The mode is read when the modules load, so each case pins it and imports a fresh graph.
 async function load(mode: 'rest' | 'mock') {
   vi.stubEnv('VITE_MOCK', mode === 'mock' ? '1' : '')
   vi.resetModules()
-  const [{ foodly }, stubs, assets] = await Promise.all([import('./index'), import('./stubs'), import('./assets')])
-  return { foodly, stubs, assets }
+  const [{ foodly, bootstrap }, stubs, assets] = await Promise.all([
+    import('./index'),
+    import('./stubs'),
+    import('./assets'),
+  ])
+  return { foodly, bootstrap, stubs, assets }
 }
 
 const vegan = { id: 'vegan', svg: 'abc123' }
@@ -104,5 +120,18 @@ describe('foodly.auth in mock mode', () => {
     foodly.auth.subscribe(listener)()
     expect(listener).not.toHaveBeenCalled()
     expect(spy).not.toHaveBeenCalled()
+  })
+})
+
+describe('foodly.auth in the native app (REST)', () => {
+  it('is signed in as soon as bootstrap() resolves', async () => {
+    vi.stubGlobal('Capacitor', { isNativePlatform: () => true, getPlatform: () => 'ios' })
+    prefs.set('foodly.auth', JSON.stringify({ accessToken: 'a', refreshToken: 'r', userId: 4 }))
+    const { foodly, bootstrap } = await load('rest')
+    expect(foodly.auth.session()).toBeNull()
+
+    await bootstrap()
+
+    expect(foodly.auth.session()).toEqual({ userId: 4 })
   })
 })

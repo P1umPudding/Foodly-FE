@@ -35,9 +35,9 @@ export const socket = new SocketClient(WS_URL)
 export { type SocketStatus } from './socket'
 
 // With VITE_MOCK=1 every request goes to the mock responder; REST mode doesn't load it.
-// No WebSocket is opened — that's for the future live editing.
+// No WebSocket is opened — that's for the future live editing. Native REST builds load the session first.
 export async function bootstrap(): Promise<void> {
-  if (!USE_MOCKS) return
+  if (!USE_MOCKS) return session.loadSession()
   const { mockRequest } = await import('../mocks')
   socket.useMocks(mockRequest)
 }
