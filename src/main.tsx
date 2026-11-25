@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { ThemeProvider } from './theme/ThemeProvider'
 import { bootstrap } from './api'
+import { startSplash } from './native/appShell'
 import App from './App'
 import './styles/styles.css'
 
@@ -28,6 +29,8 @@ function render() {
 // failure is logged the same way.
 // No top-level await: in the production build the mock chunk imports modules it shares with this entry chunk,
 // so awaiting here deadlocks (the entry never finishes evaluating) and the page stays blank (#233).
+// Native: arms the splash fallback before anything can fail; ThemeProvider hides it on the first render.
+startSplash()
 void bootstrap()
   .catch((error: unknown) => console.error(error))
   .then(render)
