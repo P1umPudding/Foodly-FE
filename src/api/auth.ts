@@ -17,8 +17,9 @@ const REFRESH_LOCK = 'foodly-auth-refresh'
 const EXPIRY_MARGIN_MS = 30_000
 // A hanging refresh would otherwise hold the cross-tab lock forever.
 const REFRESH_TIMEOUT_MS = 15_000
-// The app renders only after bootstrap(); a native bridge that never answers must not leave it blank.
-const LOAD_TIMEOUT_MS = 3_000
+// A native bridge that never answers must not leave the app blank (it renders only after bootstrap()) or hold a
+// sign-in or the refresh lock forever.
+const BRIDGE_TIMEOUT_MS = 3_000
 
 // The e-mail is only kept to prefill the sign-in page after an expiry; the backend's User has none.
 type StoredSession = TokenPair & { userId: UserId; email?: string }
@@ -56,6 +57,14 @@ function readLocal(): StoredSession | null {
   }
 }
 
+function withTimeout<T>(promise: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Preferences timed out')), BRIDGE_TIMEOUT_MS)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
 let nativeSession: StoredSession | null = null
 // Set by the first native write: a load that finishes after it must not overwrite it.
 let written = false
@@ -76,7 +85,8 @@ function writeStored(session: StoredSession | null): Promise<void> {
   written = true
   // A legacy copy kept after a failed migration must not bring a signed-out session back.
   if (!session) localStorage.removeItem(STORAGE_KEY)
-  return saveAuth(session ? JSON.stringify(session) : null).catch((error: unknown) =>
+  // A timed-out write stays queued; only the caller stops waiting.
+  return withTimeout(saveAuth(session ? JSON.stringify(session) : null)).catch((error: unknown) =>
     console.warn('Could not save the session', error),
   )
 }
@@ -85,20 +95,12 @@ function writeStored(session: StoredSession | null): Promise<void> {
 // localStorage (from before Preferences) moves over; a failed or hanging load counts as signed out.
 export async function loadSession(): Promise<void> {
   if (!isNative()) return
-  let timer: ReturnType<typeof setTimeout> | undefined
   let raw: string | null
   try {
-    raw = await Promise.race([
-      loadAuth(),
-      new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error('timed out')), LOAD_TIMEOUT_MS)
-      }),
-    ])
+    raw = await withTimeout(loadAuth())
   } catch (error) {
     console.warn('Could not load the session', error)
     return
-  } finally {
-    clearTimeout(timer)
   }
   if (written) return
 
@@ -313,6 +315,7 @@ async function refreshLocked(sent: { refreshToken: string; userId: UserId }): Pr
     // A tab without Web Locks may have rotated the token first; then ours was just stale.
     const now = readStored()
     if (now && now.refreshToken !== sent.refreshToken) return tokenOf(now, sent.userId)
+    // Not awaited: the token is already dead on the server, the local delete can finish on its own.
     if (now) void endSession({ reason: 'expired', email: now.email })
     return null
   }

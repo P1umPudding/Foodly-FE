@@ -110,6 +110,38 @@ describe('native session storage', () => {
     unsubscribe()
   })
 
+  it('resolves sign-in only after the session is in Preferences', async () => {
+    const { auth } = await startLoaded()
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(signInResponse())
+    const finish = slowNextWrite()
+    let done = false
+    const signedIn = auth.signIn('a@b.de', 'pw').then(() => (done = true))
+
+    await vi.waitFor(() => expect(prefs.set).toHaveBeenCalled())
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(done).toBe(false)
+    expect(auth.session()).toEqual({ userId: 1 })
+
+    finish()
+    await signedIn
+    expect(inPrefs()?.userId).toBe(1)
+  })
+
+  it('stops waiting for a write that never finishes', async () => {
+    prefs.store.set(KEY, JSON.stringify(session({ accessToken: jwt(-60) })))
+    const { auth } = await startLoaded()
+    const fresh = jwt(900)
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(200, { accessToken: fresh, refreshToken: 'r2' }))
+    prefs.set.mockImplementationOnce(() => new Promise(() => {}))
+    vi.useFakeTimers()
+
+    const pending = auth.getAccessToken()
+    await vi.advanceTimersByTimeAsync(3000)
+
+    expect(await pending).toBe(fresh)
+    expect(console.warn).toHaveBeenCalled()
+  })
+
   it('removes the entry on sign-out', async () => {
     prefs.store.set(KEY, JSON.stringify(session()))
     const { auth } = await startLoaded()
@@ -276,16 +308,40 @@ describe('native session load', () => {
     expect(localStorage.getItem(KEY)).not.toBeNull()
   })
 
-  it('gives up on a load that never answers', async () => {
-    prefs.store.set(KEY, JSON.stringify(session()))
-    prefs.get.mockImplementationOnce(() => new Promise(() => {}))
+  it('gives up on a load that does not answer within 3 s, and ignores a late answer', async () => {
+    let answer!: (v: { value: string | null }) => void
+    prefs.get.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)))
     const { auth } = await start()
     vi.useFakeTimers()
+
+    const listener = vi.fn()
+    const unsubscribe = auth.subscribe(listener)
 
     const loading = auth.loadSession()
     await vi.advanceTimersByTimeAsync(3000)
     await loading
-
     expect(auth.session()).toBeNull()
+
+    answer({ value: JSON.stringify(session()) })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(auth.session()).toBeNull()
+    expect(listener).not.toHaveBeenCalled()
+    unsubscribe()
+  })
+
+  it('keeps a session written while the load was still running', async () => {
+    prefs.store.set(KEY, JSON.stringify(session({ userId: 2 })))
+    let answer!: (v: { value: string | null }) => void
+    prefs.get.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)))
+    const { auth } = await start()
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(signInResponse('refresh-9', 5))
+
+    const loading = auth.loadSession()
+    await auth.signIn('a@b.de', 'pw')
+    answer({ value: prefs.store.get(KEY) ?? null })
+    await loading
+
+    expect(auth.session()).toEqual({ userId: 5 })
+    expect(inPrefs()?.userId).toBe(5)
   })
 })
