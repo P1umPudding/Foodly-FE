@@ -198,6 +198,10 @@ alles wie bisher.
 - `timerNotifications.ts` (#328): Timer-Benachrichtigungen. Beim Wechsel in den Hintergrund bekommt jeder laufende
   Timer eine lokale Benachrichtigung zu seiner Endzeit, bei der Rückkehr werden alle storniert; `TimerProvider` lässt
   einen im Hintergrund abgelaufenen Timer ohne Alarm auf `expired` springen. Details: [`native.md`](native.md).
+- `keepAwake.ts` (#326): `keepAwake()`/`allowSleep()` über das Keep-Awake-Plugin, in einer Warteschlange. `useWakeLock`
+  nutzt nativ nur diesen Adapter (`supported` immer `true`), im Web die Screen Wake Lock API.
+- `openExternal.ts` (#326): öffnet eine URL im In-App-Browser. Der Quelle-Link in `RecipeDetail` ruft ihn nativ per
+  `onClick` (mit `preventDefault`) auf; im Web bleibt er ein Link mit `target="_blank"`.
 
 ## 7. Tests
 
