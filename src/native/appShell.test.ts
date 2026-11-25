@@ -1,3 +1,6 @@
+// The type import makes this file a module, so its `m` and `load` don't clash with other script-style test files.
+import type * as AppShell from './appShell'
+
 const m = vi.hoisted(() => ({
   SplashScreen: { hide: vi.fn(() => Promise.resolve()) },
   StatusBar: { setStyle: vi.fn((_: { style: string }) => Promise.resolve()) },
@@ -7,7 +10,7 @@ const m = vi.hoisted(() => ({
 vi.mock('@capacitor/splash-screen', () => ({ SplashScreen: m.SplashScreen }))
 vi.mock('@capacitor/status-bar', () => ({ StatusBar: m.StatusBar, Style: m.Style }))
 
-async function load(shell: 'native' | 'web' = 'native') {
+async function load(shell: 'native' | 'web' = 'native'): Promise<typeof AppShell> {
   if (shell === 'native') vi.stubGlobal('Capacitor', { isNativePlatform: () => true, getPlatform: () => 'android' })
   vi.resetModules()
   return import('./appShell')
