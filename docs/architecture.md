@@ -202,6 +202,9 @@ alles wie bisher.
   nutzt nativ nur diesen Adapter (`supported` immer `true`), im Web die Screen Wake Lock API.
 - `openExternal.ts` (#326): öffnet eine URL im In-App-Browser. Der Quelle-Link in `RecipeDetail` ruft ihn nativ per
   `onClick` (mit `preventDefault`) auf; im Web bleibt er ein Link mit `target="_blank"`.
+- `appShell.ts` (#324): Splash und Statusleiste. `main.tsx` ruft vor `bootstrap()` `startSplash()` (3-s-Fallback),
+  `ThemeProvider` beim ersten Render `hideSplash()` (einmalig) und bei jedem Wechsel des aufgelösten Themes
+  `setStatusBarStyle()`. Details: [`native.md`](native.md).
 
 ## 7. Tests
 
