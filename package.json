@@ -16,8 +16,10 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@capacitor-community/keep-awake": "8.0.1",
     "@capacitor/android": "8.6.2",
     "@capacitor/app": "8.1.2",
+    "@capacitor/browser": "8.0.5",
     "@capacitor/core": "8.6.2",
     "@capacitor/ios": "8.6.2",
     "@capacitor/local-notifications": "8.3.1",
