@@ -17,6 +17,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.restoreAllMocks()
   localStorage.clear()
   document.documentElement.classList.remove('dark')
 })
@@ -34,5 +35,28 @@ describe('ThemeProvider native shell', () => {
     act(() => setColorMode('light'))
     expect(setStatusBarStyle).toHaveBeenLastCalledWith('light')
     expect(hideSplash).toHaveBeenCalledTimes(1)
+  })
+
+  it('follows an OS switch while on system', () => {
+    localStorage.setItem('foodly-theme', 'system')
+    let onChange: ((e: MediaQueryListEvent) => void) | undefined
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query) =>
+        ({
+          matches: false,
+          media: query,
+          addEventListener: (_: string, fn: (e: MediaQueryListEvent) => void) => (onChange = fn),
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    )
+    render(
+      <ThemeProvider>
+        <Probe />
+      </ThemeProvider>,
+    )
+    expect(setStatusBarStyle).toHaveBeenLastCalledWith('light')
+
+    act(() => onChange!({ matches: true } as MediaQueryListEvent))
+    expect(setStatusBarStyle).toHaveBeenLastCalledWith('dark')
   })
 })

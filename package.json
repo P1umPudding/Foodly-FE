@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "build:native": "tsc && vite build --mode native",
     "cap:sync": "npm run build:native && cap sync",
-    "cap:assets": "capacitor-assets generate --android --ios",
+    "cap:assets": "capacitor-assets generate --android --ios && node assets/adaptive-icon.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
