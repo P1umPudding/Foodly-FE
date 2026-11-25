@@ -3,6 +3,7 @@
 // at 72 dp per density from the sources here. It also replaces drawable-night/splash.png, which the tool writes in
 // landscape, with the portrait one, like drawable/splash.png.
 import { copyFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 
 const res = new URL('../android/app/src/main/res/', import.meta.url)
@@ -12,10 +13,10 @@ for (const [name, scale] of Object.entries(density)) {
   const px = Math.round(72 * scale)
   for (const layer of ['foreground', 'background']) {
     const source = new URL(`icon-${layer}.png`, import.meta.url)
-    await sharp(source.pathname)
+    await sharp(fileURLToPath(source))
       .resize(px, px)
       .png()
-      .toFile(new URL(`mipmap-${name}/ic_launcher_${layer}.png`, res).pathname)
+      .toFile(fileURLToPath(new URL(`mipmap-${name}/ic_launcher_${layer}.png`, res)))
   }
 }
 await copyFile(new URL('drawable-port-night-mdpi/splash.png', res), new URL('drawable-night/splash.png', res))
