@@ -44,6 +44,8 @@ import { cookHref, parseSize, withSize } from '../cook/size'
 import { formatRecipeTimes } from '../api/views'
 import { openRecipe, useCheckedIngredients } from '../cook/checkedIngredients'
 import { pushRecentlyViewed, removeRecentlyViewed } from '../home/recentlyViewed'
+import { isNative } from '../native/platform'
+import { openExternal } from '../native/openExternal'
 
 // With a photo: image and infos side by side from 1100 px, stacked below (image max. 640 px wide).
 const HEAD_GRID = 'grid items-start gap-5 min-[1100px]:grid-cols-2 min-[1100px]:gap-8'
@@ -415,7 +417,20 @@ export function RecipeDetail() {
             <footer className="mt-7 text-sm text-muted-foreground">
               Quelle:{' '}
               {isUrl(recipe.source) ? (
-                <a href={recipe.source} target="_blank" rel="noopener noreferrer" className="underline">
+                <a
+                  href={recipe.source}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                  onClick={
+                    isNative()
+                      ? (e) => {
+                          e.preventDefault()
+                          openExternal(e.currentTarget.href)
+                        }
+                      : undefined
+                  }
+                >
                   {recipe.source}
                 </a>
               ) : (

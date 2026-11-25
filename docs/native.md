@@ -96,6 +96,17 @@ Timer-Panel.
 - Wird die App im Hintergrund beendet, setzt der nächste Start einen abgelaufenen Timer wie bisher auf seine volle Dauer
   zurück.
 
+## Bildschirm wach und externe Links
+
+`src/native/keepAwake.ts` (`@capacitor-community/keep-awake`): Die Android-WebView und iOS vor 18.4 haben keine Screen
+Wake Lock API. In der App läuft `useWakeLock` deshalb immer über das Plugin, im Web unverändert über die API. Der
+Schalter „Bildschirm anlassen“ erscheint nativ immer, im Koch-Modus eingeschaltet, auf der Rezeptseite aus. Verlassen
+der Seite oder Ausschalten gibt den Bildschirm frei. Schlägt das Plugin fehl, springt der Schalter auf aus.
+
+`src/native/openExternal.ts` (`@capacitor/browser`): Der Quelle-Link eines Rezepts öffnet nativ im In-App-Browser
+(Android: Custom Tabs, ohne passenden Browser der Standardbrowser; iOS: SFSafariViewController), damit die App-WebView
+erhalten bleibt (E7). Im Web bleibt er ein normaler Link in einem neuen Tab.
+
 ## Prüfliste
 
 Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iOS:
@@ -127,3 +138,9 @@ Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iO
 - [ ] Android ohne „Wecker und Erinnerungen“: Der Wechsel in den Hintergrund öffnet keine Einstellungsseite, die
       Benachrichtigung kommt (eventuell verspätet).
 - [ ] Benachrichtigungen abgelehnt: Der Timer läuft trotzdem und klingelt im Vordergrund.
+- [ ] Koch-Modus: „Bildschirm anlassen“ ist sichtbar und an; der Bildschirm bleibt über die System-Sperrzeit hinaus an.
+      Ausgeschaltet geht er normal aus.
+- [ ] Rezeptseite: Der Schalter (Desktop-Zeile bzw. ⋯-Menü am Handy) funktioniert genauso; Verlassen der Seite gibt den
+      Bildschirm frei.
+- [ ] Quelle-Link eines Rezepts öffnet im In-App-Browser; Schließen („Fertig“ bzw. Android-Zurück) führt zurück zum
+      Rezept.

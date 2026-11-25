@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { allowSleep, keepAwake } from '../native/keepAwake'
+import { isNative } from '../native/platform'
 
 // Keep the screen awake (Screen Wake Lock API) — handy on mobile while cooking.
 // The browser drops the lock when the tab is hidden, so we re-acquire it on
-// `visibilitychange` while enabled.
+// `visibilitychange` while enabled. The native app uses the keep-awake plugin instead, which holds until released.
 export function useWakeLock(initial = false) {
-  const supported = typeof navigator !== 'undefined' && 'wakeLock' in navigator
+  const native = isNative()
+  const supported = native || (typeof navigator !== 'undefined' && 'wakeLock' in navigator)
 
   const [enabled, setEnabled] = useState(initial && supported)
   const sentinelRef = useRef<WakeLockSentinel | null>(null)
@@ -13,6 +16,16 @@ export function useWakeLock(initial = false) {
     if (!supported || !enabled) return
 
     let cancelled = false
+
+    if (native) {
+      keepAwake().catch(() => {
+        if (!cancelled) setEnabled(false)
+      })
+      return () => {
+        cancelled = true
+        allowSleep().catch(() => {})
+      }
+    }
 
     const acquire = async () => {
       if (cancelled || document.visibilityState !== 'visible') return
@@ -45,7 +58,7 @@ export function useWakeLock(initial = false) {
       sentinelRef.current?.release().catch(() => {})
       sentinelRef.current = null
     }
-  }, [enabled, supported])
+  }, [enabled, supported, native])
 
   const toggle = useCallback(() => setEnabled((v) => !v), [])
 

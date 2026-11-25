@@ -2,6 +2,12 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useWakeLock } from './useWakeLock'
 
+const native = vi.hoisted(() => ({
+  keepAwake: vi.fn(() => Promise.resolve()),
+  allowSleep: vi.fn(() => Promise.resolve()),
+}))
+vi.mock('../native/keepAwake', () => native)
+
 type FakeSentinel = { release: ReturnType<typeof vi.fn> }
 
 // Each request() stays pending until the test resolves it, so the order of cleanup and resolution is controlled.
@@ -97,5 +103,67 @@ describe('useWakeLock', () => {
     expect(second.release).not.toHaveBeenCalled()
     unmount()
     expect(second.release).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('useWakeLock (native)', () => {
+  beforeEach(() => {
+    // The native shell has no Wake Lock API; the hook must not depend on it.
+    Reflect.deleteProperty(navigator, 'wakeLock')
+    native.keepAwake.mockClear().mockImplementation(() => Promise.resolve())
+    native.allowSleep.mockClear().mockImplementation(() => Promise.resolve())
+    vi.stubGlobal('Capacitor', { isNativePlatform: () => true, getPlatform: () => 'android' })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('is supported without navigator.wakeLock', () => {
+    const { result } = renderHook(() => useWakeLock())
+    expect(result.current.supported).toBe(true)
+    expect(native.keepAwake).not.toHaveBeenCalled()
+  })
+
+  it('keeps the screen awake when switched on and allows sleep when switched off', () => {
+    const { result } = renderHook(() => useWakeLock(true))
+    expect(native.keepAwake).toHaveBeenCalledTimes(1)
+    expect(native.allowSleep).not.toHaveBeenCalled()
+
+    act(() => result.current.setEnabled(false))
+
+    expect(native.allowSleep).toHaveBeenCalledTimes(1)
+    expect(native.keepAwake).toHaveBeenCalledTimes(1)
+  })
+
+  it('allows sleep on unmount', () => {
+    const { unmount } = renderHook(() => useWakeLock(true))
+    unmount()
+    expect(native.allowSleep).toHaveBeenCalledTimes(1)
+  })
+
+  it('switches off when the plugin fails', async () => {
+    native.keepAwake.mockImplementationOnce(() => Promise.reject(new Error('nope')))
+    const { result } = renderHook(() => useWakeLock(true))
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(result.current.enabled).toBe(false)
+  })
+
+  it('does not re-acquire on visibility changes', () => {
+    renderHook(() => useWakeLock(true))
+    visibility = 'hidden'
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+    visibility = 'visible'
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+    expect(native.keepAwake).toHaveBeenCalledTimes(1)
+    expect(request).not.toHaveBeenCalled()
   })
 })
