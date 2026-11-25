@@ -205,6 +205,9 @@ alles wie bisher.
 - `appShell.ts` (#324): Splash und Statusleiste. `main.tsx` ruft vor `bootstrap()` `startSplash()` (3-s-Fallback),
   `ThemeProvider` beim ersten Render `hideSplash()` (einmalig) und bei jedem Wechsel des aufgelösten Themes
   `setStatusBarStyle()`. Details: [`native.md`](native.md).
+- `storage.ts` (#327): die Sitzung in Preferences (`loadAuth`/`saveAuth`, Schreiben in einer Warteschlange).
+  `auth.ts` liest nativ aus einem Speicher-Cache, den `bootstrap()` vor dem ersten Render lädt, und schreibt durch;
+  eine alte Sitzung aus `localStorage` wird übernommen. Details: [`native.md`](native.md).
 
 ## 7. Tests
 
@@ -223,4 +226,5 @@ alles wie bisher.
   (Spec `superpowers/specs/2026-11-08-auth-login-design.md`). Sitzung und
   Token-Refresh liegen seit #141 in `src/api/auth.ts`; Anmelden, Registrieren und
   Routen-Schutz seit #142 (§5), Abmelden (heute auf der Profilseite, #245) und Hinweis bei
-  abgelaufener Sitzung seit #143.
+  abgelaufener Sitzung seit #143. Nativ liegt die Sitzung seit #327 in Preferences statt in
+  `localStorage` (§6a).

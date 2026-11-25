@@ -69,7 +69,9 @@ There's no server code and no secrets in the repo.
     contract (throws `Error(message)`; `ApiError` from `http.ts` for sign-in/up),
     `collectPages` for cursor pages.
   - `auth.ts` — the session: the only code that reads/writes the tokens
-    (`localStorage["foodly.auth"]`) and sends `/auth/*`. `getAccessToken`
+    (`localStorage["foodly.auth"]` on the web; natively an in-memory copy that
+    `bootstrap()` loads from Preferences via `src/native/storage.ts` and every
+    write goes through to) and sends `/auth/*`. `getAccessToken`
     refreshes 30 s before `exp`; at most one refresh at a time, across tabs via
     `navigator.locks` (the backend rotates refresh tokens and rate-limits
     refresh). `subscribe` reports changes and `signed-out` (`expired` |
@@ -91,7 +93,8 @@ There's no server code and no secrets in the repo.
   dynamically so Capacitor stays out of the web entry chunk
   (`timerNotifications.ts`: timer notifications in the background; `keepAwake.ts`:
   keep the screen on for `useWakeLock`; `openExternal.ts`: external links in the
-  in-app browser; `appShell.ts`: splash screen and status-bar style). Lint
+  in-app browser; `appShell.ts`: splash screen and status-bar style; `storage.ts`:
+  the session in Preferences). Lint
   forbids `@capacitor/*` imports elsewhere. See
   [`docs/decisions/0005-native-shell.md`](docs/decisions/0005-native-shell.md)
   and [`docs/native.md`](docs/native.md) (build, sync, device checklist);
