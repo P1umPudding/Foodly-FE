@@ -78,6 +78,7 @@ describe('registerServiceWorker', () => {
     webProduction()
     const error = new Error('blocked')
     register.mockRejectedValue(error)
+    setReadyState('complete')
     const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     registerServiceWorker()
     await vi.waitFor(() => expect(log).toHaveBeenCalledWith(error))

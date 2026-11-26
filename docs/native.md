@@ -254,8 +254,8 @@ minimaler Service Worker `public/sw.js`.
   `vite dev`, nicht in Tests, nicht bei `--mode native` (dort entfernt der Build den Code) und nicht in der
   Capacitor-Hülle (`isNative()`). `sw.js` landet zwar auch im nativen `dist/`, wird dort aber nie registriert.
 - **Kein Offline-Modus, kein Cache:** `sw.js` hat einen `fetch`-Listener ohne `respondWith`, jede Anfrage (App, `/api`,
-  Bilder) geht unverändert ans Netz. Chrome ab 108 (Android) bzw. 112 (Desktop) braucht dafür gar keinen Service Worker
-  mehr; der Listener ist für ältere Chromium-Versionen, Samsung Internet und Brave da. Chrome kann in der Konsole vor
+  Bilder) geht unverändert ans Netz. Aktuelles Chrome verlangt für die Installation keinen Fetch-Handler mehr; der
+  Listener ist für ältere Chromium-Versionen, Samsung Internet und Brave da. Chrome kann in der Konsole vor
   einem „no-op fetch handler“ warnen, das ist gewollt. Offline-Daten bleiben Phase 8 (`docs/plan.md`).
 - **Updates:** Kein Precache, `skipWaiting` und `clients.claim`: Ein neues Deployment wirkt beim nächsten Laden, wie
   ohne Service Worker. Wie lange der Server `index.html` cachen lässt, ist eine Hosting-Frage.
@@ -263,7 +263,7 @@ minimaler Service Worker `public/sw.js`.
   unter `SKAILE_PREVIEW_BASE`.
 - **iOS/Safari:** unverändert, Installation über Teilen → „Zum Home-Bildschirm“.
 - **Brave, Firefox:** ohne Gewähr, das Verhalten liegt beim Browser. Echte installierte Apps (WebAPK, eigenes Icon im
-  App-Drawer) legen auf Android nur Chrome und Samsung Internet an; andere Browser bieten oft nur eine Verknüpfung an.
+  App-Drawer) legen auf Android zuverlässig nur Chrome und Samsung Internet an; andere Browser bieten oft nur eine Verknüpfung an.
 - **Entfernen:** `sw.js` nicht einfach löschen. Die SPA-Weiterleitung (`public/_redirects`) liefert dann `index.html`
   aus, das Update schlägt fehl und installierte Worker bleiben. Stattdessen eine `sw.js` ausliefern, die sich selbst
   abmeldet (`self.registration.unregister()`).

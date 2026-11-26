@@ -1,5 +1,5 @@
 // Registers public/sw.js so browsers offer "Install app" (#345, docs/native.md). Web production build only: the guard
-// reads import.meta.env directly so Vite folds it and drops the rest in dev and `--mode native` builds.
+// reads import.meta.env directly so Vite drops the rest from `--mode native` builds; dev and tests return early.
 
 import { isNative } from './native/platform'
 
