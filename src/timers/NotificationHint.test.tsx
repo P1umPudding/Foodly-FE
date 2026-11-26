@@ -45,7 +45,7 @@ describe('NotificationHint', () => {
     const { container } = render(<NotificationHint />)
     await act(() => Promise.resolve())
     expect(notificationHint).toHaveBeenCalledTimes(1)
-    expect(container.innerHTML).toBe('')
+    expect(container.textContent).toBe('')
   })
 
   it('checks again on the return to the foreground', async () => {
@@ -66,7 +66,7 @@ describe('NotificationHint', () => {
     act(() => vi.mocked(onForeground).mock.calls[0][0]())
     await act(() => Promise.resolve())
     await act(async () => resolveFirst('denied'))
-    expect(container.innerHTML).toBe('')
+    expect(container.textContent).toBe('')
   })
 
   it('stops listening when the panel closes', () => {

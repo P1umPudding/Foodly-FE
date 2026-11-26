@@ -34,26 +34,29 @@ export function NotificationHint() {
     }
   }, [check])
 
-  if (hint === 'denied')
-    return (
-      <p className="mb-3 text-xs text-muted-foreground">
-        Benachrichtigungen sind aus – Timer klingeln nur, solange Foodly offen ist. Du kannst sie in den
-        Systemeinstellungen erlauben.
-      </p>
-    )
-  if (hint === 'inexact')
-    return (
-      <div className="mb-3 flex flex-col items-start gap-2">
-        <p className="text-xs text-muted-foreground">Timer können sich im Hintergrund um einige Minuten verspäten.</p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="touch:h-10"
-          onClick={() => void allowExactNotifications().then(check)}
-        >
-          Genaue Wecker erlauben
-        </Button>
-      </div>
-    )
-  return null
+  if (!isNative()) return null
+  // One live region that is always there, so a hint that appears or changes later is announced.
+  return (
+    <div role="status">
+      {hint === 'denied' && (
+        <p className="mb-3 text-xs text-muted-foreground">
+          Benachrichtigungen sind aus – Timer klingeln nur, solange Foodly offen ist. Du kannst sie in den
+          Systemeinstellungen erlauben.
+        </p>
+      )}
+      {hint === 'inexact' && (
+        <div className="mb-3 flex flex-col items-start gap-2">
+          <p className="text-xs text-muted-foreground">Timer können sich im Hintergrund um einige Minuten verspäten.</p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="touch:h-10"
+            onClick={() => void allowExactNotifications().then(check)}
+          >
+            Genaue Wecker erlauben
+          </Button>
+        </div>
+      )}
+    </div>
+  )
 }

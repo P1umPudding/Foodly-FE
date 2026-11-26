@@ -168,13 +168,15 @@ export function onNotificationTap(handler: () => void): () => void {
 export type NotificationHint = 'ok' | 'denied' | 'inexact'
 
 // What the timer panel should warn about. Not in the scheduling queue: it may run any time the panel is open.
-// `prompt` is not a problem yet: the next timer start asks (E9).
+// `prompt` is not a problem yet: the next timer start asks (E9). Android reports a first refusal as
+// `prompt-with-rationale`, and we never ask again after one, so that counts as off too.
 export async function notificationHint(): Promise<NotificationHint> {
   if (!isNative()) return 'ok'
   try {
     const [{ LocalNotifications }] = await loadPlugins()
-    if ((await LocalNotifications.checkPermissions()).display === 'denied') return 'denied'
-    // iOS has no exact-alarm setting; the plugin rejects the call there.
+    const { display } = await LocalNotifications.checkPermissions()
+    if (display === 'denied' || display === 'prompt-with-rationale') return 'denied'
+    // Exact alarms are an Android setting; iOS always delivers on time.
     if (platform() !== 'android') return 'ok'
     const { exact_alarm } = await LocalNotifications.checkExactNotificationSetting()
     return exact_alarm === 'granted' ? 'ok' : 'inexact'

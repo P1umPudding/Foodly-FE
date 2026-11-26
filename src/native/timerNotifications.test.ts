@@ -290,6 +290,12 @@ describe('notification hint', () => {
     expect(await notificationHint()).toBe('inexact')
   })
 
+  it('is denied after a first refusal on Android (prompt-with-rationale)', async () => {
+    m.state.display = 'prompt-with-rationale'
+    const { notificationHint } = await load()
+    expect(await notificationHint()).toBe('denied')
+  })
+
   it('is ok with both permissions', async () => {
     const { notificationHint } = await load()
     expect(await notificationHint()).toBe('ok')
