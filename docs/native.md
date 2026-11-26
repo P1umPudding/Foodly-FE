@@ -88,9 +88,12 @@ Systemton); bei der Rückkehr werden alle storniert, im Vordergrund klingelt nur
 Hintergrund abläuft, steht danach auf „abgelaufen“, ohne Alarm und Toast. Tippen auf die Benachrichtigung öffnet das
 Timer-Panel.
 
-- Berechtigung: Der erste Timer-Start fragt danach. Abgelehnt läuft der Timer trotzdem, nur ohne Benachrichtigung.
+- Berechtigung: Der erste Timer-Start fragt danach. Abgelehnt läuft der Timer trotzdem, nur ohne Benachrichtigung;
+  das Timer-Panel sagt das dann oben (ohne Link in die Einstellungen).
 - Android: Ohne „Wecker und Erinnerungen“ (ab Android 14 Standard) plant die App ungenau; die Benachrichtigung kann
-  dann Minuten zu spät kommen. Wer vorher zurückkehrt, sieht den Timer still abgelaufen. Ein Hinweis dazu folgt mit N7.
+  dann Minuten zu spät kommen. Wer vorher zurückkehrt, sieht den Timer still abgelaufen. Das Timer-Panel weist darauf
+  hin; sein Knopf „Genaue Wecker erlauben“ öffnet die Einstellung. Geprüft wird beim Öffnen des Panels und bei jeder
+  Rückkehr in den Vordergrund.
   `SCHEDULE_EXACT_ALARM` steht im Manifest, `USE_EXACT_ALARM` bewusst nicht.
 - iOS: Auch Kontrollzentrum oder ein Systemdialog zählen als Hintergrund. Läuft ein Timer dort ab, klingelt nur die
   Benachrichtigung. Während der Berechtigungsabfrage selbst ist noch nichts erlaubt: Ein Timer, der dabei abläuft,
@@ -181,8 +184,15 @@ Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iO
 - [ ] Nach Ablauf im Hintergrund zurück in die App: Timer steht auf abgelaufen, kein verspäteter Alarm.
 - [ ] Tippen auf die Benachrichtigung öffnet die App mit dem Timer-Panel.
 - [ ] Android ohne „Wecker und Erinnerungen“: Der Wechsel in den Hintergrund öffnet keine Einstellungsseite, die
-      Benachrichtigung kommt (eventuell verspätet).
-- [ ] Benachrichtigungen abgelehnt: Der Timer läuft trotzdem und klingelt im Vordergrund.
+      Benachrichtigung kommt (eventuell verspätet). Das Timer-Panel zeigt „Timer können sich im Hintergrund um einige
+      Minuten verspäten.“ mit dem Knopf „Genaue Wecker erlauben“; er öffnet die Einstellung. Dort erlauben und
+      zurückkehren: Der Hinweis ist weg.
+- [ ] Benachrichtigungen abgelehnt: Der Timer läuft trotzdem und klingelt im Vordergrund. Das Timer-Panel zeigt
+      „Benachrichtigungen sind aus …“, ohne Knopf. In den Systemeinstellungen erlauben, zurückkehren: Der Hinweis ist
+      weg.
+- [ ] Ersten Timer im offenen Panel starten, die Frage nach Benachrichtigungen ablehnen: Der Hinweis „Benachrichtigungen
+      sind aus …“ erscheint (sonst Panel neu öffnen).
+- [ ] iOS mit erlaubten Benachrichtigungen und Android mit beiden Erlaubnissen: Das Timer-Panel zeigt keinen Hinweis.
 - [ ] Koch-Modus: „Bildschirm anlassen“ ist sichtbar und an; der Bildschirm bleibt über die System-Sperrzeit hinaus an.
       Ausgeschaltet geht er normal aus.
 - [ ] Rezeptseite: Der Schalter (Desktop-Zeile bzw. ⋯-Menü am Handy) funktioniert genauso; Verlassen der Seite gibt den
