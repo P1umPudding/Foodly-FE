@@ -133,8 +133,16 @@ bleibt alles bei `localStorage["foodly.auth"]`.
 - Nach einem Token-Refresh wartet die Anfrage, die ihn ausgelöst hat, auf das Schreiben (höchstens 3 s). Wird die App
   beendet oder stürzt sie ab, bevor das Schreiben angekommen ist, ist man danach abgemeldet (der alte Refresh-Token ist
   beim Backend schon ungültig).
-- Offen: Android sichert SharedPreferences (`allowBackup="true"`) und damit den Refresh-Token per Google-Backup mit;
-  ob das so bleiben soll, ist noch zu entscheiden (verschlüsselter Speicher ist kein Ziel von #327).
+- Backup (Android, #342): Die Preferences-Datei `CapacitorStorage.xml` (die Sitzung) ist vom Google-Backup und von
+  der Geräteübertragung ausgeschlossen, alles andere wird weiter gesichert (`allowBackup="true"`). Regeln:
+  `res/xml/backup_rules.xml` (`fullBackupContent`, Android ≤ 11, gilt dort auch für die Übertragung) und
+  `res/xml/data_extraction_rules.xml` (`dataExtractionRules`, Android 12+, `<cloud-backup>` und `<device-transfer>`);
+  `cap sync` lässt beide und das Manifest in Ruhe, `src/native/androidBackup.test.ts` prüft sie. Nach einer
+  Wiederherstellung oder auf einem neuen Gerät ist man abgemeldet. Rest: Ist bei einer Installation von vor #327 die
+  Übernahme aus `localStorage` fehlgeschlagen, liegt die alte Kopie im (gesicherten) WebView-Speicher, und eine
+  Wiederherstellung kann damit wieder anmelden (selten, bewusst hingenommen). Die Daten der Timer-Benachrichtigungen
+  werden mitgesichert, das schadet nicht. iOS (Preferences in UserDefaults, im iCloud-Backup) ist noch offen
+  (verschlüsselter Speicher ist kein Ziel).
 
 ## Icon, Splash, Statusleiste
 
@@ -215,3 +223,18 @@ REST-Build (`.env.native.local`, siehe „Mock- und REST-Build“), jeweils auf 
 - [ ] Anmelden, App beenden (aus dem App-Umschalter wischen), neu starten: weiterhin angemeldet, ohne kurzes
       „abgemeldet“.
 - [ ] Abmelden, App beenden, neu starten: abgemeldet, die Anmeldeseite erscheint.
+- [ ] Android, Backup (#342), mit Debug-APK (`./gradlew assembleDebug`, für `run-as`) auf einem Emulator mit API ≤ 30
+      und einem mit API ≥ 31:
+  - Anmelden, im Profil das Theme auf Dunkel stellen, dann `adb shell am force-stop io.github.p1umpudding.foodly`
+    (damit die WebView den Wert schreibt).
+  - `adb shell run-as io.github.p1umpudding.foodly ls shared_prefs`: `CapacitorStorage.xml` ist da.
+  - `adb shell bmgr enable true`, `adb shell bmgr list transports`, dann
+    `adb shell bmgr transport com.android.localtransport/.LocalTransport` (der Stern in `list transports` muss
+    danach dort stehen), `adb shell bmgr backupnow io.github.p1umpudding.foodly`.
+  - `adb uninstall io.github.p1umpudding.foodly`, `adb install app-debug.apk` (stellt automatisch wieder her; sonst
+    `adb shell bmgr restore <token> io.github.p1umpudding.foodly`).
+  - Erwartet: Theme Dunkel (die Wiederherstellung lief), Anmeldeseite (abgemeldet), `run-as … ls shared_prefs` zeigt
+    kein `CapacitorStorage.xml`.
+  - API ≥ 31, Geräteübertragung: vor `backupnow`
+    `adb shell settings put secure backup_local_transport_parameters "is_encrypted=true,is_device_transfer=true"`,
+    sonst gleich; danach `adb shell settings delete secure backup_local_transport_parameters`.
