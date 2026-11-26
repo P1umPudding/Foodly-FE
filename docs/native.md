@@ -190,8 +190,9 @@ Am Gerät nach einem Mock-Build (`npm run cap:sync`), jeweils auf Android und iO
 - [ ] Benachrichtigungen abgelehnt: Der Timer läuft trotzdem und klingelt im Vordergrund. Das Timer-Panel zeigt
       „Benachrichtigungen sind aus …“, ohne Knopf. In den Systemeinstellungen erlauben, zurückkehren: Der Hinweis ist
       weg.
-- [ ] Ersten Timer im offenen Panel starten, die Frage nach Benachrichtigungen ablehnen: Der Hinweis „Benachrichtigungen
-      sind aus …“ erscheint (sonst Panel neu öffnen).
+- [ ] Ersten Timer im offenen Panel starten, die Frage nach Benachrichtigungen ablehnen: Spätestens beim nächsten
+      Öffnen des Panels steht „Benachrichtigungen sind aus …“ da. (Geprüft wird beim Öffnen und bei der Rückkehr in den
+      Vordergrund; ob der Systemdialog Letzteres auslöst, hängt vom System ab. Notieren, ob er sofort erscheint.)
 - [ ] iOS mit erlaubten Benachrichtigungen und Android mit beiden Erlaubnissen: Das Timer-Panel zeigt keinen Hinweis.
 - [ ] Koch-Modus: „Bildschirm anlassen“ ist sichtbar und an; der Bildschirm bleibt über die System-Sperrzeit hinaus an.
       Ausgeschaltet geht er normal aus.
