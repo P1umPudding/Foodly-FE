@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router'
 import { ThemeProvider } from './theme/ThemeProvider'
 import { bootstrap } from './api'
 import { startSplash } from './native/appShell'
+import { registerServiceWorker } from './serviceWorker'
 import App from './App'
 import './styles/styles.css'
 
@@ -32,6 +33,7 @@ function render() {
 // so awaiting here deadlocks (the entry never finishes evaluating) and the page stays blank (#233).
 // Native: arms the splash fallback before anything can fail; ThemeProvider hides it on the first render.
 startSplash()
+registerServiceWorker()
 void bootstrap()
   .catch((error: unknown) => console.error(error))
   .then(render)
