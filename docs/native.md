@@ -138,7 +138,7 @@ bleibt alles bei `localStorage["foodly.auth"]`.
   `res/xml/backup_rules.xml` (`fullBackupContent`, Android ≤ 11, gilt dort auch für die Übertragung) und
   `res/xml/data_extraction_rules.xml` (`dataExtractionRules`, Android 12+, `<cloud-backup>` und `<device-transfer>`);
   `cap sync` lässt beide und das Manifest in Ruhe, `src/native/androidBackup.test.ts` prüft sie. Nach einer
-  Wiederherstellung oder auf einem neuen Gerät ist man abgemeldet. Rest: Ist bei einer Installation von vor #327 die
+  Wiederherstellung oder auf einem neuen Gerät ist man abgemeldet. Bekannte Lücke: Ist bei einer Installation von vor #327 die
   Übernahme aus `localStorage` fehlgeschlagen, liegt die alte Kopie im (gesicherten) WebView-Speicher, und eine
   Wiederherstellung kann damit wieder anmelden (selten, bewusst hingenommen). Die Daten der Timer-Benachrichtigungen
   werden mitgesichert, das schadet nicht. iOS (Preferences in UserDefaults, im iCloud-Backup) ist noch offen
@@ -223,14 +223,17 @@ REST-Build (`.env.native.local`, siehe „Mock- und REST-Build“), jeweils auf 
 - [ ] Anmelden, App beenden (aus dem App-Umschalter wischen), neu starten: weiterhin angemeldet, ohne kurzes
       „abgemeldet“.
 - [ ] Abmelden, App beenden, neu starten: abgemeldet, die Anmeldeseite erscheint.
-- [ ] Android, Backup (#342), mit Debug-APK (`cd android && ./gradlew assembleDebug`, für `run-as`; die Befehle
-      unten im Repo-Wurzelordner) auf einem Emulator mit API ≤ 30 und einem mit API ≥ 31:
-  - Anmelden, im Profil das Theme auf Dunkel stellen, die App in den Hintergrund schicken (Home), einige Sekunden
-    warten (die WebView schreibt verzögert), dann `adb shell am force-stop io.github.p1umpudding.foodly`.
+- [ ] Android, Backup (#342), auf einem Emulator mit API ≤ 30 und einem mit API ≥ 31, alle Befehle im
+      Repo-Wurzelordner:
+  - REST-Build synchronisieren (`npm run cap:sync`), Debug-APK bauen (für `run-as`):
+    `(cd android && ./gradlew assembleDebug)`, installieren:
+    `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
+  - App starten, anmelden, im Profil das Theme auf Dunkel stellen, mit Home in den Hintergrund schicken und etwa
+    10 s warten (die WebView schreibt verzögert). Nicht `am force-stop`: Eine gestoppte App überspringt das Backup.
   - `adb shell run-as io.github.p1umpudding.foodly ls shared_prefs`: `CapacitorStorage.xml` ist da.
   - `adb shell bmgr enable true`, `adb shell bmgr list transports`, dann
     `adb shell bmgr transport com.android.localtransport/.LocalTransport` (der Stern in `list transports` muss
-    danach dort stehen), `adb shell bmgr backupnow io.github.p1umpudding.foodly`.
+    danach dort stehen), `adb shell bmgr backupnow io.github.p1umpudding.foodly` (meldet „Success“).
   - `adb uninstall io.github.p1umpudding.foodly`, `adb install android/app/build/outputs/apk/debug/app-debug.apk`
     (stellt automatisch wieder her; sonst `adb shell bmgr restore <token> io.github.p1umpudding.foodly`, Token aus
     `adb shell bmgr list sets`).
