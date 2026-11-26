@@ -20,6 +20,9 @@ vi.mock('../native/timerNotifications', () => ({
   isActive: () => true,
   ensureNotificationPermission: () => {},
   onNotificationTap: () => () => {},
+  notificationHint: () => Promise.resolve('ok'),
+  allowExactNotifications: () => Promise.resolve(),
+  onForeground: () => () => {},
 }))
 vi.mock('../catalog/CatalogProvider', () => ({
   useTags: () => ({ byId: {}, status: 'ready' }),
