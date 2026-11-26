@@ -7,6 +7,7 @@ import { useTimerPanel } from './TimerPanelContext'
 import { TimerToggle } from './TimerToggle'
 import { TimerRow } from './TimerRow'
 import { TimerForm } from './TimerForm'
+import { NotificationHint } from './NotificationHint'
 
 // Shell-header widget: the trigger plus a popover (desktop) or bottom sheet (phone). The open
 // state comes from TimerPanelProvider so a time chip in the page can open the panel too; the
@@ -61,6 +62,7 @@ export function TimerPanel() {
   // down rather than squeezing it.
   const body = (
     <>
+      <NotificationHint />
       {ordered.length === 0 ? (
         <p className="text-muted-foreground">Kein Timer läuft.</p>
       ) : (
