@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and older (cloud backup and device transfer). The session tokens live in Capacitor Preferences and must
+     not leave the device (#342); everything else is backed up as before. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="CapacitorStorage.xml" />
+</full-backup-content>
