@@ -225,14 +225,15 @@ REST-Build (`.env.native.local`, siehe „Mock- und REST-Build“), jeweils auf 
 - [ ] Abmelden, App beenden, neu starten: abgemeldet, die Anmeldeseite erscheint.
 - [ ] Android, Backup (#342), mit Debug-APK (`./gradlew assembleDebug`, für `run-as`) auf einem Emulator mit API ≤ 30
       und einem mit API ≥ 31:
-  - Anmelden, im Profil das Theme auf Dunkel stellen, dann `adb shell am force-stop io.github.p1umpudding.foodly`
-    (damit die WebView den Wert schreibt).
+  - Anmelden, im Profil das Theme auf Dunkel stellen, die App in den Hintergrund schicken (Home), einige Sekunden
+    warten (die WebView schreibt verzögert), dann `adb shell am force-stop io.github.p1umpudding.foodly`.
   - `adb shell run-as io.github.p1umpudding.foodly ls shared_prefs`: `CapacitorStorage.xml` ist da.
   - `adb shell bmgr enable true`, `adb shell bmgr list transports`, dann
     `adb shell bmgr transport com.android.localtransport/.LocalTransport` (der Stern in `list transports` muss
     danach dort stehen), `adb shell bmgr backupnow io.github.p1umpudding.foodly`.
-  - `adb uninstall io.github.p1umpudding.foodly`, `adb install app-debug.apk` (stellt automatisch wieder her; sonst
-    `adb shell bmgr restore <token> io.github.p1umpudding.foodly`).
+  - `adb uninstall io.github.p1umpudding.foodly`, `adb install android/app/build/outputs/apk/debug/app-debug.apk`
+    (stellt automatisch wieder her; sonst `adb shell bmgr restore <token> io.github.p1umpudding.foodly`, Token aus
+    `adb shell bmgr list sets`).
   - Erwartet: Theme Dunkel (die Wiederherstellung lief), Anmeldeseite (abgemeldet), `run-as … ls shared_prefs` zeigt
     kein `CapacitorStorage.xml`.
   - API ≥ 31, Geräteübertragung: vor `backupnow`
