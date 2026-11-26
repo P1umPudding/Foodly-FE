@@ -223,8 +223,8 @@ REST-Build (`.env.native.local`, siehe „Mock- und REST-Build“), jeweils auf 
 - [ ] Anmelden, App beenden (aus dem App-Umschalter wischen), neu starten: weiterhin angemeldet, ohne kurzes
       „abgemeldet“.
 - [ ] Abmelden, App beenden, neu starten: abgemeldet, die Anmeldeseite erscheint.
-- [ ] Android, Backup (#342), mit Debug-APK (`./gradlew assembleDebug`, für `run-as`) auf einem Emulator mit API ≤ 30
-      und einem mit API ≥ 31:
+- [ ] Android, Backup (#342), mit Debug-APK (`cd android && ./gradlew assembleDebug`, für `run-as`; die Befehle
+      unten im Repo-Wurzelordner) auf einem Emulator mit API ≤ 30 und einem mit API ≥ 31:
   - Anmelden, im Profil das Theme auf Dunkel stellen, die App in den Hintergrund schicken (Home), einige Sekunden
     warten (die WebView schreibt verzögert), dann `adb shell am force-stop io.github.p1umpudding.foodly`.
   - `adb shell run-as io.github.p1umpudding.foodly ls shared_prefs`: `CapacitorStorage.xml` ist da.
@@ -236,6 +236,6 @@ REST-Build (`.env.native.local`, siehe „Mock- und REST-Build“), jeweils auf 
     `adb shell bmgr list sets`).
   - Erwartet: Theme Dunkel (die Wiederherstellung lief), Anmeldeseite (abgemeldet), `run-as … ls shared_prefs` zeigt
     kein `CapacitorStorage.xml`.
-  - API ≥ 31, Geräteübertragung: vor `backupnow`
-    `adb shell settings put secure backup_local_transport_parameters "is_encrypted=true,is_device_transfer=true"`,
+  - API ≥ 31, Geräteübertragung (auf API ≤ 30 deckt `backup_rules.xml` sie mit ab, kein eigener Test): vor
+    `backupnow` `adb shell settings put secure backup_local_transport_parameters "is_encrypted=true,is_device_transfer=true"`,
     sonst gleich; danach `adb shell settings delete secure backup_local_transport_parameters`.
