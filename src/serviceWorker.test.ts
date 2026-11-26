@@ -8,6 +8,7 @@ const register = vi.fn<(url: string) => Promise<unknown>>()
 function webProduction() {
   vi.stubEnv('PROD', true)
   vi.stubEnv('MODE', 'production')
+  setReadyState('complete')
 }
 
 function setReadyState(state: DocumentReadyState) {
@@ -40,11 +41,15 @@ describe('registerServiceWorker', () => {
     expect(register).toHaveBeenCalledExactlyOnceWith('/sw.js')
   })
 
-  it('stays off in the native build and in the Capacitor shell', () => {
+  it('stays off in the native build', () => {
     webProduction()
     vi.stubEnv('MODE', 'native')
     registerServiceWorker()
-    vi.stubEnv('MODE', 'production')
+    expect(register).not.toHaveBeenCalled()
+  })
+
+  it('stays off in the Capacitor shell', () => {
+    webProduction()
     vi.stubGlobal('Capacitor', { isNativePlatform: () => true })
     registerServiceWorker()
     expect(register).not.toHaveBeenCalled()
@@ -78,7 +83,6 @@ describe('registerServiceWorker', () => {
     webProduction()
     const error = new Error('blocked')
     register.mockRejectedValue(error)
-    setReadyState('complete')
     const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     registerServiceWorker()
     await vi.waitFor(() => expect(log).toHaveBeenCalledWith(error))
