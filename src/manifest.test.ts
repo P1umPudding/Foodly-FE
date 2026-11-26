@@ -52,15 +52,16 @@ describe('index.html', () => {
     expect(indexHtml).toMatch(/<meta name="viewport" content="[^"]*viewport-fit=cover/)
   })
 
-  it('registers no service worker (manifest only, #220)', () => {
+  it('leaves service worker registration to src/serviceWorker.ts (#345)', () => {
     expect(indexHtml).not.toContain('serviceWorker')
-    const sources = import.meta.glob(['/src/**/*.{ts,tsx}', '!/src/manifest.test.ts'], {
+    const sources = import.meta.glob(['/src/**/*.{ts,tsx}', '!/src/**/*.test.{ts,tsx}'], {
       query: '?raw',
       import: 'default',
       eager: true,
     })
     expect(Object.keys(sources).length).toBeGreaterThan(50)
-    const registering = Object.entries(sources).filter(([, code]) => String(code).includes('serviceWorker'))
-    expect(registering.map(([file]) => file)).toEqual([])
+    const registering = Object.entries(sources).filter(([, code]) => String(code).includes('navigator.serviceWorker'))
+    expect(registering.map(([file]) => file)).toEqual(['/src/serviceWorker.ts'])
+    expect(String(sources['/src/main.tsx'])).toMatch(/^registerServiceWorker\(\)$/m)
   })
 })

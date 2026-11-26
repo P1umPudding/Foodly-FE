@@ -39,11 +39,11 @@ export default defineConfig(({ mode }) => {
     // The entry chunk stays ~704 kB minified even with the rare routes split off (#221) and unused postxl dependencies
     // dropped (#309): most of it is react-dom and @postxl/ui-components, whose single pre-bundled file can't be
     // tree-shaken without rewriting its code (ruled out, #309), plus React Router 7, whose core is one module the app
-    // needs almost whole (#334). The limit sits just above the size with the native PRs #336/#337/#326/#324/#327
-    // (711.13 kB web, 710.98 kB native; #327 adds the native session cache to auth.ts), so a growing entry warns, and so
+    // needs almost whole (#334). The limit sits just above the size with the native PRs #336/#337/#326/#324/#327/#344
+    // and the service worker registration #345 (712.89 kB web, 712.52 kB native), so a growing entry warns, and so
     // does a dropped dependency creeping back in (~19 kB).
     build: {
-      chunkSizeWarningLimit: 712,
+      chunkSizeWarningLimit: 713,
       rollupOptions: { treeshake: { moduleSideEffects: hasModuleSideEffects } },
     },
     test: {
