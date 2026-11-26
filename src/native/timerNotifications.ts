@@ -164,3 +164,53 @@ export function onNotificationTap(handler: () => void): () => void {
     void handle?.remove()
   }
 }
+
+export type NotificationHint = 'ok' | 'denied' | 'inexact'
+
+// What the timer panel should warn about. Not in the scheduling queue: it may run any time the panel is open.
+// `prompt` is not a problem yet: the next timer start asks (E9).
+export async function notificationHint(): Promise<NotificationHint> {
+  if (!isNative()) return 'ok'
+  try {
+    const [{ LocalNotifications }] = await loadPlugins()
+    if ((await LocalNotifications.checkPermissions()).display === 'denied') return 'denied'
+    // iOS has no exact-alarm setting; the plugin rejects the call there.
+    if (platform() !== 'android') return 'ok'
+    const { exact_alarm } = await LocalNotifications.checkExactNotificationSetting()
+    return exact_alarm === 'granted' ? 'ok' : 'inexact'
+  } catch {
+    return 'ok'
+  }
+}
+
+// Opens Android's "Alarms & reminders" screen; resolves once the user is back.
+export async function allowExactNotifications(): Promise<void> {
+  if (!isNative() || platform() !== 'android') return
+  try {
+    const [{ LocalNotifications }] = await loadPlugins()
+    await LocalNotifications.changeExactNotificationSetting()
+  } catch {
+    // Nothing to do: the next check shows the hint again.
+  }
+}
+
+export function onForeground(handler: () => void): () => void {
+  if (!isNative()) return () => {}
+  let disposed = false
+  let handle: PluginListenerHandle | null = null
+  void loadPlugins()
+    .then(([, { App }]) =>
+      App.addListener('appStateChange', ({ isActive: nowActive }) => {
+        if (nowActive && !disposed) handler()
+      }),
+    )
+    .then((h) => {
+      if (disposed) void h.remove()
+      else handle = h
+    })
+    .catch(() => {})
+  return () => {
+    disposed = true
+    void handle?.remove()
+  }
+}

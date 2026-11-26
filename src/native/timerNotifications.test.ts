@@ -25,6 +25,7 @@ const m = vi.hoisted(() => {
     requestPermissions: vi.fn(() => Promise.resolve({ display: 'granted' })),
     removeAllDeliveredNotifications: vi.fn(() => Promise.resolve()),
     checkExactNotificationSetting: vi.fn(() => Promise.resolve({ exact_alarm: state.exact })),
+    changeExactNotificationSetting: vi.fn(() => Promise.resolve({ exact_alarm: 'granted' })),
     addListener: vi.fn((_: string, fn: () => void) => {
       state.tapHandler = fn
       return Promise.resolve(handle)
@@ -269,5 +270,83 @@ describe('timerNotifications', () => {
       expect(notificationId(id)).toBe(n)
     }
     expect(notificationId('a')).not.toBe(notificationId('b'))
+  })
+})
+
+describe('notification hint', () => {
+  it('is denied without notification permission, without the exact check', async () => {
+    m.state.display = 'denied'
+    m.state.exact = 'denied'
+    const { notificationHint } = await load()
+    expect(await notificationHint()).toBe('denied')
+    expect(m.LocalNotifications.checkExactNotificationSetting).not.toHaveBeenCalled()
+  })
+
+  it('is inexact on Android without exact alarms, also before the permission is asked for', async () => {
+    m.state.exact = 'denied'
+    const { notificationHint } = await load()
+    expect(await notificationHint()).toBe('inexact')
+    m.state.display = 'prompt'
+    expect(await notificationHint()).toBe('inexact')
+  })
+
+  it('is ok with both permissions', async () => {
+    const { notificationHint } = await load()
+    expect(await notificationHint()).toBe('ok')
+  })
+
+  it('never checks exact alarms on iOS', async () => {
+    m.state.exact = 'denied'
+    const { notificationHint } = await load('ios')
+    expect(await notificationHint()).toBe('ok')
+    m.state.display = 'prompt'
+    expect(await notificationHint()).toBe('ok')
+    m.state.display = 'denied'
+    expect(await notificationHint()).toBe('denied')
+    expect(m.LocalNotifications.checkExactNotificationSetting).not.toHaveBeenCalled()
+  })
+
+  it('is ok when the plugin fails', async () => {
+    m.LocalNotifications.checkPermissions.mockRejectedValueOnce(new Error('boom'))
+    const { notificationHint } = await load()
+    expect(await notificationHint()).toBe('ok')
+  })
+
+  it('is checked again on the return to the foreground', async () => {
+    m.state.exact = 'denied'
+    const { notificationHint, onForeground } = await load()
+    expect(await notificationHint()).toBe('inexact')
+    const onBack = vi.fn()
+    const stop = onForeground(onBack)
+    await flush()
+    m.state.exact = 'granted'
+    m.state.appHandler!({ isActive: false })
+    expect(onBack).not.toHaveBeenCalled()
+    m.state.appHandler!({ isActive: true })
+    expect(onBack).toHaveBeenCalledTimes(1)
+    expect(await notificationHint()).toBe('ok')
+    stop()
+    expect(m.handle.remove).toHaveBeenCalled()
+    m.state.appHandler!({ isActive: true })
+    expect(onBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens the exact-alarm setting only on Android', async () => {
+    const android = await load()
+    await android.allowExactNotifications()
+    expect(m.LocalNotifications.changeExactNotificationSetting).toHaveBeenCalledTimes(1)
+    const ios = await load('ios')
+    await ios.allowExactNotifications()
+    expect(m.LocalNotifications.changeExactNotificationSetting).toHaveBeenCalledTimes(1)
+  })
+
+  it('never loads a plugin on the web', async () => {
+    m.state.loaded = 0
+    const mod = await load('web')
+    expect(await mod.notificationHint()).toBe('ok')
+    await mod.allowExactNotifications()
+    mod.onForeground(() => {})()
+    await flush()
+    expect(m.state.loaded).toBe(0)
   })
 })
