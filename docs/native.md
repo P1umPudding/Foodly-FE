@@ -89,7 +89,8 @@ Hintergrund abläuft, steht danach auf „abgelaufen“, ohne Alarm und Toast. T
 Timer-Panel.
 
 - Berechtigung: Der erste Timer-Start fragt danach. Abgelehnt läuft der Timer trotzdem, nur ohne Benachrichtigung;
-  das Timer-Panel sagt das dann oben (ohne Link in die Einstellungen).
+  das Timer-Panel sagt das dann oben (ohne Link in die Einstellungen). Android zählt schon die erste Ablehnung, denn
+  gefragt wird danach nicht mehr.
 - Android: Ohne „Wecker und Erinnerungen“ (ab Android 14 Standard) plant die App ungenau; die Benachrichtigung kann
   dann Minuten zu spät kommen. Wer vorher zurückkehrt, sieht den Timer still abgelaufen. Das Timer-Panel weist darauf
   hin; sein Knopf „Genaue Wecker erlauben“ öffnet die Einstellung. Geprüft wird beim Öffnen des Panels und bei jeder
