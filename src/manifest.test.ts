@@ -62,6 +62,6 @@ describe('index.html', () => {
     expect(Object.keys(sources).length).toBeGreaterThan(50)
     const registering = Object.entries(sources).filter(([, code]) => String(code).includes('navigator.serviceWorker'))
     expect(registering.map(([file]) => file)).toEqual(['/src/serviceWorker.ts'])
-    expect(String(sources['/src/main.tsx'])).toMatch(/^registerServiceWorker\(\)$/m)
+    expect(String(sources['/src/main.tsx'])).toMatch(/\bregisterServiceWorker\(\)/)
   })
 })

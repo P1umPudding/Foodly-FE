@@ -262,7 +262,8 @@ minimaler Service Worker `public/sw.js`.
 - **Unterpfad:** Die Worker-URL ist `${BASE_URL}sw.js`, der Scope (Standard: Ordner des Workers) also `base`, z. B.
   unter `SKAILE_PREVIEW_BASE`.
 - **iOS/Safari:** unverändert, Installation über Teilen → „Zum Home-Bildschirm“.
-- **Brave, Firefox:** ohne Gewähr, das Verhalten liegt beim Browser.
+- **Brave, Firefox:** ohne Gewähr, das Verhalten liegt beim Browser. Echte installierte Apps (WebAPK, eigenes Icon im
+  App-Drawer) legen auf Android nur Chrome und Samsung Internet an; andere Browser bieten oft nur eine Verknüpfung an.
 - **Entfernen:** `sw.js` nicht einfach löschen. Die SPA-Weiterleitung (`public/_redirects`) liefert dann `index.html`
   aus, das Update schlägt fehl und installierte Worker bleiben. Stattdessen eine `sw.js` ausliefern, die sich selbst
   abmeldet (`self.registration.unregister()`).

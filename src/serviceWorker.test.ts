@@ -29,6 +29,7 @@ afterEach(() => {
 
 describe('registerServiceWorker', () => {
   it('stays off outside a production build (dev, tests)', () => {
+    vi.stubEnv('PROD', false)
     registerServiceWorker()
     expect(register).not.toHaveBeenCalled()
   })
@@ -53,9 +54,10 @@ describe('registerServiceWorker', () => {
     webProduction()
     Reflect.deleteProperty(navigator, 'serviceWorker')
     expect(() => registerServiceWorker()).not.toThrow()
+    expect(register).not.toHaveBeenCalled()
   })
 
-  it('follows the base sub-path', () => {
+  it('prefixes the worker URL with BASE_URL (the sub-path buildBase sets)', () => {
     webProduction()
     vi.stubEnv('BASE_URL', buildBase('production', '/preview/abc'))
     registerServiceWorker()
