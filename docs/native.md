@@ -242,3 +242,31 @@ REST-Build (`.env.native.local`, siehe „Mock- und REST-Build“), jeweils auf 
   - API ≥ 31, Geräteübertragung (auf API ≤ 30 deckt `backup_rules.xml` sie mit ab, kein eigener Test): vor
     `backupnow` `adb shell settings put secure backup_local_transport_parameters "is_encrypted=true,is_device_transfer=true"`,
     sonst gleich; danach `adb shell settings delete secure backup_local_transport_parameters`.
+
+## Web-App installieren (PWA)
+
+Unabhängig von der Capacitor-App lässt sich die Web-App aus dem Browser installieren (#345): Chrome (Android und
+Desktop) und Samsung Internet bieten „App installieren“ an, die installierte App startet ohne Browserleiste mit eigenem
+Icon. Grundlage sind `public/manifest.webmanifest` (Icons aus `public/icons/`, URLs relativ, folgen also `base`) und ein
+minimaler Service Worker `public/sw.js`.
+
+- **Registrierung** (`src/serviceWorker.ts`, aufgerufen in `src/main.tsx`) nur im Web-Produktionsbuild: nicht in
+  `vite dev`, nicht in Tests, nicht bei `--mode native` (dort entfernt der Build den Code) und nicht in der
+  Capacitor-Hülle (`isNative()`). `sw.js` landet zwar auch im nativen `dist/`, wird dort aber nie registriert.
+- **Kein Offline-Modus, kein Cache:** `sw.js` hat einen `fetch`-Listener ohne `respondWith`, jede Anfrage (App, `/api`,
+  Bilder) geht unverändert ans Netz. Chrome ab 108 (Android) bzw. 112 (Desktop) braucht dafür gar keinen Service Worker
+  mehr; der Listener ist für ältere Chromium-Versionen, Samsung Internet und Brave da. Chrome kann in der Konsole vor
+  einem „no-op fetch handler“ warnen, das ist gewollt. Offline-Daten bleiben Phase 8 (`docs/plan.md`).
+- **Updates:** Kein Precache, `skipWaiting` und `clients.claim`: Ein neues Deployment wirkt beim nächsten Laden, wie
+  ohne Service Worker. Wie lange der Server `index.html` cachen lässt, ist eine Hosting-Frage.
+- **Unterpfad:** Die Worker-URL ist `${BASE_URL}sw.js`, der Scope (Standard: Ordner des Workers) also `base`, z. B.
+  unter `SKAILE_PREVIEW_BASE`.
+- **iOS/Safari:** unverändert, Installation über Teilen → „Zum Home-Bildschirm“.
+- **Brave, Firefox:** ohne Gewähr, das Verhalten liegt beim Browser.
+- **Entfernen:** `sw.js` nicht einfach löschen. Die SPA-Weiterleitung (`public/_redirects`) liefert dann `index.html`
+  aus, das Update schlägt fehl und installierte Worker bleiben. Stattdessen eine `sw.js` ausliefern, die sich selbst
+  abmeldet (`self.registration.unregister()`).
+
+Prüfen: `npm run build && npm run preview`, in Chrome öffnen, DevTools → Application: unter „Service workers“ genau ein
+aktiver `sw.js`, unter „Manifest“ keine Installierbarkeitsfehler, „Cache storage“ leer. Nach einem neuen Build lädt ein
+Reload das neue `index-*.js`.

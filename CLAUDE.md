@@ -99,6 +99,8 @@ There's no server code and no secrets in the repo.
   [`docs/decisions/0005-native-shell.md`](docs/decisions/0005-native-shell.md)
   and [`docs/native.md`](docs/native.md) (build, sync, device checklist);
   `android/` and `ios/` are the generated Capacitor projects.
+- `src/serviceWorker.ts` — registers `public/sw.js` (no cache, pass-through) in the web
+  production build only, so browsers offer "Install app" (`docs/native.md`, Web-App installieren).
 - `src/mocks/` — mock responder + JSON data (`src/mocks/data/`), used only for
   `VITE_MOCK=1` (`bootstrap()` doesn't load it in REST mode).
 - `src/catalog/` — `CatalogProvider` (tags, users, ingredients as `byId`

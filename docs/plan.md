@@ -231,6 +231,7 @@ Routing `/` → Dashboard, `/recipes` → Liste. **Blockiert:** Gruppen (B12 + B
 Geschnitten (Daniel, 2026-11-13) nach QA-Mobile-Audit: Spec `docs/superpowers/specs/2026-11-13-phase-6-mobile-design.md`,
 Issues M1–M8 in `docs/superpowers/plans/2026-11-13-phase-6-mobile.md` (16-px-Eingaben, Scroll-Restore, Editor Handy,
 Tippflächen 40 px auf Touch, PWA-Manifest ohne Service Worker + Safe Areas, Code-Splitting, Tablet-Seitenleiste).
+Nachtrag #345: minimaler Service Worker ohne Cache, damit Chromium-Browser „App installieren“ anbieten (`docs/native.md`).
 
 Die Web-App für Mobile schärfen: Touch-Targets, responsives Layout, Performance,
 ggf. PWA-Grundlagen. Voraussetzung fürs native Wrappen.
