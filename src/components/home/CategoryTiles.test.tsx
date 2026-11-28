@@ -33,7 +33,7 @@ function renderTiles() {
   )
 }
 
-const nothingToShow = 'Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.'
+const nothingToShow = 'Hier erscheinen deine Kategorien und die zuletzt bearbeiteten Rezepte.'
 
 beforeEach(() => {
   catalog.categories = { list: [], status: 'ready', error: null, retry: vi.fn() }

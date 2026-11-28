@@ -62,8 +62,7 @@ werden hier nicht wiederholt.
   Redux/Zustand) ohne Decision-Note.
 - Feature-State als reine Reducer/Funktionen + Hook: Liste in `src/list/`
   (`state.ts`, `query.ts`, `url.ts`, `persistence.ts`, `useListState.ts`), Editor in
-  `src/editor/` (`draft.ts`, `useAutosave.ts`, `access.ts`), zuletzt angesehene Rezepte in
-  `src/home/recentlyViewed.ts`, Detail und Koch-Modus in `src/cook/` (`size.ts`: Größe als
+  `src/editor/` (`draft.ts`, `useAutosave.ts`, `access.ts`), Detail und Koch-Modus in `src/cook/` (`size.ts`: Größe als
   `?servings`/`?factor`; `checkedIngredients.ts`: abgehakte Zutaten als kleiner In-Memory-Store mit
   `useSyncExternalStore`, pro Rezept, ohne Web Storage — festgelegt in
   `docs/superpowers/specs/2026-11-13-detail-cook-redesign-design.md`).

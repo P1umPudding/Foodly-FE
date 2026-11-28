@@ -33,7 +33,7 @@ Kolja) · `später` (nicht blockierend).
 | B12 | Gruppen ↔ Rezepte-Modell                | Entscheidung | nein                   | –             |
 | B13 | Verwaiste Bilder (GC)                   | später      | nein                    | –             |
 | B14 | Doku-Drift (Status-Codes, Pagination)   | später      | nein                    | –             |
-| B15 | Sortierung nach `created_at`/`updated_at` | offen     | **ja: #250** (Start „Zuletzt bearbeitet“, Daniel 13.11.) | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
+| B15 | Sortierung nach `created_at`/`updated_at` | offen     | nein (#250: REST sortiert Seite 1 clientseitig, Platzhalter) | [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16) |
 | B16 | Trefferzahlen/Facetten in der Suche      | offen       | nein (FE ohne Zahlen)   | [#17](https://github.com/klassenserver7b/Foodly-backend/issues/17) |
 | B17 | Rezept-Import (URL + Foto)               | offen       | nein (nach der Alpha)   | [#28](https://github.com/klassenserver7b/Foodly-backend/issues/28) |
 | B18 | Standard-Kategorie „Favoriten“           | offen       | ja: FE #289             | [#29](https://github.com/klassenserver7b/Foodly-backend/issues/29) |
@@ -292,6 +292,9 @@ Backend-Umbau der Zugriffsabfrage.
   „Your recent creations" sortiert bis dahin clientseitig hinter einem Helper
   (`recentCreations`). Vorschlag: `created_at` / `updated_at` als Sortfelder, plus
   `id` als Tie-Breaker. → [#16](https://github.com/klassenserver7b/Foodly-backend/issues/16)
+  **Stand 2026-11-28 (#250):** Das FE sortiert „Zuletzt bearbeitet“ per `updatedAt`; im REST-Modus schickt
+  `searchRecipes` die Suche ohne Sortierung und sortiert Seite 1 clientseitig (`src/api/index.ts`). Mit #16
+  Server-Sortierung einschalten.
   **Stand 2026-11-16:** Der Backend-Maintainer will #16 und #17 erst mit Axum 0.9 (HTTP `QUERY`) umsetzen
   (Kommentar vom 09.11.; Axum aktuell 0.8.9). #16 braucht `QUERY` nicht (nur zwei Sortierfelder). Damit hängt
   FE #250. Offen: Backend bitten, #16 vorzuziehen, oder #250 vorerst clientseitig sortieren.

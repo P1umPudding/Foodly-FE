@@ -43,12 +43,10 @@ function sharedRecipe(id: number): Recipe {
   }
 }
 
-// Only the shared-with-me query gets results: "Zuletzt erstellt" (owner) stays empty.
+// Only the shared-with-me query (by accessSince) gets results: "Zuletzt bearbeitet" stays empty.
 function stubSharedOnly(ids: number[]) {
   vi.spyOn(foodly, 'searchRecipes').mockImplementation(async (q: RecipeSearchQuery) =>
-    q.filters?.accessRights?.includes('owner')
-      ? { items: [], cursor: null }
-      : { items: ids.map(sharedRecipe), cursor: null },
+    q.sort?.field === 'accessSince' ? { items: ids.map(sharedRecipe), cursor: null } : { items: [], cursor: null },
   )
 }
 
@@ -68,7 +66,7 @@ beforeEach(() => {
   // Only Date: faking the timers too would stall Testing Library's polling.
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 10, 12, 12))
-  // "Zuletzt erstellt" loads on mount; without own recipes it hides itself.
+  // "Zuletzt bearbeitet" loads on mount; without recipes it hides itself.
   vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [], cursor: null })
 })
 afterEach(() => {
@@ -95,7 +93,7 @@ describe('Home', () => {
     renderHome()
     const card = (
       await screen.findByText(
-        'Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.',
+        'Hier erscheinen deine Kategorien und die zuletzt bearbeiteten Rezepte.',
       )
     ).parentElement!
     // One action at most (design.md §5): only "Neues Rezept"; the list is one click away in the navigation.
@@ -126,6 +124,15 @@ describe('Home', () => {
     expect(screen.queryByRole('link', { name: 'Alle Rezepte' })).toBeNull()
   })
 
+  it('shows only "Zuletzt bearbeitet", no "Zuletzt erstellt" or "Zuletzt angesehen"', async () => {
+    vi.spyOn(foodly, 'searchRecipes').mockResolvedValue({ items: [sharedRecipe(5)], cursor: null })
+    renderHome()
+    const region = await screen.findByRole('region', { name: 'Zuletzt bearbeitet' })
+    expect(mainColumn().contains(region)).toBe(true)
+    expect(screen.queryByRole('heading', { name: 'Zuletzt erstellt' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Zuletzt angesehen' })).toBeNull()
+  })
+
   describe('Geteilt mit dir', () => {
     it('sits in the side column; the grid carries the responsive two-column classes', async () => {
       stubSharedOnly([14, 11])
@@ -144,7 +151,7 @@ describe('Home', () => {
       )
       expect(mainColumn().className.split(/\s+/)).toContain('empty:hidden')
       expect(sideColumn().className.split(/\s+/)).toContain('empty:hidden')
-      // Without own or viewed recipes the main column is empty, so the shared block takes the full width.
+      // Without edited recipes the main column is empty, so the shared block takes the full width.
       await waitFor(() => expect(mainColumn().innerHTML).toBe(''))
       expect(screen.queryByText('Noch nichts zu sehen')).toBeNull()
     })

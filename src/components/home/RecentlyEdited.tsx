@@ -1,5 +1,5 @@
-// "Zuletzt erstellt": the user's own recipes, newest first. For an owner, accessSince is the creation time
-// (backend #22), so the server does the ordering.
+// "Zuletzt bearbeitet": all recipes the user can open, last edited first. On REST src/api sorts page 1 itself until
+// backend #16 sorts by updatedAt.
 import { foodly } from '../../api'
 import type { RecipeSearchQuery } from '../../api/protocol'
 import { useCategories, useCurrentUserId } from '../../catalog/CatalogProvider'
@@ -14,27 +14,24 @@ import { HomeTileGrid } from './HomeTileGrid'
 
 const SHOWN = 6
 
-const OWN_NEWEST_FIRST: RecipeSearchQuery = {
-  filters: { accessRights: ['owner'] },
-  sort: { field: 'accessSince', order: 'desc' },
-}
+const LAST_EDITED_FIRST: RecipeSearchQuery = { sort: { field: 'updatedAt', order: 'desc' } }
 
-export function RecentCreations() {
+export function RecentlyEdited() {
   const userId = useCurrentUserId()
   const categories = useCategories()
   const { status, data, error, reload } = useRequest(
-    () => foodly.searchRecipes(OWN_NEWEST_FIRST, 1),
-    // Safeguard: CatalogProvider renders us only once the user is known, but "own" must follow a user switch.
+    () => foodly.searchRecipes(LAST_EDITED_FIRST, 1),
+    // Safeguard: CatalogProvider renders us only once the user is known, but access must follow a user switch.
     [userId],
   )
   const recipes = data?.items.slice(0, SHOWN) ?? []
   const state = status === 'ready' && recipes.length === 0 ? 'empty' : status
-  // Same view prefs as the nav's "Rezepte" link (useNavState), narrowed to the user's own recipes.
-  const allHref = listHref([], navPrefs('/', new URLSearchParams(), loadPersisted(userId)), 'owner')
+  // Same view prefs as the nav's "Rezepte" link (useNavState).
+  const allHref = listHref([], navPrefs('/', new URLSearchParams(), loadPersisted(userId)))
 
   return (
     <HomeSection
-      title="Zuletzt erstellt"
+      title="Zuletzt bearbeitet"
       link={{ label: 'Alle Rezepte', to: allHref }}
       state={state}
       onRetry={reload}

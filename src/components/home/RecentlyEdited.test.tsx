@@ -5,7 +5,7 @@ import { foodly } from '../../api'
 import type { Recipe, RecipeId } from '../../api/protocol'
 import { savePersisted } from '../../list/persistence'
 import { DEFAULT_STATE } from '../../list/state'
-import { RecentCreations } from './RecentCreations'
+import { RecentlyEdited } from './RecentlyEdited'
 
 vi.mock('../../catalog/CatalogProvider', () => ({
   useCurrentUserId: () => 1,
@@ -44,12 +44,12 @@ const page = (ids: RecipeId[]) => ({ items: ids.map(recipe), cursor: null })
 function renderSection() {
   render(
     <MemoryRouter useTransitions={false}>
-      <RecentCreations />
+      <RecentlyEdited />
     </MemoryRouter>,
   )
 }
 
-const region = () => screen.getByRole('region', { name: 'Zuletzt erstellt' })
+const region = () => screen.getByRole('region', { name: 'Zuletzt bearbeitet' })
 // The region also holds the "Alle Rezepte" link; only recipe tiles link to /recipes/<id>.
 const tileHrefs = () =>
   within(region())
@@ -60,15 +60,12 @@ const tileHrefs = () =>
 beforeEach(() => localStorage.clear())
 afterEach(() => vi.restoreAllMocks())
 
-describe('RecentCreations', () => {
-  it('asks for own recipes, newest first', async () => {
+describe('RecentlyEdited', () => {
+  it('asks for all recipes, last edited first', async () => {
     const search = vi.spyOn(foodly, 'searchRecipes').mockResolvedValue(page([1]))
     renderSection()
     await waitFor(() => expect(tileHrefs()).toEqual(['/recipes/1']))
-    expect(search).toHaveBeenCalledWith(
-      { filters: { accessRights: ['owner'] }, sort: { field: 'accessSince', order: 'desc' } },
-      1,
-    )
+    expect(search).toHaveBeenCalledWith({ sort: { field: 'updatedAt', order: 'desc' } }, 1)
   })
 
   it('shows the first 6 in the order the server sent them', async () => {
@@ -79,17 +76,17 @@ describe('RecentCreations', () => {
     )
   })
 
-  it('links "Alle Rezepte" to the list of own recipes, in the saved view', async () => {
+  it('links "Alle Rezepte" to the whole list, in the saved view', async () => {
     savePersisted(1, { ...DEFAULT_STATE, sortKey: 'work', sortDir: 'desc' })
     vi.spyOn(foodly, 'searchRecipes').mockResolvedValue(page([1]))
     renderSection()
-    const link = await within(await screen.findByRole('region', { name: 'Zuletzt erstellt' })).findByRole('link', {
+    const link = await within(await screen.findByRole('region', { name: 'Zuletzt bearbeitet' })).findByRole('link', {
       name: 'Alle Rezepte',
     })
     const [path, query] = link.getAttribute('href')!.split('?')
     const params = new URLSearchParams(query)
     expect(path).toBe('/recipes')
-    expect(params.get('role')).toBe('owner')
+    expect(params.get('role')).toBeNull()
     expect(params.get('sort')).toBe('work')
     expect(params.get('dir')).toBe('desc')
   })
@@ -101,11 +98,11 @@ describe('RecentCreations', () => {
     expect(screen.getAllByTestId('tile-skeleton')).toHaveLength(6)
   })
 
-  it('renders nothing without own recipes', async () => {
+  it('renders nothing without recipes', async () => {
     const search = vi.spyOn(foodly, 'searchRecipes').mockResolvedValue(page([]))
     renderSection()
     await waitFor(() => expect(search).toHaveBeenCalled())
-    await waitFor(() => expect(screen.queryByText('Zuletzt erstellt')).toBeNull())
+    await waitFor(() => expect(screen.queryByText('Zuletzt bearbeitet')).toBeNull())
   })
 
   it('shows the error and loads again on retry', async () => {

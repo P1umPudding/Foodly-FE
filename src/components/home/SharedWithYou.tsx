@@ -25,7 +25,7 @@ export function SharedWithYou() {
   const userId = useCurrentUserId()
   const { status, data, error, reload } = useRequest(
     () => foodly.searchRecipes(SHARED_NEWEST_FIRST, 1),
-    // "Shared with me" must follow a user switch, like RecentCreations.
+    // "Shared with me" must follow a user switch, like RecentlyEdited.
     [userId],
   )
   const recipes = data?.items.slice(0, SHOWN) ?? []
