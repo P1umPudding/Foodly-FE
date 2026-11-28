@@ -31,6 +31,9 @@ werden hier nicht wiederholt.
 - Response-Hüllen (`{ data }`, `{ data, cursor }`) werden **in `foodly.*`** ausgepackt;
   Seiten sehen nur Domain-Typen. Cursor-Pagination: `collectPages` (`rest.ts`) für
   kleine Listen, `useRecipeSearch` für Infinite Scroll.
+- Ausnahme Offline-Speicher (`src/api/offline`, #354): gerätelokal (IndexedDB +
+  Einstellungen in `localStorage`), ohne Backend und ohne `foodly.*`-Zweig; wird
+  direkt und nur aus dem lazy geladenen Profil-Chunk importiert.
 
 ## 2. Typen: `protocol.ts` vs. View-Modelle
 
@@ -94,8 +97,8 @@ werden hier nicht wiederholt.
 - Statische Segmente vor Parametern (`/recipes/new` vor `/recipes/:id`).
 - Seiten mit seed-einmal-State per `key` auf die Route-Identität remounten
   (`RecipeEditorRoute` in `src/App.tsx`).
-- Code-Splitting (#221): Start, Liste, Detail, Profil und 404 liegen im Einstiegs-Chunk (häufige erste Seiten);
-  Editor, Koch-Modus, Kategorien, Kategorieseite, Login und Registrierung lädt `React.lazy` nach. Jede lazy Route
+- Code-Splitting (#221): Start, Liste, Detail und 404 liegen im Einstiegs-Chunk (häufige erste Seiten);
+  Editor, Koch-Modus, Kategorien, Kategorieseite, Profil (seit #354), Login und Registrierung lädt `React.lazy` nach. Jede lazy Route
   steckt einzeln in `LazyRoute` (`src/components/RouteErrorBoundary.tsx`), damit Shell und Tab-Leiste stehen bleiben:
   Fallback ist ein Skelett in Seitenform aus dem Einstieg (nie aus der Seite selbst importieren), ein gescheiterter
   Chunk zeigt `ErrorState`, „Erneut versuchen“ lädt die Seite neu (React.lazy merkt sich den Fehler). Neue seltene

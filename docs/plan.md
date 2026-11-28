@@ -248,6 +248,8 @@ Standard, Timer-Benachrichtigung im Hintergrund). Nur Test-Builds, Store als eig
 
 ## Phase 8 — Offline-Modus (native App)
 
+**Stand 2026-11-28:** O1 (#354): Offline-Einstellungen im Profil + IndexedDB-Speicher (`src/api/offline`), noch ohne Sync.
+
 - Daten **cachen**, solange online; offline bereitstellen (vermutlich lokale
   **SQLite**-DB).
 - Edits offline **lokal ausführen + queuen**, gegen das Backend syncen, sobald

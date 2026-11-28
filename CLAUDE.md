@@ -83,6 +83,9 @@ There's no server code and no secrets in the repo.
     (the route needs the bearer, `<img>` can't send it).
   - `pendingSaves.ts` — editor saves still in flight after unmount; `getRecipe` /
     `searchRecipes` wait for them (max. 10 s) so a GET can't overtake the PUT.
+  - `offline/` — device-local offline store (IndexedDB `foodly-offline`) and the offline settings
+    (`localStorage["foodly.offline.settings"]`); no backend and no `foodly.*` branch, imported only by the lazy
+    profile page (`docs/architecture.md` §1).
   - `socket.ts` — `SocketClient` (connect, auto-reconnect, request/response
     correlation, events), **reserved for future live editing** and never
     connected today. Its `{ id, type, payload }` envelope is unused today; the
@@ -94,7 +97,7 @@ There's no server code and no secrets in the repo.
   (`timerNotifications.ts`: timer notifications in the background; `keepAwake.ts`:
   keep the screen on for `useWakeLock`; `openExternal.ts`: external links in the
   in-app browser; `appShell.ts`: splash screen and status-bar style; `storage.ts`:
-  the session in Preferences). Lint
+  the session in Preferences; `network.ts`: Wi-Fi vs. mobile from `navigator.connection`, unknown = mobile). Lint
   forbids `@capacitor/*` imports elsewhere. See
   [`docs/decisions/0005-native-shell.md`](docs/decisions/0005-native-shell.md)
   and [`docs/native.md`](docs/native.md) (build, sync, device checklist);
