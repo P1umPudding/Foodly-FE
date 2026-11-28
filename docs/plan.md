@@ -39,6 +39,7 @@ Was das Backend noch nicht kann, ist gestubbt und mit „Demo“ markiert.
 | Teilen (Editoren/Viewer) | localStorage | #12 (B4) |
 | Gruppen-Kachel | localStorage | #13 (B5, Entscheidung B12) |
 | „Kürzlich hinzugefügt“ | ausgeblendet bis #14 | #14 (B6) |
+| Persönliche Notiz (#348) | localStorage, auch im Mock | – (kein Endpoint, Folge-Issue #360) |
 
 **Nach der Alpha:** Phase 7 (native App), Phase 8 (Offline), Phase 9.
 
@@ -287,7 +288,7 @@ Modellierung — Details klären wir, wenn die Phase dran ist.
 ## Phase 9 — Weitere Daten & Funktionen
 
 Laufende Erweiterung von Modell und Funktionsumfang, z.B.:
-- **Persönliche Notizen** an Rezepten (privat pro User).
+- **Persönliche Notizen** an Rezepten (privat pro User). Platzhalter (#348): „Meine Notiz“ auf der Detailseite, lesend im Koch-Modus, lokal gespeichert (#360).
 - **Öffentliche Kommentare** an Rezepten.
 - *Idee:* **Abkürzungsverzeichnis** (z. B. EL = Esslöffel) und **Mengen-
   verzeichnis** (z. B. 1 EL Zucker = x g) — zum Nachschlagen und ggf. zum
