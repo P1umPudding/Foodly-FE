@@ -13,6 +13,7 @@ vi.mock('./pages/RecipeEditor', () => new Promise(() => {}))
 vi.mock('./pages/Categories', () => new Promise(() => {}))
 vi.mock('./pages/CategoryPage', () => new Promise(() => {}))
 vi.mock('./pages/CookMode', () => new Promise(() => {}))
+vi.mock('./pages/Profile', () => new Promise(() => {}))
 
 vi.mock('./components/shell/AppShell', () => ({
   AppShell: ({ children }: { children: ReactNode }) => <nav aria-label="Shell">{children}</nav>,
@@ -36,6 +37,7 @@ describe('lazy route fallbacks', () => {
     ['/recipes/5/edit', 'Rezept bearbeiten', true],
     ['/categories', 'Kategorien', true],
     ['/categories/2', 'Kategorie', true],
+    ['/profile', 'Profil & Einstellungen', true],
     ['/recipes/5/cook', 'Kochen', false],
   ])('%s shows a page-shaped skeleton, no spinner', (path, title, inShell) => {
     seedSession()

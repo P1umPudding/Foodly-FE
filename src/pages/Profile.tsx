@@ -1,6 +1,6 @@
-// „Profil & Einstellungen“ (mockup `#/profile`): who is signed in, the theme, the way to the categories and Abmelden.
-// Mockup entries with nothing behind them in the app are left out: the recipe count (B19: none without an extra
-// request, #304), the group count (B5), Timer-Ton, Offline, wake-lock (#245).
+// „Profil & Einstellungen“ (mockup `#/profile`): who is signed in, the theme, the offline settings, the way to the
+// categories and Abmelden. Mockup entries with nothing behind them in the app are left out: the recipe count (B19:
+// none without an extra request, #304), the group count (B5), Timer-Ton, wake-lock (#245).
 import { Link } from 'react-router'
 import { Avatar, AvatarFallback, Button, Card, cn } from '@postxl/ui-components'
 import { ChevronRight } from 'lucide-react'
@@ -11,6 +11,7 @@ import { FOCUS_RING } from '../components/focusRing'
 import { ROW_DIVIDER } from '../components/rowDivider'
 import { Page } from '../components/shell/Page'
 import { profileName } from '../components/shell/profileName'
+import { OfflineSettings } from '../components/profile/OfflineSettings'
 
 // Mockup `.card.set-card` and `.row.set`.
 const CARD = 'mb-5 gap-0 px-1 py-0.5'
@@ -47,6 +48,8 @@ export function Profile() {
             </div>
           </Card>
         </section>
+
+        <OfflineSettings />
 
         {/* The mockup shows this card without a heading; the sr-only one keeps it out of „Darstellung“ for
             heading navigation. */}
