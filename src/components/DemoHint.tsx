@@ -5,6 +5,7 @@ import { isStubbed, type StubFeature } from '../api/stubs'
 // once the backend serves the feature, or with VITE_MOCK=1.
 const TEXT: Partial<Record<StubFeature, string>> = {
   ratings: 'Demo: nur in diesem Browser gespeichert',
+  myNotes: 'Demo: nur in diesem Browser gespeichert, noch nicht synchronisiert',
 }
 
 export function DemoHint({ feature }: { feature: StubFeature }) {

@@ -1,5 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mergeMyRating, readMyRating, setStubUser, sortByRating, stubStore, writeMyRating } from './stubs'
+import {
+  MY_NOTE_MAX,
+  mergeMyRating,
+  readMyNote,
+  readMyRating,
+  readNote,
+  setStubUser,
+  sortByRating,
+  stubStore,
+  writeMyNote,
+  writeMyRating,
+  writeNote,
+} from './stubs'
 import { assertRating } from './views'
 import type { Recipe } from './protocol'
 
@@ -40,11 +52,11 @@ afterEach(() => {
 })
 
 describe('STUBBED register', () => {
-  it('stubs only ratings in REST mode', async () => {
+  it('stubs ratings and personal notes in REST mode', async () => {
     vi.stubEnv('VITE_MOCK', '')
     vi.resetModules()
     const { STUBBED, isStubbed } = await import('./stubs')
-    expect([...STUBBED].sort()).toEqual(['ratings'])
+    expect([...STUBBED].sort()).toEqual(['myNotes', 'ratings'])
     expect(isStubbed('ratings')).toBe(true)
     expect(isStubbed('sharing')).toBe(false)
   })
@@ -157,5 +169,31 @@ describe('assertRating', () => {
   it('accepts whole stars 1–5 only', () => {
     for (const ok of [1, 3, 5]) expect(() => assertRating(ok)).not.toThrow()
     for (const bad of [0, 6, 2.5, NaN]) expect(() => assertRating(bad)).toThrow()
+  })
+})
+
+describe('personal note stub', () => {
+  it('stores notes per user and recipe and removes empty ones', () => {
+    writeNote(1, 5, 'A')
+    writeNote(2, 5, 'B')
+    writeNote(1, 6, 'C')
+    expect([readNote(1, 5), readNote(2, 5), readNote(1, 6), readNote(2, 6)]).toEqual(['A', 'B', 'C', ''])
+    writeNote(1, 5, '  \n ')
+    expect(JSON.parse(localStorage.getItem('foodly.stub.myNotes')!)).toEqual({ 1: { 6: 'C' }, 2: { 5: 'B' } })
+  })
+
+  it('clips to the maximum length and reads corrupt data as no note', () => {
+    writeNote(1, 5, 'x'.repeat(MY_NOTE_MAX + 10))
+    expect(readNote(1, 5)).toHaveLength(MY_NOTE_MAX)
+    localStorage.setItem('foodly.stub.myNotes', JSON.stringify({ 1: { 5: 42 }, 2: 'oops' }))
+    expect([readNote(1, 5), readNote(2, 5)]).toEqual(['', ''])
+  })
+
+  it('needs a signed-in user to write my note', () => {
+    expect(readMyNote(5)).toBe('')
+    expect(() => writeMyNote(5, 'x')).toThrow('Nicht angemeldet')
+    setStubUser(3)
+    writeMyNote(5, 'x')
+    expect(readMyNote(5)).toBe('x')
   })
 })
