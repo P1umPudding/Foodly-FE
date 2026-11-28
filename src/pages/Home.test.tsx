@@ -91,11 +91,8 @@ describe('Home', () => {
 
   it('shows the "nothing to show" card while no section has content', async () => {
     renderHome()
-    const card = (
-      await screen.findByText(
-        'Hier erscheinen deine Kategorien und die zuletzt bearbeiteten Rezepte.',
-      )
-    ).parentElement!
+    const card = (await screen.findByText('Hier erscheinen deine Kategorien und die zuletzt bearbeiteten Rezepte.'))
+      .parentElement!
     // One action at most (design.md §5): only "Neues Rezept"; the list is one click away in the navigation.
     expect(within(card).queryByRole('link', { name: 'Alle Rezepte' })).toBeNull()
     expect(within(card).getByText('Noch nichts zu sehen')).toBeTruthy()

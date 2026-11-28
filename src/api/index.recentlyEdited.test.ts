@@ -64,7 +64,10 @@ const body = () => JSON.parse(String(fetchSpy.mock.calls[0][1]?.body))
 describe('REST searchRecipes sorted by updatedAt', () => {
   it('sends no sort and sorts the page newest first, nulls last, ties by id', async () => {
     const foodly = await load()
-    const page = await foodly.searchRecipes({ filters: { tags: ['x'] }, sort: { field: 'updatedAt', order: 'desc' } }, 1)
+    const page = await foodly.searchRecipes(
+      { filters: { tags: ['x'] }, sort: { field: 'updatedAt', order: 'desc' } },
+      1,
+    )
     expect(body()).toEqual({ filters: { tags: ['x'] } })
     expect(page.items.map((r) => r.id)).toEqual([3, 1, 4, 2])
   })

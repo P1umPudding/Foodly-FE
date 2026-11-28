@@ -137,7 +137,10 @@ export const foodly = {
       USE_MOCKS
         ? socket.request<PaginatedRecipes>('recipes.search', { query, page })
         : rest
-            .post<PaginatedResponse<RecipePreview>>(`/recipes/search?page=${page}&limit=${PAGE_SIZE}`, serverQuery(query))
+            .post<PaginatedResponse<RecipePreview>>(
+              `/recipes/search?page=${page}&limit=${PAGE_SIZE}`,
+              serverQuery(query),
+            )
             .then((res) => ({ items: res.data.map(previewToRecipe), cursor: res.cursor ? Number(res.cursor) : null }))
             .then((page) => (isStubbed('ratings') ? withStubRatings(page, query) : page))
             .then((page) => (query.sort?.field === 'updatedAt' ? sortPage(page, query) : page)),
