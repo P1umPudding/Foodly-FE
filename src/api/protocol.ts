@@ -143,7 +143,8 @@ export type PaginatedResponse<T> = { data: T[]; cursor: string | null }
 
 export type RecipeAccessRight = 'owner' | 'editor' | 'viewer'
 export type RecipeShareStateWire = 'private' | 'shared' | 'collaborative'
-export type RecipeSortField = 'name' | 'workTime' | 'totalTime' | 'rating' | 'accessSince'
+// 'updatedAt': the server can't sort by it yet (backend #16); the REST branch of searchRecipes sorts page 1 itself.
+export type RecipeSortField = 'name' | 'workTime' | 'totalTime' | 'rating' | 'accessSince' | 'updatedAt'
 export type SortOrder = 'asc' | 'desc'
 
 export type RecipeFilters = {

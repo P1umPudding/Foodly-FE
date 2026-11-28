@@ -56,6 +56,11 @@ function sortValue(recipe: Recipe, field: RecipeSortField): number | string | nu
       return averageRating(recipe)
     case 'accessSince':
       return recipe.myAccessSince
+    case 'updatedAt': {
+      // A number, not the string: mock seeds have seconds, mock edits milliseconds, so strings don't compare reliably.
+      const t = recipe.updatedAt === null ? NaN : Date.parse(recipe.updatedAt)
+      return Number.isNaN(t) ? null : t
+    }
   }
 }
 
@@ -81,8 +86,10 @@ export function applyQuery(recipes: Recipe[], query: RecipeSearchQuery, currentU
   const sort = query.sort
   if (sort) {
     const dir = sort.order === 'asc' ? 1 : -1
-    // Like the backend, 'accessSince' breaks ties by id ascending in both directions (backend #22).
-    const tieBreak = (a: Recipe, b: Recipe) => (sort.field === 'accessSince' ? a.id - b.id : 0)
+    // Like the backend, 'accessSince' breaks ties by id ascending in both directions (backend #22); 'updatedAt' the
+    // same, so the start page's row is stable.
+    const tieBreak = (a: Recipe, b: Recipe) =>
+      sort.field === 'accessSince' || sort.field === 'updatedAt' ? a.id - b.id : 0
     out = [...out].sort((a, b) => {
       const va = sortValue(a, sort.field)
       const vb = sortValue(b, sort.field)

@@ -130,3 +130,18 @@ describe('applyQuery accessSince sort', () => {
     expect(out.map((r) => r.id)).toEqual([7, 9])
   })
 })
+
+describe('applyQuery updatedAt sort', () => {
+  const recipes = [
+    recipe({ id: 1, updatedAt: '2026-01-01T09:00:00+00:00' }),
+    recipe({ id: 2, updatedAt: null }),
+    recipe({ id: 3, updatedAt: '2026-03-01T09:00:00.500+00:00' }),
+    recipe({ id: 4, updatedAt: '2026-01-01T09:00:00+00:00' }),
+    recipe({ id: 5, updatedAt: '2026-03-01T09:00:00+00:00' }),
+  ]
+
+  it('sorts newest first by time (not string), nulls last, ties by id', () => {
+    const out = applyQuery(recipes, { sort: { field: 'updatedAt', order: 'desc' } }, 1)
+    expect(out.map((r) => r.id)).toEqual([3, 5, 1, 4, 2])
+  })
+})
