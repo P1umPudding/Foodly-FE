@@ -2,6 +2,7 @@ import { SocketClient } from './socket'
 import { rest, collectPages } from './rest'
 import * as session from './auth'
 import type { AuthListener, AuthSession, SessionEnd } from './auth'
+import type { RecipeComment } from './comments'
 import { resetTagIconCache } from './assets'
 import { previewToRecipe } from './adapters'
 import { isStubbed, mergeMyRating, setStubUser, sortByRating, writeMyRating } from './stubs'
@@ -167,6 +168,20 @@ export const foodly = {
     USE_MOCKS
       ? socket.request<void>('myNote.set', { id, text })
       : import('./myNotes').then((m) => m.writeMyNote(id, text)),
+  // Public comments. No backend endpoint yet: the REST branch is a localStorage stub (comments.ts).
+  listComments: (id: RecipeId): Promise<RecipeComment[]> =>
+    USE_MOCKS
+      ? socket.request<RecipeComment[]>('comments.list', { id })
+      : import('./comments').then((m) => m.readComments(id)),
+  addComment: (id: RecipeId, text: string): Promise<RecipeComment> =>
+    USE_MOCKS
+      ? socket.request<RecipeComment>('comments.add', { id, text })
+      : import('./comments').then((m) => m.addMyComment(id, text)),
+  // `recipeOwner` only feeds the REST stub's permission check; the mock looks the owner up itself.
+  deleteComment: (id: RecipeId, commentId: string, recipeOwner: UserId): Promise<void> =>
+    USE_MOCKS
+      ? socket.request<void>('comments.delete', { id, commentId })
+      : import('./comments').then((m) => m.deleteMyComment(id, commentId, recipeOwner)),
   clearMyRating: (id: RecipeId): Promise<Recipe> =>
     USE_MOCKS
       ? socket.request<Recipe>('ratings.clear', { id })

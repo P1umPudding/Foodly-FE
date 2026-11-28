@@ -17,6 +17,8 @@ import type {
 import { applyQuery, PAGE_SIZE } from '../list/query'
 import { assertRating } from '../api/views'
 import { readNote, writeNote } from '../api/myNotes'
+import { addCommentAs, deleteCommentAs, hasCommentEntry, readComments, writeComments } from '../api/comments'
+import { SEED_COMMENTS } from './comments'
 import { imageRef, withImageRefs } from './images'
 import type { PaginatedRecipes, RecipeSearchQuery } from '../api/protocol'
 
@@ -246,6 +248,23 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       updated.rating = existing.rating
       mockData.recipes[index] = updated
       return updated
+    }
+    case 'comments.list': {
+      const recipeId = id as RecipeId
+      if (!hasCommentEntry(recipeId))
+        writeComments(
+          recipeId,
+          (SEED_COMMENTS[recipeId] ?? []).map((c, i) => ({ ...c, id: `seed-${recipeId}-${i}` })),
+        )
+      return readComments(recipeId)
+    }
+    case 'comments.add':
+      return addCommentAs(CURRENT_USER_ID, id as RecipeId, (payload as { text: string }).text)
+    case 'comments.delete': {
+      const recipe = mockData.recipes.find((r) => r.id === id)
+      if (!recipe) throw new Error(`recipe ${id} not found`)
+      deleteCommentAs(CURRENT_USER_ID, recipe.id, (payload as { commentId: string }).commentId, recipe.owner)
+      return
     }
     case 'myNote.get':
       return readNote(CURRENT_USER_ID, id as RecipeId)

@@ -12,6 +12,12 @@ describe('DemoHint', () => {
     expect(screen.getByText('Demo: nur in diesem Browser gespeichert')).toBeTruthy()
   })
 
+  it('shows the comments hint while comments are stubbed (REST mode)', () => {
+    stubbed.value = true
+    render(<DemoHint feature="comments" />)
+    expect(screen.getByText('Kommentare sind noch nur auf diesem Gerät gespeichert')).toBeTruthy()
+  })
+
   it('falls back to the generic text for other stubbed features', () => {
     stubbed.value = true
     render(<DemoHint feature="sharing" />)

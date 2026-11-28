@@ -6,6 +6,7 @@ import { isStubbed, type StubFeature } from '../api/stubs'
 const TEXT: Partial<Record<StubFeature, string>> = {
   ratings: 'Demo: nur in diesem Browser gespeichert',
   myNotes: 'Demo: nur in diesem Browser gespeichert, noch nicht synchronisiert',
+  comments: 'Kommentare sind noch nur auf diesem Gerät gespeichert',
 }
 
 export function DemoHint({ feature }: { feature: StubFeature }) {
