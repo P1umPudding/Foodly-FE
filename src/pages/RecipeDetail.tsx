@@ -43,7 +43,6 @@ import type { Recipe, UserId } from '../api/protocol'
 import { cookHref, parseSize, withSize } from '../cook/size'
 import { formatRecipeTimes } from '../api/views'
 import { openRecipe, useCheckedIngredients } from '../cook/checkedIngredients'
-import { pushRecentlyViewed, removeRecentlyViewed } from '../home/recentlyViewed'
 import { isNative } from '../native/platform'
 import { openExternal } from '../native/openExternal'
 
@@ -122,13 +121,6 @@ export function RecipeDetail() {
     // The lock used to end with the toggle's unmount on a recipe switch; keep it that way.
     setWakeLock(false)
   }, [recipeId, setWakeLock])
-
-  // Keyed on the loaded id only, so portion or rating changes don't push again; a repeat push just moves it to
-  // the front, so StrictMode's double run is harmless.
-  const loadedId = status === 'ready' && recipe ? recipe.id : null
-  useEffect(() => {
-    if (loadedId !== null && currentUserId !== null) pushRecentlyViewed(currentUserId, loadedId)
-  }, [loadedId, currentUserId])
 
   // Timer labels are plain text, so tag tokens in the name become the tag's name.
   const plainName = recipe ? plainTagText(recipe.name, tags) : ''
@@ -271,9 +263,6 @@ export function RecipeDetail() {
               name={plainName}
               // replace: Back must not lead to the deleted recipe's "not found" page.
               onDeleted={() => {
-                // Otherwise six deleted recipes in front would keep "Zuletzt angesehen" empty for good (failed
-                // loads are only forgotten when another one loaded).
-                if (currentUserId !== null) removeRecentlyViewed(currentUserId, [recipe.id])
                 refreshCategories()
                 void navigate('/recipes', { replace: true })
               }}

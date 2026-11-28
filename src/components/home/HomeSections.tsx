@@ -54,7 +54,7 @@ export function NothingToShow() {
     <EmptyState
       icon={UtensilsCrossed}
       title="Noch nichts zu sehen"
-      description="Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast."
+      description="Hier erscheinen deine Kategorien und die zuletzt bearbeiteten Rezepte."
       action={
         <Button asChild variant="outline" size="sm">
           <Link to="/recipes/new">Neues Rezept</Link>

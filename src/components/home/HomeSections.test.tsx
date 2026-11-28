@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { HomeSection } from './HomeSection'
 import { HomeSectionsProvider, NothingToShow, type SectionState } from './HomeSections'
 
-const CARD_TEXT = 'Hier erscheinen deine Kategorien und Rezepte, die du zuletzt erstellt oder angesehen hast.'
+const CARD_TEXT = 'Hier erscheinen deine Kategorien und die zuletzt bearbeiteten Rezepte.'
 
 function Page({ states }: { states: SectionState[] }) {
   return (

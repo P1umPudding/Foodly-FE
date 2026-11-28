@@ -1,4 +1,4 @@
-// Own file on purpose: other mock tests copy recipes into the shared mockData, and a copy is the newest own recipe.
+// Own file on purpose: other mock tests copy recipes into the shared mockData, and a copy is the newest edited one.
 import { describe, expect, it } from 'vitest'
 import { CURRENT_USER_ID, mockData, mockRequest } from './index'
 import type { PaginatedRecipes } from '../api/protocol'
@@ -22,14 +22,15 @@ describe('mock recipe timestamps', () => {
   })
 })
 
-describe('mock search: own recipes, newest first', () => {
-  it('returns only own recipes, newest first', async () => {
+describe('mock search: last edited first', () => {
+  it('returns all recipes user 1 can open by updatedAt, newest first', async () => {
     const page = (await mockRequest('recipes.search', {
-      query: { filters: { accessRights: ['owner'] }, sort: { field: 'accessSince', order: 'desc' } },
+      query: { sort: { field: 'updatedAt', order: 'desc' } },
       page: 1,
     })) as PaginatedRecipes
 
-    expect(page.items.map((r) => r.id)).toEqual([12, 4, 13, 1, 8, 6, 2, 10, 5])
-    expect(page.items.every((r) => r.owner === CURRENT_USER_ID)).toBe(true)
+    const times = page.items.map((r) => Date.parse(r.updatedAt!))
+    expect(times).toEqual([...times].sort((a, b) => b - a))
+    expect(page.items.slice(0, 6).map((r) => r.id)).toEqual([12, 4, 14, 13, 11, 9])
   })
 })

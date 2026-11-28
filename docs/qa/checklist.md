@@ -12,7 +12,7 @@ Grundlage für die Broad Runs von Foodly QA (am 1. und 15. jedes Monats). Jede J
 - Breakpoint wechseln, ohne dass die Seite neu aufgebaut wird (Entwurf und Liste bleiben erhalten)
 
 ## Start
-- `/` zeigt Datum, Begrüßung, Kategorien-Kacheln mit Anzahl und „Verwalten“, „Zuletzt erstellt“; Kacheln führen auf `/categories/:id`
+- `/` zeigt Datum, Begrüßung, Kategorien-Kacheln mit Anzahl und „Verwalten“, „Zuletzt bearbeitet“ (6 Rezepte, „Alle Rezepte“ → `/recipes`); Kacheln führen auf `/categories/:id`
 
 ## Kategorien
 - `/categories`: Liste mit Anzahl, „Neue Kategorie“ (Name, Farbe) anlegen, bearbeiten, löschen; Zurück
