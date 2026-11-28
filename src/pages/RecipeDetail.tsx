@@ -33,6 +33,7 @@ import { PortionScaler } from '../components/recipe/PortionScaler'
 import { WakeLockToggle } from '../components/WakeLockToggle'
 import { CompactToggle } from '../components/CompactToggle'
 import { RecipeHero, RecipeImages } from '../components/recipe/RecipeImages'
+import { MyNote } from '../components/recipe/MyNote'
 import { DeleteRecipeDialog } from '../components/recipe/DeleteRecipeDialog'
 import { HeaderActions, HeaderCrumbName } from '../components/shell/PageHeader'
 import { Lightbox } from '../components/recipe/Lightbox'
@@ -410,6 +411,8 @@ export function RecipeDetail() {
               onToggle={toggleChecked}
             />
           ))}
+
+          {currentUserId !== null && <MyNote key={recipe.id} recipeId={recipe.id} />}
 
           <RecipeImages images={allImages} onOpen={setLightboxIndex} />
 
