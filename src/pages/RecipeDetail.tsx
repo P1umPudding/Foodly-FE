@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ChefHat, Clock, Copy, ListChecks, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-react'
 import {
@@ -50,6 +50,9 @@ import { openExternal } from '../native/openExternal'
 // With a photo: image and infos side by side from 1100 px, stacked below (image max. 640 px wide).
 const HEAD_GRID = 'grid items-start gap-5 min-[1100px]:grid-cols-2 min-[1100px]:gap-8'
 const HERO_WIDTH = 'max-w-[640px] min-[1100px]:max-w-none'
+
+// Lazy: its autosave and textarea would otherwise push the entry chunk over its limit (vite.config.ts).
+const MyNote = lazy(() => import('../components/recipe/MyNote').then((m) => ({ default: m.MyNote })))
 
 function isUrl(s: string): boolean {
   return /^https?:\/\//i.test(s.trim())
@@ -410,6 +413,12 @@ export function RecipeDetail() {
               onToggle={toggleChecked}
             />
           ))}
+
+          {currentUserId !== null && (
+            <Suspense fallback={null}>
+              <MyNote key={recipe.id} recipeId={recipe.id} />
+            </Suspense>
+          )}
 
           <RecipeImages images={allImages} onOpen={setLightboxIndex} />
 

@@ -16,6 +16,7 @@ import type {
 } from '../api/protocol'
 import { applyQuery, PAGE_SIZE } from '../list/query'
 import { assertRating } from '../api/views'
+import { readNote, writeNote } from '../api/myNotes'
 import { imageRef, withImageRefs } from './images'
 import type { PaginatedRecipes, RecipeSearchQuery } from '../api/protocol'
 
@@ -246,6 +247,11 @@ export async function mockRequest(type: string, payload?: unknown): Promise<unkn
       mockData.recipes[index] = updated
       return updated
     }
+    case 'myNote.get':
+      return readNote(CURRENT_USER_ID, id as RecipeId)
+    case 'myNote.set':
+      writeNote(CURRENT_USER_ID, id as RecipeId, (payload as { text: string }).text)
+      return
     case 'ratings.set': {
       const { rating } = payload as { rating: number }
       const recipe = mockData.recipes.find((r) => r.id === id)

@@ -448,6 +448,24 @@ describe('RecipeDetail sections', () => {
   it('gives an unnamed section no title next to a named one', async () => {
     renderDetail('/recipes/5', { 5: recipe({ sections: [{ ...teig, name: null }, sosse] }) })
     await screen.findByRole('heading', { level: 1, name: 'Pancakes' })
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Zubereitung', 'Soße'])
+    // "Meine Notiz" (MyNote) is a level-2 heading of its own, tested there.
+    const titles = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
+    expect(titles.filter((t) => t !== 'Meine Notiz')).toEqual(['Zubereitung', 'Soße'])
+  })
+})
+
+describe('RecipeDetail personal note (#348)', () => {
+  it('shows "Meine Notiz" on a recipe I only view, and nothing while signed out', async () => {
+    vi.spyOn(foodly, 'getMyNote').mockResolvedValue('Mit Ahornsirup')
+    session.me = 3
+    const { unmount } = renderDetail('/recipes/5', { 5: recipe({ owner: 2, viewers: [3] }) })
+    expect(await screen.findByRole('heading', { level: 2, name: 'Meine Notiz' })).toBeTruthy()
+    expect(screen.getByText('Mit Ahornsirup')).toBeTruthy()
+    unmount()
+
+    session.me = null
+    renderDetail('/recipes/5', { 5: recipe() })
+    await heading()
+    expect(screen.queryByRole('heading', { name: 'Meine Notiz' })).toBeNull()
   })
 })

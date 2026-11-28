@@ -160,6 +160,13 @@ export const foodly = {
           return refetchAfterStubWrite(id)
         }),
 
+  // Private note per user and recipe. No backend endpoint yet: the REST branch is a localStorage stub.
+  getMyNote: (id: RecipeId): Promise<string> =>
+    USE_MOCKS ? socket.request<string>('myNote.get', { id }) : import('./myNotes').then((m) => m.readMyNote(id)),
+  setMyNote: (id: RecipeId, text: string): Promise<void> =>
+    USE_MOCKS
+      ? socket.request<void>('myNote.set', { id, text })
+      : import('./myNotes').then((m) => m.writeMyNote(id, text)),
   clearMyRating: (id: RecipeId): Promise<Recipe> =>
     USE_MOCKS
       ? socket.request<Recipe>('ratings.clear', { id })
