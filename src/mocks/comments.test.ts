@@ -19,7 +19,8 @@ describe('mock comments', () => {
     const before = await list(3)
     const added = (await mockRequest('comments.add', { id: 3, text: 'Neu' })) as RecipeComment
     expect(added.user).toBe(CURRENT_USER_ID)
-    expect((await list(3)).at(-1)?.text).toBe('Neu')
+    const after = await list(3)
+    expect(after[after.length - 1].text).toBe('Neu')
 
     const foreign = before.find((c) => c.user !== CURRENT_USER_ID)!
     await expect(mockRequest('comments.delete', { id: 3, commentId: foreign.id })).rejects.toThrow('Nicht erlaubt')

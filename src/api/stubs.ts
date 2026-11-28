@@ -12,7 +12,9 @@ export type StubFeature = 'ratings' | 'sharing' | 'groups' | 'addedAt' | 'myNote
 
 const USE_MOCKS = import.meta.env.VITE_MOCK === '1'
 
-export const STUBBED: ReadonlySet<StubFeature> = new Set<StubFeature>(USE_MOCKS ? [] : ['ratings', 'myNotes', 'comments'])
+export const STUBBED: ReadonlySet<StubFeature> = new Set<StubFeature>(
+  USE_MOCKS ? [] : ['ratings', 'myNotes', 'comments'],
+)
 
 export function isStubbed(feature: StubFeature): boolean {
   return STUBBED.has(feature)

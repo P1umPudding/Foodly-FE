@@ -51,8 +51,11 @@ import { openExternal } from '../native/openExternal'
 const HEAD_GRID = 'grid items-start gap-5 min-[1100px]:grid-cols-2 min-[1100px]:gap-8'
 const HERO_WIDTH = 'max-w-[640px] min-[1100px]:max-w-none'
 
-// Lazy: its autosave and textarea would otherwise push the entry chunk over its limit (vite.config.ts).
+// Lazy: they would otherwise push the entry chunk over its limit (vite.config.ts).
 const MyNote = lazy(() => import('../components/recipe/MyNote').then((m) => ({ default: m.MyNote })))
+const RecipeComments = lazy(() =>
+  import('../components/recipe/RecipeComments').then((m) => ({ default: m.RecipeComments })),
+)
 
 function isUrl(s: string): boolean {
   return /^https?:\/\//i.test(s.trim())
@@ -446,6 +449,12 @@ export function RecipeDetail() {
                 <TagText value={recipe.source} />
               )}
             </footer>
+          )}
+
+          {currentUserId !== null && (
+            <Suspense fallback={null}>
+              <RecipeComments key={recipe.id} recipe={recipe} />
+            </Suspense>
           )}
 
           {lightboxIndex !== null && allImages.length > 0 && (
