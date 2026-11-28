@@ -219,7 +219,8 @@ function refetchAfterStubWrite(id: RecipeId): Promise<Recipe> {
 }
 
 // Placeholder until backend #16: the server can't sort by updatedAt, so it gets the query without the sort and the
-// page is sorted here. Only within that page, so it's "the newest of page 1", not of all recipes. Drop once #16 lands.
+// page is sorted here. Only within that page, so it's "the newest of page 1", not of all recipes (and later pages
+// aren't ordered across pages; only the start page asks, for page 1). Drop once #16 lands.
 function serverQuery(query: RecipeSearchQuery): RecipeSearchQuery {
   if (query.sort?.field !== 'updatedAt') return query
   const { sort: _sort, ...rest } = query
