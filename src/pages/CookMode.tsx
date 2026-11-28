@@ -20,6 +20,7 @@ import {
   useIngredientSheet,
 } from '../components/cook/CookIngredients'
 import { CookNeed } from '../components/cook/CookNeed'
+import { CookNote } from '../components/cook/CookNote'
 import { plainTagText } from '../components/tagTokens'
 import { openRecipe, useCheckedIngredients } from '../cook/checkedIngredients'
 import { parseSize, sizeOnly, withSize } from '../cook/size'
@@ -210,6 +211,7 @@ export function CookMode() {
             close={closeButton}
             actions={
               <>
+                {currentUserId !== null && <CookNote recipeId={recipe.id} />}
                 {!wide && withIngredients && (
                   <CookIngredientsSheet open={sheet.open} onOpenChange={sheet.setOpen} {...ingredientProps} />
                 )}
