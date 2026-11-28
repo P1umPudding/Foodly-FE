@@ -1,12 +1,12 @@
 import 'fake-indexeddb/auto'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { clearOfflineStore, offlineGet, offlinePut } from '../../api/offline'
 import { OfflineSettings, formatMb } from './OfflineSettings'
 
 const KEY = 'foodly.offline.settings'
 const modeSwitch = () => screen.getByRole('switch', { name: 'Offline-Modus' })
-const slider = () => screen.getByRole('slider')
+const slider = () => screen.getByRole('slider', { name: 'Speicher-Limit' })
 const usage = () => screen.getByTestId('offline-usage')
 
 afterEach(async () => {
@@ -54,6 +54,7 @@ describe('OfflineSettings', () => {
     expect(slider().getAttribute('aria-valuemax')).toBe('5000')
     expect(slider().getAttribute('aria-valuenow')).toBe('1000')
     screen.getByText('1 GB')
+    expect(slider().getAttribute('aria-valuetext')).toBe('1 GB')
     fireEvent.keyDown(slider(), { key: 'End' })
     expect(slider().getAttribute('aria-valuenow')).toBe('5000')
     screen.getByText('5 GB')
@@ -80,6 +81,18 @@ describe('OfflineSettings', () => {
     await waitFor(() => expect(usage().textContent).toBe('0 MB'))
     expect(await offlineGet('recipes', '1')).toBeUndefined()
     expect(screen.queryByRole('alertdialog')).toBeNull()
+  })
+})
+
+describe('OfflineSettings without IndexedDB', () => {
+  // Unstubbed before the outer afterEach clears the store.
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('says the store is unavailable and offers no clearing', () => {
+    vi.stubGlobal('indexedDB', undefined)
+    render(<OfflineSettings />)
+    expect(usage().textContent).toBe('nicht verfügbar')
+    expect(screen.getByRole('button', { name: 'Cache leeren' }).hasAttribute('disabled')).toBe(true)
   })
 })
 

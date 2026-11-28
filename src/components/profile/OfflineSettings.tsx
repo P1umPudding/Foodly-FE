@@ -1,7 +1,7 @@
 // The profile's „Offline“ section (Phase 8, O1): the per-device settings, the space Foodly's offline store takes
 // and „Cache leeren“. Nothing downloads yet, so the store stays empty and the limit isn't enforced until the sync
 // lands (#355 ff.); the choices are kept so it can start from them.
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -54,6 +54,14 @@ export function formatMb(mb: number): string {
   return mb < 1000 ? `${decimal.format(mb)} MB` : `${decimal.format(mb / 1000)} GB`
 }
 
+// Below 0.05 MB the store isn't empty, it just rounds to 0.
+function formatUsage(usage: Usage): string {
+  if (usage === null) return '…'
+  if (usage === 'unavailable') return 'nicht verfügbar'
+  if (usage > 0 && usage < 50_000) return '< 0,1 MB'
+  return formatMb(usage / 1_000_000)
+}
+
 // null while loading, 'unavailable' without IndexedDB (e.g. some private modes) or when it fails.
 type Usage = number | null | 'unavailable'
 
@@ -79,6 +87,14 @@ export function OfflineSettings() {
   // The slider shows its value while dragging; it is saved once, on release.
   const [limitDraft, setLimitDraft] = useState(settings.limitMb)
   const [usage, refreshUsage] = useOfflineUsage()
+  const sliderBoxRef = useRef<HTMLDivElement>(null)
+  // The postxl Slider forwards no aria props to its thumb (see DurationFilter), so name and value text go onto the
+  // DOM node directly, before paint.
+  useLayoutEffect(() => {
+    const thumb = sliderBoxRef.current?.querySelector('[role=slider]')
+    thumb?.setAttribute('aria-labelledby', 'offline-limit')
+    thumb?.setAttribute('aria-valuetext', formatMb(limitDraft))
+  }, [limitDraft])
   const [confirmOpen, setConfirmOpen] = useState(false)
   const off = !settings.enabled
 
@@ -148,7 +164,7 @@ export function OfflineSettings() {
             <span className="text-muted-foreground tabular-nums">{formatMb(limitDraft)}</span>
           </div>
           {/* px: room for the knob's hover ring at both ends (as in the duration filter). */}
-          <div className="px-2">
+          <div ref={sliderBoxRef} className="px-2">
             <Slider
               aria-labelledby="offline-limit"
               sliderVariant="gray"
@@ -165,9 +181,14 @@ export function OfflineSettings() {
         <div className={cn(ROW, 'flex-wrap gap-y-2')}>
           <span className={LABEL}>Belegter Speicher</span>
           <span className="text-muted-foreground tabular-nums" data-testid="offline-usage">
-            {usage === null ? '…' : usage === 'unavailable' ? 'nicht verfügbar' : formatMb(usage / 1_000_000)}
+            {formatUsage(usage)}
           </span>
-          <Button variant="outline" size="sm" disabled={usage === 'unavailable'} onClick={() => setConfirmOpen(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!isOfflineStoreAvailable()}
+            onClick={() => setConfirmOpen(true)}
+          >
             Cache leeren
           </Button>
         </div>
@@ -227,7 +248,8 @@ function ClearCacheDialog({
         )}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>Abbrechen</AlertDialogCancel>
-          {/* As in DeleteRecipeDialog: a plain Button keeps the dialog open for an error, aria-disabled keeps focus. */}
+          {/* As in DeleteRecipeDialog: a plain Button keeps the dialog open for an error, aria-disabled keeps
+              focus. */}
           <Button
             variant="destructive"
             onClick={() => void onConfirm()}

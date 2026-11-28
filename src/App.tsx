@@ -18,7 +18,8 @@ import { RecipeDetail } from './pages/RecipeDetail'
 import { AndroidBackButton } from './native/AndroidBackButton'
 
 // Start, list and detail are the usual first pages and stay in the entry chunk; the rarer pages load on demand
-// (#221), the profile too since it carries the offline store (#354). The pages are named exports, React.lazy wants a default one.
+// (#221), the profile too since it carries the offline store (#354). The pages are named exports, React.lazy wants
+// a default one.
 const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })))
 const Register = lazy(() => import('./pages/Register').then((m) => ({ default: m.Register })))
 const RecipeEditor = lazy(() => import('./pages/RecipeEditor').then((m) => ({ default: m.RecipeEditor })))
