@@ -1,4 +1,4 @@
-// Public recipe comments (stub storage, no backend endpoint yet, follow-up issue linked in docs/plan.md). Own module
+// Public recipe comments (stub storage, no backend endpoint yet: #371). Own module
 // so src/api/index.ts loads it on demand and keeps it out of the entry chunk. All users share one key, so in REST
 // mode a browser only shows the comments written in it.
 

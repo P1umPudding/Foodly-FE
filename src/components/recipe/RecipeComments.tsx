@@ -43,7 +43,7 @@ export function RecipeComments({ recipe }: { recipe: Recipe }) {
     return (
       <CommentsSection count={null}>
         <p role="alert" className="text-sm text-destructive">
-          Kommentare konnten nicht geladen werden: {loaded.error?.message}
+          Kommentare konnten nicht geladen werden: {errorMessage(loaded.error, 'Unbekannter Fehler')}
         </p>
       </CommentsSection>
     )
@@ -68,13 +68,14 @@ export function RecipeComments({ recipe }: { recipe: Recipe }) {
           ))}
         </ol>
       )}
-      <CommentInput recipeId={recipe.id} onAdded={(c) => setComments([...list, c])} />
+      <CommentInput recipeId={recipe.id} onAdded={(c) => setComments((prev) => [...(prev ?? loaded.data ?? []), c])} />
       <DeleteCommentDialog
         recipe={recipe}
         comment={deleting}
         onClose={() => setDeleting(null)}
         onDeleted={(id) => {
-          setComments(list.filter((c) => c.id !== id))
+          // Functional: an add finishing meanwhile must not bring the deleted comment back (and vice versa).
+          setComments((prev) => (prev ?? loaded.data ?? []).filter((c) => c.id !== id))
           setDeleting(null)
         }}
       />
@@ -233,7 +234,7 @@ function DeleteCommentDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Kommentar löschen?</AlertDialogTitle>
-          <AlertDialogDescription>Der Kommentar wird für alle entfernt.</AlertDialogDescription>
+          <AlertDialogDescription>Der Kommentar wird gelöscht.</AlertDialogDescription>
         </AlertDialogHeader>
         {error && (
           <p role="alert" className="text-sm text-destructive">

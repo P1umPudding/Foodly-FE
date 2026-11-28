@@ -81,4 +81,14 @@ describe('RecipeComments', () => {
     expect(foodly.deleteComment).toHaveBeenCalledWith(5, 'm', 1)
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
   })
+
+  it('keeps the dialog open with the error when deleting fails', async () => {
+    vi.mocked(foodly.deleteComment).mockRejectedValue(new Error('Nicht erlaubt'))
+    renderComments(1)
+    fireEvent.click(await screen.findByRole('button', { name: 'Kommentar löschen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Löschen' }))
+    const dialog = await screen.findByRole('alertdialog')
+    expect((await within(dialog).findByRole('alert')).textContent).toContain('Nicht erlaubt')
+    expect(screen.getByText('Von Mara')).toBeTruthy()
+  })
 })

@@ -168,7 +168,7 @@ export const foodly = {
     USE_MOCKS
       ? socket.request<void>('myNote.set', { id, text })
       : import('./myNotes').then((m) => m.writeMyNote(id, text)),
-  // Public comments. No backend endpoint yet: the REST branch is a localStorage stub (comments.ts).
+  // Public comments. No backend endpoint yet (#371): the REST branch is a localStorage stub (comments.ts).
   listComments: (id: RecipeId): Promise<RecipeComment[]> =>
     USE_MOCKS
       ? socket.request<RecipeComment[]>('comments.list', { id })
