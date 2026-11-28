@@ -13,9 +13,9 @@ export function CookNote({ recipeId }: { recipeId: RecipeId }) {
   return (
     <ResponsivePanel
       trigger={
-        <TriggerButton variant="outline" size="sm" aria-label="Meine Notiz" className="gap-1.5 touch:h-10">
+        <TriggerButton variant="outline" size="sm" className="gap-1.5 touch:h-10">
           <StickyNote className="size-4" aria-hidden />
-          <span className="phone:sr-only">Notiz</span>
+          <span className="phone:sr-only">Meine Notiz</span>
         </TriggerButton>
       }
       popover={{ align: 'end', className: 'w-80', 'aria-label': 'Meine Notiz' }}

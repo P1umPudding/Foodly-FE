@@ -453,3 +453,19 @@ describe('RecipeDetail sections', () => {
     expect(titles.filter((t) => t !== 'Meine Notiz')).toEqual(['Zubereitung', 'Soße'])
   })
 })
+
+describe('RecipeDetail personal note (#348)', () => {
+  it('shows "Meine Notiz" on a recipe I only view, and nothing while signed out', async () => {
+    vi.spyOn(foodly, 'getMyNote').mockResolvedValue('Mit Ahornsirup')
+    session.me = 3
+    const { unmount } = renderDetail('/recipes/5', { 5: recipe({ owner: 2, viewers: [3] }) })
+    expect(await screen.findByRole('heading', { level: 2, name: 'Meine Notiz' })).toBeTruthy()
+    expect(screen.getByText('Mit Ahornsirup')).toBeTruthy()
+    unmount()
+
+    session.me = null
+    renderDetail('/recipes/5', { 5: recipe() })
+    await heading()
+    expect(screen.queryByRole('heading', { name: 'Meine Notiz' })).toBeNull()
+  })
+})

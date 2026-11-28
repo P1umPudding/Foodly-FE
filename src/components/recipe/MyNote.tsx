@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { Plus } from 'lucide-react'
-import { Button, Textarea } from '@postxl/ui-components'
+import { Button, Textarea, toast } from '@postxl/ui-components'
 import { foodly } from '../../api'
 import { MY_NOTE_MAX } from '../../api/myNotes'
 import type { RecipeId } from '../../api/protocol'
@@ -47,7 +47,7 @@ export function MyNote({ recipeId }: { recipeId: RecipeId }) {
     <MyNoteSection>
       {note.trim() === '' ? (
         <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setEditing(true)}>
-          <Plus className="size-4" />
+          <Plus className="size-4" aria-hidden />
           Notiz hinzufügen
         </Button>
       ) : (
@@ -92,7 +92,13 @@ function NoteEditor({
   onDone: (text: string) => void
 }) {
   const [draft, setDraft] = useState(initial)
-  const { status, retry, flush } = useAutosave(draft, (text) => foodly.setMyNote(recipeId, text))
+  // "Fertig" shows what was saved, including keystrokes typed while its flush ran.
+  const latest = useRef(draft)
+  latest.current = draft
+  const { status, retry, flush } = useAutosave(draft, (text) => foodly.setMyNote(recipeId, text), {
+    // Leaving the page (or signing out) mid-edit saves on unmount, where no status line is left to show a failure.
+    onFlushError: () => toast.error('Notiz konnte nicht gespeichert werden.'),
+  })
 
   return (
     <>
@@ -110,7 +116,7 @@ function NoteEditor({
           onClick={() => {
             // A failed save keeps the editor open; the status shows the error and offers a retry.
             void flush().then(
-              () => onDone(draft),
+              () => onDone(latest.current),
               () => {},
             )
           }}
