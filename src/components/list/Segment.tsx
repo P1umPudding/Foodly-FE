@@ -21,6 +21,7 @@ export function Segment<T extends string>({
   full = false,
   itemClassName,
   onItemClick,
+  disabled,
   ...labelling
 }: {
   value: T
@@ -35,13 +36,15 @@ export function Segment<T extends string>({
   itemClassName?: string
   // Runs before the selection change; the theme switch needs the click point for its reveal.
   onItemClick?: (v: T, e: MouseEvent<HTMLElement>) => void
+  disabled?: boolean
 } & ({ 'aria-label': string } | { 'aria-labelledby': string })) {
   return (
     <ToggleGroup
       type="single"
       value={value}
       onValueChange={(v) => v && onChange(v as T)}
-      className={cn(SEG_TRACK, full && 'w-full')}
+      disabled={disabled}
+      className={cn(SEG_TRACK, full && 'w-full', disabled && 'opacity-50')}
       {...labelling}
     >
       {options.map((o) => {

@@ -16,15 +16,15 @@ import { RootRoute } from './pages/RootRoute'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
 import { AndroidBackButton } from './native/AndroidBackButton'
-import { Profile } from './pages/Profile'
 
 // Start, list and detail are the usual first pages and stay in the entry chunk; the rarer pages load on demand
-// (#221). The pages are named exports, React.lazy wants a default one.
+// (#221), the profile too since it carries the offline store (#354). The pages are named exports, React.lazy wants a default one.
 const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })))
 const Register = lazy(() => import('./pages/Register').then((m) => ({ default: m.Register })))
 const RecipeEditor = lazy(() => import('./pages/RecipeEditor').then((m) => ({ default: m.RecipeEditor })))
 const Categories = lazy(() => import('./pages/Categories').then((m) => ({ default: m.Categories })))
 const CategoryPage = lazy(() => import('./pages/CategoryPage').then((m) => ({ default: m.CategoryPage })))
+const Profile = lazy(() => import('./pages/Profile').then((m) => ({ default: m.Profile })))
 const CookMode = lazy(() => import('./pages/CookMode').then((m) => ({ default: m.CookMode })))
 
 const HOME = { to: '/', label: 'Zur Startseite' }
@@ -130,7 +130,22 @@ export default function App() {
               }
             />
             <Route path="/categories/:id" element={<CategoryPageRoute />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route
+              path="/profile"
+              element={
+                <LazyRoute
+                  title="Profil & Einstellungen"
+                  exit={HOME}
+                  fallback={
+                    <Page className="pb-10">
+                      <CategoriesSkeleton />
+                    </Page>
+                  }
+                >
+                  <Profile />
+                </LazyRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Route>
           <Route element={<BareLayout />}>
