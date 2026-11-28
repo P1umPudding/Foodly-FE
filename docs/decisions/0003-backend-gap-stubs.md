@@ -24,8 +24,8 @@ Namen kommen seitdem über `foodly.getUsers` → `GET /users?ids=`.)
    `foodly.stub.`, geschlüsselt nach echten Backend-IDs (Rezept-ID, User-ID).
    Die Mock-JSONs aus `src/mocks/data` passen nicht zu echten IDs und werden
    dafür nicht genutzt. Mit `VITE_MOCK=1` bleibt alles wie bisher beim Mock-Responder.
-   Ausnahme: die persönliche Notiz (#348) hat gar kein Backend; der Mock-Handler
-   speichert sie ebenfalls im Stub-Speicher, damit sie auch im Mock einen Reload übersteht.
+   Ausnahme: die persönliche Notiz (#348) und Kommentare (#349) haben gar kein Backend; der
+   Mock-Handler speichert sie ebenfalls im Stub-Speicher, damit sie auch im Mock einen Reload überstehen.
 3. **Register:** `src/api/stubs.ts` exportiert `STUBBED` (Menge der Features,
    z. B. `'ratings' | 'sharing' | 'groups' | 'addedAt'`) und
    `isStubbed(feature)`. Im Mock-Modus ist nichts „gestubbt“ (alles ist Mock).

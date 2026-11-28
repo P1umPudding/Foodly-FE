@@ -1,17 +1,20 @@
 // Stubs for backend gaps in REST mode (Alpha, docs/decisions/0003-backend-gap-stubs.md).
 // Stub data lives in localStorage under `foodly.stub.`, keyed by real backend ids.
-// With VITE_MOCK=1 nothing is stubbed: the mock responder serves everything. Exception: the personal note has no
-// backend at all, so the mock handler stores it in the stub storage too (myNotes.ts; survives a reload in both modes).
+// With VITE_MOCK=1 nothing is stubbed: the mock responder serves everything. Exceptions: the personal note
+// and recipe comments have no backend at all, so the mock handler stores them in the stub storage too (myNotes.ts,
+// comments.ts; they survive a reload in both modes).
 
 import { averageRating } from './views'
 import type { Recipe, RecipeId, SortOrder, UserId } from './protocol'
 
 // Mirrors the ADR §3 list; extend as further gaps get stubbed.
-export type StubFeature = 'ratings' | 'sharing' | 'groups' | 'addedAt' | 'myNotes'
+export type StubFeature = 'ratings' | 'sharing' | 'groups' | 'addedAt' | 'myNotes' | 'comments'
 
 const USE_MOCKS = import.meta.env.VITE_MOCK === '1'
 
-export const STUBBED: ReadonlySet<StubFeature> = new Set<StubFeature>(USE_MOCKS ? [] : ['ratings', 'myNotes'])
+export const STUBBED: ReadonlySet<StubFeature> = new Set<StubFeature>(
+  USE_MOCKS ? [] : ['ratings', 'myNotes', 'comments'],
+)
 
 export function isStubbed(feature: StubFeature): boolean {
   return STUBBED.has(feature)

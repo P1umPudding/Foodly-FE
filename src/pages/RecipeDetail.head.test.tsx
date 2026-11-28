@@ -448,9 +448,9 @@ describe('RecipeDetail sections', () => {
   it('gives an unnamed section no title next to a named one', async () => {
     renderDetail('/recipes/5', { 5: recipe({ sections: [{ ...teig, name: null }, sosse] }) })
     await screen.findByRole('heading', { level: 1, name: 'Pancakes' })
-    // "Meine Notiz" (MyNote) is a level-2 heading of its own, tested there.
+    // "Meine Notiz" and "Kommentare (n)" are level-2 headings of their own, tested there.
     const titles = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
-    expect(titles.filter((t) => t !== 'Meine Notiz')).toEqual(['Zubereitung', 'Soße'])
+    expect(titles.filter((t) => t !== 'Meine Notiz' && !t?.startsWith('Kommentare'))).toEqual(['Zubereitung', 'Soße'])
   })
 })
 
