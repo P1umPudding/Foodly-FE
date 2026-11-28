@@ -1,17 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  MY_NOTE_MAX,
-  mergeMyRating,
-  readMyNote,
-  readMyRating,
-  readNote,
-  setStubUser,
-  sortByRating,
-  stubStore,
-  writeMyNote,
-  writeMyRating,
-  writeNote,
-} from './stubs'
+import { mergeMyRating, readMyRating, setStubUser, sortByRating, stubStore, writeMyRating } from './stubs'
+import { MY_NOTE_MAX, readMyNote, readNote, writeMyNote, writeNote } from './myNotes'
 import { assertRating } from './views'
 import type { Recipe } from './protocol'
 

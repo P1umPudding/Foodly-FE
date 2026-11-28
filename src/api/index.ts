@@ -4,7 +4,7 @@ import * as session from './auth'
 import type { AuthListener, AuthSession, SessionEnd } from './auth'
 import { resetTagIconCache } from './assets'
 import { previewToRecipe } from './adapters'
-import { isStubbed, mergeMyRating, readMyNote, setStubUser, sortByRating, writeMyNote, writeMyRating } from './stubs'
+import { isStubbed, mergeMyRating, setStubUser, sortByRating, writeMyRating } from './stubs'
 import { assertRating } from './views'
 import { afterSave, allPendingSaves, pendingSaveFor } from './pendingSaves'
 import { PAGE_SIZE } from '../list/query'
@@ -162,9 +162,11 @@ export const foodly = {
 
   // Private note per user and recipe. No backend endpoint yet: the REST branch is a localStorage stub.
   getMyNote: (id: RecipeId): Promise<string> =>
-    USE_MOCKS ? socket.request<string>('myNote.get', { id }) : Promise.resolve().then(() => readMyNote(id)),
+    USE_MOCKS ? socket.request<string>('myNote.get', { id }) : import('./myNotes').then((m) => m.readMyNote(id)),
   setMyNote: (id: RecipeId, text: string): Promise<void> =>
-    USE_MOCKS ? socket.request<void>('myNote.set', { id, text }) : Promise.resolve().then(() => writeMyNote(id, text)),
+    USE_MOCKS
+      ? socket.request<void>('myNote.set', { id, text })
+      : import('./myNotes').then((m) => m.writeMyNote(id, text)),
   clearMyRating: (id: RecipeId): Promise<Recipe> =>
     USE_MOCKS
       ? socket.request<Recipe>('ratings.clear', { id })

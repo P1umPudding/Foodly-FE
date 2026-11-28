@@ -16,7 +16,7 @@ import type {
 } from '../api/protocol'
 import { applyQuery, PAGE_SIZE } from '../list/query'
 import { assertRating } from '../api/views'
-import { readNote, writeNote } from '../api/stubs'
+import { readNote, writeNote } from '../api/myNotes'
 import { imageRef, withImageRefs } from './images'
 import type { PaginatedRecipes, RecipeSearchQuery } from '../api/protocol'
 

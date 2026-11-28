@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from 'react'
-import { Plus, StickyNote } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button, Textarea } from '@postxl/ui-components'
 import { foodly } from '../../api'
-import { MY_NOTE_MAX } from '../../api/stubs'
+import { MY_NOTE_MAX } from '../../api/myNotes'
 import type { RecipeId } from '../../api/protocol'
 import { useRequest } from '../../hooks/useRequest'
 import { useAutosave } from '../../editor/useAutosave'
@@ -68,9 +68,8 @@ function MyNoteSection({ children }: { children: ReactNode }) {
       <h2
         id="my-note-title"
         // 19 px matches the section titles (SectionBlock), no token.
-        className="mb-3 flex items-center gap-2 font-display text-[19px] leading-tight text-foreground"
+        className="mb-3 font-display text-[19px] leading-tight text-foreground"
       >
-        <StickyNote className="size-4 text-muted-foreground" aria-hidden />
         Meine Notiz
       </h2>
       {children}
@@ -108,13 +107,13 @@ function NoteEditor({
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <Button
           size="sm"
-          onClick={() =>
+          onClick={() => {
             // A failed save keeps the editor open; the status shows the error and offers a retry.
-            flush().then(
+            void flush().then(
               () => onDone(draft),
               () => {},
             )
-          }
+          }}
         >
           Fertig
         </Button>

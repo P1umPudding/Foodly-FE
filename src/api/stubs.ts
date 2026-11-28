@@ -1,7 +1,7 @@
 // Stubs for backend gaps in REST mode (Alpha, docs/decisions/0003-backend-gap-stubs.md).
 // Stub data lives in localStorage under `foodly.stub.`, keyed by real backend ids.
 // With VITE_MOCK=1 nothing is stubbed: the mock responder serves everything. Exception: the personal note has no
-// backend at all, so the mock handler stores it here too (survives a reload in both modes).
+// backend at all, so the mock handler stores it in the stub storage too (myNotes.ts; survives a reload in both modes).
 
 import { averageRating } from './views'
 import type { Recipe, RecipeId, SortOrder, UserId } from './protocol'
@@ -19,7 +19,7 @@ export function isStubbed(feature: StubFeature): boolean {
 
 const PREFIX = 'foodly.stub.'
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
@@ -110,35 +110,4 @@ export function sortByRating(recipes: Recipe[], order: SortOrder): Recipe[] {
     if (vb === null) return -1
     return (va - vb) * dir
   })
-}
-
-// --- Personal notes (no backend endpoint yet). Private per user and recipe, stored as
-// { [userId]: { [recipeId]: text } }. Empty or whitespace-only removes the entry.
-
-export const MY_NOTE_MAX = 5000
-
-const MY_NOTES_KEY = 'myNotes'
-
-export function readNote(user: UserId, recipeId: RecipeId): string {
-  const mine = stubStore.read<Record<string, unknown>>(MY_NOTES_KEY, {})[user]
-  const value = isRecord(mine) ? mine[recipeId] : undefined
-  return typeof value === 'string' ? value : ''
-}
-
-export function writeNote(user: UserId, recipeId: RecipeId, text: string): void {
-  const store = stubStore.read<Record<string, unknown>>(MY_NOTES_KEY, {})
-  const stored = store[user]
-  const mine = isRecord(stored) ? { ...stored } : {}
-  if (text.trim() === '') delete mine[recipeId]
-  else mine[recipeId] = text.slice(0, MY_NOTE_MAX)
-  stubStore.write(MY_NOTES_KEY, { ...store, [user]: mine })
-}
-
-export function readMyNote(recipeId: RecipeId): string {
-  return currentUserId === null ? '' : readNote(currentUserId, recipeId)
-}
-
-export function writeMyNote(recipeId: RecipeId, text: string): void {
-  if (currentUserId === null) throw new Error('Nicht angemeldet')
-  writeNote(currentUserId, recipeId, text)
 }
